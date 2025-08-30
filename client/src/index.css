@@ -207,7 +207,7 @@
 
   .watermark-background {
     filter: brightness(0.7) contrast(1.2) hue-rotate(10deg);
-    animation: watermarkGlow 4s ease-in-out infinite alternate;
+    animation: watermarkGlow 4s ease-in-out infinite alternate, glitchEffect 8s infinite;
   }
 }
 
@@ -234,5 +234,52 @@
   to { 
     opacity: 0.25;
     filter: brightness(0.8) contrast(1.3) hue-rotate(15deg);
+  }
+}
+
+@keyframes glitchEffect {
+  0%, 95% {
+    transform: translateX(0) skewX(0deg);
+    filter: brightness(0.7) contrast(1.2) hue-rotate(10deg);
+  }
+  
+  2% {
+    transform: translateX(-2px) skewX(0.5deg);
+    filter: brightness(0.7) contrast(1.2) hue-rotate(10deg) hue-rotate(30deg);
+  }
+  
+  4% {
+    transform: translateX(2px) skewX(-0.3deg);
+    filter: brightness(0.9) contrast(1.5) hue-rotate(10deg) saturate(1.3);
+  }
+  
+  42% {
+    transform: translateX(0) skewX(0deg);
+    filter: brightness(0.7) contrast(1.2) hue-rotate(10deg);
+  }
+  
+  44% {
+    transform: translateX(1px) skewX(0.2deg);
+    filter: brightness(0.8) contrast(1.4) hue-rotate(10deg) hue-rotate(-10deg);
+  }
+  
+  46% {
+    transform: translateX(-1px) skewX(-0.1deg);
+    filter: brightness(0.6) contrast(1.6) hue-rotate(10deg) saturate(0.8);
+  }
+  
+  78% {
+    transform: translateX(0) skewX(0deg);
+    filter: brightness(0.7) contrast(1.2) hue-rotate(10deg);
+  }
+  
+  80% {
+    transform: translateX(-1px) skewX(0.3deg);
+    filter: brightness(0.9) contrast(1.3) hue-rotate(10deg) hue-rotate(15deg);
+  }
+  
+  82% {
+    transform: translateX(1px) skewX(-0.2deg);
+    filter: brightness(0.5) contrast(1.7) hue-rotate(10deg) saturate(1.2);
   }
 }
