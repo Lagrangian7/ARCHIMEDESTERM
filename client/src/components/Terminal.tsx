@@ -7,18 +7,20 @@ import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { History } from 'lucide-react';
 import skullWatermark from '@assets/wally_1756523512970.jpg';
+import logoImage from '@assets/5721242-200_1756549869080.png';
 
-// Brain Circuit SVG Component
-const BrainIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 32 32" className="text-terminal-orange fill-current brain-icon">
-    <path d="M16 2C8.3 2 2 8.3 2 16s6.3 14 14 14 14-6.3 14-14S23.7 2 16 2zm0 25c-6.1 0-11-4.9-11-11S9.9 5 16 5s11 4.9 11 11-4.9 11-11 11z"/>
-    <circle cx="8" cy="12" r="1.5" className="fill-current"/>
-    <circle cx="16" cy="8" r="1.5" className="fill-current"/>
-    <circle cx="24" cy="12" r="1.5" className="fill-current"/>
-    <circle cx="12" cy="20" r="1.5" className="fill-current"/>
-    <circle cx="20" cy="20" r="1.5" className="fill-current"/>
-    <path d="M8 12h4M12 8h4M16 8v4M16 12h4M20 12v4M16 12v4M12 16h4" stroke="currentColor" strokeWidth="1" fill="none"/>
-  </svg>
+// Logo Component
+const LogoIcon = () => (
+  <img 
+    src={logoImage} 
+    alt="ARCHIMEDES Logo" 
+    width="32" 
+    height="32" 
+    className="logo-icon filter brightness-150 contrast-125 hue-rotate-12 drop-shadow-lg"
+    style={{
+      filter: 'brightness(1.3) contrast(1.2) hue-rotate(25deg) drop-shadow(0 0 8px var(--terminal-orange))'
+    }}
+  />
 );
 
 export function Terminal() {
@@ -139,7 +141,7 @@ export function Terminal() {
         {/* Header */}
         <header className="flex items-center justify-between p-4 border-b border-terminal-subtle bg-opacity-90 relative z-10">
           <div className="flex items-center space-x-4">
-            <BrainIcon />
+            <LogoIcon />
             <div>
               <h1 className="text-xl font-bold terminal-text terminal-glow" data-testid="text-title">
                 ARCHIMEDES v7

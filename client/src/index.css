@@ -168,8 +168,9 @@
     background: rgba(27, 67, 50, 0.8);
   }
 
-  .brain-icon {
-    filter: drop-shadow(0 0 8px var(--terminal-orange));
+  .logo-icon {
+    filter: brightness(1.3) contrast(1.2) hue-rotate(25deg) drop-shadow(0 0 8px var(--terminal-orange));
+    animation: logoGlow 3s ease-in-out infinite alternate;
   }
 
   .command-history {
@@ -234,6 +235,15 @@
   to { 
     opacity: 0.25;
     filter: brightness(0.8) contrast(1.3) hue-rotate(15deg);
+  }
+}
+
+@keyframes logoGlow {
+  from {
+    filter: brightness(1.2) contrast(1.1) hue-rotate(20deg) drop-shadow(0 0 6px var(--terminal-orange));
+  }
+  to {
+    filter: brightness(1.4) contrast(1.3) hue-rotate(30deg) drop-shadow(0 0 12px var(--terminal-orange));
   }
 }
 
