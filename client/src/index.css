@@ -204,6 +204,11 @@
     content: '▋';
     animation: blink 0.5s infinite;
   }
+
+  .watermark-background {
+    filter: brightness(0.7) contrast(1.2) hue-rotate(10deg);
+    animation: watermarkGlow 4s ease-in-out infinite alternate;
+  }
 }
 
 @keyframes blink {
@@ -219,4 +224,15 @@
 @keyframes glow {
   from { text-shadow: 0 0 5px var(--terminal-text), 0 0 10px var(--terminal-text), 0 0 15px var(--terminal-text); }
   to { text-shadow: 0 0 10px var(--terminal-text), 0 0 20px var(--terminal-text), 0 0 30px var(--terminal-text); }
+}
+
+@keyframes watermarkGlow {
+  from { 
+    opacity: 0.15;
+    filter: brightness(0.6) contrast(1.1) hue-rotate(5deg) drop-shadow(0 0 15px rgba(0, 255, 65, 0.3));
+  }
+  to { 
+    opacity: 0.25;
+    filter: brightness(0.8) contrast(1.3) hue-rotate(15deg) drop-shadow(0 0 25px rgba(0, 255, 65, 0.5));
+  }
 }

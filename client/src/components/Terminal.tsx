@@ -6,6 +6,7 @@ import { CommandHistory } from './CommandHistory';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { History } from 'lucide-react';
+import skullWatermark from '@assets/wally_1756523512970.jpg';
 
 // Brain Circuit SVG Component
 const BrainIcon = () => (
@@ -123,6 +124,17 @@ export function Terminal() {
   return (
     <div className="h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono">
       <div className="terminal-container flex flex-col h-full relative z-0">
+        
+        {/* Background Watermark */}
+        <div 
+          className="watermark-background absolute inset-0 z-0 opacity-20"
+          style={{
+            backgroundImage: `url(${skullWatermark})`,
+            backgroundSize: '60%',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
         
         {/* Header */}
         <header className="flex items-center justify-between p-4 border-b border-terminal-subtle bg-opacity-90 relative z-10">
