@@ -220,7 +220,7 @@ Conversation Context:\n`;
     
     // Remove common artifacts
     cleaned = cleaned.replace(/^(ARCHIMEDES:|Assistant:|AI:)\s*/i, '');
-    cleaned = cleaned.replace(/\n\s*Human:\s*.*$/s, ''); // Remove any trailing human input
+    cleaned = cleaned.replace(/\n\s*Human:\s*.*$/, ''); // Remove any trailing human input
     
     // Add Replit-specific context hints for natural mode
     if (mode === 'natural') {
