@@ -1,11 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { messageSchema, type Message, insertUserPreferencesSchema } from "@shared/schema";
+import { messageSchema, type Message, insertUserPreferencesSchema, insertDocumentSchema } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { llmService } from "./llm-service";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { weatherService } from "./weather-service";
+import { knowledgeService } from "./knowledge-service";
+import multer from "multer";
+import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -172,6 +175,167 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get conversation error:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Configure multer for file uploads (in-memory storage)
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      // Only allow text files
+      const allowedTypes = [
+        'text/plain',
+        'text/markdown',
+        'text/csv',
+        'application/json',
+        'text/html',
+        'text/xml',
+      ];
+      
+      if (allowedTypes.includes(file.mimetype) || file.originalname.match(/\.(txt|md|json|csv|html|xml)$/i)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only text files are allowed'), false);
+      }
+    }
+  });
+
+  // Document upload endpoint
+  app.post("/api/documents/upload", isAuthenticated, upload.single('file'), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      // Convert buffer to string
+      const content = req.file.buffer.toString('utf8');
+      
+      if (content.length === 0) {
+        return res.status(400).json({ error: "File is empty" });
+      }
+
+      if (content.length > 1000000) { // 1MB text limit
+        return res.status(400).json({ error: "File content is too large (max 1MB)" });
+      }
+
+      // Process the document
+      const document = await knowledgeService.processDocument(content, {
+        userId,
+        fileName: `${randomUUID()}-${req.file.originalname}`,
+        originalName: req.file.originalname,
+        fileSize: req.file.size.toString(),
+        mimeType: req.file.mimetype,
+      });
+
+      res.json({ 
+        message: "Document uploaded successfully",
+        document: {
+          id: document.id,
+          originalName: document.originalName,
+          fileSize: document.fileSize,
+          summary: document.summary,
+          keywords: document.keywords,
+          uploadedAt: document.uploadedAt,
+        }
+      });
+    } catch (error) {
+      console.error("Document upload error:", error);
+      res.status(500).json({ error: "Failed to upload document" });
+    }
+  });
+
+  // Get user documents
+  app.get("/api/documents", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const documents = await storage.getUserDocuments(userId);
+      
+      // Return limited info for list view
+      const documentsInfo = documents.map(doc => ({
+        id: doc.id,
+        originalName: doc.originalName,
+        fileSize: doc.fileSize,
+        summary: doc.summary,
+        keywords: doc.keywords,
+        uploadedAt: doc.uploadedAt,
+        lastAccessedAt: doc.lastAccessedAt,
+      }));
+
+      res.json(documentsInfo);
+    } catch (error) {
+      console.error("Get documents error:", error);
+      res.status(500).json({ error: "Failed to fetch documents" });
+    }
+  });
+
+  // Get single document with full content
+  app.get("/api/documents/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const documentId = req.params.id;
+      
+      const document = await storage.getDocument(documentId);
+      if (!document || document.userId !== userId) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      res.json(document);
+    } catch (error) {
+      console.error("Get document error:", error);
+      res.status(500).json({ error: "Failed to fetch document" });
+    }
+  });
+
+  // Delete document
+  app.delete("/api/documents/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const documentId = req.params.id;
+      
+      const success = await knowledgeService.deleteDocument(documentId, userId);
+      if (!success) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      res.json({ message: "Document deleted successfully" });
+    } catch (error) {
+      console.error("Delete document error:", error);
+      res.status(500).json({ error: "Failed to delete document" });
+    }
+  });
+
+  // Search documents and knowledge
+  app.get("/api/knowledge/search", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const query = req.query.q as string;
+      
+      if (!query || query.trim().length === 0) {
+        return res.status(400).json({ error: "Search query is required" });
+      }
+
+      const results = await knowledgeService.searchKnowledge(userId, query);
+      res.json(results);
+    } catch (error) {
+      console.error("Knowledge search error:", error);
+      res.status(500).json({ error: "Failed to search knowledge base" });
+    }
+  });
+
+  // Get user document statistics
+  app.get("/api/knowledge/stats", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const stats = await knowledgeService.getUserDocumentStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Knowledge stats error:", error);
+      res.status(500).json({ error: "Failed to fetch knowledge base statistics" });
     }
   });
 
