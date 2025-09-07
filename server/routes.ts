@@ -11,6 +11,7 @@ import { BbsService } from "./bbs-service";
 import { TelnetProxyService } from "./telnet-proxy";
 import { gutendxService } from "./gutendx-service";
 import { marketstackService } from "./marketstack-service";
+import { radioGardenService } from "./radio-garden-service";
 import multer from "multer";
 import { z } from "zod";
 import WebSocket, { WebSocketServer } from 'ws';
@@ -749,6 +750,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Virtual systems error:", error);
       res.status(500).json({ error: "Failed to fetch virtual systems" });
+    }
+  });
+
+  // Radio Garden API endpoints
+  app.get('/api/radio/search', async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      if (!query) {
+        return res.status(400).json({ error: 'Query parameter required' });
+      }
+      
+      const stations = await radioGardenService.search(query, limit);
+      res.json(stations);
+    } catch (error) {
+      console.error('Radio Garden search error:', error);
+      res.status(500).json({ error: 'Search failed' });
+    }
+  });
+
+  app.get('/api/radio/popular', async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+      const stations = await radioGardenService.getPopularStations(limit);
+      res.json(stations);
+    } catch (error) {
+      console.error('Radio Garden popular stations error:', error);
+      res.status(500).json({ error: 'Failed to get popular stations' });
+    }
+  });
+
+  app.get('/api/radio/countries', async (req, res) => {
+    try {
+      const countries = await radioGardenService.getCountries();
+      res.json(countries);
+    } catch (error) {
+      console.error('Radio Garden countries error:', error);
+      res.status(500).json({ error: 'Failed to get countries' });
+    }
+  });
+
+  app.get('/api/radio/channel/:channelId', async (req, res) => {
+    try {
+      const channelId = req.params.channelId;
+      const channel = await radioGardenService.getChannelDetails(channelId);
+      
+      if (!channel) {
+        return res.status(404).json({ error: 'Channel not found' });
+      }
+      
+      res.json(channel);
+    } catch (error) {
+      console.error('Radio Garden channel error:', error);
+      res.status(500).json({ error: 'Failed to get channel details' });
+    }
+  });
+
+  app.get('/api/radio/random', async (req, res) => {
+    try {
+      const station = await radioGardenService.getRandomStation();
+      
+      if (!station) {
+        return res.status(404).json({ error: 'No stations available' });
+      }
+      
+      res.json(station);
+    } catch (error) {
+      console.error('Radio Garden random station error:', error);
+      res.status(500).json({ error: 'Failed to get random station' });
     }
   });
 

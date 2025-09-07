@@ -16,9 +16,14 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Use a simple test MP3 file that definitely works
-  const streamUrl = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3';
-  const stationName = 'Audio Test (Bell Sound)';
+  // Radio Garden integration
+  const [currentStation, setCurrentStation] = useState<any>(null);
+  const [stations, setStations] = useState<any[]>([]);
+  const [isLoadingStations, setIsLoadingStations] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const streamUrl = currentStation?.streamUrl || '';
+  const stationName = currentStation?.title || 'Radio Garden';
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -159,6 +164,61 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
     setIsMuted(!isMuted);
   };
 
+  // Load popular stations on mount
+  useEffect(() => {
+    const loadStations = async () => {
+      setIsLoadingStations(true);
+      try {
+        const response = await fetch('/api/radio/popular?limit=10');
+        const popularStations = await response.json();
+        setStations(popularStations);
+        
+        // Auto-select first station
+        if (popularStations.length > 0 && !currentStation) {
+          await selectStation(popularStations[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to load stations:', error);
+      } finally {
+        setIsLoadingStations(false);
+      }
+    };
+    
+    if (isOpen && stations.length === 0) {
+      loadStations();
+    }
+  }, [isOpen]);
+
+  const selectStation = async (channelId: string) => {
+    try {
+      const response = await fetch(`/api/radio/channel/${channelId}`);
+      const channel = await response.json();
+      
+      if (channel.streamUrl) {
+        setCurrentStation(channel);
+        onStatusChange?.(`Selected ${channel.title} from ${channel.place.title}`);
+      }
+    } catch (error) {
+      console.error('Failed to select station:', error);
+      onStatusChange?.('Failed to select station');
+    }
+  };
+
+  const searchStations = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setIsLoadingStations(true);
+    try {
+      const response = await fetch(`/api/radio/search?q=${encodeURIComponent(searchQuery)}`);
+      const searchResults = await response.json();
+      setStations(searchResults);
+    } catch (error) {
+      console.error('Failed to search stations:', error);
+    } finally {
+      setIsLoadingStations(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -190,7 +250,9 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
           {/* Station Info */}
           <div className="text-center p-3 bg-terminal-bg/50 rounded border border-terminal-subtle">
             <div className="text-terminal-highlight font-semibold">{stationName}</div>
-            <div className="text-terminal-text text-sm">Test Audio • SoundJay.com</div>
+            <div className="text-terminal-text text-sm">
+              {currentStation ? `${currentStation.place.title}, ${currentStation.place.country}` : 'Select a station'}
+            </div>
             <div className="text-terminal-subtle text-xs mt-1">Status: {connectionStatus}</div>
             {connectionStatus === 'Connection Failed' && (
               <div className="text-orange-400 text-xs mt-2">
@@ -199,11 +261,51 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
             )}
           </div>
 
+          {/* Station Search */}
+          <div className="space-y-2">
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                placeholder="Search stations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && searchStations()}
+                className="flex-1 px-3 py-1 bg-terminal-bg border border-terminal-subtle text-terminal-text rounded text-sm"
+              />
+              <Button
+                onClick={searchStations}
+                disabled={isLoadingStations || !searchQuery.trim()}
+                size="sm"
+                className="bg-terminal-subtle hover:bg-terminal-subtle/80 text-terminal-text px-3"
+              >
+                Search
+              </Button>
+            </div>
+          </div>
+
+          {/* Station List */}
+          {stations.length > 0 && (
+            <div className="max-h-32 overflow-y-auto border border-terminal-subtle rounded">
+              {stations.map((station) => (
+                <div
+                  key={station.id}
+                  onClick={() => selectStation(station.id)}
+                  className={`p-2 text-xs cursor-pointer hover:bg-terminal-subtle/20 ${
+                    currentStation?.id === station.id ? 'bg-terminal-highlight/20' : ''
+                  }`}
+                >
+                  <div className="font-semibold text-terminal-highlight">{station.title}</div>
+                  <div className="text-terminal-subtle">{station.place}, {station.country}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Controls */}
           <div className="flex items-center justify-center space-x-4">
             <Button
               onClick={togglePlayPause}
-              disabled={isLoading}
+              disabled={isLoading || !currentStation}
               className="bg-terminal-highlight hover:bg-terminal-highlight/80 text-terminal-bg px-6"
             >
               {isLoading ? (

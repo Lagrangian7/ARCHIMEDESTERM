@@ -1028,22 +1028,22 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       return;
     }
 
-    // Radio streaming commands
+    // Radio Garden streaming commands
     if (cmd.startsWith('radio ')) {
       const subCmd = cmd.substring(6).trim();
       
       if (subCmd === 'play') {
-        const radioElement = document.querySelector('audio[src*="soundjay"]') as HTMLAudioElement;
-        if (radioElement) {
+        const radioElement = document.querySelector('audio') as HTMLAudioElement;
+        if (radioElement && radioElement.src) {
           radioElement.play()
-            .then(() => addEntry('system', '🎵 Audio test started (bell sound)'))
+            .then(() => addEntry('system', '🎵 Radio station playback started'))
             .catch(() => addEntry('error', 'Error: Unable to start radio stream'));
         } else {
           // Trigger radio interface to open
           const openRadioButton = document.querySelector('[data-testid="button-radio"]') as HTMLButtonElement;
           if (openRadioButton) {
             openRadioButton.click();
-            addEntry('system', 'Opening radio interface...');
+            addEntry('system', '📻 Opening Radio Garden interface...');
           } else {
             addEntry('error', 'Radio interface not available');
           }
@@ -1052,13 +1052,59 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       }
       
       if (subCmd === 'stop') {
-        const radioElement = document.querySelector('audio[src*="soundjay"]') as HTMLAudioElement;
+        const radioElement = document.querySelector('audio') as HTMLAudioElement;
         if (radioElement) {
           radioElement.pause();
-          addEntry('system', '⏹️ Radio Swiss Jazz stream stopped');
+          addEntry('system', '⏹️ Radio stream stopped');
         } else {
           addEntry('error', 'Radio is not currently active');
         }
+        return;
+      }
+      
+      if (subCmd.startsWith('search ')) {
+        const query = subCmd.substring(7).trim();
+        if (!query) {
+          addEntry('error', 'Usage: radio search <station name or location>');
+          return;
+        }
+        
+        addEntry('system', `🔍 Searching Radio Garden for: "${query}"`);
+        
+        fetch(`/api/radio/search?q=${encodeURIComponent(query)}&limit=5`)
+          .then(res => res.json())
+          .then(stations => {
+            if (stations.length === 0) {
+              addEntry('system', 'No stations found for that search');
+            } else {
+              let result = `📻 Found ${stations.length} stations:\\n\\n`;
+              stations.forEach((station: any, index: number) => {
+                result += `${index + 1}. ${station.title}\\n`;
+                result += `   📍 ${station.place}, ${station.country}\\n`;
+                if (index < stations.length - 1) result += '\\n';
+              });
+              result += '\\n💡 Use "radio play" to open the radio interface and select a station';
+              addEntry('system', result);
+            }
+          })
+          .catch(() => {
+            addEntry('error', 'Radio Garden search failed');
+          });
+        return;
+      }
+      
+      if (subCmd === 'random') {
+        addEntry('system', '🎲 Getting random station from Radio Garden...');
+        
+        fetch('/api/radio/random')
+          .then(res => res.json())
+          .then(station => {
+            const result = `📻 Random Station Found:\\n\\n🎵 ${station.title}\\n📍 ${station.place.title}, ${station.place.country}\\n\\n💡 Use "radio play" to open the radio interface`;
+            addEntry('system', result);
+          })
+          .catch(() => {
+            addEntry('error', 'Failed to get random station');
+          });
         return;
       }
       
@@ -1071,7 +1117,7 @@ Free plan includes 100 monthly requests with end-of-day data.`);
           return;
         }
         
-        const radioElement = document.querySelector('audio[src*="soundjay"]') as HTMLAudioElement;
+        const radioElement = document.querySelector('audio') as HTMLAudioElement;
         if (radioElement) {
           radioElement.volume = volumeNum / 100;
           addEntry('system', `🔊 Volume set to ${volumeNum}%`);
@@ -1082,25 +1128,53 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       }
       
       if (subCmd === 'status') {
-        const radioElement = document.querySelector('audio[src*="soundjay"]') as HTMLAudioElement;
-        if (radioElement) {
+        const radioElement = document.querySelector('audio') as HTMLAudioElement;
+        if (radioElement && radioElement.src) {
           const isPlaying = !radioElement.paused;
           const volume = Math.round(radioElement.volume * 100);
-          const status = `Radio Status: ${isPlaying ? 'Streaming 🎵' : 'Stopped ⏹️'}
-Station: Radio Swiss Jazz
-Location: Switzerland  
-Format: Jazz Music
-Volume: ${volume}%
-Connection: ${radioElement.readyState >= 2 ? 'Ready' : 'Loading...'}`;
+          const status = `📻 Radio Garden Status: ${isPlaying ? 'Streaming 🎵' : 'Stopped ⏹️'}\\nVolume: ${volume}%\\nConnection: ${radioElement.readyState >= 2 ? 'Ready' : 'Loading...'}\\n\\n💡 Use the radio interface to see current station details`;
           addEntry('system', status);
         } else {
-          addEntry('system', `Radio Status: Inactive
-Use "radio play" to start streaming Radio Swiss Jazz`);
+          addEntry('system', `📻 Radio Garden Status: Inactive\\n\\n💡 Use "radio play" to access thousands of global stations`);
         }
         return;
       }
       
-      addEntry('error', 'Unknown radio command. Available: play, stop, volume <0-100>, status');
+      if (subCmd === 'countries') {
+        addEntry('system', '🌍 Getting countries with radio stations...');
+        
+        fetch('/api/radio/countries')
+          .then(res => res.json())
+          .then(countries => {
+            let result = '🌍 Top countries with radio stations:\\n\\n';
+            countries.slice(0, 10).forEach((country: any, index: number) => {
+              result += `${index + 1}. ${country.country} (${country.count} stations)\\n`;
+            });
+            result += '\\n💡 Use "radio search <country>" to find stations';
+            addEntry('system', result);
+          })
+          .catch(() => {
+            addEntry('error', 'Failed to get country list');
+          });
+        return;
+      }
+      
+      // Help command
+      if (subCmd === '' || subCmd === 'help') {
+        const helpText = `📻 Radio Garden Commands:\\n\\n` +
+          `radio play        - Open radio interface\\n` +
+          `radio stop        - Stop current stream\\n` +
+          `radio search <q>  - Search for stations\\n` +
+          `radio random      - Get random station\\n` +
+          `radio countries   - List countries\\n` +
+          `radio volume <n>  - Set volume (0-100)\\n` +
+          `radio status      - Check status\\n\\n` +
+          `💡 Radio Garden provides access to thousands of live stations worldwide`;
+        addEntry('system', helpText);
+        return;
+      }
+      
+      addEntry('error', 'Unknown radio command. Use "radio help" for available commands');
       return;
     }
     
