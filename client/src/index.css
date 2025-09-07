@@ -61,10 +61,10 @@
 /* Logo pulsating glow animation */
 @keyframes logoGlow {
   0%, 100% { 
-    filter: brightness(1.8) contrast(1.4) hue-rotate(25deg) drop-shadow(0 0 12px var(--terminal-orange)) drop-shadow(0 0 24px var(--terminal-orange));
+    filter: brightness(3.5) contrast(2.0) hue-rotate(25deg) drop-shadow(0 0 16px var(--terminal-orange)) drop-shadow(0 0 32px var(--terminal-orange));
   }
   50% { 
-    filter: brightness(2.2) contrast(1.6) hue-rotate(25deg) drop-shadow(0 0 20px var(--terminal-orange)) drop-shadow(0 0 36px var(--terminal-orange));
+    filter: brightness(4.2) contrast(2.4) hue-rotate(25deg) drop-shadow(0 0 24px var(--terminal-orange)) drop-shadow(0 0 48px var(--terminal-orange));
   }
 }
 
