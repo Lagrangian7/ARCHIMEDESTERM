@@ -201,11 +201,19 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
     }
   }, [activeConnection?.connected]);
 
-  // Expose connection method to parent components
+  // Expose connection method to parent components and handle pending connections
   useEffect(() => {
     // Make connectToHost available globally for terminal commands
     (window as any).telnetConnect = connectToHost;
-  }, [connectToHost]);
+    
+    // Check for pending connection from terminal command
+    const pendingConnection = (window as any).pendingTelnetConnection;
+    if (pendingConnection && websocket && websocket.readyState === WebSocket.OPEN) {
+      console.log('Connecting to pending telnet connection:', pendingConnection);
+      connectToHost(pendingConnection.host, pendingConnection.port);
+      (window as any).pendingTelnetConnection = null; // Clear pending connection
+    }
+  }, [connectToHost, websocket]);
 
   if (!activeConnection) {
     return (

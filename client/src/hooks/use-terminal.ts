@@ -344,67 +344,17 @@ Use "upload" to add more documents or "docs" to list all documents.`;
         return;
       }
       
-      addEntry('system', `Establishing telnet connection to ${host}:${port}...`);
+      addEntry('system', `Opening telnet client and connecting to ${host}:${port}...`);
       
-      // Create WebSocket connection for telnet if not already connected
-      if (!(window as any).telnetWebSocket || (window as any).telnetWebSocket.readyState !== WebSocket.OPEN) {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const ws = new WebSocket(`${protocol}//${window.location.host}/ws/telnet`);
-        
-        ws.onopen = () => {
-          console.log('Terminal telnet WebSocket connected');
-          (window as any).telnetWebSocket = ws;
-          
-          // Now make the connection
-          const connectMessage = {
-            type: 'connect',
-            host,
-            port
-          };
-          console.log('Sending telnet connect from terminal:', connectMessage);
-          ws.send(JSON.stringify(connectMessage));
-        };
-        
-        ws.onmessage = (event) => {
-          try {
-            const message = JSON.parse(event.data);
-            console.log('Terminal received telnet message:', message);
-            
-            if (message.type === 'connected') {
-              addEntry('system', `Successfully connected to ${message.host}:${message.port}. Open the Telnet client to interact.`);
-            } else if (message.type === 'error') {
-              addEntry('error', `Connection failed: ${message.message}`);
-            } else if (message.type === 'data') {
-              // Show first line of data as preview
-              const firstLine = message.data.split('\n')[0].substring(0, 100);
-              addEntry('system', `Received data: ${firstLine}... (Open telnet client to see full output)`);
-            }
-          } catch (error) {
-            console.error('Error parsing telnet message:', error);
-          }
-        };
-        
-        ws.onerror = (error) => {
-          console.error('Terminal telnet WebSocket error:', error);
-          addEntry('error', 'Telnet WebSocket connection error');
-        };
-        
-        ws.onclose = () => {
-          console.log('Terminal telnet WebSocket closed');
-          (window as any).telnetWebSocket = null;
-        };
-        
-        (window as any).telnetWebSocket = ws;
+      // Store the connection request for the telnet client
+      (window as any).pendingTelnetConnection = { host, port };
+      
+      // Open the telnet client modal
+      const openTelnetModal = (window as any).openTelnetModal;
+      if (openTelnetModal) {
+        openTelnetModal();
       } else {
-        // WebSocket is ready, send connect message directly
-        const connectMessage = {
-          type: 'connect',
-          host,
-          port
-        };
-        console.log('Sending telnet connect from terminal (existing WS):', connectMessage);
-        (window as any).telnetWebSocket.send(JSON.stringify(connectMessage));
-        addEntry('system', `Connection request sent to ${host}:${port}...`);
+        addEntry('error', 'Telnet client not available. Please use the Telnet button in the toolbar.');
       }
       return;
     }

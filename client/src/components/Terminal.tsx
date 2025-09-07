@@ -45,6 +45,11 @@ export function Terminal() {
       setShowUpload(true);
     }
   });
+
+  // Expose telnet modal opener globally
+  useEffect(() => {
+    (window as any).openTelnetModal = () => setShowTelnet(true);
+  }, []);
   
   const { speak } = useSpeechSynthesis();
   const { user, isAuthenticated, preferences } = useAuth();
