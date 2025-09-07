@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, ArrowRight, Terminal as TerminalIcon, Radio, Book, TrendingUp, Wifi, Gamepad2, Upload, Mic } from 'lucide-react';
 
@@ -249,19 +249,80 @@ const helpMenuItems: HelpMenuItem[] = [
 
 export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const selectedItemRef = useRef<HTMLDivElement>(null);
 
   // Sort all commands alphabetically by title
   const sortedItems = [...helpMenuItems].sort((a, b) => a.title.localeCompare(b.title));
+
+  // Scroll selected item into view
+  const scrollToSelected = useCallback(() => {
+    if (selectedItemRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const item = selectedItemRef.current;
+      
+      const containerRect = container.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      
+      const isItemVisible = 
+        itemRect.top >= containerRect.top && 
+        itemRect.bottom <= containerRect.bottom;
+      
+      if (!isItemVisible) {
+        const scrollOffset = itemRect.top - containerRect.top - container.scrollTop;
+        const targetScrollTop = container.scrollTop + scrollOffset - 100; // 100px padding from top
+        
+        container.scrollTo({
+          top: Math.max(0, targetScrollTop),
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, []);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     switch (e.key) {
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : sortedItems.length - 1);
+        setSelectedIndex(prev => {
+          const newIndex = prev > 0 ? prev - 1 : sortedItems.length - 1;
+          setTimeout(scrollToSelected, 10);
+          return newIndex;
+        });
         break;
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => prev < sortedItems.length - 1 ? prev + 1 : 0);
+        setSelectedIndex(prev => {
+          const newIndex = prev < sortedItems.length - 1 ? prev + 1 : 0;
+          setTimeout(scrollToSelected, 10);
+          return newIndex;
+        });
+        break;
+      case 'PageUp':
+        e.preventDefault();
+        setSelectedIndex(prev => {
+          const newIndex = Math.max(0, prev - 10);
+          setTimeout(scrollToSelected, 10);
+          return newIndex;
+        });
+        break;
+      case 'PageDown':
+        e.preventDefault();
+        setSelectedIndex(prev => {
+          const newIndex = Math.min(sortedItems.length - 1, prev + 10);
+          setTimeout(scrollToSelected, 10);
+          return newIndex;
+        });
+        break;
+      case 'Home':
+        e.preventDefault();
+        setSelectedIndex(0);
+        setTimeout(scrollToSelected, 10);
+        break;
+      case 'End':
+        e.preventDefault();
+        setSelectedIndex(sortedItems.length - 1);
+        setTimeout(scrollToSelected, 10);
         break;
       case 'Enter':
         e.preventDefault();
@@ -276,12 +337,17 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
         onClose();
         break;
     }
-  }, [selectedIndex, sortedItems, onSelectCommand, onClose]);
+  }, [selectedIndex, sortedItems, onSelectCommand, onClose, scrollToSelected]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+
+  // Scroll to selected item when component mounts
+  useEffect(() => {
+    setTimeout(scrollToSelected, 100);
+  }, [scrollToSelected]);
 
   const handleItemSelect = (item: HelpMenuItem) => {
     if (item.command) {
@@ -314,23 +380,29 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
         {/* Instructions */}
         <div className="px-4 py-2 bg-terminal-bg/50 border-b border-terminal-subtle/50">
           <div className="text-sm text-terminal-text/80 font-mono">
-            ⌨️ Use <span className="text-terminal-highlight">↑↓</span> arrows to navigate • 
-            <span className="text-terminal-highlight"> Enter</span> to select • 
-            <span className="text-terminal-highlight"> Escape</span> to close
+            ⌨️ <span className="text-terminal-highlight">↑↓</span> navigate • 
+            <span className="text-terminal-highlight">PgUp/PgDn</span> jump • 
+            <span className="text-terminal-highlight">Home/End</span> first/last • 
+            <span className="text-terminal-highlight">Enter</span> select • 
+            <span className="text-terminal-highlight">Esc</span> close
           </div>
         </div>
 
         {/* Commands List */}
-        <div className="h-[500px]">
-          <div className="p-3 border-b border-terminal-subtle/50">
+        <div className="h-[500px] flex flex-col">
+          <div className="p-3 border-b border-terminal-subtle/50 flex-shrink-0">
             <h3 className="text-sm font-semibold text-terminal-highlight">
-              ALL COMMANDS (A-Z)
+              ALL COMMANDS (A-Z) - {sortedItems.length} total
             </h3>
           </div>
-          <div className="overflow-y-auto h-full">
+          <div 
+            ref={scrollContainerRef}
+            className="overflow-y-auto flex-1 scrollbar-thin scrollbar-track-terminal-bg scrollbar-thumb-terminal-highlight/50"
+          >
             {sortedItems.map((item, index) => (
                 <div
                   key={item.id}
+                  ref={index === selectedIndex ? selectedItemRef : null}
                   onClick={() => handleItemSelect(item)}
                   className={`p-4 cursor-pointer border-b border-terminal-subtle/20 transition-all duration-150 ${
                     index === selectedIndex 
@@ -375,10 +447,10 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
           </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-terminal-subtle bg-terminal-bg/50">
+        <div className="p-3 border-t border-terminal-subtle bg-terminal-bg/50 flex-shrink-0">
           <div className="text-xs text-terminal-text/60 font-mono text-center">
             ARCHIMEDES v7 Interactive Help System • 
-            {sortedItems.length} commands available
+            Item {selectedIndex + 1} of {sortedItems.length}
           </div>
         </div>
       </div>
