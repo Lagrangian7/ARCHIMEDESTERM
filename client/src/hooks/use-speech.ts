@@ -52,7 +52,13 @@ export function useSpeechSynthesis() {
 
     window.speechSynthesis.cancel();
     
-    const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*/g, '').replace(/\s+/g, ' ').trim();
+    // Clean text for speech synthesis
+    let cleanText = text
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/\*/g, '') // Remove asterisks
+      .replace(/(?<!\d\s?)>\s*(?!\d)/g, '') // Remove > unless it's between numbers (like "5 > 3")
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
     if (!cleanText) return;
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
