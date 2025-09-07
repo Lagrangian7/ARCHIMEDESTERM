@@ -244,6 +244,14 @@ const helpMenuItems: HelpMenuItem[] = [
     description: 'View statistics about your knowledge base',
     command: 'knowledge stats',
     icon: <Upload size={16} />
+  },
+  {
+    id: 'stop',
+    category: 'Basic Commands', 
+    title: 'Stop Speech',
+    description: 'Stop speech synthesis immediately and await next command',
+    command: 'stop',
+    icon: <Mic size={16} />
   }
 ];
 

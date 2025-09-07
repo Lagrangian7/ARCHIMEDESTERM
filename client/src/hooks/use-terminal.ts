@@ -414,6 +414,17 @@ You can also chat naturally or ask technical questions.`);
       return;
     }
 
+    if (cmd === 'stop') {
+      // Stop speech synthesis
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        addEntry('system', '🛑 Speech synthesis stopped. Awaiting next command...');
+      } else {
+        addEntry('error', 'Speech synthesis not available in this browser');
+      }
+      return;
+    }
+
     // Handle weather command
     if (cmd === 'weather') {
       setIsTyping(true);
