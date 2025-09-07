@@ -11,7 +11,7 @@ export function useSpeechSynthesis() {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isEnabled, setIsEnabled] = useState(true);
   const [selectedVoice, setSelectedVoice] = useState<number>(1); // Default to HAL 9000 voice
-  const [speechRate, setSpeechRate] = useState(0.9); // Measured pace like HAL
+  const [speechRate, setSpeechRate] = useState(1.0); // Normal speaking speed
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export function useSpeechSynthesis() {
     // Handle HAL 9000 voice simulation (2001 AI)
     if (selectedVoice === 1) {
       utterance.pitch = 0.8; // Higher pitch than JOSHUA, more human-like but still artificial
-      utterance.rate = Math.max(0.75, speechRate * 0.85); // Measured, calm delivery like HAL
+      utterance.rate = speechRate; // Normal speed for HAL voice
       utterance.volume = 0.95; // Clear, confident volume
     }
     
