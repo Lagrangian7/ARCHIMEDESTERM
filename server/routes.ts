@@ -10,6 +10,7 @@ import { knowledgeService } from "./knowledge-service";
 import { BbsService } from "./bbs-service";
 import { TelnetProxyService } from "./telnet-proxy";
 import { gutendxService } from "./gutendx-service";
+import { marketstackService } from "./marketstack-service";
 import multer from "multer";
 import { z } from "zod";
 import WebSocket, { WebSocketServer } from 'ws';
@@ -505,6 +506,177 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Books by topic error:", error);
       const message = error instanceof Error ? error.message : "Failed to fetch books by topic";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  // Marketstack (Stock Market Data) API endpoints
+  app.get("/api/stocks/quote/:symbol", async (req, res) => {
+    try {
+      const symbol = req.params.symbol.toUpperCase();
+      const quote = await marketstackService.getLatestQuote(symbol);
+      
+      if (!quote) {
+        return res.status(404).json({ error: `No data found for symbol ${symbol}` });
+      }
+
+      const formatted = marketstackService.formatQuoteForTerminal(quote);
+
+      res.json({
+        quote,
+        formatted
+      });
+    } catch (error) {
+      console.error("Stock quote error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch stock quote";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  app.post("/api/stocks/quotes", async (req, res) => {
+    try {
+      const { symbols } = req.body;
+      
+      if (!Array.isArray(symbols) || symbols.length === 0) {
+        return res.status(400).json({ error: "Symbols array is required" });
+      }
+
+      if (symbols.length > 10) {
+        return res.status(400).json({ error: "Maximum 10 symbols allowed per request" });
+      }
+
+      const quotes = await marketstackService.getMultipleQuotes(symbols);
+      const formatted = marketstackService.formatMultipleQuotesForTerminal(quotes);
+
+      res.json({
+        quotes,
+        formatted
+      });
+    } catch (error) {
+      console.error("Multiple quotes error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch stock quotes";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  app.get("/api/stocks/info/:symbol", async (req, res) => {
+    try {
+      const symbol = req.params.symbol.toUpperCase();
+      const info = await marketstackService.getTickerInfo(symbol);
+      
+      if (!info) {
+        return res.status(404).json({ error: `No company information found for symbol ${symbol}` });
+      }
+
+      const formatted = marketstackService.formatTickerInfoForTerminal(info);
+
+      res.json({
+        info,
+        formatted
+      });
+    } catch (error) {
+      console.error("Stock info error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch stock information";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  app.get("/api/stocks/historical/:symbol", async (req, res) => {
+    try {
+      const symbol = req.params.symbol.toUpperCase();
+      const { days = '30', date_from, date_to } = req.query;
+      
+      let dateFrom = date_from as string;
+      let dateTo = date_to as string;
+      
+      // If no specific dates provided, use the days parameter
+      if (!dateFrom && !dateTo) {
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - parseInt(days as string));
+        
+        dateFrom = startDate.toISOString().split('T')[0];
+        dateTo = endDate.toISOString().split('T')[0];
+      }
+
+      const response = await marketstackService.getEODData({
+        symbols: [symbol],
+        dateFrom,
+        dateTo,
+        limit: 100,
+        sort: 'desc'
+      });
+
+      const formatted = marketstackService.formatHistoricalDataForTerminal(response.data, symbol);
+
+      res.json({
+        data: response.data,
+        formatted
+      });
+    } catch (error) {
+      console.error("Historical data error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch historical data";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  app.get("/api/stocks/search/:query", async (req, res) => {
+    try {
+      const query = req.params.query;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      const tickers = await marketstackService.searchTickers(query, limit);
+      
+      if (tickers.length === 0) {
+        return res.json({
+          tickers: [],
+          formatted: `No stocks found matching "${query}". Try different keywords or check the symbol.`
+        });
+      }
+
+      const formatted = `Stock Search Results for "${query}":\n\n` +
+        tickers.map((ticker, index) => 
+          `${index + 1}. ${ticker.symbol} - ${ticker.name}\n   Exchange: ${ticker.stock_exchange.name} (${ticker.country})`
+        ).join('\n\n') +
+        `\n\nUse 'stock quote <symbol>' to get current prices.`;
+
+      res.json({
+        tickers,
+        formatted
+      });
+    } catch (error) {
+      console.error("Stock search error:", error);
+      const message = error instanceof Error ? error.message : "Failed to search stocks";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  app.get("/api/stocks/intraday/:symbol", async (req, res) => {
+    try {
+      const symbol = req.params.symbol.toUpperCase();
+      const { interval = '1min', limit = '50' } = req.query;
+
+      const response = await marketstackService.getIntradayData({
+        symbols: [symbol],
+        interval: interval as any,
+        limit: parseInt(limit as string)
+      });
+
+      const formatted = `Intraday Data: ${symbol} (${interval} intervals, last ${response.data.length} points)\n\n` +
+        response.data.map(point => {
+          const time = new Date(point.date).toLocaleTimeString();
+          const change = point.close - point.open;
+          const changePercent = ((change / point.open) * 100).toFixed(2);
+          return `${time} | $${point.close.toFixed(2)} (${change >= 0 ? '+' : ''}${changePercent}%) Vol: ${point.volume.toLocaleString()}`;
+        }).join('\n');
+
+      res.json({
+        data: response.data,
+        formatted
+      });
+    } catch (error) {
+      console.error("Intraday data error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch intraday data (may require higher plan)";
       res.status(500).json({ error: message });
     }
   });
