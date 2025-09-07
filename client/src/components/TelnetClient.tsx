@@ -60,6 +60,7 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
   }, []);
 
   const handleWebSocketMessage = useCallback((message: any) => {
+    console.log('Received message from server:', message);
     setConnections(prev => {
       const updated = [...prev];
       const connectionIndex = updated.findIndex(c => c.id === message.connectionId);
@@ -127,7 +128,7 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
 
   const connectToHost = useCallback((host: string, port: number) => {
     if (!websocket || websocket.readyState !== WebSocket.OPEN) {
-      console.error('WebSocket not connected');
+      console.error('WebSocket not ready. State:', websocket?.readyState);
       return null;
     }
 
@@ -144,6 +145,7 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
     setConnections(prev => [...prev, newConnection]);
     setActiveConnectionId(connectionId);
 
+    console.log('Sending telnet connect message:', { type: 'connect', host, port });
     websocket.send(JSON.stringify({
       type: 'connect',
       host,
