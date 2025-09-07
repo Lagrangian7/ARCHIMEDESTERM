@@ -425,10 +425,28 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
         </div>
       </ScrollArea>
 
-      {/* Input area */}
-      <div className="flex-shrink-0 p-4 border-t-2 border-terminal-highlight bg-terminal-bg shadow-lg">
-        <div className="flex items-center space-x-3">
-          <span className="text-terminal-highlight font-mono text-xl font-bold" style={{textShadow: '0 0 10px currentColor'}}>$</span>
+      {/* Input area - ALWAYS VISIBLE */}
+      <div 
+        className="flex-shrink-0 min-h-[80px] p-6 border-t-4 border-terminal-highlight bg-green-900/20 shadow-2xl"
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 9999,
+          backgroundColor: 'rgba(0, 20, 0, 0.95)',
+          borderTop: '4px solid #00FF41'
+        }}
+      >
+        <div className="flex items-center space-x-4 bg-black/50 rounded-lg p-4 border-2 border-terminal-highlight">
+          <span 
+            className="text-terminal-highlight font-mono font-bold text-2xl animate-pulse" 
+            style={{
+              textShadow: '0 0 20px #00FF41, 0 0 40px #00FF41',
+              fontSize: '2rem',
+              lineHeight: '1'
+            }}
+          >
+            $
+          </span>
           <input
             ref={inputRef}
             type="text"
@@ -436,15 +454,25 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={!activeConnection.connected}
-            className="flex-1 bg-terminal-bg/50 border border-terminal-subtle rounded px-2 py-1 outline-none text-terminal-text font-mono text-base focus:border-terminal-highlight focus:text-terminal-highlight"
-            placeholder={activeConnection.connected ? "Type command and press Enter..." : "Connection not ready"}
+            className="flex-1 bg-black border-2 border-terminal-highlight rounded-lg px-4 py-2 outline-none text-terminal-highlight font-mono text-lg focus:shadow-lg focus:shadow-green-500/50"
+            style={{
+              backgroundColor: '#000',
+              color: '#00FF41',
+              textShadow: '0 0 5px #00FF41'
+            }}
+            placeholder={activeConnection.connected ? ">>> TYPE COMMAND HERE <<<" : "CONNECTION NOT READY"}
             autoComplete="off"
             spellCheck={false}
             data-testid="telnet-input"
           />
           {activeConnection.connected && (
-            <span className="text-terminal-subtle text-xs">Enter: send | Ctrl-C: break</span>
+            <span className="text-terminal-highlight text-sm font-bold animate-pulse">
+              READY
+            </span>
           )}
+        </div>
+        <div className="text-center text-terminal-highlight text-xs mt-2 font-bold">
+          TELNET COMMAND PROMPT - Enter: SEND | Ctrl-C: BREAK
         </div>
       </div>
     </div>
