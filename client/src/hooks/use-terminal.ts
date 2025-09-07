@@ -90,6 +90,100 @@ export function useTerminal(onUploadCommand?: () => void) {
     },
   });
 
+  const bookSearchMutation = useMutation({
+    mutationFn: async (params: {
+      search?: string;
+      languages?: string[];
+      author_year_start?: number;
+      author_year_end?: number;
+      topic?: string;
+      sort?: string;
+      page?: number;
+    }) => {
+      const queryParams = new URLSearchParams();
+      
+      if (params.search) queryParams.append('search', params.search);
+      if (params.languages?.length) queryParams.append('languages', params.languages.join(','));
+      if (params.author_year_start) queryParams.append('author_year_start', params.author_year_start.toString());
+      if (params.author_year_end) queryParams.append('author_year_end', params.author_year_end.toString());
+      if (params.topic) queryParams.append('topic', params.topic);
+      if (params.sort) queryParams.append('sort', params.sort);
+      if (params.page) queryParams.append('page', params.page.toString());
+
+      const endpoint = `/api/books/search?${queryParams.toString()}`;
+      const response = await apiRequest('GET', endpoint);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Book Search Error: ${error.message}`);
+    },
+  });
+
+  const bookDetailMutation = useMutation({
+    mutationFn: async (bookId: number) => {
+      const response = await apiRequest('GET', `/api/books/${bookId}`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Book Details Error: ${error.message}`);
+    },
+  });
+
+  const popularBooksMutation = useMutation({
+    mutationFn: async (limit: number = 20) => {
+      const response = await apiRequest('GET', `/api/books/popular?limit=${limit}`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Popular Books Error: ${error.message}`);
+    },
+  });
+
+  const booksByAuthorMutation = useMutation({
+    mutationFn: async (authorName: string) => {
+      const response = await apiRequest('GET', `/api/books/author/${encodeURIComponent(authorName)}`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Books by Author Error: ${error.message}`);
+    },
+  });
+
+  const booksByTopicMutation = useMutation({
+    mutationFn: async (topic: string) => {
+      const response = await apiRequest('GET', `/api/books/topic/${encodeURIComponent(topic)}`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Books by Topic Error: ${error.message}`);
+    },
+  });
+
   const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical') => {
     const entry: TerminalEntry = {
       id: crypto.randomUUID(),
@@ -129,6 +223,14 @@ Network & BBS Commands:
   bbs-search <query> - Search BBS systems by name or location
   bbs-popular - Show popular BBS systems
   bbs-favorites - Show your favorite BBS systems
+  
+Project Gutenberg Books:
+  books popular - Show most popular free ebooks
+  books search <query> - Search books by title or author
+  books author <name> - Find books by specific author
+  books topic <topic> - Find books by topic/subject
+  books info <id> - Get detailed info and download links for a book
+  books help - Show detailed book command help
   
 Games:
   snake - Play the classic Snake game
@@ -328,6 +430,136 @@ Use "upload" to add more documents or "docs" to list all documents.`;
           setIsTyping(false);
           addEntry('error', `Error fetching stats: ${error.message}`);
         });
+      return;
+    }
+
+    // Project Gutenberg Book Commands
+    if (cmd.startsWith('books ')) {
+      const subCmd = cmd.substring(6).trim();
+      
+      if (subCmd === 'help') {
+        addEntry('system', `Project Gutenberg Book Commands:
+
+Basic Commands:
+  books popular [limit] - Show most downloaded books (default: 20)
+  books search <query> - Search books by title or author
+  books info <id> - Get detailed information and download links
+  books author <name> - Find all books by a specific author  
+  books topic <topic> - Find books by subject/topic
+
+Advanced Search:
+  books search <query> lang:<codes> - Search with language filter (e.g., lang:en,fr)
+  books search <query> year:<start>-<end> - Search by author lifespan
+  books search <query> topic:<subject> - Search by specific topic
+
+Examples:
+  books popular 10
+  books search pride prejudice
+  books search shakespeare lang:en
+  books search dickens year:1800-1870  
+  books author "Mark Twain"
+  books topic children
+  books info 1342
+
+Over 70,000 free ebooks from Project Gutenberg available!
+Download formats: Plain text, EPUB, HTML, and more.`);
+        return;
+      }
+      
+      if (subCmd === 'popular' || subCmd.startsWith('popular ')) {
+        const parts = subCmd.split(' ');
+        const limit = parts.length > 1 ? parseInt(parts[1]) || 20 : 20;
+        
+        setIsTyping(true);
+        addEntry('system', `Fetching ${limit} most popular ebooks...`);
+        popularBooksMutation.mutate(limit);
+        return;
+      }
+      
+      if (subCmd.startsWith('search ')) {
+        const query = subCmd.substring(7).trim();
+        if (!query) {
+          addEntry('error', 'Usage: books search <query> [lang:<codes>] [year:<start>-<end>] [topic:<subject>]');
+          return;
+        }
+        
+        // Parse advanced search options
+        const params: any = {};
+        let searchQuery = query;
+        
+        // Extract language filter
+        const langMatch = query.match(/\blang:([a-z,]+)/i);
+        if (langMatch) {
+          params.languages = langMatch[1].split(',').map(l => l.trim());
+          searchQuery = searchQuery.replace(/\blang:[a-z,]+/i, '').trim();
+        }
+        
+        // Extract year range filter
+        const yearMatch = query.match(/\byear:(\d+)-(\d+)/);
+        if (yearMatch) {
+          params.author_year_start = parseInt(yearMatch[1]);
+          params.author_year_end = parseInt(yearMatch[2]);
+          searchQuery = searchQuery.replace(/\byear:\d+-\d+/, '').trim();
+        }
+        
+        // Extract topic filter
+        const topicMatch = query.match(/\btopic:(\w+)/i);
+        if (topicMatch) {
+          params.topic = topicMatch[1];
+          searchQuery = searchQuery.replace(/\btopic:\w+/i, '').trim();
+        }
+        
+        if (searchQuery) {
+          params.search = searchQuery;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `Searching Project Gutenberg catalog...`);
+        bookSearchMutation.mutate(params);
+        return;
+      }
+      
+      if (subCmd.startsWith('author ')) {
+        const authorName = subCmd.substring(7).trim().replace(/['"]/g, '');
+        if (!authorName) {
+          addEntry('error', 'Usage: books author <author name>');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `Finding books by ${authorName}...`);
+        booksByAuthorMutation.mutate(authorName);
+        return;
+      }
+      
+      if (subCmd.startsWith('topic ')) {
+        const topic = subCmd.substring(6).trim();
+        if (!topic) {
+          addEntry('error', 'Usage: books topic <topic>');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `Finding books about ${topic}...`);
+        booksByTopicMutation.mutate(topic);
+        return;
+      }
+      
+      if (subCmd.startsWith('info ')) {
+        const bookId = parseInt(subCmd.substring(5).trim());
+        if (isNaN(bookId)) {
+          addEntry('error', 'Usage: books info <book id>');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `Retrieving details for book ID ${bookId}...`);
+        bookDetailMutation.mutate(bookId);
+        return;
+      }
+      
+      // If no valid subcommand, show help
+      addEntry('error', 'Unknown books command. Type "books help" for available commands.');
       return;
     }
 
