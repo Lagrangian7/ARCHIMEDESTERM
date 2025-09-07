@@ -234,6 +234,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/weather/forecast/coordinates", async (req, res) => {
+    try {
+      const lat = parseFloat(req.query.lat as string);
+      const lon = parseFloat(req.query.lon as string);
+      const days = parseInt(req.query.days as string) || 5;
+      
+      if (isNaN(lat) || isNaN(lon)) {
+        return res.status(400).json({ error: "Invalid latitude or longitude" });
+      }
+      
+      // Get location name first
+      const currentWeather = await weatherService.getWeatherByCoordinates(lat, lon);
+      const forecast = await weatherService.getForecast(currentWeather.location, days);
+      const formattedForecast = weatherService.formatForecast(forecast, currentWeather.location);
+      
+      res.json({
+        forecast,
+        formatted: formattedForecast
+      });
+    } catch (error) {
+      console.error("Forecast by coordinates error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch forecast data";
+      res.status(500).json({ error: message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
