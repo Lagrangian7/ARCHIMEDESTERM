@@ -9,7 +9,7 @@ import { DocumentUpload } from './DocumentUpload';
 import { TelnetClient } from './TelnetClient';
 import { SnakeGame } from './SnakeGame';
 import { TalkingArchimedes } from './TalkingArchimedes';
-import { RadioStreamer, useRadioControl } from './RadioStreamer';
+import { RadioStreamer } from './RadioStreamer';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,7 +67,8 @@ export function Terminal() {
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   
   // Radio streaming controls
-  const radioControl = useRadioControl();
+  const [isRadioOpen, setIsRadioOpen] = useState(false);
+  const [radioStatus, setRadioStatus] = useState('Radio ready');
   const [visibleEntries, setVisibleEntries] = useState(Math.min(entries.length, 15));
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -302,7 +303,7 @@ export function Terminal() {
                     Upload
                   </Button>
                   <Button
-                    onClick={() => radioControl.openRadio()}
+                    onClick={() => setIsRadioOpen(true)}
                     variant="outline"
                     size="sm"
                     className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
@@ -564,7 +565,11 @@ export function Terminal() {
         </div>
       )}
       {/* Radio streaming component */}
-      <radioControl.RadioComponent />
+      <RadioStreamer 
+        isOpen={isRadioOpen}
+        onClose={() => setIsRadioOpen(false)}
+        onStatusChange={(status) => setRadioStatus(status)}
+      />
 
       {/* Talking Archimedes Character */}
       <TalkingArchimedes 
