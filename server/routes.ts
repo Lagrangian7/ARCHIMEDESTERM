@@ -16,8 +16,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
+      // Check if user is authenticated
+      if (!req.isAuthenticated?.() || !req.user?.claims?.sub) {
+        return res.json({ 
+          user: null,
+          preferences: null
+        });
+      }
+
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       const preferences = await storage.getUserPreferences(userId);
@@ -28,7 +36,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+      // Return null instead of error to prevent auth loops
+      res.json({ 
+        user: null,
+        preferences: null
+      });
     }
   });
   
