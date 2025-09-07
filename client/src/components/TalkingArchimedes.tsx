@@ -35,8 +35,11 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
       // Only fade out when both typing and speaking are complete
       const fadeTimer = setTimeout(() => {
         setAnimationPhase('idle');
-        setShowCharacter(false);
-      }, 1000);
+        // Small delay before hiding to allow fade out animation
+        setTimeout(() => {
+          setShowCharacter(false);
+        }, 500);
+      }, 500);
 
       return () => clearTimeout(fadeTimer);
     }
@@ -46,8 +49,8 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
 
   return (
     <div className="fixed top-4 right-4 z-40 pointer-events-none">
-      <div className={`relative transition-all duration-500 ${
-        showCharacter ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+      <div className={`relative transition-all duration-700 ease-out ${
+        showCharacter ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
       }`}>
         {/* Archimedes Character Container */}
         <div className="relative w-48 h-48 rounded-full overflow-hidden border-2 border-terminal-highlight/20 bg-terminal-bg/70 backdrop-blur-sm">
