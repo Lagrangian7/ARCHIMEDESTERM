@@ -16,14 +16,22 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Radio Garden integration
-  const [currentStation, setCurrentStation] = useState<any>(null);
-  const [stations, setStations] = useState<any[]>([]);
-  const [isLoadingStations, setIsLoadingStations] = useState(false);
+  // Radio Garden integration - simplified
+  const [currentStation, setCurrentStation] = useState<any>({
+    id: 'jazz24',
+    title: 'Jazz24',
+    place: { title: 'Seattle', country: 'USA' },
+    streamUrl: 'https://live.wostreaming.net/direct/ppm-jazz24aac256-ibc1'
+  });
+  const [stations, setStations] = useState<any[]>([
+    { id: 'jazz24', title: 'Jazz24', place: 'Seattle', country: 'USA' },
+    { id: 'bbc-radio1', title: 'BBC Radio 1', place: 'London', country: 'UK' },
+    { id: 'classical', title: 'Classical KUSC', place: 'Los Angeles', country: 'USA' }
+  ]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const streamUrl = currentStation?.streamUrl || '';
-  const stationName = currentStation?.title || 'Radio Garden';
+  const streamUrl = currentStation?.streamUrl || 'https://live.wostreaming.net/direct/ppm-jazz24aac256-ibc1';
+  const stationName = currentStation?.title || 'Jazz24';
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -164,59 +172,64 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
     setIsMuted(!isMuted);
   };
 
-  // Load popular stations on mount
-  useEffect(() => {
-    const loadStations = async () => {
-      setIsLoadingStations(true);
-      try {
-        const response = await fetch('/api/radio/popular?limit=10');
-        const popularStations = await response.json();
-        setStations(popularStations);
-        
-        // Auto-select first station
-        if (popularStations.length > 0 && !currentStation) {
-          await selectStation(popularStations[0].id);
-        }
-      } catch (error) {
-        console.error('Failed to load stations:', error);
-      } finally {
-        setIsLoadingStations(false);
+  const selectStation = async (channelId: string) => {
+    // Prevent selecting the same station multiple times
+    if (currentStation?.id === channelId) return;
+    
+    // Use fallback station data to avoid API calls
+    const stationData = {
+      'jazz24': {
+        id: 'jazz24',
+        title: 'Jazz24',
+        place: { title: 'Seattle', country: 'USA' },
+        streamUrl: 'https://live.wostreaming.net/direct/ppm-jazz24aac256-ibc1'
+      },
+      'bbc-radio1': {
+        id: 'bbc-radio1',
+        title: 'BBC Radio 1',
+        place: { title: 'London', country: 'UK' },
+        streamUrl: 'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one'
+      },
+      'classical': {
+        id: 'classical',
+        title: 'Classical KUSC',
+        place: { title: 'Los Angeles', country: 'USA' },
+        streamUrl: 'https://kusc-ice.streamguys1.com/kusc-128k'
       }
     };
     
-    if (isOpen && stations.length === 0) {
-      loadStations();
-    }
-  }, [isOpen]);
-
-  const selectStation = async (channelId: string) => {
-    try {
-      const response = await fetch(`/api/radio/channel/${channelId}`);
-      const channel = await response.json();
+    const station = stationData[channelId as keyof typeof stationData];
+    if (station) {
+      setCurrentStation(station);
       
-      if (channel.streamUrl) {
-        setCurrentStation(channel);
-        onStatusChange?.(`Selected ${channel.title} from ${channel.place.title}`);
+      // Force audio to use new stream
+      const audio = audioRef.current;
+      if (audio) {
+        audio.src = station.streamUrl;
+        audio.load();
       }
-    } catch (error) {
-      console.error('Failed to select station:', error);
-      onStatusChange?.('Failed to select station');
+      
+      onStatusChange?.(`Selected ${station.title} from ${station.place.title}`);
     }
   };
 
-  const searchStations = async () => {
+  const searchStations = () => {
     if (!searchQuery.trim()) return;
     
-    setIsLoadingStations(true);
-    try {
-      const response = await fetch(`/api/radio/search?q=${encodeURIComponent(searchQuery)}`);
-      const searchResults = await response.json();
-      setStations(searchResults);
-    } catch (error) {
-      console.error('Failed to search stations:', error);
-    } finally {
-      setIsLoadingStations(false);
-    }
+    // Simple local search through available stations
+    const allStations = [
+      { id: 'jazz24', title: 'Jazz24', place: 'Seattle', country: 'USA' },
+      { id: 'bbc-radio1', title: 'BBC Radio 1', place: 'London', country: 'UK' },
+      { id: 'classical', title: 'Classical KUSC', place: 'Los Angeles', country: 'USA' }
+    ];
+    
+    const filtered = allStations.filter(station =>
+      station.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      station.place.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      station.country.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+    setStations(filtered);
   };
 
   if (!isOpen) return null;
@@ -242,7 +255,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
         <audio
           ref={audioRef}
           src={streamUrl}
-          preload="metadata"
+          preload="none"
           crossOrigin="anonymous"
         />
 
