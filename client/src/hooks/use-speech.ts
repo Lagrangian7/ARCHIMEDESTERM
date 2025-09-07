@@ -52,7 +52,7 @@ export function useSpeechSynthesis() {
 
     window.speechSynthesis.cancel();
     
-    const cleanText = text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*/g, '').replace(/\s+/g, ' ').trim();
     if (!cleanText) return;
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
