@@ -62,8 +62,11 @@ export class MemStorage implements IStorage {
       const id = randomUUID();
       const now = new Date();
       const user: User = { 
-        ...userData, 
-        id, 
+        id,
+        email: userData.email || null,
+        firstName: userData.firstName || null,
+        lastName: userData.lastName || null,
+        profileImageUrl: userData.profileImageUrl || null,
         createdAt: now,
         updatedAt: now 
       };
@@ -93,8 +96,13 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const now = new Date();
     const userPrefs: UserPreferences = { 
-      ...preferences, 
-      id, 
+      id,
+      userId: preferences.userId,
+      defaultMode: preferences.defaultMode || "natural",
+      voiceEnabled: preferences.voiceEnabled || false,
+      selectedVoice: preferences.selectedVoice || null,
+      voiceRate: preferences.voiceRate || null,
+      terminalTheme: preferences.terminalTheme || null,
       createdAt: now,
       updatedAt: now 
     };
@@ -133,8 +141,12 @@ export class MemStorage implements IStorage {
     const id = randomUUID();
     const now = new Date();
     const conversation: Conversation = { 
-      ...insertConversation,
-      id, 
+      id,
+      userId: insertConversation.userId || null,
+      sessionId: insertConversation.sessionId,
+      mode: insertConversation.mode || "natural",
+      title: insertConversation.title || null,
+      messages: insertConversation.messages || [],
       createdAt: now,
       updatedAt: now
     };
