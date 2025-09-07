@@ -55,16 +55,16 @@
   --terminal-text: hsl(118 100% 63%);
   --terminal-highlight: hsl(118 100% 75%);
   --terminal-subtle: hsl(151 43% 24%);
-  --terminal-orange: hsl(15 100% 60%);
+  --terminal-orange: hsl(20 100% 75%);
 }
 
 /* Logo pulsating glow animation */
 @keyframes logoGlow {
   0%, 100% { 
-    filter: brightness(3.5) contrast(2.0) hue-rotate(25deg) drop-shadow(0 0 16px var(--terminal-orange)) drop-shadow(0 0 32px var(--terminal-orange));
+    filter: brightness(2.8) contrast(1.8) hue-rotate(15deg) drop-shadow(0 0 12px var(--terminal-orange)) drop-shadow(0 0 24px var(--terminal-orange)) drop-shadow(0 0 36px var(--terminal-orange));
   }
   50% { 
-    filter: brightness(4.2) contrast(2.4) hue-rotate(25deg) drop-shadow(0 0 24px var(--terminal-orange)) drop-shadow(0 0 48px var(--terminal-orange));
+    filter: brightness(5.5) contrast(3.0) hue-rotate(15deg) drop-shadow(0 0 28px var(--terminal-orange)) drop-shadow(0 0 56px var(--terminal-orange)) drop-shadow(0 0 84px var(--terminal-orange));
   }
 }
 
