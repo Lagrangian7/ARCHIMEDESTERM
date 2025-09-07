@@ -23,6 +23,7 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
   const [websocket, setWebsocket] = useState<WebSocket | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const activeConnection = connections.find(c => c.id === activeConnectionId);
 
@@ -217,10 +218,29 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
 
   // Auto-scroll to bottom when new data arrives
   useEffect(() => {
-    if (outputRef.current) {
-      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    if (outputRef.current && activeConnection?.data) {
+      // Force scroll to bottom
+      const scrollElement = outputRef.current;
+      scrollElement.scrollTop = scrollElement.scrollHeight;
+      
+      // Also try scrolling the parent scroll area
+      const scrollArea = scrollElement.closest('[data-radix-scroll-area-viewport]');
+      if (scrollArea) {
+        scrollArea.scrollTop = scrollArea.scrollHeight;
+      }
     }
   }, [activeConnection?.data]);
+
+  // Additional scroll trigger for any data changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (outputRef.current && activeConnection?.data) {
+        outputRef.current.scrollTop = outputRef.current.scrollHeight;
+      }
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, [activeConnection?.data?.length]);
 
   // Focus input when connection becomes active or modal opens
   useEffect(() => {
@@ -298,15 +318,19 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
       </div>
 
       {/* Terminal output */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div 
           ref={outputRef}
-          className="p-4 font-mono text-sm text-terminal-text whitespace-pre-wrap"
+          className="p-4 font-mono text-sm text-terminal-text whitespace-pre-wrap min-h-full"
           style={{ lineHeight: '1.2' }}
         >
           {activeConnection.data.map((line, index) => (
-            <div key={index}>{line}</div>
+            <div key={`${activeConnection.id}-${index}`} className="break-words">
+              {line}
+            </div>
           ))}
+          {/* Scroll anchor */}
+          <div id="scroll-anchor" />
         </div>
       </ScrollArea>
 
