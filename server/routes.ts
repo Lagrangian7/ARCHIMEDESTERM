@@ -5,6 +5,7 @@ import { messageSchema, type Message, insertUserPreferencesSchema } from "@share
 import { randomUUID } from "crypto";
 import { llmService } from "./llm-service";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { weatherService } from "./weather-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -174,6 +175,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Weather API endpoint
+  app.get("/api/weather", async (req, res) => {
+    try {
+      const location = req.query.location as string;
+      let weather;
+      
+      if (req.query.lat && req.query.lon) {
+        const lat = parseFloat(req.query.lat as string);
+        const lon = parseFloat(req.query.lon as string);
+        
+        if (isNaN(lat) || isNaN(lon)) {
+          return res.status(400).json({ error: "Invalid latitude or longitude" });
+        }
+        
+        weather = await weatherService.getWeatherByCoordinates(lat, lon);
+      } else {
+        weather = await weatherService.getCurrentWeather(location);
+      }
+      
+      const formattedWeather = weatherService.formatCurrentWeather(weather);
+      
+      res.json({
+        weather,
+        formatted: formattedWeather
+      });
+    } catch (error) {
+      console.error("Weather error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch weather data";
+      res.status(500).json({ error: message });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
