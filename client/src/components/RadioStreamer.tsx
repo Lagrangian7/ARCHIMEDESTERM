@@ -16,9 +16,9 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Use a working public test stream first
-  const streamUrl = 'https://streams.fluxfm.de/flux/mp3-320/audio.mp3';
-  const stationName = 'FluxFM (Test Stream)';
+  // Use a simple test MP3 file that definitely works
+  const streamUrl = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3';
+  const stationName = 'Audio Test (Bell Sound)';
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -141,7 +141,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <Radio className="w-6 h-6 text-terminal-highlight" />
-            <h2 className="text-xl font-bold text-terminal-highlight">KLUX Radio Stream</h2>
+            <h2 className="text-xl font-bold text-terminal-highlight">Radio Stream</h2>
           </div>
           <Button
             onClick={onClose}
@@ -164,7 +164,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
           {/* Station Info */}
           <div className="text-center p-3 bg-terminal-bg/50 rounded border border-terminal-subtle">
             <div className="text-terminal-highlight font-semibold">{stationName}</div>
-            <div className="text-terminal-text text-sm">Electronic Music • Berlin, Germany</div>
+            <div className="text-terminal-text text-sm">Test Audio • SoundJay.com</div>
             <div className="text-terminal-subtle text-xs mt-1">Status: {connectionStatus}</div>
             {connectionStatus === 'Connection Failed' && (
               <div className="text-orange-400 text-xs mt-2">
