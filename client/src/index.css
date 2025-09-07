@@ -58,6 +58,16 @@
   --terminal-orange: hsl(15 100% 60%);
 }
 
+/* Logo pulsating glow animation */
+@keyframes logoGlow {
+  0%, 100% { 
+    filter: brightness(1.8) contrast(1.4) hue-rotate(25deg) drop-shadow(0 0 12px var(--terminal-orange)) drop-shadow(0 0 24px var(--terminal-orange));
+  }
+  50% { 
+    filter: brightness(2.2) contrast(1.6) hue-rotate(25deg) drop-shadow(0 0 20px var(--terminal-orange)) drop-shadow(0 0 36px var(--terminal-orange));
+  }
+}
+
 .dark {
   --background: hsl(0 0% 0%);
   --foreground: hsl(200 6.6667% 91.1765%);

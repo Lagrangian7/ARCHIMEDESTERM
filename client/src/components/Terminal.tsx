@@ -26,9 +26,10 @@ const LogoIcon = () => (
     alt="ARCHIMEDES Logo" 
     width="32" 
     height="32" 
-    className="logo-icon filter brightness-150 contrast-125 hue-rotate-12 drop-shadow-lg"
+    className="logo-icon"
     style={{
-      filter: 'brightness(1.3) contrast(1.2) hue-rotate(25deg) drop-shadow(0 0 8px var(--terminal-orange))'
+      animation: 'logoGlow 2s ease-in-out infinite',
+      filter: 'brightness(1.8) contrast(1.4) hue-rotate(25deg) drop-shadow(0 0 12px var(--terminal-orange))'
     }}
   />
 );
