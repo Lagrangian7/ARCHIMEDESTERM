@@ -6,10 +6,11 @@ import { CommandHistory } from './CommandHistory';
 import { UserProfile } from './UserProfile';
 import { ConversationHistory } from './ConversationHistory';
 import { DocumentUpload } from './DocumentUpload';
+import { TelnetClient } from './TelnetClient';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
-import { History, User, LogIn, Upload } from 'lucide-react';
+import { History, User, LogIn, Upload, Terminal as TerminalIcon } from 'lucide-react';
 import skullWatermark from '@assets/wally_1756523512970.jpg';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 
@@ -52,6 +53,7 @@ export function Terminal() {
   const [showProfile, setShowProfile] = useState(false);
   const [showConversationHistory, setShowConversationHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [showTelnet, setShowTelnet] = useState(false);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   const [visibleEntries, setVisibleEntries] = useState(Math.min(entries.length, 15));
   const inputRef = useRef<HTMLInputElement>(null);
@@ -258,6 +260,16 @@ export function Terminal() {
                     <Upload size={14} className="mr-1" />
                     Upload
                   </Button>
+                  <Button
+                    onClick={() => setShowTelnet(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
+                    data-testid="button-telnet"
+                  >
+                    <TerminalIcon size={14} className="mr-1" />
+                    Telnet
+                  </Button>
                 </>
               ) : (
                 <Button
@@ -457,6 +469,32 @@ export function Terminal() {
                 processCommand(`Echo: Document "${document.originalName}" uploaded successfully!`);
               }}
             />
+          </div>
+        </div>
+      )}
+
+      {showTelnet && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="w-[90vw] h-[80vh] bg-terminal-bg border border-terminal-highlight rounded-lg overflow-hidden">
+            <div className="h-full flex flex-col">
+              <div className="flex items-center justify-between p-3 border-b border-terminal-subtle">
+                <div className="flex items-center space-x-2">
+                  <TerminalIcon className="w-5 h-5 text-terminal-highlight" />
+                  <h2 className="text-terminal-text font-semibold">Telnet Client</h2>
+                </div>
+                <Button
+                  onClick={() => setShowTelnet(false)}
+                  variant="outline"
+                  size="sm"
+                  className="bg-transparent border-terminal-subtle hover:bg-terminal-subtle"
+                >
+                  Close
+                </Button>
+              </div>
+              <div className="flex-1">
+                <TelnetClient />
+              </div>
+            </div>
           </div>
         </div>
       )}

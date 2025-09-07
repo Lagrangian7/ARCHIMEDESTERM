@@ -11,7 +11,7 @@ import { BbsService } from "./bbs-service";
 import { TelnetProxyService } from "./telnet-proxy";
 import multer from "multer";
 import { z } from "zod";
-import WebSocket from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -468,7 +468,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
   // Create WebSocket server for telnet proxy
-  const wss = new WebSocket.Server({ 
+  const wss = new WebSocketServer({ 
     server: httpServer, 
     path: '/ws/telnet' 
   });

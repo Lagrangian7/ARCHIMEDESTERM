@@ -122,6 +122,14 @@ export function useTerminal(onUploadCommand?: () => void) {
   status - Show system status
   weather - Get current weather (uses location if available)
   
+Network & BBS Commands:
+  telnet <host> <port> - Connect to remote telnet/BBS system
+  ping <host> - Test connectivity to remote host
+  bbs-list - Show available BBS systems directory
+  bbs-search <query> - Search BBS systems by name or location
+  bbs-popular - Show popular BBS systems
+  bbs-favorites - Show your favorite BBS systems
+  
 Knowledge Base Commands:
   docs - List your uploaded documents
   upload - Open document upload interface
@@ -316,6 +324,209 @@ Use "upload" to add more documents or "docs" to list all documents.`;
         .catch((error) => {
           setIsTyping(false);
           addEntry('error', `Error fetching stats: ${error.message}`);
+        });
+      return;
+    }
+
+    // Network & BBS Commands
+    if (cmd.startsWith('telnet ')) {
+      const parts = cmd.split(' ');
+      if (parts.length < 3) {
+        addEntry('error', 'Usage: telnet <host> <port>');
+        return;
+      }
+      
+      const host = parts[1];
+      const port = parseInt(parts[2]);
+      
+      if (isNaN(port) || port <= 0 || port > 65535) {
+        addEntry('error', 'Invalid port number. Port must be between 1 and 65535.');
+        return;
+      }
+      
+      addEntry('system', `Establishing telnet connection to ${host}:${port}...`);
+      
+      // Use the global telnet function from TelnetClient
+      const telnetConnect = (window as any).telnetConnect;
+      if (telnetConnect) {
+        const connectionId = telnetConnect(host, port);
+        if (connectionId) {
+          addEntry('system', `Telnet connection initiated. Connection ID: ${connectionId}`);
+        } else {
+          addEntry('error', 'Failed to initiate telnet connection. WebSocket may not be ready.');
+        }
+      } else {
+        addEntry('error', 'Telnet client not available. The terminal component may not be fully loaded.');
+      }
+      return;
+    }
+
+    if (cmd.startsWith('ping ')) {
+      const host = cmd.split(' ')[1];
+      if (!host) {
+        addEntry('error', 'Usage: ping <host>');
+        return;
+      }
+      
+      addEntry('system', `PING ${host} - Testing connectivity...`);
+      
+      // Simulate ping by attempting a basic connectivity test
+      const startTime = Date.now();
+      fetch(`/api/ping/${encodeURIComponent(host)}`, { 
+        method: 'GET',
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      })
+        .then(response => {
+          const endTime = Date.now();
+          const latency = endTime - startTime;
+          
+          if (response.ok) {
+            addEntry('system', `PING ${host}: Host is reachable (${latency}ms)`);
+          } else {
+            addEntry('error', `PING ${host}: Host unreachable or refusing connection`);
+          }
+        })
+        .catch(error => {
+          addEntry('error', `PING ${host}: Request failed - ${error.message}`);
+        });
+      return;
+    }
+
+    if (cmd === 'bbs-list') {
+      setIsTyping(true);
+      addEntry('system', 'Retrieving BBS directory...');
+      
+      fetch('/api/bbs/systems')
+        .then(response => response.json())
+        .then((systems: any[]) => {
+          setIsTyping(false);
+          if (systems.length === 0) {
+            addEntry('system', 'No BBS systems found.');
+            return;
+          }
+          
+          const bbsList = systems
+            .slice(0, 10) // Show first 10
+            .map((bbs, index) => 
+              `${index + 1}. ${bbs.name} - ${bbs.host}:${bbs.port}
+     Location: ${bbs.location || 'Unknown'}
+     Software: ${bbs.software || 'Unknown'}
+     Description: ${bbs.description || 'No description available'}
+     Connect: telnet ${bbs.host} ${bbs.port}`
+            )
+            .join('\n\n');
+            
+          const totalText = systems.length > 10 ? `\nShowing 10 of ${systems.length} systems. Use "bbs-search" to find specific systems.` : '';
+          
+          addEntry('system', `BBS Systems Directory:\n\n${bbsList}${totalText}`);
+        })
+        .catch(error => {
+          setIsTyping(false);
+          addEntry('error', `Failed to fetch BBS directory: ${error.message}`);
+        });
+      return;
+    }
+
+    if (cmd.startsWith('bbs-search ')) {
+      const query = cmd.substring(11).trim();
+      if (!query) {
+        addEntry('error', 'Usage: bbs-search <query>');
+        return;
+      }
+      
+      setIsTyping(true);
+      addEntry('system', `Searching BBS systems for: "${query}"`);
+      
+      fetch(`/api/bbs/systems?search=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then((systems: any[]) => {
+          setIsTyping(false);
+          if (systems.length === 0) {
+            addEntry('system', `No BBS systems found matching "${query}".`);
+            return;
+          }
+          
+          const searchResults = systems
+            .map((bbs, index) => 
+              `${index + 1}. ${bbs.name} - ${bbs.host}:${bbs.port}
+     Location: ${bbs.location || 'Unknown'}
+     Description: ${bbs.description || 'No description available'}
+     Connect: telnet ${bbs.host} ${bbs.port}`
+            )
+            .join('\n\n');
+            
+          addEntry('system', `BBS Search Results (${systems.length} found):\n\n${searchResults}`);
+        })
+        .catch(error => {
+          setIsTyping(false);
+          addEntry('error', `BBS search failed: ${error.message}`);
+        });
+      return;
+    }
+
+    if (cmd === 'bbs-popular') {
+      setIsTyping(true);
+      addEntry('system', 'Retrieving popular BBS systems...');
+      
+      fetch('/api/bbs/popular?limit=5')
+        .then(response => response.json())
+        .then((systems: any[]) => {
+          setIsTyping(false);
+          if (systems.length === 0) {
+            addEntry('system', 'No popular BBS systems found.');
+            return;
+          }
+          
+          const popularList = systems
+            .map((bbs, index) => 
+              `${index + 1}. ${bbs.name} - ${bbs.host}:${bbs.port}
+     Connections: ${bbs.totalConnections || 0}
+     Location: ${bbs.location || 'Unknown'}
+     Connect: telnet ${bbs.host} ${bbs.port}`
+            )
+            .join('\n\n');
+            
+          addEntry('system', `Popular BBS Systems:\n\n${popularList}`);
+        })
+        .catch(error => {
+          setIsTyping(false);
+          addEntry('error', `Failed to fetch popular BBS systems: ${error.message}`);
+        });
+      return;
+    }
+
+    if (cmd === 'bbs-favorites') {
+      setIsTyping(true);
+      addEntry('system', 'Retrieving your favorite BBS systems...');
+      
+      fetch('/api/bbs/favorites', { credentials: 'include' })
+        .then(async response => {
+          setIsTyping(false);
+          if (response.status === 401) {
+            addEntry('error', 'Authentication required. Please log in to view your favorites.');
+            return;
+          }
+          if (!response.ok) throw new Error('Failed to fetch favorites');
+          
+          const systems = await response.json();
+          if (systems.length === 0) {
+            addEntry('system', 'No favorite BBS systems yet. Connect to systems and save them as favorites!');
+            return;
+          }
+          
+          const favoritesList = systems
+            .map((bbs: any, index: number) => 
+              `${index + 1}. ${bbs.name} - ${bbs.host}:${bbs.port}
+     Location: ${bbs.location || 'Unknown'}
+     Connect: telnet ${bbs.host} ${bbs.port}`
+            )
+            .join('\n\n');
+            
+          addEntry('system', `Your Favorite BBS Systems (${systems.length}):\n\n${favoritesList}`);
+        })
+        .catch(error => {
+          setIsTyping(false);
+          addEntry('error', `Failed to fetch favorites: ${error.message}`);
         });
       return;
     }
