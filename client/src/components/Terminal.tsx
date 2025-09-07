@@ -234,11 +234,10 @@ export function Terminal() {
       }`}>
         
         {/* Background Watermark */}
-        {/* Enhanced Multi-layer Glitch Background */}
         <div className="absolute inset-0 z-0">
-          {/* Primary background with heavy glitch */}
+          {/* Clean background without glitch effects */}
           <div 
-            className="watermark-background watermark-glitch absolute inset-0 opacity-15"
+            className="watermark-background absolute inset-0 opacity-15"
             style={{
               backgroundImage: `url(${skullWatermark})`,
               backgroundSize: '60%',
@@ -246,35 +245,6 @@ export function Terminal() {
               backgroundRepeat: 'no-repeat',
             }}
           />
-          
-          {/* Color-shifted duplicate layer */}
-          <div 
-            className="watermark-background watermark-glitch-red absolute inset-0 opacity-08"
-            style={{
-              backgroundImage: `url(${skullWatermark})`,
-              backgroundSize: '60%',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              filter: 'hue-rotate(180deg) contrast(1.5) saturate(2)',
-              mixBlendMode: 'screen'
-            }}
-          />
-          
-          {/* Cyan channel separation layer */}
-          <div 
-            className="watermark-background watermark-glitch-cyan absolute inset-0 opacity-06"
-            style={{
-              backgroundImage: `url(${skullWatermark})`,
-              backgroundSize: '60%',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              filter: 'hue-rotate(90deg) contrast(2) saturate(3)',
-              mixBlendMode: 'multiply'
-            }}
-          />
-          
-          {/* Static noise overlay */}
-          <div className="absolute inset-0 watermark-noise opacity-05" />
         </div>
         
         {/* Header - Fixed at top */}
