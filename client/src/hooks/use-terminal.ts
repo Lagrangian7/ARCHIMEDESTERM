@@ -58,6 +58,25 @@ export function useTerminal() {
     },
   });
 
+  const weatherMutation = useMutation({
+    mutationFn: async ({ location, type }: { location: string; type: 'current' | 'forecast' }) => {
+      const endpoint = type === 'current' 
+        ? `/api/weather/current/${encodeURIComponent(location)}`
+        : `/api/weather/forecast/${encodeURIComponent(location)}`;
+      
+      const response = await apiRequest('GET', endpoint);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Weather Error: ${error.message}`);
+    },
+  });
+
   const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical') => {
     const entry: TerminalEntry = {
       id: crypto.randomUUID(),
@@ -88,6 +107,8 @@ export function useTerminal() {
   voice [on|off] - Toggle voice synthesis
   history - Show command history
   status - Show system status
+  weather [location] - Get current weather for location
+  forecast [location] - Get 5-day forecast for location
   
 You can also chat naturally or ask technical questions.`);
       return;
@@ -126,11 +147,34 @@ You can also chat naturally or ask technical questions.`);
       addEntry('system', `Recent Commands:\n${historyText}`);
       return;
     }
+
+    // Handle weather commands
+    if (cmd.startsWith('weather ')) {
+      const location = command.slice(8).trim();
+      if (!location) {
+        addEntry('error', 'Please specify a location. Example: weather London');
+        return;
+      }
+      setIsTyping(true);
+      weatherMutation.mutate({ location, type: 'current' });
+      return;
+    }
+
+    if (cmd.startsWith('forecast ')) {
+      const location = command.slice(9).trim();
+      if (!location) {
+        addEntry('error', 'Please specify a location. Example: forecast New York');
+        return;
+      }
+      setIsTyping(true);
+      weatherMutation.mutate({ location, type: 'forecast' });
+      return;
+    }
     
     // For non-command inputs, send to AI
     setIsTyping(true);
     chatMutation.mutate({ message: command, mode: currentMode });
-  }, [currentMode, sessionId, commandHistory.length, addEntry, chatMutation]);
+  }, [currentMode, sessionId, commandHistory.length, addEntry, chatMutation, weatherMutation]);
 
   const clearTerminal = useCallback(() => {
     setEntries([]);
