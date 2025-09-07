@@ -365,7 +365,7 @@ Knowledge Base Commands:
   search [query] - Search your knowledge base
   knowledge stats - Show knowledge base statistics
   
-You can also chat naturally or ask technical questions.`;
+You can also chat naturally or ask technical questions.`);
       }
       return;
     }
