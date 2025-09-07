@@ -1,5 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 
+// Type declarations for Speech Recognition API
+declare global {
+  interface Window {
+    webkitSpeechRecognition: any;
+    SpeechRecognition: any;
+  }
+}
+
 interface Voice {
   name: string;
   lang: string;
@@ -137,13 +145,13 @@ export function useSpeechRecognition() {
 
     recognition.onstart = () => setIsListening(true);
     
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       onResult(transcript);
       setIsListening(false);
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
     };
