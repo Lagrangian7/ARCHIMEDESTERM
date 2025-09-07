@@ -143,17 +143,66 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
     });
   }, [onConnectionUpdate]);
 
-  // Basic ANSI code processing
+  // ANSI color and formatting codes
+  const ANSI_COLORS = {
+    30: 'ansi-black', 31: 'ansi-red', 32: 'ansi-green', 33: 'ansi-yellow',
+    34: 'ansi-blue', 35: 'ansi-magenta', 36: 'ansi-cyan', 37: 'ansi-white',
+    90: 'ansi-bright-black', 91: 'ansi-bright-red', 92: 'ansi-bright-green', 93: 'ansi-bright-yellow',
+    94: 'ansi-bright-blue', 95: 'ansi-bright-magenta', 96: 'ansi-bright-cyan', 97: 'ansi-bright-white',
+    40: 'ansi-bg-black', 41: 'ansi-bg-red', 42: 'ansi-bg-green', 43: 'ansi-bg-yellow',
+    44: 'ansi-bg-blue', 45: 'ansi-bg-magenta', 46: 'ansi-bg-cyan', 47: 'ansi-bg-white'
+  };
+
+  // Proper ANSI code processing with HTML conversion
   const processAnsiCodes = (text: string): string => {
-    // Remove basic ANSI escape sequences for now
-    // In a full implementation, we would convert these to HTML/CSS
-    return text
-      .replace(/\x1b\[[0-9;]*m/g, '') // Remove color codes
-      .replace(/\x1b\[[ABCD]/g, '') // Remove cursor movement
-      .replace(/\x1b\[2J/g, '') // Remove clear screen
-      .replace(/\x1b\[H/g, '') // Remove cursor home
+    let result = text;
+    let openTags: string[] = [];
+    
+    // Process ANSI escape sequences
+    result = result.replace(/\x1b\[([0-9;]*)m/g, (match, codes) => {
+      if (!codes) codes = '0';
+      const codeList = codes.split(';').map((code: string) => parseInt(code) || 0);
+      let html = '';
+      
+      for (const code of codeList) {
+        if (code === 0) {
+          // Reset all formatting
+          html += openTags.reverse().map(() => '</span>').join('');
+          openTags = [];
+        } else if (code === 1) {
+          // Bold
+          html += '<span class="ansi-bold">';
+          openTags.push('bold');
+        } else if (code === 3) {
+          // Italic
+          html += '<span class="ansi-italic">';
+          openTags.push('italic');
+        } else if (code === 4) {
+          // Underline
+          html += '<span class="ansi-underline">';
+          openTags.push('underline');
+        } else if (ANSI_COLORS[code as keyof typeof ANSI_COLORS]) {
+          // Color codes
+          const colorClass = ANSI_COLORS[code as keyof typeof ANSI_COLORS];
+          html += `<span class="${colorClass}">`;
+          openTags.push('color');
+        }
+      }
+      return html;
+    });
+    
+    // Handle basic cursor movements and screen control (simplified)
+    result = result
+      .replace(/\x1b\[2J/g, '') // Clear screen (ignore for now)
+      .replace(/\x1b\[H/g, '') // Cursor home (ignore for now)
+      .replace(/\x1b\[[ABCD]/g, '') // Cursor movement (ignore for now)
       .replace(/\r\n/g, '\n') // Normalize line endings
       .replace(/\r/g, '\n');
+    
+    // Close any remaining open tags
+    result += openTags.reverse().map(() => '</span>').join('');
+    
+    return result;
   };
 
   const connectToHost = useCallback((host: string, port: number) => {
@@ -365,9 +414,11 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
           style={{ lineHeight: '1.4' }}
         >
           {activeConnection.data.map((line, index) => (
-            <div key={`${activeConnection.id}-${index}`} className="break-words">
-              {line}
-            </div>
+            <div 
+              key={`${activeConnection.id}-${index}`} 
+              className="break-words"
+              dangerouslySetInnerHTML={{ __html: line }}
+            />
           ))}
           {/* Scroll anchor */}
           <div id="scroll-anchor" />

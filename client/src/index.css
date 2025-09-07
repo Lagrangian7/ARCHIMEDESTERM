@@ -255,6 +255,78 @@
   .terminal-glitch-active::after {
     opacity: 1;
   }
+
+  /* ANSI color classes for telnet terminal */
+  .ansi-black { color: #000000; }
+  .ansi-red { color: #cc0000; }
+  .ansi-green { color: #00cc00; }
+  .ansi-yellow { color: #cccc00; }
+  .ansi-blue { color: #0000cc; }
+  .ansi-magenta { color: #cc00cc; }
+  .ansi-cyan { color: #00cccc; }
+  .ansi-white { color: #cccccc; }
+  
+  .ansi-bright-black { color: #808080; }
+  .ansi-bright-red { color: #ff0000; }
+  .ansi-bright-green { color: #00ff00; }
+  .ansi-bright-yellow { color: #ffff00; }
+  .ansi-bright-blue { color: #0000ff; }
+  .ansi-bright-magenta { color: #ff00ff; }
+  .ansi-bright-cyan { color: #00ffff; }
+  .ansi-bright-white { color: #ffffff; }
+  
+  .ansi-bg-black { background-color: #000000; }
+  .ansi-bg-red { background-color: #cc0000; }
+  .ansi-bg-green { background-color: #00cc00; }
+  .ansi-bg-yellow { background-color: #cccc00; }
+  .ansi-bg-blue { background-color: #0000cc; }
+  .ansi-bg-magenta { background-color: #cc00cc; }
+  .ansi-bg-cyan { background-color: #00cccc; }
+  .ansi-bg-white { background-color: #cccccc; }
+  
+  .ansi-bold { font-weight: bold; }
+  .ansi-italic { font-style: italic; }
+  .ansi-underline { text-decoration: underline; }
+
+  /* Telnet container with glitchy border */
+  .telnet-container {
+    position: relative;
+    border: 2px solid var(--terminal-highlight);
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+  }
+
+  .telnet-container::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, 
+      transparent 0%, 
+      var(--terminal-highlight) 25%, 
+      transparent 50%, 
+      var(--terminal-highlight) 75%, 
+      transparent 100%
+    );
+    background-size: 20px 20px;
+    animation: telnetBorderGlitch 3s infinite linear;
+    z-index: -1;
+    opacity: 0.6;
+  }
+
+  .telnet-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 1px solid var(--terminal-highlight);
+    animation: telnetBorderFlicker 2s infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
 }
 
 @keyframes blink {
@@ -381,5 +453,55 @@
   100% {
     opacity: 0;
     transform: translateY(100%);
+  }
+}
+
+@keyframes telnetBorderGlitch {
+  0% {
+    background-position: 0 0;
+    opacity: 0.6;
+  }
+  
+  25% {
+    opacity: 0.8;
+    transform: translateX(-1px);
+  }
+  
+  50% {
+    background-position: 20px 20px;
+    opacity: 0.4;
+  }
+  
+  75% {
+    opacity: 0.9;
+    transform: translateX(1px);
+  }
+  
+  100% {
+    background-position: 0 0;
+    opacity: 0.6;
+    transform: translateX(0);
+  }
+}
+
+@keyframes telnetBorderFlicker {
+  0%, 90% {
+    opacity: 1;
+  }
+  
+  91% {
+    opacity: 0.3;
+  }
+  
+  92% {
+    opacity: 1;
+  }
+  
+  94% {
+    opacity: 0.1;
+  }
+  
+  95%, 100% {
+    opacity: 1;
   }
 }
