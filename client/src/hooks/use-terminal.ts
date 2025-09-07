@@ -122,6 +122,12 @@ export function useTerminal() {
   status - Show system status
   weather - Get current weather (uses location if available)
   
+Knowledge Base Commands:
+  docs - List your uploaded documents
+  upload - Open document upload interface
+  search [query] - Search your knowledge base
+  knowledge stats - Show knowledge base statistics
+  
 You can also chat naturally or ask technical questions.`);
       return;
     }
@@ -185,6 +191,128 @@ You can also chat naturally or ask technical questions.`);
         // If geolocation not supported, get default weather
         weatherMutation.mutate({});
       }
+      return;
+    }
+
+    // Knowledge base commands
+    if (cmd === 'docs') {
+      setIsTyping(true);
+      addEntry('system', 'Retrieving your document library...');
+      
+      // Fetch user documents
+      fetch('/api/documents', { credentials: 'include' })
+        .then(async (res) => {
+          setIsTyping(false);
+          if (res.status === 401) {
+            addEntry('error', 'Authentication required. Please log in to access your documents.');
+            return;
+          }
+          if (!res.ok) throw new Error('Failed to fetch documents');
+          
+          const documents = await res.json();
+          if (documents.length === 0) {
+            addEntry('system', 'No documents found. Use "upload" to add documents to your knowledge base.');
+          } else {
+            const docList = documents
+              .map((doc: any, index: number) => 
+                `${index + 1}. ${doc.originalName} (${doc.fileSize} bytes) - ${doc.summary || 'No summary'}`
+              )
+              .join('\n');
+            addEntry('system', `Your Documents (${documents.length} total):\n${docList}\n\nUse "search [query]" to find specific information.`);
+          }
+        })
+        .catch((error) => {
+          setIsTyping(false);
+          addEntry('error', `Error fetching documents: ${error.message}`);
+        });
+      return;
+    }
+
+    if (cmd === 'upload') {
+      addEntry('system', 'Opening document upload interface...\nNote: Upload interface will be available in the main terminal when logged in.');
+      // The actual upload UI will be shown in the Terminal component when user is authenticated
+      return;
+    }
+
+    if (cmd.startsWith('search ')) {
+      const query = command.substring(7).trim();
+      if (!query) {
+        addEntry('error', 'Please provide a search query. Usage: search [your query]');
+        return;
+      }
+
+      setIsTyping(true);
+      addEntry('system', `Searching knowledge base for: "${query}"`);
+      
+      fetch(`/api/knowledge/search?q=${encodeURIComponent(query)}`, { 
+        credentials: 'include' 
+      })
+        .then(async (res) => {
+          setIsTyping(false);
+          if (res.status === 401) {
+            addEntry('error', 'Authentication required. Please log in to search your knowledge base.');
+            return;
+          }
+          if (!res.ok) throw new Error('Search failed');
+          
+          const results = await res.json();
+          const { documents, chunks, relevantContent } = results;
+          
+          if (relevantContent.length === 0) {
+            addEntry('system', `No results found for "${query}". Try different keywords or upload more documents.`);
+          } else {
+            const resultText = `Search Results for "${query}":
+Found ${relevantContent.length} relevant passages from ${documents.length} documents:
+
+${relevantContent.map((content: string, i: number) => `${i + 1}. ${content}`).join('\n\n')}
+
+Documents: ${documents.map((doc: any) => doc.originalName).join(', ')}`;
+            addEntry('system', resultText);
+          }
+        })
+        .catch((error) => {
+          setIsTyping(false);
+          addEntry('error', `Search error: ${error.message}`);
+        });
+      return;
+    }
+
+    if (cmd === 'knowledge stats' || cmd === 'kb stats') {
+      setIsTyping(true);
+      addEntry('system', 'Retrieving knowledge base statistics...');
+      
+      fetch('/api/knowledge/stats', { credentials: 'include' })
+        .then(async (res) => {
+          setIsTyping(false);
+          if (res.status === 401) {
+            addEntry('error', 'Authentication required. Please log in to view statistics.');
+            return;
+          }
+          if (!res.ok) throw new Error('Failed to fetch stats');
+          
+          const stats = await res.json();
+          const sizeInMB = (stats.totalSizeBytes / (1024 * 1024)).toFixed(2);
+          
+          const statsText = `Knowledge Base Statistics:
+  Total Documents: ${stats.totalDocuments}
+  Total Size: ${sizeInMB} MB
+  Total Chunks: ${stats.totalChunks}
+  
+Recent Documents:
+${stats.recentDocuments.length > 0 
+  ? stats.recentDocuments.map((doc: any, i: number) => 
+      `  ${i + 1}. ${doc.originalName} (uploaded ${new Date(doc.uploadedAt).toLocaleDateString()})`)
+    .join('\n')
+  : '  No documents yet'
+}
+
+Use "upload" to add more documents or "docs" to list all documents.`;
+          addEntry('system', statsText);
+        })
+        .catch((error) => {
+          setIsTyping(false);
+          addEntry('error', `Error fetching stats: ${error.message}`);
+        });
       return;
     }
     
