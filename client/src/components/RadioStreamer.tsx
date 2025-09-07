@@ -15,9 +15,16 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const [connectionStatus, setConnectionStatus] = useState('Ready');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Simple test stream that works
-  const streamUrl = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3';
-  const stationName = 'Test Audio Stream';
+  // Infowars live stream URLs with fallbacks
+  const INFOWARS_STREAMS = [
+    'https://radio.orange.com/radios/alex_jones_infowarscom/stream',
+    'https://streams.radiomast.io/alex-jones-infowars',
+    'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3' // Fallback test
+  ];
+  
+  const [currentStreamIndex, setCurrentStreamIndex] = useState(0);
+  const streamUrl = INFOWARS_STREAMS[currentStreamIndex];
+  const stationName = currentStreamIndex < 2 ? 'Infowars Live' : 'Test Audio Stream';
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -42,8 +49,25 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
       console.error('Audio error:', error);
       setIsLoading(false);
       setIsPlaying(false);
-      setConnectionStatus('Error');
-      onStatusChange?.('Audio error occurred');
+      
+      // Try next stream if current one fails
+      if (currentStreamIndex < INFOWARS_STREAMS.length - 1) {
+        const nextIndex = currentStreamIndex + 1;
+        setCurrentStreamIndex(nextIndex);
+        setConnectionStatus(`Switching to backup stream ${nextIndex + 1}...`);
+        onStatusChange?.(`Stream failed, trying backup ${nextIndex + 1}...`);
+        
+        // Auto-retry with next stream after a short delay
+        setTimeout(() => {
+          if (audioRef.current) {
+            audioRef.current.load(); // Reload with new source
+            audioRef.current.play().catch(console.error);
+          }
+        }, 1000);
+      } else {
+        setConnectionStatus('All streams failed');
+        onStatusChange?.('All Infowars streams unavailable');
+      }
     };
 
     const handleLoadStart = () => {
@@ -112,7 +136,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <Radio className="w-6 h-6 text-terminal-highlight" />
-            <h2 className="text-xl font-bold text-terminal-highlight">Simple Radio Test</h2>
+<h2 className="text-xl font-bold text-terminal-highlight">Infowars Live Stream</h2>
           </div>
           <Button
             onClick={onClose}
@@ -134,7 +158,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
           {/* Station Info */}
           <div className="text-center p-3 bg-terminal-bg/50 rounded border border-terminal-subtle">
             <div className="text-terminal-highlight font-semibold">{stationName}</div>
-            <div className="text-terminal-text text-sm">Bell Sound Test</div>
+<div className="text-terminal-text text-sm">{currentStreamIndex < 2 ? 'Alex Jones Show' : 'Test Audio'}</div>
             <div className="text-terminal-subtle text-xs mt-1">Status: {connectionStatus}</div>
           </div>
 
@@ -174,11 +198,33 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
             <span className="text-terminal-text text-sm w-12">{Math.round(volume * 100)}%</span>
           </div>
 
+          {/* Stream Options */}
+          <div className="flex items-center justify-center space-x-2">
+            {INFOWARS_STREAMS.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setCurrentStreamIndex(index);
+                  if (audioRef.current) {
+                    audioRef.current.load();
+                  }
+                }}
+                className={`px-2 py-1 text-xs rounded ${
+                  currentStreamIndex === index 
+                    ? 'bg-terminal-highlight text-terminal-bg' 
+                    : 'bg-terminal-subtle text-terminal-text hover:bg-terminal-highlight/50'
+                }`}
+              >
+                {index < 2 ? `Stream ${index + 1}` : 'Test'}
+              </button>
+            ))}
+          </div>
+
           {/* Debug Info */}
           <div className="text-xs text-terminal-subtle p-2 bg-terminal-bg/30 rounded">
-            <div>Audio URL: {streamUrl}</div>
-            <div>Ready State: {audioRef.current?.readyState || 'Not loaded'}</div>
-            <div>Network State: {audioRef.current?.networkState || 'Not loaded'}</div>
+            <div>Current: {streamUrl}</div>
+            <div>Stream {currentStreamIndex + 1} of {INFOWARS_STREAMS.length}</div>
+            <div>Ready: {audioRef.current?.readyState || 'Not loaded'}</div>
           </div>
         </div>
       </div>
