@@ -25,27 +25,32 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
     if (!audio) return;
 
     const handleLoadStart = () => {
+      console.log('Audio: loadstart event');
       setIsLoading(true);
       setConnectionStatus('Connecting...');
-      onStatusChange?.('Connecting to KLUX Radio...');
+      onStatusChange?.('Connecting to audio...');
     };
 
     const handleCanPlay = () => {
+      console.log('Audio: canplay event');
       setIsLoading(false);
-      setConnectionStatus('Connected');
-      onStatusChange?.('KLUX Radio connected successfully');
+      setConnectionStatus('Ready');
+      onStatusChange?.('Audio ready to play');
     };
 
     const handlePlay = () => {
+      console.log('Audio: play event');
       setIsPlaying(true);
-      setConnectionStatus('Streaming');
-      onStatusChange?.('🎵 Now streaming KLUX Radio');
+      setIsLoading(false);
+      setConnectionStatus('Playing');
+      onStatusChange?.('🎵 Audio playing');
     };
 
     const handlePause = () => {
+      console.log('Audio: pause event');
       setIsPlaying(false);
       setConnectionStatus('Paused');
-      onStatusChange?.('Radio stream paused');
+      onStatusChange?.('Audio paused');
     };
 
     const handleError = (error: Event) => {
@@ -56,7 +61,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
       
       // More specific error handling
       const audioError = (error.target as HTMLAudioElement)?.error;
-      let errorMessage = 'Failed to connect to KLUX Radio stream';
+      let errorMessage = 'Failed to load audio file';
       
       if (audioError) {
         switch (audioError.code) {
@@ -81,7 +86,19 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
     };
 
     const handleWaiting = () => {
+      console.log('Audio: waiting event');
       setConnectionStatus('Buffering...');
+    };
+
+    const handleLoadedMetadata = () => {
+      console.log('Audio: loadedmetadata event');
+    };
+
+    const handleTimeUpdate = () => {
+      // Only log occasionally to avoid spam
+      if (Math.floor(audio.currentTime) % 5 === 0) {
+        console.log('Audio playing at:', Math.floor(audio.currentTime), 'seconds');
+      }
     };
 
     audio.addEventListener('loadstart', handleLoadStart);
@@ -90,6 +107,8 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('error', handleError);
     audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
 
     return () => {
       audio.removeEventListener('loadstart', handleLoadStart);
@@ -98,6 +117,8 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('error', handleError);
       audio.removeEventListener('waiting', handleWaiting);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
     };
   }, [onStatusChange]);
 
@@ -115,10 +136,15 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
     if (isPlaying) {
       audio.pause();
     } else {
+      console.log('Attempting to play audio:', streamUrl);
+      setIsLoading(true);
+      setConnectionStatus('Connecting...');
+      
       audio.play().catch(error => {
         console.error('Error playing audio:', error);
+        setIsLoading(false);
         setConnectionStatus('Playback Error');
-        onStatusChange?.('Error: Unable to play radio stream');
+        onStatusChange?.(`Error: ${error.message || 'Unable to play audio'}`);
       });
     }
   };
@@ -156,7 +182,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
         <audio
           ref={audioRef}
           src={streamUrl}
-          preload="none"
+          preload="metadata"
           crossOrigin="anonymous"
         />
 
