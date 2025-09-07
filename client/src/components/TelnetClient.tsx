@@ -222,12 +222,24 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
     }
   }, [activeConnection?.data]);
 
-  // Focus input when connection becomes active
+  // Focus input when connection becomes active or modal opens
   useEffect(() => {
-    if (activeConnection?.connected && inputRef.current) {
-      inputRef.current.focus();
+    if (activeConnection && inputRef.current) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
-  }, [activeConnection?.connected]);
+  }, [activeConnection]);
+
+  // Auto-focus when component mounts
+  useEffect(() => {
+    if (inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 200);
+    }
+  }, []);
 
   // Expose connection method to parent components and handle pending connections
   useEffect(() => {
@@ -299,17 +311,26 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
       </ScrollArea>
 
       {/* Input area */}
-      <div className="p-2 border-t border-terminal-subtle">
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          disabled={!activeConnection.connected}
-          className="w-full bg-transparent border-none outline-none text-terminal-text font-mono text-sm"
-          placeholder={activeConnection.connected ? "Type command..." : "Connection not ready"}
-        />
+      <div className="p-2 border-t border-terminal-subtle bg-terminal-bg">
+        <div className="flex items-center space-x-2">
+          <span className="text-terminal-highlight font-mono text-sm">$</span>
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={!activeConnection.connected}
+            className="flex-1 bg-transparent border-none outline-none text-terminal-text font-mono text-sm focus:ring-0"
+            placeholder={activeConnection.connected ? "Type command and press Enter..." : "Connection not ready"}
+            autoComplete="off"
+            spellCheck={false}
+            data-testid="telnet-input"
+          />
+          {activeConnection.connected && (
+            <span className="text-terminal-subtle text-xs">Press Enter to send</span>
+          )}
+        </div>
       </div>
     </div>
   );
