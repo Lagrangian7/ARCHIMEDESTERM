@@ -86,12 +86,35 @@ export function Terminal() {
     }
   }, [entries, isTyping, visibleEntries]);
 
-  // Auto-scroll terminal output when not paginating
+  // Enhanced auto-scroll terminal output to last line with carriage return
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      // Scroll both the output div and the ScrollArea viewport
+      if (outputRef.current) {
+        outputRef.current.scrollTop = outputRef.current.scrollHeight;
+      }
+      
+      // Also scroll the ScrollArea viewport to ensure proper positioning
+      const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
+    });
+  }, []);
+
+  // Auto-scroll when entries change, during typing, or when pagination changes
   useEffect(() => {
-    if (outputRef.current && !showContinuePrompt) {
-      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    if (!showContinuePrompt) {
+      scrollToBottom();
     }
-  }, [entries, isTyping, showContinuePrompt]);
+  }, [entries, isTyping, showContinuePrompt, scrollToBottom]);
+
+  // Additional scroll trigger for when responses are being drawn
+  useEffect(() => {
+    if (isTyping) {
+      scrollToBottom();
+    }
+  }, [isTyping, scrollToBottom]);
 
   const handleContinue = () => {
     setVisibleEntries(Math.min(visibleEntries + 10, entries.length)); // Show 10 more entries
@@ -99,10 +122,8 @@ export function Terminal() {
     
     // Auto-scroll after showing more content
     setTimeout(() => {
-      if (outputRef.current) {
-        outputRef.current.scrollTop = outputRef.current.scrollHeight;
-      }
-    }, 100);
+      scrollToBottom();
+    }, 50);
   };
 
   const handleShowAll = () => {
@@ -111,10 +132,8 @@ export function Terminal() {
     
     // Auto-scroll after showing all content
     setTimeout(() => {
-      if (outputRef.current) {
-        outputRef.current.scrollTop = outputRef.current.scrollHeight;
-      }
-    }, 100);
+      scrollToBottom();
+    }, 50);
   };
 
   // Focus input on mount and clicks
@@ -152,6 +171,10 @@ export function Terminal() {
         setInput('');
         // Reset pagination when new command is entered
         setVisibleEntries(entries.length + 1); // +1 for the new entry that will be added
+        // Immediately scroll to show the command entry
+        setTimeout(() => {
+          scrollToBottom();
+        }, 10);
       }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
