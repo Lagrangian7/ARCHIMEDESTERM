@@ -25,6 +25,76 @@ export class GutendxService {
   private static instance: GutendxService;
   private readonly baseUrl = 'https://gutendx.com';
 
+  // Fallback popular books when API is down
+  private readonly fallbackBooks: GutendxBook[] = [
+    {
+      id: 1342,
+      title: "Pride and Prejudice",
+      authors: [{ name: "Austen, Jane", birth_year: 1775, death_year: 1817 }],
+      languages: ["en"],
+      download_count: 50000,
+      formats: { "text/html": "https://www.gutenberg.org/ebooks/1342.html.images" },
+      subjects: ["England -- Social life and customs -- 19th century -- Fiction"],
+      bookshelves: ["Harvard Classics", "Movie Books"],
+      copyright: false
+    },
+    {
+      id: 11,
+      title: "Alice's Adventures in Wonderland",
+      authors: [{ name: "Carroll, Lewis", birth_year: 1832, death_year: 1898 }],
+      languages: ["en"],
+      download_count: 45000,
+      formats: { "text/html": "https://www.gutenberg.org/ebooks/11.html.images" },
+      subjects: ["Fantasy fiction", "Children's stories"],
+      bookshelves: ["Children's Literature"],
+      copyright: false
+    },
+    {
+      id: 174,
+      title: "The Picture of Dorian Gray",
+      authors: [{ name: "Wilde, Oscar", birth_year: 1854, death_year: 1900 }],
+      languages: ["en"],
+      download_count: 40000,
+      formats: { "text/html": "https://www.gutenberg.org/ebooks/174.html.images" },
+      subjects: ["Gothic fiction", "Philosophical fiction"],
+      bookshelves: ["Gothic Fiction", "Movie Books"],
+      copyright: false
+    },
+    {
+      id: 1080,
+      title: "A Modest Proposal",
+      authors: [{ name: "Swift, Jonathan", birth_year: 1667, death_year: 1745 }],
+      languages: ["en"],
+      download_count: 35000,
+      formats: { "text/html": "https://www.gutenberg.org/ebooks/1080.html.images" },
+      subjects: ["Political satire", "Ireland -- Politics and government -- 18th century"],
+      bookshelves: ["Harvard Classics"],
+      copyright: false
+    },
+    {
+      id: 2542,
+      title: "A Doll's House",
+      authors: [{ name: "Ibsen, Henrik", birth_year: 1828, death_year: 1906 }],
+      languages: ["en"],
+      download_count: 30000,
+      formats: { "text/html": "https://www.gutenberg.org/ebooks/2542.html.images" },
+      subjects: ["Norwegian drama", "Marriage -- Drama"],
+      bookshelves: ["Best Books Ever Listings"],
+      copyright: false
+    },
+    {
+      id: 74,
+      title: "The Adventures of Tom Sawyer",
+      authors: [{ name: "Twain, Mark", birth_year: 1835, death_year: 1910 }],
+      languages: ["en"],
+      download_count: 42000,
+      formats: { "text/html": "https://www.gutenberg.org/ebooks/74.html.images" },
+      subjects: ["Adventure stories", "Boys -- Fiction"],
+      bookshelves: ["Children's Literature"],
+      copyright: false
+    }
+  ];
+
   public static getInstance(): GutendxService {
     if (!GutendxService.instance) {
       GutendxService.instance = new GutendxService();
@@ -59,15 +129,41 @@ export class GutendxService {
     const url = `${this.baseUrl}/books?${queryParams.toString()}`;
     
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'ARCHIMEDES-Terminal/1.0'
+        }
+      });
       if (!response.ok) {
         throw new Error(`Gutendx API error: ${response.status} ${response.statusText}`);
       }
       
       return await response.json();
     } catch (error) {
-      console.error('Gutendx search error:', error);
-      throw new Error(`Failed to search books: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Gutendx API unavailable, using fallback data:', error);
+      
+      // Return fallback data when API is down
+      let filteredBooks = this.fallbackBooks;
+      
+      // Apply basic filtering
+      if (params.search) {
+        const searchLower = params.search.toLowerCase();
+        filteredBooks = filteredBooks.filter(book => 
+          book.title.toLowerCase().includes(searchLower) ||
+          book.authors.some(author => author.name.toLowerCase().includes(searchLower)) ||
+          book.subjects.some(subject => subject.toLowerCase().includes(searchLower))
+        );
+      }
+      
+      // Sort by download count (popular)
+      filteredBooks = filteredBooks.sort((a, b) => b.download_count - a.download_count);
+      
+      return {
+        count: filteredBooks.length,
+        next: null,
+        previous: null,
+        results: filteredBooks
+      };
     }
   }
 
@@ -97,7 +193,26 @@ export class GutendxService {
    * Get popular books (most downloaded)
    */
   async getPopularBooks(limit: number = 20): Promise<GutendxResponse> {
-    return this.searchBooks({ sort: 'popular', page: 1 });
+    try {
+      const response = await this.searchBooks({ sort: 'popular', page: 1 });
+      return {
+        ...response,
+        results: response.results.slice(0, limit)
+      };
+    } catch (error) {
+      console.error('Popular books API unavailable, using fallback');
+      // Return fallback books sorted by download count
+      const popular = this.fallbackBooks
+        .sort((a, b) => b.download_count - a.download_count)
+        .slice(0, limit);
+        
+      return {
+        count: popular.length,
+        next: null,
+        previous: null,
+        results: popular
+      };
+    }
   }
 
   /**
