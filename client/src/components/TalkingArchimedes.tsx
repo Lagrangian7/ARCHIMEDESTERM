@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import skullWatermark from '@assets/wally_1756523512970.jpg';
-import archimedesVideo from '@assets/1131_1757266999585.mp4';
+import archimedesVideo1 from '@assets/1131_1757266999585.mp4';
+import archimedesVideo2 from '@assets/wally alive_1757271415623.mp4';
 
 interface TalkingArchimedesProps {
   isTyping: boolean;
@@ -12,12 +13,22 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
   const [showCharacter, setShowCharacter] = useState(false);
   const [animationPhase, setAnimationPhase] = useState<'idle' | 'talking' | 'thinking'>('idle');
   const [useVideo, setUseVideo] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(archimedesVideo1);
+  
+  // Array of available videos
+  const videoOptions = [archimedesVideo1, archimedesVideo2];
 
   useEffect(() => {
     if (isTyping || isSpeaking) {
       setShowCharacter(true);
       // Randomly choose between image and video each time character appears
-      setUseVideo(Math.random() > 0.5);
+      const willUseVideo = Math.random() > 0.5;
+      setUseVideo(willUseVideo);
+      
+      // If using video, randomly select which video to show
+      if (willUseVideo) {
+        setSelectedVideo(videoOptions[Math.floor(Math.random() * videoOptions.length)]);
+      }
       
       if (isTyping) {
         setAnimationPhase('thinking');
@@ -57,7 +68,7 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
           {/* Background Media - Either Image or Video */}
           {useVideo ? (
             <video 
-              src={archimedesVideo}
+              src={selectedVideo}
               autoPlay
               loop
               muted
