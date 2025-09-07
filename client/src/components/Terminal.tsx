@@ -8,6 +8,7 @@ import { ConversationHistory } from './ConversationHistory';
 import { DocumentUpload } from './DocumentUpload';
 import { TelnetClient } from './TelnetClient';
 import { SnakeGame } from './SnakeGame';
+import { DTMFDecoder } from './DTMFDecoder';
 import { TalkingArchimedes } from './TalkingArchimedes';
 import { RadioCharacter } from './RadioCharacter';
 import { useTerminal } from '@/hooks/use-terminal';
@@ -53,6 +54,7 @@ export function Terminal() {
   useEffect(() => {
     (window as any).openTelnetModal = () => setShowTelnet(true);
     (window as any).openSnakeGame = () => setShowSnake(true);
+    (window as any).openDTMFDecoder = () => setShowDTMF(true);
   }, []);
   
   const { speak, isSpeaking } = useSpeechSynthesis();
@@ -64,6 +66,7 @@ export function Terminal() {
   const [showUpload, setShowUpload] = useState(false);
   const [showTelnet, setShowTelnet] = useState(false);
   const [showSnake, setShowSnake] = useState(false);
+  const [showDTMF, setShowDTMF] = useState(false);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   
   // Radio streaming controls - direct playback without modal
@@ -591,6 +594,10 @@ export function Terminal() {
             />
           </div>
         </div>
+      )}
+
+      {showDTMF && (
+        <DTMFDecoder onClose={() => setShowDTMF(false)} />
       )}
       {/* Hidden radio audio element */}
       <audio

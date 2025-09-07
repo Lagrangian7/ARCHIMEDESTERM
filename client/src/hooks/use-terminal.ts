@@ -347,6 +347,9 @@ Radio Streaming:
   radio volume <0-100> - Set volume level
   radio status - Show current stream status
   
+Audio & Signal Processing:
+  dtmf - Start DTMF decoder for touch-tone signals
+  
 Games:
   snake - Play the classic Snake game
   
@@ -1024,6 +1027,18 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         openSnakeGame();
       } else {
         addEntry('error', 'Snake game not available. Please ensure the game component is loaded.');
+      }
+      return;
+    }
+
+    // DTMF Decoder
+    if (cmd === 'dtmf') {
+      addEntry('system', 'Launching DTMF Decoder...');
+      const openDTMFDecoder = (window as any).openDTMFDecoder;
+      if (openDTMFDecoder) {
+        openDTMFDecoder();
+      } else {
+        addEntry('error', 'DTMF decoder not available. Please ensure the decoder component is loaded.');
       }
       return;
     }
