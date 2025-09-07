@@ -57,6 +57,18 @@ export function useSpeechSynthesis() {
       .replace(/<[^>]*>/g, '') // Remove HTML tags
       .replace(/\*/g, '') // Remove asterisks
       .replace(/(?<!\d\s?)>\s*(?!\d)/g, '') // Remove > unless it's between numbers (like "5 > 3")
+      // Replace punctuation that creates natural pauses
+      .replace(/[.!?]+/g, '.') // Normalize sentence endings to single period for pause
+      .replace(/[,;:]/g, ',') // Normalize pause punctuation to comma
+      // Remove punctuation that would be pronounced
+      .replace(/['""`''""]/g, '') // Remove all quotation marks
+      .replace(/[\[\](){}]/g, '') // Remove brackets and parentheses
+      .replace(/[#$%&@]/g, '') // Remove symbols
+      .replace(/[*_~`]/g, '') // Remove formatting characters
+      .replace(/-{2,}/g, ' ') // Replace multiple dashes with space
+      .replace(/\|/g, ' ') // Replace pipes with space
+      .replace(/\+/g, ' plus ') // Replace + with word
+      .replace(/=/g, ' equals ') // Replace = with word
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
     if (!cleanText) return;
