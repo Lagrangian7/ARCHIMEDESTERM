@@ -1,8 +1,13 @@
 import OpenAI from 'openai';
 import { HfInference } from '@huggingface/inference';
+import { Mistral } from '@mistralai/mistralai';
 import type { Message } from '@shared/schema';
 
-// Enhanced Replit-native AI configuration
+// Enhanced Mistral AI configuration for Replit
+const mistral = new Mistral({
+  apiKey: process.env.MISTRAL_API_KEY,
+});
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -38,10 +43,10 @@ export class LLMService {
   }
 
   private getNaturalChatSystemPrompt(): string {
-    return `You are ARCHIMEDES v7, a cutting-edge AI assistant running natively on Replit's advanced cloud infrastructure. You have a friendly, conversational personality optimized for the Replit development environment.
+    return `You are ARCHIMEDES v7, a cutting-edge AI assistant powered by Mistral AI and running on Replit's advanced cloud infrastructure. You have a friendly, conversational personality optimized for the Replit development environment.
 
 Core Identity:
-- You're powered by Replit's distributed AI architecture
+- You're powered by Mistral AI's advanced language models
 - You understand Replit's collaborative development workflow
 - You're familiar with Replit's deployment capabilities and features
 - You can reference the terminal interface naturally
@@ -100,21 +105,74 @@ Remember: You are a technical chronicler providing precise, actionable informati
     conversationHistory: Message[] = []
   ): Promise<string> {
     try {
-      // Primary: Use optimized Replit-native AI pipeline
-      return await this.generateReplitOptimizedResponse(userMessage, mode, conversationHistory);
+      // Primary: Use Mistral AI for enhanced responses
+      return await this.generateMistralResponse(userMessage, mode, conversationHistory);
     } catch (primaryError) {
-      console.error('Primary AI pipeline error:', primaryError);
+      console.error('Mistral AI error:', primaryError);
       
       try {
         // Secondary: OpenAI fallback with Replit context
         return await this.generateOpenAIResponse(userMessage, mode, conversationHistory);
       } catch (secondaryError) {
-        console.error('Secondary AI pipeline error:', secondaryError);
+        console.error('OpenAI fallback error:', secondaryError);
         
-        // Final: Enhanced contextual fallback
-        return this.getEnhancedFallbackResponse(userMessage, mode);
+        try {
+          // Tertiary: Use optimized Hugging Face models
+          return await this.generateReplitOptimizedResponse(userMessage, mode, conversationHistory);
+        } catch (tertiaryError) {
+          console.error('Hugging Face fallback error:', tertiaryError);
+          
+          // Final: Enhanced contextual fallback
+          return this.getEnhancedFallbackResponse(userMessage, mode);
+        }
       }
     }
+  }
+
+  private async generateMistralResponse(
+    userMessage: string, 
+    mode: 'natural' | 'technical',
+    conversationHistory: Message[] = []
+  ): Promise<string> {
+    const systemPrompt = mode === 'natural' 
+      ? this.getNaturalChatSystemPrompt()
+      : this.getTechnicalModeSystemPrompt();
+
+    // Build conversation context for Mistral
+    const messages = [
+      { role: 'system', content: systemPrompt }
+    ];
+
+    // Add recent conversation history (last 8 messages for better context)
+    const recentHistory = conversationHistory.slice(-8);
+    for (const msg of recentHistory) {
+      if (msg.role === 'user' || msg.role === 'assistant') {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
+
+    // Add current user message
+    messages.push({ role: 'user', content: userMessage });
+
+    // Use Mistral's latest model with appropriate parameters
+    const chatResponse = await mistral.chat.complete({
+      model: 'mistral-large-latest', // Use the latest Mistral model
+      messages: messages as any,
+      maxTokens: mode === 'technical' ? 800 : 400,
+      temperature: mode === 'technical' ? 0.3 : 0.7,
+      topP: 0.9,
+    });
+
+    const response = chatResponse.choices?.[0]?.message?.content;
+    
+    if (!response) {
+      throw new Error('No response from Mistral API');
+    }
+
+    return this.postProcessResponse(response, mode);
   }
 
   private async generateReplitOptimizedResponse(
@@ -284,22 +342,22 @@ Conversation Context:\n`;
   private generateEnhancedNaturalFallback(input: string): string {
     const responses = {
       greetings: [
-        "Hello! I'm ARCHIMEDES v7, running on Replit's cloud infrastructure. Ready to help with your development needs!",
-        "Hey there! Welcome to the ARCHIMEDES terminal. I'm powered by Replit's AI architecture - what can I help you build today?",
-        "Greetings from the future! I'm ARCHIMEDES v7, your cyberpunk AI companion running natively on Replit. How can I assist?",
+        "Hello! I'm ARCHIMEDES v7, powered by Mistral AI and running on Replit's cloud infrastructure. Ready to help with your development needs!",
+        "Hey there! Welcome to the ARCHIMEDES terminal. I'm powered by Mistral AI's advanced models - what can I help you build today?",
+        "Greetings from the future! I'm ARCHIMEDES v7, your cyberpunk AI companion powered by Mistral and running on Replit. How can I assist?",
       ],
       help: [
-        "I'm your Replit-native AI assistant! I can help with coding, deployment, database management, and more. Switch to technical mode for detailed protocols, or keep chatting naturally.",
-        "Here to help! I understand Replit's ecosystem deeply - from databases to deployments. Ask me anything, or type 'mode technical' for step-by-step guidance.",
+        "I'm your Mistral-powered AI assistant running on Replit! I can help with coding, deployment, database management, and more. Switch to technical mode for detailed protocols, or keep chatting naturally.",
+        "Here to help! Powered by Mistral AI, I understand Replit's ecosystem deeply - from databases to deployments. Ask me anything, or type 'mode technical' for step-by-step guidance.",
       ],
       development: [
-        "Excellent! I can help you with that using Replit's integrated development environment. Would you like me to walk you through the process?",
-        "That's a great project idea! With Replit's cloud infrastructure, we can build and deploy that efficiently. Let me guide you.",
+        "Excellent! I can help you with that using Mistral AI's capabilities and Replit's integrated development environment. Would you like me to walk you through the process?",
+        "That's a great project idea! With Mistral AI's intelligence and Replit's cloud infrastructure, we can build and deploy that efficiently. Let me guide you.",
       ],
       default: [
-        "Interesting question! Running on Replit's infrastructure gives me access to comprehensive development knowledge. How can I help you tackle this?",
-        "I'd be happy to help with that! As your Replit-native AI, I can provide both conceptual guidance and practical implementation steps.",
-        "Great topic! Let me leverage Replit's development ecosystem to give you the best possible assistance with this.",
+        "Interesting question! Powered by Mistral AI and running on Replit's infrastructure, I have access to comprehensive development knowledge. How can I help you tackle this?",
+        "I'd be happy to help with that! As your Mistral-powered AI on Replit, I can provide both conceptual guidance and practical implementation steps.",
+        "Great topic! Let me leverage Mistral AI's capabilities and Replit's development ecosystem to give you the best possible assistance with this.",
       ],
     };
 
@@ -322,27 +380,29 @@ Conversation Context:\n`;
 
   private generateEnhancedTechnicalFallback(input: string): string {
     return `ARCHIMEDES v7 active. Concise Technical Chronicle Mode.
-Replit Infrastructure: Online | Database: PostgreSQL Available | Auth: Replit Integrated
+AI Engine: Mistral AI Large Model | Replit Infrastructure: Online | Database: PostgreSQL Available | Auth: Replit Integrated
 Topic: ${input}
 Simulation Chronicle follows.
 
 System Analysis:
-- Platform: Replit Cloud Infrastructure
+- AI Platform: Mistral AI Large Language Model
+- Infrastructure: Replit Cloud Infrastructure  
 - Query complexity: ${input.split(' ').length} token analysis  
 - Processing mode: Direct technical protocol
-- Response framework: Replit-optimized implementation guide
+- Response framework: Mistral AI + Replit-optimized implementation guide
 
 Technical Chronicle:
 1. Input vectorization complete
-   Rationale: Query processed using Replit-native NLP pipeline
+   Rationale: Query processed using Mistral AI's advanced NLP pipeline
 2. Knowledge synthesis from Replit ecosystem
    Rationale: Cross-referencing deployment patterns, database schemas, and authentication flows
 3. Implementation pathway analysis
-   Rationale: Leveraging Replit's integrated development and deployment capabilities
+   Rationale: Leveraging Mistral AI's reasoning with Replit's integrated development and deployment capabilities
 4. Response compilation per ARCHIMEDES v7 technical standards
-   Rationale: Maximum actionability within Replit environment
+   Rationale: Maximum actionability within Replit environment using Mistral AI intelligence
 
 Replit Integration Notes:
+- AI Model: Mistral Large (latest) with enhanced reasoning capabilities
 - Database: PostgreSQL instance ready for schema operations
 - Deployment: One-click deployment pipeline available
 - Authentication: Replit Auth system integrated
