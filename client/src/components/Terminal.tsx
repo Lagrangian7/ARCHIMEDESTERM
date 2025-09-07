@@ -39,7 +39,11 @@ export function Terminal() {
     getHistoryCommand,
     isLoading,
     loadConversation,
-  } = useTerminal();
+  } = useTerminal(() => {
+    if (isAuthenticated) {
+      setShowUpload(true);
+    }
+  });
   
   const { speak } = useSpeechSynthesis();
   const { user, isAuthenticated, preferences } = useAuth();

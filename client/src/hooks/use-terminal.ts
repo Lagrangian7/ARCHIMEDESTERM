@@ -11,7 +11,7 @@ interface TerminalEntry {
   mode?: 'natural' | 'technical';
 }
 
-export function useTerminal() {
+export function useTerminal(onUploadCommand?: () => void) {
   const [sessionId] = useState(() => crypto.randomUUID());
   const [entries, setEntries] = useState<TerminalEntry[]>([
     {
@@ -229,8 +229,12 @@ You can also chat naturally or ask technical questions.`);
     }
 
     if (cmd === 'upload') {
-      addEntry('system', 'Opening document upload interface...\nNote: Upload interface will be available in the main terminal when logged in.');
-      // The actual upload UI will be shown in the Terminal component when user is authenticated
+      if (onUploadCommand) {
+        onUploadCommand();
+        addEntry('system', 'Opening document upload interface...');
+      } else {
+        addEntry('system', 'Upload interface not available. Please ensure you are logged in.');
+      }
       return;
     }
 
