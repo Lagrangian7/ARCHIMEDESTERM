@@ -9,6 +9,7 @@ import { weatherService } from "./weather-service";
 import { knowledgeService } from "./knowledge-service";
 import { BbsService } from "./bbs-service";
 import { TelnetProxyService } from "./telnet-proxy";
+import { gutendxService } from "./gutendx-service";
 import multer from "multer";
 import { z } from "zod";
 import WebSocket, { WebSocketServer } from 'ws';
@@ -389,6 +390,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Weather error:", error);
       const message = error instanceof Error ? error.message : "Failed to fetch weather data";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  // Gutendx (Project Gutenberg) API endpoints
+  app.get("/api/books/search", async (req, res) => {
+    try {
+      const {
+        search,
+        languages,
+        author_year_start,
+        author_year_end,
+        copyright,
+        topic,
+        sort,
+        page
+      } = req.query;
+
+      const params: any = {};
+      
+      if (search) params.search = search as string;
+      if (languages) {
+        // Handle comma-separated languages
+        params.languages = (languages as string).split(',').map(l => l.trim());
+      }
+      if (author_year_start) params.author_year_start = parseInt(author_year_start as string);
+      if (author_year_end) params.author_year_end = parseInt(author_year_end as string);
+      if (copyright !== undefined) params.copyright = copyright === 'true';
+      if (topic) params.topic = topic as string;
+      if (sort) params.sort = sort as 'popular' | 'ascending' | 'descending';
+      if (page) params.page = parseInt(page as string);
+
+      const response = await gutendxService.searchBooks(params);
+      const formatted = gutendxService.formatSearchResults(response, search as string);
+
+      res.json({
+        results: response,
+        formatted
+      });
+    } catch (error) {
+      console.error("Book search error:", error);
+      const message = error instanceof Error ? error.message : "Failed to search books";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  app.get("/api/books/:id", async (req, res) => {
+    try {
+      const bookId = parseInt(req.params.id);
+      
+      if (isNaN(bookId)) {
+        return res.status(400).json({ error: "Invalid book ID" });
+      }
+
+      const book = await gutendxService.getBook(bookId);
+      const formatted = gutendxService.formatBookForTerminal(book);
+
+      res.json({
+        book,
+        formatted
+      });
+    } catch (error) {
+      console.error("Get book error:", error);
+      const message = error instanceof Error ? error.message : "Failed to get book details";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  app.get("/api/books/popular", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+      const response = await gutendxService.getPopularBooks(limit);
+      const formatted = gutendxService.formatSearchResults(response);
+
+      res.json({
+        results: response,
+        formatted
+      });
+    } catch (error) {
+      console.error("Popular books error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch popular books";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  app.get("/api/books/author/:name", async (req, res) => {
+    try {
+      const authorName = req.params.name;
+      const response = await gutendxService.getBooksByAuthor(authorName);
+      const formatted = gutendxService.formatSearchResults(response, `author: ${authorName}`);
+
+      res.json({
+        results: response,
+        formatted
+      });
+    } catch (error) {
+      console.error("Books by author error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch books by author";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  app.get("/api/books/topic/:topic", async (req, res) => {
+    try {
+      const topic = req.params.topic;
+      const response = await gutendxService.getBooksByTopic(topic);
+      const formatted = gutendxService.formatSearchResults(response, `topic: ${topic}`);
+
+      res.json({
+        results: response,
+        formatted
+      });
+    } catch (error) {
+      console.error("Books by topic error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch books by topic";
       res.status(500).json({ error: message });
     }
   });
