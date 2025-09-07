@@ -130,6 +130,9 @@ Network & BBS Commands:
   bbs-popular - Show popular BBS systems
   bbs-favorites - Show your favorite BBS systems
   
+Games:
+  snake - Play the classic Snake game
+  
 Knowledge Base Commands:
   docs - List your uploaded documents
   upload - Open document upload interface
@@ -526,6 +529,18 @@ Use "upload" to add more documents or "docs" to list all documents.`;
           setIsTyping(false);
           addEntry('error', `Failed to fetch favorites: ${error.message}`);
         });
+      return;
+    }
+
+    // Games
+    if (cmd === 'snake') {
+      addEntry('system', 'Launching Snake Game...');
+      const openSnakeGame = (window as any).openSnakeGame;
+      if (openSnakeGame) {
+        openSnakeGame();
+      } else {
+        addEntry('error', 'Snake game not available. Please ensure the game component is loaded.');
+      }
       return;
     }
     

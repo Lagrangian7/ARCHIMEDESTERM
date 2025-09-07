@@ -7,6 +7,7 @@ import { UserProfile } from './UserProfile';
 import { ConversationHistory } from './ConversationHistory';
 import { DocumentUpload } from './DocumentUpload';
 import { TelnetClient } from './TelnetClient';
+import { SnakeGame } from './SnakeGame';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
@@ -46,9 +47,10 @@ export function Terminal() {
     }
   });
 
-  // Expose telnet modal opener globally
+  // Expose modal openers globally
   useEffect(() => {
     (window as any).openTelnetModal = () => setShowTelnet(true);
+    (window as any).openSnakeGame = () => setShowSnake(true);
   }, []);
   
   const { speak } = useSpeechSynthesis();
@@ -59,6 +61,7 @@ export function Terminal() {
   const [showConversationHistory, setShowConversationHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [showTelnet, setShowTelnet] = useState(false);
+  const [showSnake, setShowSnake] = useState(false);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   const [visibleEntries, setVisibleEntries] = useState(Math.min(entries.length, 15));
   const inputRef = useRef<HTMLInputElement>(null);
@@ -500,6 +503,20 @@ export function Terminal() {
                 <TelnetClient />
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showSnake && (
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+          <div className="w-full h-full max-w-4xl max-h-full">
+            <SnakeGame 
+              onClose={() => setShowSnake(false)}
+              onGameOver={(score) => {
+                setShowSnake(false);
+                processCommand(`Echo: Snake Game Over! Final Score: ${score}`);
+              }}
+            />
           </div>
         </div>
       )}
