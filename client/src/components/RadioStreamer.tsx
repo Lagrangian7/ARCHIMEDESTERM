@@ -287,7 +287,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
               />
               <Button
                 onClick={searchStations}
-                disabled={isLoadingStations || !searchQuery.trim()}
+                disabled={!searchQuery.trim()}
                 size="sm"
                 className="bg-terminal-subtle hover:bg-terminal-subtle/80 text-terminal-text px-3"
               >
