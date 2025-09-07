@@ -3,9 +3,12 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { VoiceControls } from './VoiceControls';
 import { CommandHistory } from './CommandHistory';
+import { UserProfile } from './UserProfile';
+import { ConversationHistory } from './ConversationHistory';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
-import { History } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { History, User, LogIn } from 'lucide-react';
 import skullWatermark from '@assets/wally_1756523512970.jpg';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 
@@ -34,11 +37,15 @@ export function Terminal() {
     switchMode,
     getHistoryCommand,
     isLoading,
+    loadConversation,
   } = useTerminal();
   
   const { speak } = useSpeechSynthesis();
+  const { user, isAuthenticated, preferences } = useAuth();
   const [input, setInput] = useState('');
   const [showHistory, setShowHistory] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showConversationHistory, setShowConversationHistory] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
 
@@ -146,22 +153,70 @@ export function Terminal() {
               <h1 className="text-xl font-bold terminal-text terminal-glow" data-testid="text-title">
                 ARCHIMEDES v7
               </h1>
-              <div className="text-xs text-terminal-highlight">AI Terminal Interface</div>
+              <div className="text-xs text-terminal-highlight">
+                AI Terminal Interface
+                {user && (
+                  <span className="ml-2 text-green-300">
+                    | {user.firstName || user.email?.split('@')[0] || 'User'}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           
-          {/* Mode Switcher */}
-          <div className="flex items-center space-x-2 px-3 py-1 border border-terminal-subtle rounded">
-            <span className="text-xs">MODE:</span>
-            <Button
-              onClick={() => switchMode(currentMode === 'natural' ? 'technical' : 'natural')}
-              variant="ghost"
-              size="sm"
-              className="text-terminal-highlight hover:text-terminal-text transition-colors font-semibold h-auto p-0 text-xs"
-              data-testid="button-mode-toggle"
-            >
-              {currentMode === 'natural' ? 'NATURAL CHAT' : 'TECHNICAL MODE'}
-            </Button>
+          <div className="flex items-center space-x-3">
+            {/* User Controls */}
+            <div className="flex items-center space-x-2">
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    onClick={() => setShowConversationHistory(true)}
+                    variant="outline"
+                    size="sm"
+                    className="border-terminal-subtle text-terminal-text hover:text-terminal-highlight transition-colors h-auto px-2 py-1 text-xs"
+                    data-testid="button-conversation-history"
+                  >
+                    <History size={14} className="mr-1" />
+                    History
+                  </Button>
+                  <Button
+                    onClick={() => setShowProfile(true)}
+                    variant="outline"
+                    size="sm"
+                    className="border-terminal-subtle text-terminal-text hover:text-terminal-highlight transition-colors h-auto px-2 py-1 text-xs"
+                    data-testid="button-user-profile"
+                  >
+                    <User size={14} className="mr-1" />
+                    Profile
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={() => window.location.href = '/api/login'}
+                  variant="outline"
+                  size="sm"
+                  className="border-terminal-subtle text-terminal-text hover:text-terminal-highlight transition-colors h-auto px-2 py-1 text-xs"
+                  data-testid="button-login"
+                >
+                  <LogIn size={14} className="mr-1" />
+                  Log In
+                </Button>
+              )}
+            </div>
+            
+            {/* Mode Switcher */}
+            <div className="flex items-center space-x-2 px-3 py-1 border border-terminal-subtle rounded">
+              <span className="text-xs">MODE:</span>
+              <Button
+                onClick={() => switchMode(currentMode === 'natural' ? 'technical' : 'natural')}
+                variant="ghost"
+                size="sm"
+                className="text-terminal-highlight hover:text-terminal-text transition-colors font-semibold h-auto p-0 text-xs"
+                data-testid="button-mode-toggle"
+              >
+                {currentMode === 'natural' ? 'NATURAL CHAT' : 'TECHNICAL MODE'}
+              </Button>
+            </div>
           </div>
         </header>
 
@@ -256,6 +311,22 @@ export function Terminal() {
           </div>
         </div>
       </div>
+      
+      {/* Modal Overlays */}
+      {showProfile && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <UserProfile onClose={() => setShowProfile(false)} />
+        </div>
+      )}
+      
+      {showConversationHistory && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <ConversationHistory 
+            onClose={() => setShowConversationHistory(false)}
+            onLoadConversation={loadConversation}
+          />
+        </div>
+      )}
     </div>
   );
 }

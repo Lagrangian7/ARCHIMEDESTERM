@@ -157,6 +157,43 @@ You can also chat naturally or ask technical questions.`);
     return null;
   }, [commandHistory, historyIndex]);
 
+  const loadConversation = useCallback(async (targetSessionId: string) => {
+    try {
+      const response = await apiRequest('GET', `/api/conversation/${targetSessionId}`);
+      const conversation = await response.json();
+      
+      if (conversation && Array.isArray(conversation.messages)) {
+        // Clear current entries and load conversation
+        setEntries([
+          {
+            id: crypto.randomUUID(),
+            type: 'system',
+            content: `Loaded conversation: ${conversation.title || 'Untitled'}`,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+        
+        // Add all messages from the conversation
+        conversation.messages.forEach((msg: Message, index: number) => {
+          setEntries(prev => [...prev, {
+            id: crypto.randomUUID(),
+            type: msg.role === 'user' ? 'command' : 'response',
+            content: msg.content,
+            timestamp: msg.timestamp,
+            mode: msg.mode,
+          }]);
+        });
+        
+        // Update current mode to match the conversation
+        if (conversation.mode) {
+          setCurrentMode(conversation.mode);
+        }
+      }
+    } catch (error) {
+      addEntry('error', 'Failed to load conversation history');
+    }
+  }, [addEntry]);
+
   return {
     entries,
     commandHistory,
@@ -166,6 +203,7 @@ You can also chat naturally or ask technical questions.`);
     clearTerminal,
     switchMode,
     getHistoryCommand,
+    loadConversation,
     isLoading: chatMutation.isPending,
   };
 }
