@@ -14,8 +14,10 @@ if (!process.env.REPLIT_DOMAINS) {
 
 const getOidcConfig = memoize(
   async () => {
+    const issuerUrl = process.env.ISSUER_URL || "https://replit.com";
+    console.log('Using OIDC issuer URL:', issuerUrl);
     return await client.discovery(
-      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
+      new URL(`${issuerUrl}/oidc`),
       process.env.REPL_ID!
     );
   },
@@ -38,7 +40,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       maxAge: sessionTtl,
     },
   });
