@@ -503,7 +503,7 @@ export function Terminal() {
                 </Button>
               </div>
               <div className="flex-1">
-                <TelnetClient />
+                <TelnetClient onClose={() => setShowTelnet(false)} />
               </div>
             </div>
           </div>

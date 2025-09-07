@@ -50,6 +50,9 @@ export class TelnetProxyService {
       case 'data':
         this.handleData(message.connectionId, message.data);
         break;
+      case 'break':
+        this.handleBreak(message.connectionId);
+        break;
       case 'disconnect':
         this.handleDisconnect(message.connectionId);
         break;
@@ -148,6 +151,17 @@ export class TelnetProxyService {
     if (connection && connection.socket.writable) {
       // Send data to telnet server
       connection.socket.write(data);
+    }
+  }
+
+  private handleBreak(connectionId: string) {
+    const connection = this.connections.get(connectionId);
+    if (connection && connection.socket.writable) {
+      // Send telnet BREAK signal (Ctrl-C equivalent)
+      // Telnet BREAK is represented by IAC BREAK (255 243)
+      const breakSignal = Buffer.from([255, 243]);
+      connection.socket.write(breakSignal);
+      console.log(`Sent BREAK signal to ${connection.host}:${connection.port}`);
     }
   }
 
