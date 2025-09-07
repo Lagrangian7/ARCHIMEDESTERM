@@ -249,29 +249,23 @@ const helpMenuItems: HelpMenuItem[] = [
 
 export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Get unique categories
-  const categories = Array.from(new Set(helpMenuItems.map(item => item.category)));
-  
-  // Get filtered items based on selected category
-  const filteredItems = selectedCategory 
-    ? helpMenuItems.filter(item => item.category === selectedCategory)
-    : helpMenuItems;
+  // Sort all commands alphabetically by title
+  const sortedItems = [...helpMenuItems].sort((a, b) => a.title.localeCompare(b.title));
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     switch (e.key) {
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : filteredItems.length - 1);
+        setSelectedIndex(prev => prev > 0 ? prev - 1 : sortedItems.length - 1);
         break;
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => prev < filteredItems.length - 1 ? prev + 1 : 0);
+        setSelectedIndex(prev => prev < sortedItems.length - 1 ? prev + 1 : 0);
         break;
       case 'Enter':
         e.preventDefault();
-        const selectedItem = filteredItems[selectedIndex];
+        const selectedItem = sortedItems[selectedIndex];
         if (selectedItem?.command) {
           onSelectCommand(selectedItem.command);
           onClose();
@@ -281,30 +275,13 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
         e.preventDefault();
         onClose();
         break;
-      case 'Backspace':
-        if (selectedCategory) {
-          e.preventDefault();
-          setSelectedCategory(null);
-          setSelectedIndex(0);
-        }
-        break;
     }
-  }, [selectedIndex, filteredItems, selectedCategory, onSelectCommand, onClose]);
+  }, [selectedIndex, sortedItems, onSelectCommand, onClose]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
-
-  // Reset selection when category changes
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [selectedCategory]);
-
-  const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
-    setSelectedIndex(0);
-  };
 
   const handleItemSelect = (item: HelpMenuItem) => {
     if (item.command) {
@@ -340,53 +317,18 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
             ⌨️ Use <span className="text-terminal-highlight">↑↓</span> arrows to navigate • 
             <span className="text-terminal-highlight"> Enter</span> to select • 
             <span className="text-terminal-highlight"> Escape</span> to close
-            {selectedCategory && <span> • <span className="text-terminal-highlight">Backspace</span> to go back</span>}
           </div>
         </div>
 
-        <div className="flex h-[500px]">
-          {/* Category Sidebar */}
-          {!selectedCategory && (
-            <div className="w-1/3 border-r border-terminal-subtle bg-terminal-bg/30">
-              <div className="p-3 border-b border-terminal-subtle/50">
-                <h3 className="text-sm font-semibold text-terminal-highlight">COMMAND CATEGORIES</h3>
-              </div>
-              <div className="overflow-y-auto h-full">
-                {categories.map((category, index) => {
-                  const categoryItems = helpMenuItems.filter(item => item.category === category);
-                  return (
-                    <div
-                      key={category}
-                      onClick={() => handleCategorySelect(category)}
-                      className={`p-3 cursor-pointer border-b border-terminal-subtle/30 transition-all duration-150 ${
-                        index === selectedIndex 
-                          ? 'bg-terminal-highlight text-terminal-bg font-semibold' 
-                          : 'text-terminal-text hover:bg-terminal-subtle/50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">{category}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs opacity-70">({categoryItems.length})</span>
-                          <ArrowRight size={12} />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Commands List */}
-          <div className={selectedCategory ? 'w-full' : 'w-2/3'}>
-            <div className="p-3 border-b border-terminal-subtle/50">
-              <h3 className="text-sm font-semibold text-terminal-highlight">
-                {selectedCategory ? `${selectedCategory.toUpperCase()} COMMANDS` : 'ALL COMMANDS'}
-              </h3>
-            </div>
-            <div className="overflow-y-auto h-full">
-              {filteredItems.map((item, index) => (
+        {/* Commands List */}
+        <div className="h-[500px]">
+          <div className="p-3 border-b border-terminal-subtle/50">
+            <h3 className="text-sm font-semibold text-terminal-highlight">
+              ALL COMMANDS (A-Z)
+            </h3>
+          </div>
+          <div className="overflow-y-auto h-full">
+            {sortedItems.map((item, index) => (
                 <div
                   key={item.id}
                   onClick={() => handleItemSelect(item)}
@@ -431,14 +373,12 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
               ))}
             </div>
           </div>
-        </div>
 
         {/* Footer */}
         <div className="p-3 border-t border-terminal-subtle bg-terminal-bg/50">
           <div className="text-xs text-terminal-text/60 font-mono text-center">
             ARCHIMEDES v7 Interactive Help System • 
-            {filteredItems.length} commands available
-            {selectedCategory && ` in ${selectedCategory}`}
+            {sortedItems.length} commands available
           </div>
         </div>
       </div>
