@@ -92,22 +92,26 @@ export class TelnetProxyService {
 
       socket.on('connect', () => {
         console.log(`Connected to ${host}:${port}`);
-        ws.send(JSON.stringify({
+        const connectedMessage = {
           type: 'connected',
           connectionId,
           host,
           port,
           message: `Connected to ${host}:${port}`
-        }));
+        };
+        console.log('Sending connected message:', connectedMessage);
+        ws.send(JSON.stringify(connectedMessage));
       });
 
       socket.on('data', (data: Buffer) => {
         // Send raw telnet data to WebSocket
-        ws.send(JSON.stringify({
+        const dataMessage = {
           type: 'data',
           connectionId,
           data: data.toString('utf8')
-        }));
+        };
+        console.log(`Sending data for ${connectionId}:`, dataMessage.data.substring(0, 100));
+        ws.send(JSON.stringify(dataMessage));
       });
 
       socket.on('error', (error: Error) => {

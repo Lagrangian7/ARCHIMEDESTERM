@@ -39,9 +39,10 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
+        console.log('TelnetClient received message:', message);
         handleWebSocketMessage(message);
       } catch (error) {
-        console.error('Invalid WebSocket message:', error);
+        console.error('Invalid WebSocket message:', error, 'Raw data:', event.data);
       }
     };
 
@@ -73,6 +74,18 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
               connected: true,
               data: [...updated[connectionIndex].data, `Connected to ${message.host}:${message.port}`]
             };
+          } else {
+            console.warn('Received connected message for unknown connection:', message.connectionId);
+            // Create the connection if it doesn't exist
+            const newConnection: TelnetConnection = {
+              id: message.connectionId,
+              host: message.host,
+              port: message.port,
+              connected: true,
+              data: [`Connected to ${message.host}:${message.port}`]
+            };
+            updated.push(newConnection);
+            setActiveConnectionId(message.connectionId);
           }
           break;
           
@@ -83,6 +96,8 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
               ...updated[connectionIndex],
               data: [...updated[connectionIndex].data, ansiProcessed]
             };
+          } else {
+            console.warn('Received data for unknown connection:', message.connectionId);
           }
           break;
           
@@ -104,6 +119,19 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
               error: message.message,
               data: [...updated[connectionIndex].data, `Error: ${message.message}`]
             };
+          } else {
+            console.warn('Received error for unknown connection:', message.connectionId, message.message);
+            // Create connection to show the error
+            const newConnection: TelnetConnection = {
+              id: message.connectionId,
+              host: 'unknown',
+              port: 0,
+              connected: false,
+              error: message.message,
+              data: [`Error: ${message.message}`]
+            };
+            updated.push(newConnection);
+            setActiveConnectionId(message.connectionId);
           }
           break;
       }
