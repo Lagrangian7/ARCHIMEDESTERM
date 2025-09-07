@@ -10,8 +10,8 @@ interface Voice {
 export function useSpeechSynthesis() {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isEnabled, setIsEnabled] = useState(true);
-  const [selectedVoice, setSelectedVoice] = useState<number>(1); // Default to JOSHUA voice
-  const [speechRate, setSpeechRate] = useState(0.8); // Slower default rate like JOSHUA
+  const [selectedVoice, setSelectedVoice] = useState<number>(1); // Default to HAL 9000 voice
+  const [speechRate, setSpeechRate] = useState(0.9); // Measured pace like HAL
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
@@ -19,10 +19,10 @@ export function useSpeechSynthesis() {
       const loadVoices = () => {
         const availableVoices = window.speechSynthesis.getVoices();
         
-        // Create a custom JOSHUA voice option
+        // Create a custom HAL voice option
         const customVoices: Voice[] = [
           { name: 'System Default', lang: 'en-US', voiceURI: 'default', localService: true },
-          { name: 'JOSHUA (WarGames AI)', lang: 'en-US', voiceURI: 'joshua', localService: true },
+          { name: 'HAL 9000 (2001 AI)', lang: 'en-US', voiceURI: 'hal', localService: true },
         ];
         
         // Add available system voices
@@ -58,11 +58,11 @@ export function useSpeechSynthesis() {
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.rate = speechRate;
     
-    // Handle JOSHUA voice simulation (WarGames AI)
+    // Handle HAL 9000 voice simulation (2001 AI)
     if (selectedVoice === 1) {
-      utterance.pitch = 0.2; // Very low pitch, more computer-like
-      utterance.rate = Math.max(0.6, speechRate * 0.7); // Slower, more deliberate
-      utterance.volume = 0.9; // Slightly lower volume for that computer feel
+      utterance.pitch = 0.8; // Higher pitch than JOSHUA, more human-like but still artificial
+      utterance.rate = Math.max(0.75, speechRate * 0.85); // Measured, calm delivery like HAL
+      utterance.volume = 0.95; // Clear, confident volume
     }
     
     // Use selected system voice if available
