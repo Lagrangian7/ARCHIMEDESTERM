@@ -9,6 +9,7 @@ import { DocumentUpload } from './DocumentUpload';
 import { TelnetClient } from './TelnetClient';
 import { SnakeGame } from './SnakeGame';
 import { DTMFDecoder } from './DTMFDecoder';
+import { HelpMenu } from './HelpMenu';
 import { TalkingArchimedes } from './TalkingArchimedes';
 import { RadioCharacter } from './RadioCharacter';
 import { useTerminal } from '@/hooks/use-terminal';
@@ -55,6 +56,7 @@ export function Terminal() {
     (window as any).openTelnetModal = () => setShowTelnet(true);
     (window as any).openSnakeGame = () => setShowSnake(true);
     (window as any).openDTMFDecoder = () => setShowDTMF(true);
+    (window as any).openHelpMenu = () => setShowHelpMenu(true);
   }, []);
   
   const { speak, isSpeaking } = useSpeechSynthesis();
@@ -67,6 +69,7 @@ export function Terminal() {
   const [showTelnet, setShowTelnet] = useState(false);
   const [showSnake, setShowSnake] = useState(false);
   const [showDTMF, setShowDTMF] = useState(false);
+  const [showHelpMenu, setShowHelpMenu] = useState(false);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   
   // Radio streaming controls - direct playback without modal
@@ -166,6 +169,13 @@ export function Terminal() {
   }, [entries, speak]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // F1 key opens help menu
+    if (e.key === 'F1') {
+      e.preventDefault();
+      setShowHelpMenu(true);
+      return;
+    }
+    
     // Handle continue prompt with Space or Enter
     if (showContinuePrompt && (e.key === ' ' || e.key === 'Enter')) {
       e.preventDefault();
@@ -598,6 +608,20 @@ export function Terminal() {
 
       {showDTMF && (
         <DTMFDecoder onClose={() => setShowDTMF(false)} />
+      )}
+
+      {showHelpMenu && (
+        <HelpMenu 
+          onClose={() => setShowHelpMenu(false)}
+          onSelectCommand={(command) => {
+            setInput(command);
+            // Optionally auto-execute the command
+            setTimeout(() => {
+              processCommand(command);
+              setInput('');
+            }, 100);
+          }}
+        />
       )}
       {/* Hidden radio audio element */}
       <audio

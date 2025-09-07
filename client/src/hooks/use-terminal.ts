@@ -307,7 +307,13 @@ export function useTerminal(onUploadCommand?: () => void) {
     
     // Handle built-in terminal commands
     if (cmd === 'help') {
-      addEntry('system', `Available Commands:
+      // Open interactive help menu instead of static text
+      const openHelpMenu = (window as any).openHelpMenu;
+      if (openHelpMenu) {
+        openHelpMenu();
+        addEntry('system', 'Opening interactive help menu... (Use F1 key for quick access)');
+      } else {
+        addEntry('system', `Available Commands:
   help - Show this help message
   clear - Clear terminal output
   mode [natural|technical] - Switch AI mode
@@ -359,7 +365,8 @@ Knowledge Base Commands:
   search [query] - Search your knowledge base
   knowledge stats - Show knowledge base statistics
   
-You can also chat naturally or ask technical questions.`);
+You can also chat naturally or ask technical questions.`;
+      }
       return;
     }
     

@@ -252,7 +252,7 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   // Get unique categories
-  const categories = [...new Set(helpMenuItems.map(item => item.category))];
+  const categories = Array.from(new Set(helpMenuItems.map(item => item.category)));
   
   // Get filtered items based on selected category
   const filteredItems = selectedCategory 
