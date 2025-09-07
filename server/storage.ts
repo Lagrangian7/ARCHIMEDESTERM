@@ -5,7 +5,11 @@ import {
   type InsertUserPreferences, 
   type Conversation, 
   type InsertConversation, 
-  type Message 
+  type Message,
+  type Document,
+  type InsertDocument,
+  type KnowledgeChunk,
+  type InsertKnowledgeChunk
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -26,17 +30,35 @@ export interface IStorage {
   updateConversation(sessionId: string, messages: Message[]): Promise<void>;
   addMessageToConversation(sessionId: string, message: Message): Promise<void>;
   updateConversationTitle(sessionId: string, title: string): Promise<void>;
+
+  // Document methods for knowledge base
+  createDocument(document: InsertDocument): Promise<Document>;
+  getUserDocuments(userId: string): Promise<Document[]>;
+  getDocument(id: string): Promise<Document | undefined>;
+  updateDocument(id: string, updates: Partial<InsertDocument>): Promise<Document>;
+  deleteDocument(id: string): Promise<void>;
+  searchDocuments(userId: string, query: string): Promise<Document[]>;
+
+  // Knowledge chunk methods
+  createKnowledgeChunk(chunk: InsertKnowledgeChunk): Promise<KnowledgeChunk>;
+  getDocumentChunks(documentId: string): Promise<KnowledgeChunk[]>;
+  searchKnowledgeChunks(userId: string, query: string): Promise<KnowledgeChunk[]>;
+  deleteDocumentChunks(documentId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private userPreferences: Map<string, UserPreferences>;
   private conversations: Map<string, Conversation>;
+  private documents: Map<string, Document>;
+  private knowledgeChunks: Map<string, KnowledgeChunk>;
 
   constructor() {
     this.users = new Map();
     this.userPreferences = new Map();
     this.conversations = new Map();
+    this.documents = new Map();
+    this.knowledgeChunks = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -191,6 +213,119 @@ export class MemStorage implements IStorage {
     const messages = Array.isArray(conversation.messages) ? conversation.messages as Message[] : [];
     messages.push(message);
     await this.updateConversation(sessionId, messages);
+  }
+
+  // Document methods implementation
+  async createDocument(insertDocument: InsertDocument): Promise<Document> {
+    const id = randomUUID();
+    const now = new Date();
+    const document: Document = {
+      id,
+      userId: insertDocument.userId || null,
+      fileName: insertDocument.fileName,
+      originalName: insertDocument.originalName,
+      fileSize: insertDocument.fileSize,
+      mimeType: insertDocument.mimeType,
+      content: insertDocument.content,
+      summary: insertDocument.summary || null,
+      keywords: insertDocument.keywords || null,
+      uploadedAt: now,
+      lastAccessedAt: now,
+    };
+    this.documents.set(id, document);
+    return document;
+  }
+
+  async getUserDocuments(userId: string): Promise<Document[]> {
+    return Array.from(this.documents.values())
+      .filter(doc => doc.userId === userId)
+      .sort((a, b) => (b.uploadedAt?.getTime() || 0) - (a.uploadedAt?.getTime() || 0));
+  }
+
+  async getDocument(id: string): Promise<Document | undefined> {
+    const document = this.documents.get(id);
+    if (document) {
+      document.lastAccessedAt = new Date();
+    }
+    return document;
+  }
+
+  async updateDocument(id: string, updates: Partial<InsertDocument>): Promise<Document> {
+    const existing = this.documents.get(id);
+    if (!existing) {
+      throw new Error("Document not found");
+    }
+
+    const updated: Document = {
+      ...existing,
+      ...updates,
+      lastAccessedAt: new Date()
+    };
+    this.documents.set(id, updated);
+    return updated;
+  }
+
+  async deleteDocument(id: string): Promise<void> {
+    this.documents.delete(id);
+    // Also delete associated chunks
+    await this.deleteDocumentChunks(id);
+  }
+
+  async searchDocuments(userId: string, query: string): Promise<Document[]> {
+    const userDocs = await this.getUserDocuments(userId);
+    const searchQuery = query.toLowerCase();
+    
+    return userDocs.filter(doc => 
+      doc.originalName.toLowerCase().includes(searchQuery) ||
+      doc.content.toLowerCase().includes(searchQuery) ||
+      doc.summary?.toLowerCase().includes(searchQuery) ||
+      doc.keywords?.some(keyword => keyword.toLowerCase().includes(searchQuery))
+    );
+  }
+
+  // Knowledge chunk methods implementation  
+  async createKnowledgeChunk(insertChunk: InsertKnowledgeChunk): Promise<KnowledgeChunk> {
+    const id = randomUUID();
+    const now = new Date();
+    const chunk: KnowledgeChunk = {
+      id,
+      documentId: insertChunk.documentId,
+      chunkIndex: insertChunk.chunkIndex,
+      content: insertChunk.content,
+      wordCount: insertChunk.wordCount,
+      createdAt: now,
+    };
+    this.knowledgeChunks.set(id, chunk);
+    return chunk;
+  }
+
+  async getDocumentChunks(documentId: string): Promise<KnowledgeChunk[]> {
+    return Array.from(this.knowledgeChunks.values())
+      .filter(chunk => chunk.documentId === documentId)
+      .sort((a, b) => parseInt(a.chunkIndex) - parseInt(b.chunkIndex));
+  }
+
+  async searchKnowledgeChunks(userId: string, query: string): Promise<KnowledgeChunk[]> {
+    const userDocIds = new Set(
+      (await this.getUserDocuments(userId)).map(doc => doc.id)
+    );
+    
+    const searchQuery = query.toLowerCase();
+    
+    return Array.from(this.knowledgeChunks.values())
+      .filter(chunk => 
+        userDocIds.has(chunk.documentId) &&
+        chunk.content.toLowerCase().includes(searchQuery)
+      )
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async deleteDocumentChunks(documentId: string): Promise<void> {
+    for (const [id, chunk] of this.knowledgeChunks.entries()) {
+      if (chunk.documentId === documentId) {
+        this.knowledgeChunks.delete(id);
+      }
+    }
   }
 }
 
