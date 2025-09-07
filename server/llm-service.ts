@@ -118,11 +118,11 @@ Remember: You are a technical chronicler providing precise, actionable informati
     prompt += `Human: ${userMessage}\nAssistant:`;
 
     const response = await hf.textGeneration({
-      model: 'meta-llama/Llama-3.2-3B-Instruct',
+      model: 'gpt2',
       inputs: prompt,
       parameters: {
-        max_new_tokens: mode === 'technical' ? 800 : 400,
-        temperature: mode === 'technical' ? 0.3 : 0.7,
+        max_new_tokens: mode === 'technical' ? 400 : 200,
+        temperature: mode === 'technical' ? 0.4 : 0.7,
         do_sample: true,
         top_p: 0.9,
         repetition_penalty: 1.1,
