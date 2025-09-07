@@ -58,6 +58,37 @@ export function useTerminal() {
     },
   });
 
+  const weatherMutation = useMutation({
+    mutationFn: async ({ location, coordinates }: { 
+      location?: string;
+      coordinates?: { lat: number; lon: number } 
+    }) => {
+      let endpoint = '/api/weather';
+      const params = new URLSearchParams();
+      
+      if (coordinates) {
+        params.append('lat', coordinates.lat.toString());
+        params.append('lon', coordinates.lon.toString());
+      } else if (location) {
+        params.append('location', location);
+      }
+      
+      if (params.toString()) {
+        endpoint += `?${params.toString()}`;
+      }
+      
+      const response = await apiRequest('GET', endpoint);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Weather Error: ${error.message}`);
+    },
+  });
 
   const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical') => {
     const entry: TerminalEntry = {
@@ -89,6 +120,7 @@ export function useTerminal() {
   voice [on|off] - Toggle voice synthesis
   history - Show command history
   status - Show system status
+  weather - Get current weather (uses location if available)
   
 You can also chat naturally or ask technical questions.`);
       return;
@@ -128,11 +160,38 @@ You can also chat naturally or ask technical questions.`);
       return;
     }
 
+    // Handle weather command
+    if (cmd === 'weather') {
+      setIsTyping(true);
+      addEntry('system', 'Getting weather information...');
+      
+      // Try to get user's location
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const coordinates = {
+              lat: position.coords.latitude,
+              lon: position.coords.longitude
+            };
+            weatherMutation.mutate({ coordinates });
+          },
+          (error) => {
+            // If geolocation fails, get default weather
+            weatherMutation.mutate({});
+          },
+          { timeout: 5000, enableHighAccuracy: false }
+        );
+      } else {
+        // If geolocation not supported, get default weather
+        weatherMutation.mutate({});
+      }
+      return;
+    }
     
     // For non-command inputs, send to AI
     setIsTyping(true);
     chatMutation.mutate({ message: command, mode: currentMode });
-  }, [currentMode, sessionId, commandHistory.length, addEntry, chatMutation]);
+  }, [currentMode, sessionId, commandHistory.length, addEntry, chatMutation, weatherMutation]);
 
   const clearTerminal = useCallback(() => {
     setEntries([]);
