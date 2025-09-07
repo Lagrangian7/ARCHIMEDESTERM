@@ -9,9 +9,16 @@ import {
   type Document,
   type InsertDocument,
   type KnowledgeChunk,
-  type InsertKnowledgeChunk
+  type InsertKnowledgeChunk,
+  users,
+  userPreferences,
+  conversations,
+  documents,
+  knowledgeChunks
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, like, desc, and } from "drizzle-orm";
 
 export interface IStorage {
   // User methods for Replit Auth
@@ -321,12 +328,171 @@ export class MemStorage implements IStorage {
   }
 
   async deleteDocumentChunks(documentId: string): Promise<void> {
-    for (const [id, chunk] of this.knowledgeChunks.entries()) {
+    const idsToDelete: string[] = [];
+    this.knowledgeChunks.forEach((chunk, id) => {
       if (chunk.documentId === documentId) {
-        this.knowledgeChunks.delete(id);
+        idsToDelete.push(id);
       }
-    }
+    });
+    idsToDelete.forEach(id => this.knowledgeChunks.delete(id));
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+
+    if (user) {
+      // Ensure user preferences exist
+      const existingPrefs = await this.getUserPreferences(user.id);
+      if (!existingPrefs) {
+        await this.createUserPreferences({
+          userId: user.id,
+          defaultMode: "natural",
+          voiceEnabled: false,
+          selectedVoice: "default",
+          voiceRate: "1",
+          terminalTheme: "classic"
+        });
+      }
+    }
+
+    return user;
+  }
+
+  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+    const [prefs] = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+    return prefs;
+  }
+
+  async createUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences> {
+    const [prefs] = await db.insert(userPreferences).values(preferences).returning();
+    return prefs;
+  }
+
+  async updateUserPreferences(userId: string, preferences: Partial<InsertUserPreferences>): Promise<UserPreferences> {
+    const [prefs] = await db
+      .update(userPreferences)
+      .set({ ...preferences, updatedAt: new Date() })
+      .where(eq(userPreferences.userId, userId))
+      .returning();
+    return prefs;
+  }
+
+  async getConversation(sessionId: string): Promise<Conversation | undefined> {
+    const [conversation] = await db.select().from(conversations).where(eq(conversations.sessionId, sessionId));
+    return conversation;
+  }
+
+  async getUserConversations(userId: string): Promise<Conversation[]> {
+    return await db.select().from(conversations).where(eq(conversations.userId, userId)).orderBy(desc(conversations.updatedAt));
+  }
+
+  async createConversation(conversation: InsertConversation): Promise<Conversation> {
+    const [conv] = await db.insert(conversations).values(conversation).returning();
+    return conv;
+  }
+
+  async updateConversation(sessionId: string, messages: Message[]): Promise<void> {
+    await db
+      .update(conversations)
+      .set({ messages: JSON.stringify(messages), updatedAt: new Date() })
+      .where(eq(conversations.sessionId, sessionId));
+  }
+
+  async addMessageToConversation(sessionId: string, message: Message): Promise<void> {
+    const conversation = await this.getConversation(sessionId);
+    if (conversation) {
+      const messages = Array.isArray(conversation.messages) ? conversation.messages as Message[] : [];
+      messages.push(message);
+      await this.updateConversation(sessionId, messages);
+    } else {
+      await this.createConversation({
+        sessionId,
+        title: message.content.substring(0, 100),
+        messages: JSON.stringify([message])
+      });
+    }
+  }
+
+  async updateConversationTitle(sessionId: string, title: string): Promise<void> {
+    await db
+      .update(conversations)
+      .set({ title, updatedAt: new Date() })
+      .where(eq(conversations.sessionId, sessionId));
+  }
+
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const [doc] = await db.insert(documents).values(document).returning();
+    return doc;
+  }
+
+  async getUserDocuments(userId: string): Promise<Document[]> {
+    return await db.select().from(documents).where(eq(documents.userId, userId)).orderBy(desc(documents.uploadedAt));
+  }
+
+  async getDocument(id: string): Promise<Document | undefined> {
+    const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+    return doc;
+  }
+
+  async updateDocument(id: string, updates: Partial<InsertDocument>): Promise<Document> {
+    const [doc] = await db.update(documents).set(updates).where(eq(documents.id, id)).returning();
+    return doc;
+  }
+
+  async deleteDocument(id: string): Promise<void> {
+    await db.delete(documents).where(eq(documents.id, id));
+  }
+
+  async searchDocuments(userId: string, query: string): Promise<Document[]> {
+    return await db.select().from(documents)
+      .where(and(
+        eq(documents.userId, userId),
+        like(documents.originalName, `%${query}%`)
+      ));
+  }
+
+  async createKnowledgeChunk(chunk: InsertKnowledgeChunk): Promise<KnowledgeChunk> {
+    const [chunkResult] = await db.insert(knowledgeChunks).values(chunk).returning();
+    return chunkResult;
+  }
+
+  async getDocumentChunks(documentId: string): Promise<KnowledgeChunk[]> {
+    return await db.select().from(knowledgeChunks).where(eq(knowledgeChunks.documentId, documentId));
+  }
+
+  async searchKnowledgeChunks(userId: string, query: string): Promise<KnowledgeChunk[]> {
+    // First get user's document IDs
+    const userDocs = await this.getUserDocuments(userId);
+    const docIds = userDocs.map(doc => doc.id);
+    
+    if (docIds.length === 0) return [];
+    
+    // Simple text search in chunks
+    return await db.select().from(knowledgeChunks)
+      .where(like(knowledgeChunks.content, `%${query}%`));
+  }
+
+  async deleteDocumentChunks(documentId: string): Promise<void> {
+    await db.delete(knowledgeChunks).where(eq(knowledgeChunks.documentId, documentId));
+  }
+}
+
+// Use database storage instead of memory storage
+export const storage = new DatabaseStorage();
