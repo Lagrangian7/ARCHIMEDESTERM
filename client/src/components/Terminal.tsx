@@ -54,7 +54,7 @@ export function Terminal() {
     (window as any).openSnakeGame = () => setShowSnake(true);
   }, []);
   
-  const { speak } = useSpeechSynthesis();
+  const { speak, isSpeaking } = useSpeechSynthesis();
   const { user, isAuthenticated, preferences } = useAuth();
   const [input, setInput] = useState('');
   const [showHistory, setShowHistory] = useState(false);
@@ -523,7 +523,8 @@ export function Terminal() {
       )}
       {/* Talking Archimedes Character */}
       <TalkingArchimedes 
-        isTyping={isTyping} 
+        isTyping={isTyping}
+        isSpeaking={isSpeaking}
         currentMessage={entries.length > 0 ? entries[entries.length - 1]?.content : undefined}
       />
     </div>
