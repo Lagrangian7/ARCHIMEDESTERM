@@ -1,9 +1,12 @@
 import OpenAI from 'openai';
+import { HfInference } from '@huggingface/inference';
 import type { Message } from '@shared/schema';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 
 export class LLMService {
   private static instance: LLMService;
@@ -73,46 +76,101 @@ Remember: You are a technical chronicler providing precise, actionable informati
     conversationHistory: Message[] = []
   ): Promise<string> {
     try {
-      const systemPrompt = mode === 'natural' 
-        ? this.getNaturalChatSystemPrompt()
-        : this.getTechnicalModeSystemPrompt();
-
-      // Build conversation context
-      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-        { role: 'system', content: systemPrompt }
-      ];
-
-      // Add recent conversation history (last 10 messages for context)
-      const recentHistory = conversationHistory.slice(-10);
-      for (const msg of recentHistory) {
-        if (msg.role === 'user' || msg.role === 'assistant') {
-          messages.push({
-            role: msg.role,
-            content: msg.content
-          });
-        }
+      // Try Hugging Face Enoch model first
+      return await this.generateHuggingFaceResponse(userMessage, mode, conversationHistory);
+    } catch (hfError) {
+      console.error('Hugging Face API error:', hfError);
+      
+      try {
+        // Fallback to OpenAI if available
+        return await this.generateOpenAIResponse(userMessage, mode, conversationHistory);
+      } catch (openaiError) {
+        console.error('OpenAI API error:', openaiError);
+        
+        // Final fallback to demonstration responses
+        return this.getFallbackResponse(userMessage, mode);
       }
-
-      // Add current user message
-      messages.push({ role: 'user', content: userMessage });
-
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages,
-        max_tokens: mode === 'technical' ? 800 : 500,
-        temperature: mode === 'technical' ? 0.3 : 0.7,
-        presence_penalty: 0.1,
-        frequency_penalty: 0.1,
-      });
-
-      return completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
-      
-    } catch (error) {
-      console.error('OpenAI API error:', error);
-      
-      // Fallback to demonstration responses when API quota is exceeded or other errors occur
-      return this.getFallbackResponse(userMessage, mode);
     }
+  }
+
+  private async generateHuggingFaceResponse(
+    userMessage: string, 
+    mode: 'natural' | 'technical',
+    conversationHistory: Message[] = []
+  ): Promise<string> {
+    const systemPrompt = mode === 'natural' 
+      ? this.getNaturalChatSystemPrompt()
+      : this.getTechnicalModeSystemPrompt();
+
+    // Build conversation context for Hugging Face
+    let prompt = systemPrompt + '\n\n';
+    
+    // Add recent conversation history (last 6 messages for context)
+    const recentHistory = conversationHistory.slice(-6);
+    for (const msg of recentHistory) {
+      if (msg.role === 'user') {
+        prompt += `Human: ${msg.content}\n`;
+      } else if (msg.role === 'assistant') {
+        prompt += `Assistant: ${msg.content}\n`;
+      }
+    }
+    
+    prompt += `Human: ${userMessage}\nAssistant:`;
+
+    const response = await hf.textGeneration({
+      model: 'Enoch/llama-7b-hf',
+      inputs: prompt,
+      parameters: {
+        max_new_tokens: mode === 'technical' ? 800 : 400,
+        temperature: mode === 'technical' ? 0.3 : 0.7,
+        do_sample: true,
+        top_p: 0.9,
+        repetition_penalty: 1.1,
+        return_full_text: false
+      }
+    });
+
+    return response.generated_text.trim() || 'I apologize, but I encountered an error processing your request.';
+  }
+
+  private async generateOpenAIResponse(
+    userMessage: string, 
+    mode: 'natural' | 'technical',
+    conversationHistory: Message[] = []
+  ): Promise<string> {
+    const systemPrompt = mode === 'natural' 
+      ? this.getNaturalChatSystemPrompt()
+      : this.getTechnicalModeSystemPrompt();
+
+    // Build conversation context
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role: 'system', content: systemPrompt }
+    ];
+
+    // Add recent conversation history (last 10 messages for context)
+    const recentHistory = conversationHistory.slice(-10);
+    for (const msg of recentHistory) {
+      if (msg.role === 'user' || msg.role === 'assistant') {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
+
+    // Add current user message
+    messages.push({ role: 'user', content: userMessage });
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages,
+      max_tokens: mode === 'technical' ? 800 : 500,
+      temperature: mode === 'technical' ? 0.3 : 0.7,
+      presence_penalty: 0.1,
+      frequency_penalty: 0.1,
+    });
+
+    return completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
   }
 
   private getFallbackResponse(input: string, mode: 'natural' | 'technical'): string {
