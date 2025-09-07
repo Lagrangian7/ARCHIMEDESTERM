@@ -5,7 +5,6 @@ import { messageSchema, type Message, insertUserPreferencesSchema } from "@share
 import { randomUUID } from "crypto";
 import { llmService } from "./llm-service";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { weatherService } from "./weather-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -175,90 +174,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Weather API endpoints
-  app.get("/api/weather/current/:location", async (req, res) => {
-    try {
-      const { location } = req.params;
-      const weather = await weatherService.getCurrentWeather(location);
-      const formattedWeather = weatherService.formatCurrentWeather(weather);
-      
-      res.json({
-        weather,
-        formatted: formattedWeather
-      });
-    } catch (error) {
-      console.error("Weather error:", error);
-      const message = error instanceof Error ? error.message : "Failed to fetch weather data";
-      res.status(500).json({ error: message });
-    }
-  });
-
-  app.get("/api/weather/forecast/:location", async (req, res) => {
-    try {
-      const { location } = req.params;
-      const days = parseInt(req.query.days as string) || 5;
-      const forecast = await weatherService.getForecast(location, days);
-      const formattedForecast = weatherService.formatForecast(forecast, location);
-      
-      res.json({
-        forecast,
-        formatted: formattedForecast
-      });
-    } catch (error) {
-      console.error("Forecast error:", error);
-      const message = error instanceof Error ? error.message : "Failed to fetch forecast data";
-      res.status(500).json({ error: message });
-    }
-  });
-
-  app.get("/api/weather/coordinates", async (req, res) => {
-    try {
-      const lat = parseFloat(req.query.lat as string);
-      const lon = parseFloat(req.query.lon as string);
-      
-      if (isNaN(lat) || isNaN(lon)) {
-        return res.status(400).json({ error: "Invalid latitude or longitude" });
-      }
-      
-      const weather = await weatherService.getWeatherByCoordinates(lat, lon);
-      const formattedWeather = weatherService.formatCurrentWeather(weather);
-      
-      res.json({
-        weather,
-        formatted: formattedWeather
-      });
-    } catch (error) {
-      console.error("Weather by coordinates error:", error);
-      const message = error instanceof Error ? error.message : "Failed to fetch weather data";
-      res.status(500).json({ error: message });
-    }
-  });
-
-  app.get("/api/weather/forecast/coordinates", async (req, res) => {
-    try {
-      const lat = parseFloat(req.query.lat as string);
-      const lon = parseFloat(req.query.lon as string);
-      const days = parseInt(req.query.days as string) || 5;
-      
-      if (isNaN(lat) || isNaN(lon)) {
-        return res.status(400).json({ error: "Invalid latitude or longitude" });
-      }
-      
-      // Get location name first
-      const currentWeather = await weatherService.getWeatherByCoordinates(lat, lon);
-      const forecast = await weatherService.getForecast(currentWeather.location, days);
-      const formattedForecast = weatherService.formatForecast(forecast, currentWeather.location);
-      
-      res.json({
-        forecast,
-        formatted: formattedForecast
-      });
-    } catch (error) {
-      console.error("Forecast by coordinates error:", error);
-      const message = error instanceof Error ? error.message : "Failed to fetch forecast data";
-      res.status(500).json({ error: message });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;

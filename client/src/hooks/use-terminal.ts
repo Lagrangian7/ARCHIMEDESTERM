@@ -58,38 +58,6 @@ export function useTerminal() {
     },
   });
 
-  const weatherMutation = useMutation({
-    mutationFn: async ({ location, type, coordinates }: { 
-      location?: string; 
-      type: 'current' | 'forecast'; 
-      coordinates?: { lat: number; lon: number } 
-    }) => {
-      let endpoint;
-      
-      if (coordinates) {
-        endpoint = type === 'current' 
-          ? `/api/weather/coordinates?lat=${coordinates.lat}&lon=${coordinates.lon}`
-          : `/api/weather/forecast/coordinates?lat=${coordinates.lat}&lon=${coordinates.lon}`;
-      } else if (location) {
-        endpoint = type === 'current' 
-          ? `/api/weather/current/${encodeURIComponent(location)}`
-          : `/api/weather/forecast/${encodeURIComponent(location)}`;
-      } else {
-        throw new Error('Either location or coordinates must be provided');
-      }
-      
-      const response = await apiRequest('GET', endpoint);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setIsTyping(false);
-      addEntry('response', data.formatted);
-    },
-    onError: (error) => {
-      setIsTyping(false);
-      addEntry('error', `Weather Error: ${error.message}`);
-    },
-  });
 
   const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical') => {
     const entry: TerminalEntry = {
@@ -121,8 +89,6 @@ export function useTerminal() {
   voice [on|off] - Toggle voice synthesis
   history - Show command history
   status - Show system status
-  weather [location] - Get weather (current location if no location specified)
-  forecast [location] - Get 5-day forecast (current location if no location specified)
   
 You can also chat naturally or ask technical questions.`);
       return;
@@ -162,81 +128,11 @@ You can also chat naturally or ask technical questions.`);
       return;
     }
 
-    // Handle weather commands
-    if (cmd === 'weather' || cmd.startsWith('weather ')) {
-      const location = cmd === 'weather' ? '' : command.slice(8).trim();
-      
-      if (!location) {
-        // Use geolocation for current location
-        setIsTyping(true);
-        addEntry('system', 'Getting your current location...');
-        
-        if ('geolocation' in navigator) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const coordinates = {
-                lat: position.coords.latitude,
-                lon: position.coords.longitude
-              };
-              weatherMutation.mutate({ type: 'current', coordinates });
-            },
-            (error) => {
-              setIsTyping(false);
-              addEntry('error', 'Unable to get your location. Please specify a location: weather [city]');
-            },
-            { timeout: 10000, enableHighAccuracy: true }
-          );
-        } else {
-          setIsTyping(false);
-          addEntry('error', 'Geolocation not supported. Please specify a location: weather [city]');
-        }
-        return;
-      }
-      
-      setIsTyping(true);
-      weatherMutation.mutate({ location, type: 'current' });
-      return;
-    }
-
-    if (cmd === 'forecast' || cmd.startsWith('forecast ')) {
-      const location = cmd === 'forecast' ? '' : command.slice(9).trim();
-      
-      if (!location) {
-        // Use geolocation for current location
-        setIsTyping(true);
-        addEntry('system', 'Getting your current location for forecast...');
-        
-        if ('geolocation' in navigator) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const coordinates = {
-                lat: position.coords.latitude,
-                lon: position.coords.longitude
-              };
-              weatherMutation.mutate({ type: 'forecast', coordinates });
-            },
-            (error) => {
-              setIsTyping(false);
-              addEntry('error', 'Unable to get your location. Please specify a location: forecast [city]');
-            },
-            { timeout: 10000, enableHighAccuracy: true }
-          );
-        } else {
-          setIsTyping(false);
-          addEntry('error', 'Geolocation not supported. Please specify a location: forecast [city]');
-        }
-        return;
-      }
-      
-      setIsTyping(true);
-      weatherMutation.mutate({ location, type: 'forecast' });
-      return;
-    }
     
     // For non-command inputs, send to AI
     setIsTyping(true);
     chatMutation.mutate({ message: command, mode: currentMode });
-  }, [currentMode, sessionId, commandHistory.length, addEntry, chatMutation, weatherMutation]);
+  }, [currentMode, sessionId, commandHistory.length, addEntry, chatMutation]);
 
   const clearTerminal = useCallback(() => {
     setEntries([]);
