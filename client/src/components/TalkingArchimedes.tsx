@@ -21,14 +21,9 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
   useEffect(() => {
     if (isTyping || isSpeaking) {
       setShowCharacter(true);
-      // Randomly choose between image and video each time character appears
-      const willUseVideo = Math.random() > 0.5;
-      setUseVideo(willUseVideo);
-      
-      // If using video, randomly select which video to show
-      if (willUseVideo) {
-        setSelectedVideo(videoOptions[Math.floor(Math.random() * videoOptions.length)]);
-      }
+      // Always use video animations - randomly select which video to show
+      setUseVideo(true);
+      setSelectedVideo(videoOptions[Math.floor(Math.random() * videoOptions.length)]);
       
       if (isTyping) {
         setAnimationPhase('thinking');
@@ -65,29 +60,18 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
       }`}>
         {/* Archimedes Character Container */}
         <div className="relative w-48 h-48 rounded-full overflow-hidden border-2 border-terminal-highlight/20 bg-terminal-bg/70 backdrop-blur-sm">
-          {/* Background Media - Either Image or Video */}
-          {useVideo ? (
-            <video 
-              src={selectedVideo}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className={`w-full h-full object-cover transition-all duration-300 ${
-                animationPhase === 'talking' ? 'animate-pulse scale-105' : 
-                animationPhase === 'thinking' ? 'animate-bounce' : ''
-              }`}
-            />
-          ) : (
-            <img 
-              src={skullWatermark} 
-              alt="Archimedes"
-              className={`w-full h-full object-cover transition-all duration-300 ${
-                animationPhase === 'talking' ? 'animate-pulse scale-105' : 
-                animationPhase === 'thinking' ? 'animate-bounce' : ''
-              }`}
-            />
-          )}
+          {/* Background Video Animation */}
+          <video 
+            src={selectedVideo}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className={`w-full h-full object-cover transition-all duration-300 ${
+              animationPhase === 'talking' ? 'animate-pulse scale-105' : 
+              animationPhase === 'thinking' ? 'animate-bounce' : ''
+            }`}
+          />
           
           {/* Overlay Effects */}
           <div className="absolute inset-0 bg-gradient-to-br from-terminal-highlight/5 to-transparent" />
