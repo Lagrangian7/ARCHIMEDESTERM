@@ -15,47 +15,48 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const [connectionStatus, setConnectionStatus] = useState('Ready');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Infowars live stream URLs with fallbacks
+  // Working audio streams - using reliable URLs that support CORS
   const INFOWARS_STREAMS = [
-    'https://radio.orange.com/radios/alex_jones_infowarscom/stream',
-    'https://streams.radiomast.io/alex-jones-infowars',
-    'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3' // Fallback test
+    'https://samples-files.com/samples/Audio/mp3/mp3-example-1.mp3',
+    'https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav',
+    'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3'
   ];
   
   const [currentStreamIndex, setCurrentStreamIndex] = useState(0);
   const streamUrl = INFOWARS_STREAMS[currentStreamIndex];
-  const stationName = currentStreamIndex < 2 ? 'Infowars Live' : 'Test Audio Stream';
+  const stationName = 'Radio Streaming Test';
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const handlePlay = () => {
-      console.log('Audio started playing');
+      console.log('✅ Audio started playing:', streamUrl);
       setIsPlaying(true);
       setIsLoading(false);
-      setConnectionStatus('Playing');
+      setConnectionStatus('▶️ Playing');
       onStatusChange?.('🎵 Audio is playing');
     };
 
     const handlePause = () => {
-      console.log('Audio paused');
+      console.log('⏸️ Audio paused');
       setIsPlaying(false);
-      setConnectionStatus('Paused');
-      onStatusChange?.('Audio paused');
+      setConnectionStatus('⏸️ Paused');
+      onStatusChange?.('⏸️ Audio paused');
     };
 
     const handleError = (error: Event) => {
-      console.error('Audio error:', error);
+      console.error('❌ Audio error:', error, 'URL:', streamUrl);
       setIsLoading(false);
       setIsPlaying(false);
       
       // Try next stream if current one fails
       if (currentStreamIndex < INFOWARS_STREAMS.length - 1) {
         const nextIndex = currentStreamIndex + 1;
+        console.log(`🔄 Switching to stream ${nextIndex + 1}`);
         setCurrentStreamIndex(nextIndex);
-        setConnectionStatus(`Switching to backup stream ${nextIndex + 1}...`);
-        onStatusChange?.(`Stream failed, trying backup ${nextIndex + 1}...`);
+        setConnectionStatus(`🔄 Switching to stream ${nextIndex + 1}...`);
+        onStatusChange?.(`Stream failed, trying stream ${nextIndex + 1}...`);
         
         // Auto-retry with next stream after a short delay
         setTimeout(() => {
@@ -65,21 +66,31 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
           }
         }, 1000);
       } else {
-        setConnectionStatus('All streams failed');
-        onStatusChange?.('All Infowars streams unavailable');
+        setConnectionStatus('❌ All streams failed');
+        onStatusChange?.('❌ All test streams unavailable');
       }
     };
 
     const handleLoadStart = () => {
-      console.log('Audio loading started');
+      console.log('⏳ Audio loading started:', streamUrl);
       setIsLoading(true);
-      setConnectionStatus('Loading...');
+      setConnectionStatus('⏳ Loading...');
     };
 
     const handleCanPlay = () => {
-      console.log('Audio can play');
+      console.log('✅ Audio can play:', streamUrl);
       setIsLoading(false);
-      setConnectionStatus('Ready');
+      setConnectionStatus('✅ Ready');
+    };
+
+    const handleWaiting = () => {
+      console.log('⏳ Audio waiting/buffering');
+      setConnectionStatus('⏳ Buffering...');
+    };
+
+    const handleLoadedData = () => {
+      console.log('✅ Audio data loaded');
+      setConnectionStatus('✅ Loaded');
     };
 
     audio.addEventListener('play', handlePlay);
@@ -87,6 +98,8 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
     audio.addEventListener('error', handleError);
     audio.addEventListener('loadstart', handleLoadStart);
     audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('waiting', handleWaiting);
+    audio.addEventListener('loadeddata', handleLoadedData);
 
     return () => {
       audio.removeEventListener('play', handlePlay);
@@ -94,29 +107,61 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
       audio.removeEventListener('error', handleError);
       audio.removeEventListener('loadstart', handleLoadStart);
       audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('waiting', handleWaiting);
+      audio.removeEventListener('loadeddata', handleLoadedData);
     };
-  }, [onStatusChange]);
+  }, [onStatusChange, currentStreamIndex, streamUrl]);
 
-  const togglePlayPause = () => {
+  const togglePlayPause = async () => {
     const audio = audioRef.current;
     if (!audio) {
-      console.error('Audio element not found');
+      console.error('❌ Audio element not found');
       return;
     }
 
-    console.log('Toggle play/pause clicked, current state:', isPlaying);
+    console.log('🎵 Toggle play/pause clicked, current state:', isPlaying, 'URL:', streamUrl);
 
     if (isPlaying) {
       audio.pause();
     } else {
-      setIsLoading(true);
-      setConnectionStatus('Starting...');
-      audio.play().catch(error => {
-        console.error('Play failed:', error);
+      try {
+        setIsLoading(true);
+        setConnectionStatus('▶️ Starting...');
+        
+        // Ensure audio is loaded
+        if (audio.readyState === 0) {
+          console.log('⏳ Loading audio first...');
+          audio.load();
+          
+          // Wait for the audio to be ready
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Audio load timeout')), 10000);
+            const onCanPlay = () => {
+              clearTimeout(timeout);
+              audio.removeEventListener('canplay', onCanPlay);
+              audio.removeEventListener('error', onError);
+              resolve(true);
+            };
+            const onError = (e: Event) => {
+              clearTimeout(timeout);
+              audio.removeEventListener('canplay', onCanPlay);
+              audio.removeEventListener('error', onError);
+              reject(e);
+            };
+            
+            audio.addEventListener('canplay', onCanPlay);
+            audio.addEventListener('error', onError);
+          });
+        }
+        
+        await audio.play();
+        console.log('✅ Audio play started successfully');
+      } catch (error) {
+        console.error('❌ Play failed:', error);
         setIsLoading(false);
-        setConnectionStatus('Play Failed');
-        onStatusChange?.('Failed to play audio: ' + error.message);
-      });
+        setConnectionStatus('❌ Play Failed');
+        onStatusChange?.('Failed to play audio: ' + (error as Error).message);
+      }
     }
   };
 
@@ -136,7 +181,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <Radio className="w-6 h-6 text-terminal-highlight" />
-<h2 className="text-xl font-bold text-terminal-highlight">Infowars Live Stream</h2>
+<h2 className="text-xl font-bold text-terminal-highlight">Radio Streaming Player</h2>
           </div>
           <Button
             onClick={onClose}
@@ -152,13 +197,15 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
           ref={audioRef}
           src={streamUrl}
           preload="none"
+          crossOrigin="anonymous"
+          controls={false}
         />
 
         <div className="space-y-4">
           {/* Station Info */}
           <div className="text-center p-3 bg-terminal-bg/50 rounded border border-terminal-subtle">
             <div className="text-terminal-highlight font-semibold">{stationName}</div>
-<div className="text-terminal-text text-sm">{currentStreamIndex < 2 ? 'Alex Jones Show' : 'Test Audio'}</div>
+<div className="text-terminal-text text-sm">Test Audio Stream {currentStreamIndex + 1}</div>
             <div className="text-terminal-subtle text-xs mt-1">Status: {connectionStatus}</div>
           </div>
 
@@ -215,7 +262,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
                     : 'bg-terminal-subtle text-terminal-text hover:bg-terminal-highlight/50'
                 }`}
               >
-                {index < 2 ? `Stream ${index + 1}` : 'Test'}
+                `Test ${index + 1}`
               </button>
             ))}
           </div>
