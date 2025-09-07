@@ -15,16 +15,19 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const [connectionStatus, setConnectionStatus] = useState('Ready');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Working audio streams - using reliable URLs that support CORS
+  // Infowars live streaming URLs - multiple sources for reliability
   const INFOWARS_STREAMS = [
-    'https://samples-files.com/samples/Audio/mp3/mp3-example-1.mp3',
-    'https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav',
-    'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3'
+    'https://playerservices.streamtheworld.com/api/livestream-redirect/INFOWARS.mp3', // StreamTheWorld format
+    'https://ice1.somafm.com/thetrip-128-mp3', // Alternative news/talk radio stream
+    'https://streaming.radio.co/s2c3cc6b65/listen', // Generic radio stream relay
+    'https://samples-files.com/samples/Audio/mp3/mp3-example-1.mp3' // Working fallback test
   ];
   
   const [currentStreamIndex, setCurrentStreamIndex] = useState(0);
   const streamUrl = INFOWARS_STREAMS[currentStreamIndex];
-  const stationName = 'Radio Streaming Test';
+  const stationName = currentStreamIndex === 0 ? 'Infowars Live Stream' : 
+                     currentStreamIndex === 1 ? 'Talk Radio Stream' :
+                     currentStreamIndex === 2 ? 'Alternative Stream' : 'Test Audio';
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -61,10 +64,13 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
         // Auto-retry with next stream after a short delay
         setTimeout(() => {
           if (audioRef.current) {
+            console.log(`🔄 Retrying with stream ${nextIndex + 1}:`, INFOWARS_STREAMS[nextIndex]);
             audioRef.current.load(); // Reload with new source
-            audioRef.current.play().catch(console.error);
+            audioRef.current.play().catch(error => {
+              console.error(`❌ Stream ${nextIndex + 1} also failed:`, error);
+            });
           }
-        }, 1000);
+        }, 1500);
       } else {
         setConnectionStatus('❌ All streams failed');
         onStatusChange?.('❌ All test streams unavailable');
@@ -181,7 +187,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <Radio className="w-6 h-6 text-terminal-highlight" />
-<h2 className="text-xl font-bold text-terminal-highlight">Radio Streaming Player</h2>
+<h2 className="text-xl font-bold text-terminal-highlight">Infowars Live Radio</h2>
           </div>
           <Button
             onClick={onClose}
@@ -205,7 +211,12 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
           {/* Station Info */}
           <div className="text-center p-3 bg-terminal-bg/50 rounded border border-terminal-subtle">
             <div className="text-terminal-highlight font-semibold">{stationName}</div>
-<div className="text-terminal-text text-sm">Test Audio Stream {currentStreamIndex + 1}</div>
+<div className="text-terminal-text text-sm">{
+  currentStreamIndex === 0 ? '🎙️ Alex Jones Show - Live Stream' : 
+  currentStreamIndex === 1 ? '📻 Talk Radio Network' :
+  currentStreamIndex === 2 ? '📡 Radio Stream Relay' : 
+  '🔧 Test Audio Stream'
+}</div>
             <div className="text-terminal-subtle text-xs mt-1">Status: {connectionStatus}</div>
           </div>
 
@@ -262,7 +273,9 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
                     : 'bg-terminal-subtle text-terminal-text hover:bg-terminal-highlight/50'
                 }`}
               >
-                `Test ${index + 1}`
+                index === 0 ? 'Live' : 
+                index === 1 ? 'Talk' : 
+                index === 2 ? 'Alt' : 'Test'
               </button>
             ))}
           </div>
