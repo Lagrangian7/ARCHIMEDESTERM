@@ -158,12 +158,16 @@ export class TelnetProxyService {
 
   private closeConnectionsForWebSocket(ws: WebSocket) {
     // Close all telnet connections for this WebSocket
-    for (const [connectionId, connection] of this.connections) {
+    const connectionsToClose: string[] = [];
+    this.connections.forEach((connection, connectionId) => {
       if (connection.websocket === ws) {
         connection.socket.destroy();
-        this.connections.delete(connectionId);
+        connectionsToClose.push(connectionId);
       }
-    }
+    });
+    
+    // Remove closed connections
+    connectionsToClose.forEach(id => this.connections.delete(id));
   }
 
   private isValidHost(host: string): boolean {
