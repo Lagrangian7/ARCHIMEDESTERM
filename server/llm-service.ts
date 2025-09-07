@@ -118,7 +118,7 @@ Remember: You are a technical chronicler providing precise, actionable informati
     prompt += `Human: ${userMessage}\nAssistant:`;
 
     const response = await hf.textGeneration({
-      model: 'Enoch/llama-7b-hf',
+      model: 'meta-llama/Llama-3.2-3B-Instruct',
       inputs: prompt,
       parameters: {
         max_new_tokens: mode === 'technical' ? 800 : 400,
