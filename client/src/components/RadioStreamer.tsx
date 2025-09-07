@@ -16,8 +16,8 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const streamUrl = 'https://player.cloudradionetwork.com/klux/';
-  const stationName = 'KLUX Radio Network';
+  const streamUrl = 'http://204.141.171.164:12340/stream';
+  const stationName = 'KLUX 89.5HD - Good Company';
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -47,11 +47,36 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
       onStatusChange?.('Radio stream paused');
     };
 
-    const handleError = () => {
+    const handleError = (error: Event) => {
       setIsLoading(false);
       setIsPlaying(false);
       setConnectionStatus('Connection Failed');
-      onStatusChange?.('Failed to connect to KLUX Radio stream');
+      console.error('Radio stream error:', error);
+      
+      // More specific error handling
+      const audioError = (error.target as HTMLAudioElement)?.error;
+      let errorMessage = 'Failed to connect to KLUX Radio stream';
+      
+      if (audioError) {
+        switch (audioError.code) {
+          case MediaError.MEDIA_ERR_ABORTED:
+            errorMessage = 'Stream loading was aborted';
+            break;
+          case MediaError.MEDIA_ERR_NETWORK:
+            errorMessage = 'Network error loading stream';
+            break;
+          case MediaError.MEDIA_ERR_DECODE:
+            errorMessage = 'Stream format not supported';
+            break;
+          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+            errorMessage = 'Stream source not accessible (may be CORS/HTTPS issue)';
+            break;
+          default:
+            errorMessage = 'Unknown streaming error occurred';
+        }
+      }
+      
+      onStatusChange?.(errorMessage);
     };
 
     const handleWaiting = () => {
@@ -138,8 +163,13 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
           {/* Station Info */}
           <div className="text-center p-3 bg-terminal-bg/50 rounded border border-terminal-subtle">
             <div className="text-terminal-highlight font-semibold">{stationName}</div>
-            <div className="text-terminal-text text-sm">Cloud Radio Network</div>
+            <div className="text-terminal-text text-sm">Easy Listening • Corpus Christi, TX</div>
             <div className="text-terminal-subtle text-xs mt-1">Status: {connectionStatus}</div>
+            {connectionStatus === 'Connection Failed' && (
+              <div className="text-orange-400 text-xs mt-2">
+                Note: HTTPS/HTTP mixed content may prevent streaming
+              </div>
+            )}
           </div>
 
           {/* Controls */}

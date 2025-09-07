@@ -342,7 +342,7 @@ Project Gutenberg Books:
   books help - Show detailed book command help
   
 Radio Streaming:
-  radio play - Start KLUX Radio stream
+  radio play - Start KLUX 89.5HD stream (Easy Listening)
   radio stop - Stop radio stream
   radio volume <0-100> - Set volume level
   radio status - Show current stream status
@@ -1033,10 +1033,10 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       const subCmd = cmd.substring(6).trim();
       
       if (subCmd === 'play') {
-        const radioElement = document.querySelector('audio[src*="cloudradionetwork"]') as HTMLAudioElement;
+        const radioElement = document.querySelector('audio[src*="204.141.171.164"]') as HTMLAudioElement;
         if (radioElement) {
           radioElement.play()
-            .then(() => addEntry('system', '🎵 KLUX Radio stream started'))
+            .then(() => addEntry('system', '🎵 KLUX 89.5HD stream started'))
             .catch(() => addEntry('error', 'Error: Unable to start radio stream'));
         } else {
           // Trigger radio interface to open
@@ -1052,10 +1052,10 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       }
       
       if (subCmd === 'stop') {
-        const radioElement = document.querySelector('audio[src*="cloudradionetwork"]') as HTMLAudioElement;
+        const radioElement = document.querySelector('audio[src*="204.141.171.164"]') as HTMLAudioElement;
         if (radioElement) {
           radioElement.pause();
-          addEntry('system', '⏹️ KLUX Radio stream stopped');
+          addEntry('system', '⏹️ KLUX 89.5HD stream stopped');
         } else {
           addEntry('error', 'Radio is not currently active');
         }
@@ -1071,7 +1071,7 @@ Free plan includes 100 monthly requests with end-of-day data.`);
           return;
         }
         
-        const radioElement = document.querySelector('audio[src*="cloudradionetwork"]') as HTMLAudioElement;
+        const radioElement = document.querySelector('audio[src*="204.141.171.164"]') as HTMLAudioElement;
         if (radioElement) {
           radioElement.volume = volumeNum / 100;
           addEntry('system', `🔊 Volume set to ${volumeNum}%`);
@@ -1082,19 +1082,20 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       }
       
       if (subCmd === 'status') {
-        const radioElement = document.querySelector('audio[src*="cloudradionetwork"]') as HTMLAudioElement;
+        const radioElement = document.querySelector('audio[src*="204.141.171.164"]') as HTMLAudioElement;
         if (radioElement) {
           const isPlaying = !radioElement.paused;
           const volume = Math.round(radioElement.volume * 100);
           const status = `Radio Status: ${isPlaying ? 'Streaming 🎵' : 'Stopped ⏹️'}
-Station: KLUX Radio Network
-Stream: Cloud Radio Network
+Station: KLUX 89.5HD - Good Company
+Location: Corpus Christi, TX
+Format: Easy Listening
 Volume: ${volume}%
 Connection: ${radioElement.readyState >= 2 ? 'Ready' : 'Loading...'}`;
           addEntry('system', status);
         } else {
           addEntry('system', `Radio Status: Inactive
-Use "radio play" to start streaming KLUX Radio`);
+Use "radio play" to start streaming KLUX 89.5HD`);
         }
         return;
       }
