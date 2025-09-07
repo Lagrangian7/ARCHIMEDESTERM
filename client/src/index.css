@@ -329,7 +329,7 @@
     border: 1px solid var(--terminal-highlight);
     animation: telnetBorderFlicker 2s infinite;
     pointer-events: none;
-    z-index: 1;
+    z-index: 5;
   }
 }
 

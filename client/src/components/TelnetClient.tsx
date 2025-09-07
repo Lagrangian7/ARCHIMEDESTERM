@@ -362,7 +362,7 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
   return (
     <div className="flex flex-col h-full bg-terminal-bg telnet-container">
       {/* Connection header */}
-      <div className="flex items-center justify-between p-4 border-b border-terminal-subtle bg-terminal-bg/50">
+      <div className="flex items-center justify-between p-4 border-b border-terminal-subtle bg-terminal-bg/50 relative z-20">
         <div className="flex items-center space-x-2">
           {activeConnection.connected ? (
             <Wifi className="w-4 h-4 text-green-500" />
@@ -410,7 +410,7 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div 
           ref={outputRef}
-          className="p-6 font-mono text-base text-terminal-text whitespace-pre-wrap min-h-full"
+          className="p-6 font-mono text-base text-terminal-text whitespace-pre-wrap min-h-full relative z-10"
           style={{ lineHeight: '1.4' }}
         >
           {activeConnection.data.map((line, index) => (
@@ -426,7 +426,7 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
       </ScrollArea>
 
       {/* Input area */}
-      <div className="p-4 border-t border-terminal-highlight/30 bg-terminal-bg/90">
+      <div className="p-4 border-t border-terminal-highlight/30 bg-terminal-bg/90 relative z-20">
         <div className="flex items-center space-x-3">
           <span className="text-terminal-highlight font-mono text-lg font-bold glow">$</span>
           <input
