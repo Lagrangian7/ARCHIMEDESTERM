@@ -428,7 +428,7 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
       {/* Input area */}
       <div className="p-4 border-t border-terminal-subtle bg-terminal-bg">
         <div className="flex items-center space-x-3">
-          <span className="text-terminal-highlight font-mono text-sm">$</span>
+          <span className="text-terminal-highlight font-mono text-base font-bold">$</span>
           <input
             ref={inputRef}
             type="text"
