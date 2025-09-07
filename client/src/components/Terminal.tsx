@@ -151,8 +151,8 @@ export function Terminal() {
           }}
         />
         
-        {/* Header */}
-        <header className="flex items-center justify-between p-4 border-b border-terminal-subtle bg-opacity-90 relative z-10">
+        {/* Header - Fixed at top */}
+        <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-terminal-subtle bg-terminal-bg relative z-10">
           <div className="flex items-center space-x-4">
             <LogoIcon />
             <div>
@@ -236,15 +236,17 @@ export function Terminal() {
           </div>
         </header>
 
-        {/* Voice Controls */}
-        <VoiceControls onVoiceInput={handleVoiceInput} />
+        {/* Voice Controls - Fixed below header */}
+        <div className="flex-shrink-0">
+          <VoiceControls onVoiceInput={handleVoiceInput} />
+        </div>
 
-        {/* Terminal Output */}
-        <div className="flex-1 relative">
+        {/* Terminal Output - Scrollable middle section */}
+        <div className="flex-1 min-h-0 relative">
           <ScrollArea className="h-full">
             <div 
               ref={outputRef}
-              className="terminal-output p-4 font-mono text-sm leading-relaxed relative z-10 min-h-full"
+              className="terminal-output p-4 font-mono text-sm leading-relaxed relative z-10"
               data-testid="terminal-output"
             >
               {entries.map((entry) => (
@@ -291,8 +293,8 @@ export function Terminal() {
           />
         </div>
 
-        {/* Command Input */}
-        <div className="p-4 border-t border-terminal-subtle relative z-10">
+        {/* Command Input - Fixed at bottom */}
+        <div className="flex-shrink-0 p-4 border-t border-terminal-subtle bg-terminal-bg relative z-10">
           <div className="flex items-center space-x-2 relative">
             <span className="text-terminal-highlight font-semibold">archimedes@terminal:~$</span>
             <div className="flex-1 relative">
