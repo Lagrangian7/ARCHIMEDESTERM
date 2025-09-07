@@ -32,9 +32,9 @@ export class WeatherService {
   private readonly baseUrl = 'https://api.openweathermap.org/data/2.5';
 
   private constructor() {
-    this.apiKey = process.env.brer!;
+    this.apiKey = process.env.OPENWEATHER_API_KEY!;
     if (!this.apiKey) {
-      throw new Error('brer environment variable is required');
+      throw new Error('OPENWEATHER_API_KEY environment variable is required');
     }
   }
 
