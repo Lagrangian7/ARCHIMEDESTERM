@@ -1,0 +1,449 @@
+import { useState, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { X, ArrowRight, Terminal as TerminalIcon, Radio, Book, TrendingUp, Wifi, Gamepad2, Upload, Mic } from 'lucide-react';
+
+interface HelpMenuItem {
+  id: string;
+  category: string;
+  title: string;
+  description: string;
+  command?: string;
+  example?: string;
+  icon: React.ReactNode;
+}
+
+interface HelpMenuProps {
+  onClose: () => void;
+  onSelectCommand: (command: string) => void;
+}
+
+const helpMenuItems: HelpMenuItem[] = [
+  // Basic Commands
+  {
+    id: 'help',
+    category: 'Basic Commands',
+    title: 'Show Help',
+    description: 'Display all available commands and system information',
+    command: 'help',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'clear',
+    category: 'Basic Commands', 
+    title: 'Clear Terminal',
+    description: 'Clear all output from the terminal screen',
+    command: 'clear',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'status',
+    category: 'Basic Commands',
+    title: 'System Status',
+    description: 'Show current system status and configuration',
+    command: 'status',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'mode',
+    category: 'Basic Commands',
+    title: 'Switch AI Mode',
+    description: 'Switch between natural chat and technical protocol modes',
+    command: 'mode',
+    example: 'mode natural  or  mode technical',
+    icon: <TerminalIcon size={16} />
+  },
+
+  // Network & BBS
+  {
+    id: 'telnet',
+    category: 'Network & BBS',
+    title: 'Telnet Connection',
+    description: 'Connect to remote telnet servers and BBS systems',
+    command: 'telnet',
+    example: 'telnet telehack.com 23',
+    icon: <Wifi size={16} />
+  },
+  {
+    id: 'ping',
+    category: 'Network & BBS',
+    title: 'Ping Host',
+    description: 'Test network connectivity to remote hosts',
+    command: 'ping',
+    example: 'ping google.com',
+    icon: <Wifi size={16} />
+  },
+  {
+    id: 'bbs-list',
+    category: 'Network & BBS',
+    title: 'BBS Directory',
+    description: 'Browse available bulletin board systems',
+    command: 'bbs-list',
+    icon: <Wifi size={16} />
+  },
+  {
+    id: 'bbs-search',
+    category: 'Network & BBS',
+    title: 'Search BBS',
+    description: 'Search for BBS systems by name or location',
+    command: 'bbs-search',
+    example: 'bbs-search retro',
+    icon: <Wifi size={16} />
+  },
+
+  // Stock Market
+  {
+    id: 'stock-quote',
+    category: 'Stock Market',
+    title: 'Stock Quote',
+    description: 'Get current stock price and basic information',
+    command: 'stock quote',
+    example: 'stock quote AAPL',
+    icon: <TrendingUp size={16} />
+  },
+  {
+    id: 'stock-quotes',
+    category: 'Stock Market',
+    title: 'Multiple Quotes',
+    description: 'Get quotes for multiple stocks at once',
+    command: 'stock quotes',
+    example: 'stock quotes AAPL,MSFT,GOOGL',
+    icon: <TrendingUp size={16} />
+  },
+  {
+    id: 'stock-info',
+    category: 'Stock Market',
+    title: 'Company Info',
+    description: 'Get detailed company information and metrics',
+    command: 'stock info',
+    example: 'stock info AAPL',
+    icon: <TrendingUp size={16} />
+  },
+  {
+    id: 'stock-history',
+    category: 'Stock Market',
+    title: 'Historical Data',
+    description: 'View historical stock price data',
+    command: 'stock history',
+    example: 'stock history AAPL 30',
+    icon: <TrendingUp size={16} />
+  },
+  {
+    id: 'stock-search',
+    category: 'Stock Market',
+    title: 'Search Stocks',
+    description: 'Search for stocks by company name or symbol',
+    command: 'stock search',
+    example: 'stock search apple',
+    icon: <TrendingUp size={16} />
+  },
+
+  // Books & Literature
+  {
+    id: 'books-popular',
+    category: 'Books & Literature',
+    title: 'Popular Books',
+    description: 'Browse most downloaded books from Project Gutenberg',
+    command: 'books popular',
+    example: 'books popular 20',
+    icon: <Book size={16} />
+  },
+  {
+    id: 'books-search',
+    category: 'Books & Literature',
+    title: 'Search Books',
+    description: 'Search for books by title, author, or content',
+    command: 'books search',
+    example: 'books search pride prejudice',
+    icon: <Book size={16} />
+  },
+  {
+    id: 'books-author',
+    category: 'Books & Literature',
+    title: 'Books by Author',
+    description: 'Find all books by a specific author',
+    command: 'books author',
+    example: 'books author "Mark Twain"',
+    icon: <Book size={16} />
+  },
+  {
+    id: 'books-topic',
+    category: 'Books & Literature',
+    title: 'Books by Topic',
+    description: 'Find books by subject or topic category',
+    command: 'books topic',
+    example: 'books topic science',
+    icon: <Book size={16} />
+  },
+
+  // Audio & Radio
+  {
+    id: 'radio-play',
+    category: 'Audio & Radio',
+    title: 'Start Radio',
+    description: 'Start streaming radio with animated character',
+    command: 'radio play',
+    icon: <Radio size={16} />
+  },
+  {
+    id: 'radio-stop',
+    category: 'Audio & Radio',
+    title: 'Stop Radio',
+    description: 'Stop radio streaming and hide character',
+    command: 'radio stop',
+    icon: <Radio size={16} />
+  },
+  {
+    id: 'dtmf',
+    category: 'Audio & Radio',
+    title: 'DTMF Decoder',
+    description: 'Decode touch-tone phone signals from audio input',
+    command: 'dtmf',
+    icon: <Mic size={16} />
+  },
+
+  // Games & Entertainment
+  {
+    id: 'snake',
+    category: 'Games & Entertainment',
+    title: 'Snake Game',
+    description: 'Play the classic Snake game in retro style',
+    command: 'snake',
+    icon: <Gamepad2 size={16} />
+  },
+
+  // Knowledge Base
+  {
+    id: 'upload',
+    category: 'Knowledge Base',
+    title: 'Upload Documents',
+    description: 'Upload documents to your personal knowledge base',
+    command: 'upload',
+    icon: <Upload size={16} />
+  },
+  {
+    id: 'docs',
+    category: 'Knowledge Base',
+    title: 'List Documents',
+    description: 'View all documents in your knowledge base',
+    command: 'docs',
+    icon: <Upload size={16} />
+  },
+  {
+    id: 'search',
+    category: 'Knowledge Base',
+    title: 'Search Knowledge',
+    description: 'Search through your uploaded documents',
+    command: 'search',
+    example: 'search artificial intelligence',
+    icon: <Upload size={16} />
+  },
+  {
+    id: 'knowledge-stats',
+    category: 'Knowledge Base',
+    title: 'Knowledge Stats',
+    description: 'View statistics about your knowledge base',
+    command: 'knowledge stats',
+    icon: <Upload size={16} />
+  }
+];
+
+export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Get unique categories
+  const categories = [...new Set(helpMenuItems.map(item => item.category))];
+  
+  // Get filtered items based on selected category
+  const filteredItems = selectedCategory 
+    ? helpMenuItems.filter(item => item.category === selectedCategory)
+    : helpMenuItems;
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    switch (e.key) {
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => prev > 0 ? prev - 1 : filteredItems.length - 1);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev => prev < filteredItems.length - 1 ? prev + 1 : 0);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        const selectedItem = filteredItems[selectedIndex];
+        if (selectedItem?.command) {
+          onSelectCommand(selectedItem.command);
+          onClose();
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        onClose();
+        break;
+      case 'Backspace':
+        if (selectedCategory) {
+          e.preventDefault();
+          setSelectedCategory(null);
+          setSelectedIndex(0);
+        }
+        break;
+    }
+  }, [selectedIndex, filteredItems, selectedCategory, onSelectCommand, onClose]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  // Reset selection when category changes
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [selectedCategory]);
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    setSelectedIndex(0);
+  };
+
+  const handleItemSelect = (item: HelpMenuItem) => {
+    if (item.command) {
+      onSelectCommand(item.command);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div className="bg-terminal-bg border-2 border-terminal-highlight rounded-lg max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-terminal-subtle">
+          <div className="flex items-center gap-3">
+            <TerminalIcon className="w-6 h-6 text-terminal-highlight" />
+            <h2 className="text-xl font-bold text-terminal-highlight">
+              📋 INTERACTIVE HELP MENU
+            </h2>
+          </div>
+          <Button
+            onClick={onClose}
+            variant="outline"
+            size="sm"
+            className="border-terminal-subtle text-terminal-text hover:bg-terminal-subtle"
+          >
+            <X size={16} />
+          </Button>
+        </div>
+
+        {/* Instructions */}
+        <div className="px-4 py-2 bg-terminal-bg/50 border-b border-terminal-subtle/50">
+          <div className="text-sm text-terminal-text/80 font-mono">
+            ⌨️ Use <span className="text-terminal-highlight">↑↓</span> arrows to navigate • 
+            <span className="text-terminal-highlight"> Enter</span> to select • 
+            <span className="text-terminal-highlight"> Escape</span> to close
+            {selectedCategory && <span> • <span className="text-terminal-highlight">Backspace</span> to go back</span>}
+          </div>
+        </div>
+
+        <div className="flex h-[500px]">
+          {/* Category Sidebar */}
+          {!selectedCategory && (
+            <div className="w-1/3 border-r border-terminal-subtle bg-terminal-bg/30">
+              <div className="p-3 border-b border-terminal-subtle/50">
+                <h3 className="text-sm font-semibold text-terminal-highlight">COMMAND CATEGORIES</h3>
+              </div>
+              <div className="overflow-y-auto h-full">
+                {categories.map((category, index) => {
+                  const categoryItems = helpMenuItems.filter(item => item.category === category);
+                  return (
+                    <div
+                      key={category}
+                      onClick={() => handleCategorySelect(category)}
+                      className={`p-3 cursor-pointer border-b border-terminal-subtle/30 transition-all duration-150 ${
+                        index === selectedIndex 
+                          ? 'bg-terminal-highlight text-terminal-bg font-semibold' 
+                          : 'text-terminal-text hover:bg-terminal-subtle/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">{category}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs opacity-70">({categoryItems.length})</span>
+                          <ArrowRight size={12} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Commands List */}
+          <div className={selectedCategory ? 'w-full' : 'w-2/3'}>
+            <div className="p-3 border-b border-terminal-subtle/50">
+              <h3 className="text-sm font-semibold text-terminal-highlight">
+                {selectedCategory ? `${selectedCategory.toUpperCase()} COMMANDS` : 'ALL COMMANDS'}
+              </h3>
+            </div>
+            <div className="overflow-y-auto h-full">
+              {filteredItems.map((item, index) => (
+                <div
+                  key={item.id}
+                  onClick={() => handleItemSelect(item)}
+                  className={`p-4 cursor-pointer border-b border-terminal-subtle/20 transition-all duration-150 ${
+                    index === selectedIndex 
+                      ? 'bg-terminal-highlight text-terminal-bg' 
+                      : 'text-terminal-text hover:bg-terminal-subtle/30'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`mt-1 ${index === selectedIndex ? 'text-terminal-bg' : 'text-terminal-highlight'}`}>
+                      {item.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-sm">{item.title}</h4>
+                        {item.command && (
+                          <code className={`text-xs px-2 py-1 rounded font-mono ${
+                            index === selectedIndex 
+                              ? 'bg-terminal-bg/20 text-terminal-bg/80' 
+                              : 'bg-terminal-subtle/30 text-terminal-highlight'
+                          }`}>
+                            {item.command}
+                          </code>
+                        )}
+                      </div>
+                      <p className={`text-xs mb-2 ${
+                        index === selectedIndex ? 'text-terminal-bg/80' : 'text-terminal-text/70'
+                      }`}>
+                        {item.description}
+                      </p>
+                      {item.example && (
+                        <div className={`text-xs font-mono ${
+                          index === selectedIndex ? 'text-terminal-bg/70' : 'text-terminal-text/60'
+                        }`}>
+                          💡 Example: <span className="italic">{item.example}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-3 border-t border-terminal-subtle bg-terminal-bg/50">
+          <div className="text-xs text-terminal-text/60 font-mono text-center">
+            ARCHIMEDES v7 Interactive Help System • 
+            {filteredItems.length} commands available
+            {selectedCategory && ` in ${selectedCategory}`}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default HelpMenu;
