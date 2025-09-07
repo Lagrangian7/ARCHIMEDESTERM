@@ -211,7 +211,7 @@ export function Terminal() {
                   onClick={() => window.location.href = '/api/login'}
                   variant="outline"
                   size="sm"
-                  className="border-terminal-subtle text-terminal-text hover:text-terminal-highlight transition-colors h-auto px-2 py-1 text-xs"
+                  className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
                   data-testid="button-login"
                 >
                   <LogIn size={14} className="mr-1" />
