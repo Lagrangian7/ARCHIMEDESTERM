@@ -360,7 +360,7 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
   }
 
   return (
-    <div className="flex flex-col h-full bg-terminal-bg telnet-container">
+    <div className="flex flex-col h-full bg-terminal-bg border-2 border-terminal-highlight">
       {/* Connection header */}
       <div className="flex items-center justify-between p-4 border-b border-terminal-subtle bg-terminal-bg/50 relative z-20">
         <div className="flex items-center space-x-2">
@@ -426,9 +426,9 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
       </ScrollArea>
 
       {/* Input area */}
-      <div className="p-4 border-t border-terminal-highlight/30 bg-terminal-bg/90 relative z-20">
+      <div className="flex-shrink-0 p-4 border-t-2 border-terminal-highlight bg-terminal-bg shadow-lg">
         <div className="flex items-center space-x-3">
-          <span className="text-terminal-highlight font-mono text-lg font-bold glow">$</span>
+          <span className="text-terminal-highlight font-mono text-xl font-bold" style={{textShadow: '0 0 10px currentColor'}}>$</span>
           <input
             ref={inputRef}
             type="text"
@@ -436,7 +436,7 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={!activeConnection.connected}
-            className="flex-1 bg-transparent border-none outline-none text-terminal-text font-mono text-base focus:ring-0 focus:text-terminal-highlight"
+            className="flex-1 bg-terminal-bg/50 border border-terminal-subtle rounded px-2 py-1 outline-none text-terminal-text font-mono text-base focus:border-terminal-highlight focus:text-terminal-highlight"
             placeholder={activeConnection.connected ? "Type command and press Enter..." : "Connection not ready"}
             autoComplete="off"
             spellCheck={false}
