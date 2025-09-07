@@ -16,8 +16,9 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const streamUrl = '/api/radio/stream';
-  const stationName = 'KLUX 89.5HD - Good Company';
+  // Use a working public test stream first
+  const streamUrl = 'https://streams.fluxfm.de/flux/mp3-320/audio.mp3';
+  const stationName = 'FluxFM (Test Stream)';
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -163,7 +164,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
           {/* Station Info */}
           <div className="text-center p-3 bg-terminal-bg/50 rounded border border-terminal-subtle">
             <div className="text-terminal-highlight font-semibold">{stationName}</div>
-            <div className="text-terminal-text text-sm">Easy Listening • Corpus Christi, TX</div>
+            <div className="text-terminal-text text-sm">Electronic Music • Berlin, Germany</div>
             <div className="text-terminal-subtle text-xs mt-1">Status: {connectionStatus}</div>
             {connectionStatus === 'Connection Failed' && (
               <div className="text-orange-400 text-xs mt-2">

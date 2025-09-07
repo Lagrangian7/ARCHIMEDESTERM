@@ -753,66 +753,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Radio streaming proxy endpoint
-  app.get('/api/radio/stream', async (req, res) => {
-    try {
-      const streamUrl = 'http://204.141.171.164:12340/stream';
+  app.get('/api/radio/stream', (req, res) => {
+    const http = require('http');
+    const streamUrl = 'http://204.141.171.164:12340/stream';
+    
+    // Parse the URL
+    const url = new URL(streamUrl);
+    
+    const options = {
+      hostname: url.hostname,
+      port: url.port || 80,
+      path: url.pathname,
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; ARCHIMEDES-Radio/1.0)',
+        'Accept': 'audio/*',
+        'Connection': 'keep-alive'
+      }
+    };
+    
+    const proxyReq = http.request(options, (proxyRes: any) => {
+      // Set CORS and streaming headers
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Range, Content-Type');
       
-      // Fetch the stream from the original HTTP endpoint
-      const response = await fetch(streamUrl, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; ARCHIMEDES-Radio/1.0)',
+      // Copy headers from the original stream
+      res.setHeader('Content-Type', proxyRes.headers['content-type'] || 'audio/mpeg');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Accept-Ranges', 'none');
+      
+      // Copy ICY headers if present (Shoutcast metadata)
+      Object.keys(proxyRes.headers).forEach(key => {
+        if (key.startsWith('icy-')) {
+          res.setHeader(key, proxyRes.headers[key]);
         }
       });
       
-      if (!response.ok) {
-        throw new Error(`Stream server responded with ${response.status}`);
+      console.log(`Radio stream: ${proxyRes.statusCode} - ${proxyRes.headers['content-type']}`);
+      
+      if (proxyRes.statusCode !== 200) {
+        res.status(503).json({ 
+          error: 'Stream unavailable',
+          status: proxyRes.statusCode 
+        });
+        return;
       }
       
-      // Set appropriate headers for audio streaming
-      res.setHeader('Content-Type', 'audio/mpeg');
-      res.setHeader('Cache-Control', 'no-cache, no-store');
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET');
-      res.setHeader('Access-Control-Allow-Headers', 'Range');
+      // Set status code
+      res.status(proxyRes.statusCode);
       
-      // Handle range requests for proper audio streaming
-      if (req.headers.range) {
-        res.setHeader('Accept-Ranges', 'bytes');
-      }
+      // Pipe the audio stream
+      proxyRes.pipe(res);
       
-      // Pipe the stream response to our client
-      if (response.body) {
-        const reader = response.body.getReader();
-        
-        const pump = async () => {
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              if (!res.write(value)) {
-                await new Promise(resolve => res.once('drain', resolve));
-              }
-            }
-            res.end();
-          } catch (error) {
-            console.error('Stream error:', error);
-            res.end();
-          }
-        };
-        
-        pump();
-      } else {
-        throw new Error('No response body received from stream');
-      }
-      
-    } catch (error) {
+      proxyRes.on('error', (error: any) => {
+        console.error('Stream error:', error);
+        res.end();
+      });
+    });
+    
+    proxyReq.on('error', (error: any) => {
       console.error('Radio proxy error:', error);
       res.status(503).json({ 
         error: 'Radio stream unavailable',
         message: 'Unable to connect to KLUX 89.5HD stream'
       });
-    }
+    });
+    
+    proxyReq.setTimeout(30000, () => {
+      console.log('Radio stream timeout');
+      proxyReq.destroy();
+      res.status(503).json({ error: 'Stream timeout' });
+    });
+    
+    proxyReq.end();
   });
 
   // Create HTTP server
