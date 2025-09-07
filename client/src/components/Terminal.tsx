@@ -5,10 +5,11 @@ import { VoiceControls } from './VoiceControls';
 import { CommandHistory } from './CommandHistory';
 import { UserProfile } from './UserProfile';
 import { ConversationHistory } from './ConversationHistory';
+import { DocumentUpload } from './DocumentUpload';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
-import { History, User, LogIn } from 'lucide-react';
+import { History, User, LogIn, Upload } from 'lucide-react';
 import skullWatermark from '@assets/wally_1756523512970.jpg';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 
@@ -46,6 +47,7 @@ export function Terminal() {
   const [showHistory, setShowHistory] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showConversationHistory, setShowConversationHistory] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
 
@@ -189,6 +191,16 @@ export function Terminal() {
                     <User size={14} className="mr-1" />
                     Profile
                   </Button>
+                  <Button
+                    onClick={() => setShowUpload(true)}
+                    variant="outline"
+                    size="sm"
+                    className="border-terminal-subtle text-terminal-text hover:text-terminal-highlight transition-colors h-auto px-2 py-1 text-xs"
+                    data-testid="button-upload"
+                  >
+                    <Upload size={14} className="mr-1" />
+                    Upload
+                  </Button>
                 </>
               ) : (
                 <Button
@@ -325,6 +337,36 @@ export function Terminal() {
             onClose={() => setShowConversationHistory(false)}
             onLoadConversation={loadConversation}
           />
+        </div>
+      )}
+
+      {showUpload && isAuthenticated && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#0D1117] border border-[#00FF41]/20 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-[#00FF41] font-mono">
+                Knowledge Base Upload
+              </h2>
+              <Button
+                onClick={() => setShowUpload(false)}
+                variant="ghost"
+                size="sm"
+                className="text-terminal-text hover:text-[#00FF41]"
+                data-testid="close-upload-modal"
+              >
+                ×
+              </Button>
+            </div>
+            
+            <DocumentUpload 
+              onUploadComplete={(document) => {
+                // Close modal after successful upload
+                setShowUpload(false);
+                // Add success entry to terminal
+                processCommand(`Echo: Document "${document.originalName}" uploaded successfully!`);
+              }}
+            />
+          </div>
         </div>
       )}
     </div>
