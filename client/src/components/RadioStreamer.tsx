@@ -15,12 +15,12 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const [connectionStatus, setConnectionStatus] = useState('Ready');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Infowars live streaming URLs - multiple sources for reliability
+  // Enhanced streaming URLs with CORS proxy support
   const INFOWARS_STREAMS = [
-    'https://playerservices.streamtheworld.com/api/livestream-redirect/INFOWARS.mp3', // StreamTheWorld format
-    'https://ice1.somafm.com/thetrip-128-mp3', // Alternative news/talk radio stream
-    'https://streaming.radio.co/s2c3cc6b65/listen', // Generic radio stream relay
-    'https://samples-files.com/samples/Audio/mp3/mp3-example-1.mp3' // Working fallback test
+    '/api/radio-proxy?url=' + encodeURIComponent('https://playerservices.streamtheworld.com/api/livestream-redirect/INFOWARS.mp3'),
+    'https://ice1.somafm.com/thetrip-128-mp3', // SomaFM - CORS enabled, works reliably
+    'https://ice2.somafm.com/groovesalad-128-mp3', // SomaFM alternative with CORS
+    'https://samples-files.com/samples/Audio/mp3/mp3-example-1.mp3' // Working test fallback
   ];
   
   const [currentStreamIndex, setCurrentStreamIndex] = useState(0);
@@ -61,16 +61,25 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
         setConnectionStatus(`🔄 Switching to stream ${nextIndex + 1}...`);
         onStatusChange?.(`Stream failed, trying stream ${nextIndex + 1}...`);
         
-        // Auto-retry with next stream after a short delay
-        setTimeout(() => {
+        // Auto-retry with next stream with enhanced error handling
+        setTimeout(async () => {
           if (audioRef.current) {
-            console.log(`🔄 Retrying with stream ${nextIndex + 1}:`, INFOWARS_STREAMS[nextIndex]);
-            audioRef.current.load(); // Reload with new source
-            audioRef.current.play().catch(error => {
+            const nextUrl = INFOWARS_STREAMS[nextIndex];
+            console.log(`🔄 Auto-switching to stream ${nextIndex + 1}:`, nextUrl);
+            
+            // Update the source and reload
+            audioRef.current.src = nextUrl;
+            audioRef.current.load();
+            
+            try {
+              await audioRef.current.play();
+              console.log(`✅ Stream ${nextIndex + 1} connected successfully`);
+            } catch (error) {
               console.error(`❌ Stream ${nextIndex + 1} also failed:`, error);
-            });
+              setConnectionStatus(`❌ Stream ${nextIndex + 1} failed`);
+            }
           }
-        }, 1500);
+        }, 2000);
       } else {
         setConnectionStatus('❌ All streams failed');
         onStatusChange?.('❌ All test streams unavailable');
@@ -134,34 +143,55 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
         setIsLoading(true);
         setConnectionStatus('▶️ Starting...');
         
-        // Ensure audio is loaded
+        // Force reload the audio element with current stream
+        audio.load();
+        
+        // Wait for user interaction requirement (browsers block autoplay)
         if (audio.readyState === 0) {
-          console.log('⏳ Loading audio first...');
-          audio.load();
+          console.log('⏳ Loading audio stream:', streamUrl);
           
-          // Wait for the audio to be ready
+          // Enhanced promise with better timeout handling
           await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error('Audio load timeout')), 10000);
+            const timeout = setTimeout(() => {
+              console.warn('🚨 Audio load timeout - trying next stream');
+              reject(new Error('Stream load timeout after 8 seconds'));
+            }, 8000);
+            
             const onCanPlay = () => {
+              console.log('✅ Audio ready to play');
               clearTimeout(timeout);
-              audio.removeEventListener('canplay', onCanPlay);
-              audio.removeEventListener('error', onError);
+              cleanup();
               resolve(true);
             };
+            
             const onError = (e: Event) => {
+              console.error('❌ Audio load error:', e);
               clearTimeout(timeout);
+              cleanup();
+              reject(new Error('Stream failed to load'));
+            };
+            
+            const onLoadedMetadata = () => {
+              console.log('📊 Audio metadata loaded');
+              setConnectionStatus('📊 Metadata loaded');
+            };
+            
+            const cleanup = () => {
               audio.removeEventListener('canplay', onCanPlay);
               audio.removeEventListener('error', onError);
-              reject(e);
+              audio.removeEventListener('loadedmetadata', onLoadedMetadata);
             };
             
             audio.addEventListener('canplay', onCanPlay);
             audio.addEventListener('error', onError);
+            audio.addEventListener('loadedmetadata', onLoadedMetadata);
           });
         }
         
+        // Attempt to play with enhanced error handling
+        console.log('🎵 Attempting to play stream...');
         await audio.play();
-        console.log('✅ Audio play started successfully');
+        console.log('✅ Audio playback started successfully');
       } catch (error) {
         console.error('❌ Play failed:', error);
         setIsLoading(false);
@@ -202,9 +232,10 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
         <audio
           ref={audioRef}
           src={streamUrl}
-          preload="none"
+          preload="metadata"
           crossOrigin="anonymous"
           controls={false}
+          playsInline
         />
 
         <div className="space-y-4">

@@ -900,6 +900,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     proxyReq.end();
   });
 
+  // CORS proxy for radio streaming - helps bypass CORS restrictions
+  app.get("/api/radio-proxy", async (req, res) => {
+    try {
+      const streamUrl = req.query.url as string;
+      
+      if (!streamUrl) {
+        return res.status(400).json({ error: "URL parameter is required" });
+      }
+
+      console.log(`📻 Proxying radio stream: ${streamUrl}`);
+
+      // Set CORS headers for audio streaming
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      
+      // Fetch the stream and proxy it
+      const response = await fetch(streamUrl, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'RadioPlayer/1.0',
+          'Accept': 'audio/*,*/*;q=0.1',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Stream server returned ${response.status}`);
+      }
+
+      // Set appropriate headers for audio streaming
+      const contentType = response.headers.get('content-type') || 'audio/mpeg';
+      res.setHeader('Content-Type', contentType);
+      
+      // Pipe the response directly
+      if (response.body) {
+        const reader = response.body.getReader();
+        
+        const pump = async () => {
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              res.write(value);
+            }
+            res.end();
+          } catch (error) {
+            console.error('Streaming error:', error);
+            res.end();
+          }
+        };
+        
+        pump();
+      }
+
+    } catch (error) {
+      console.error("Radio proxy error:", error);
+      res.status(500).json({ error: "Failed to proxy stream" });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
   
