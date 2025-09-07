@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Terminal, Wifi, WifiOff, X } from 'lucide-react';
+import { Terminal, Wifi, WifiOff, X, LogOut } from 'lucide-react';
 
 interface TelnetConnection {
   id: string;
@@ -14,9 +14,10 @@ interface TelnetConnection {
 
 interface TelnetClientProps {
   onConnectionUpdate?: (connections: TelnetConnection[]) => void;
+  onClose?: () => void;
 }
 
-export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
+export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps) {
   const [connections, setConnections] = useState<TelnetConnection[]>([]);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
   const [input, setInput] = useState('');
@@ -194,6 +195,15 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
     }));
   }, [websocket, activeConnectionId]);
 
+  const sendBreak = useCallback(() => {
+    if (!websocket || !activeConnectionId) return;
+
+    websocket.send(JSON.stringify({
+      type: 'break',
+      connectionId: activeConnectionId
+    }));
+  }, [websocket, activeConnectionId]);
+
   const disconnect = useCallback((connectionId: string) => {
     if (!websocket) return;
 
@@ -210,6 +220,19 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
   }, [websocket, activeConnectionId]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Handle Ctrl-C for BREAK command
+    if (e.ctrlKey && e.key === 'c' && activeConnection?.connected) {
+      e.preventDefault();
+      sendBreak();
+      setConnections(prev => prev.map(conn => 
+        conn.id === activeConnectionId 
+          ? { ...conn, data: [...conn.data, '^C (BREAK sent)'] }
+          : conn
+      ));
+      setInput(''); // Clear current input
+      return;
+    }
+
     if (e.key === 'Enter' && input.trim() && activeConnection?.connected) {
       sendData(input + '\r\n');
       setInput('');
@@ -307,14 +330,31 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
           )}
         </div>
         
-        <Button
-          onClick={() => disconnect(activeConnection.id)}
-          size="sm"
-          variant="outline"
-          className="h-6 w-6 p-0 border-terminal-subtle hover:bg-red-900/20"
-        >
-          <X className="w-3 h-3" />
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button
+            onClick={() => disconnect(activeConnection.id)}
+            size="sm"
+            variant="outline"
+            className="h-6 px-2 border-terminal-subtle hover:bg-red-900/20 text-xs"
+            title="Disconnect from host"
+          >
+            <X className="w-3 h-3 mr-1" />
+            Disconnect
+          </Button>
+          
+          {onClose && (
+            <Button
+              onClick={onClose}
+              size="sm"
+              variant="outline"  
+              className="h-6 px-2 border-terminal-highlight text-terminal-highlight hover:bg-terminal-highlight hover:text-terminal-bg text-xs"
+              title="Exit telnet terminal"
+            >
+              <LogOut className="w-3 h-3 mr-1" />
+              Exit
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Terminal output */}
@@ -352,7 +392,7 @@ export function TelnetClient({ onConnectionUpdate }: TelnetClientProps) {
             data-testid="telnet-input"
           />
           {activeConnection.connected && (
-            <span className="text-terminal-subtle text-xs">Press Enter to send</span>
+            <span className="text-terminal-subtle text-xs">Enter: send | Ctrl-C: break</span>
           )}
         </div>
       </div>
