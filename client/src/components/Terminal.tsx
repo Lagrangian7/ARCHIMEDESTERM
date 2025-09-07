@@ -9,10 +9,11 @@ import { DocumentUpload } from './DocumentUpload';
 import { TelnetClient } from './TelnetClient';
 import { SnakeGame } from './SnakeGame';
 import { TalkingArchimedes } from './TalkingArchimedes';
+import { RadioStreamer, useRadioControl } from './RadioStreamer';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
-import { History, User, LogIn, Upload, Terminal as TerminalIcon } from 'lucide-react';
+import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio } from 'lucide-react';
 import skullWatermark from '@assets/wally_1756523512970.jpg';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 
@@ -64,6 +65,9 @@ export function Terminal() {
   const [showTelnet, setShowTelnet] = useState(false);
   const [showSnake, setShowSnake] = useState(false);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
+  
+  // Radio streaming controls
+  const radioControl = useRadioControl();
   const [visibleEntries, setVisibleEntries] = useState(Math.min(entries.length, 15));
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -328,6 +332,16 @@ export function Terminal() {
                     Upload
                   </Button>
                   <Button
+                    onClick={() => radioControl.openRadio()}
+                    variant="outline"
+                    size="sm"
+                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
+                    data-testid="button-radio"
+                  >
+                    <Radio size={14} className="mr-1" />
+                    Radio
+                  </Button>
+                  <Button
                     onClick={() => setShowTelnet(true)}
                     variant="outline"
                     size="sm"
@@ -579,6 +593,9 @@ export function Terminal() {
           </div>
         </div>
       )}
+      {/* Radio streaming component */}
+      <radioControl.RadioComponent />
+
       {/* Talking Archimedes Character */}
       <TalkingArchimedes 
         isTyping={isTyping}

@@ -341,6 +341,12 @@ Project Gutenberg Books:
   books info <id> - Get detailed info and download links for a book
   books help - Show detailed book command help
   
+Radio Streaming:
+  radio play - Start KLUX Radio stream
+  radio stop - Stop radio stream
+  radio volume <0-100> - Set volume level
+  radio status - Show current stream status
+  
 Games:
   snake - Play the classic Snake game
   
@@ -1019,6 +1025,81 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       } else {
         addEntry('error', 'Snake game not available. Please ensure the game component is loaded.');
       }
+      return;
+    }
+
+    // Radio streaming commands
+    if (cmd.startsWith('radio ')) {
+      const subCmd = cmd.substring(6).trim();
+      
+      if (subCmd === 'play') {
+        const radioElement = document.querySelector('audio[src*="cloudradionetwork"]') as HTMLAudioElement;
+        if (radioElement) {
+          radioElement.play()
+            .then(() => addEntry('system', '🎵 KLUX Radio stream started'))
+            .catch(() => addEntry('error', 'Error: Unable to start radio stream'));
+        } else {
+          // Trigger radio interface to open
+          const openRadioButton = document.querySelector('[data-testid="button-radio"]') as HTMLButtonElement;
+          if (openRadioButton) {
+            openRadioButton.click();
+            addEntry('system', 'Opening radio interface...');
+          } else {
+            addEntry('error', 'Radio interface not available');
+          }
+        }
+        return;
+      }
+      
+      if (subCmd === 'stop') {
+        const radioElement = document.querySelector('audio[src*="cloudradionetwork"]') as HTMLAudioElement;
+        if (radioElement) {
+          radioElement.pause();
+          addEntry('system', '⏹️ KLUX Radio stream stopped');
+        } else {
+          addEntry('error', 'Radio is not currently active');
+        }
+        return;
+      }
+      
+      if (subCmd.startsWith('volume ')) {
+        const volumeStr = subCmd.substring(7).trim();
+        const volumeNum = parseFloat(volumeStr);
+        
+        if (isNaN(volumeNum) || volumeNum < 0 || volumeNum > 100) {
+          addEntry('error', 'Usage: radio volume <0-100>');
+          return;
+        }
+        
+        const radioElement = document.querySelector('audio[src*="cloudradionetwork"]') as HTMLAudioElement;
+        if (radioElement) {
+          radioElement.volume = volumeNum / 100;
+          addEntry('system', `🔊 Volume set to ${volumeNum}%`);
+        } else {
+          addEntry('error', 'Radio is not currently active');
+        }
+        return;
+      }
+      
+      if (subCmd === 'status') {
+        const radioElement = document.querySelector('audio[src*="cloudradionetwork"]') as HTMLAudioElement;
+        if (radioElement) {
+          const isPlaying = !radioElement.paused;
+          const volume = Math.round(radioElement.volume * 100);
+          const status = `Radio Status: ${isPlaying ? 'Streaming 🎵' : 'Stopped ⏹️'}
+Station: KLUX Radio Network
+Stream: Cloud Radio Network
+Volume: ${volume}%
+Connection: ${radioElement.readyState >= 2 ? 'Ready' : 'Loading...'}`;
+          addEntry('system', status);
+        } else {
+          addEntry('system', `Radio Status: Inactive
+Use "radio play" to start streaming KLUX Radio`);
+        }
+        return;
+      }
+      
+      addEntry('error', 'Unknown radio command. Available: play, stop, volume <0-100>, status');
       return;
     }
     
