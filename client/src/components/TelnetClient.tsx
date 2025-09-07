@@ -311,9 +311,9 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
   }
 
   return (
-    <div className="flex flex-col h-full bg-terminal-bg">
+    <div className="flex flex-col h-full bg-terminal-bg telnet-container">
       {/* Connection header */}
-      <div className="flex items-center justify-between p-2 border-b border-terminal-subtle bg-terminal-bg/50">
+      <div className="flex items-center justify-between p-4 border-b border-terminal-subtle bg-terminal-bg/50">
         <div className="flex items-center space-x-2">
           {activeConnection.connected ? (
             <Wifi className="w-4 h-4 text-green-500" />
@@ -361,8 +361,8 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
       <ScrollArea className="flex-1" ref={scrollAreaRef}>
         <div 
           ref={outputRef}
-          className="p-4 font-mono text-sm text-terminal-text whitespace-pre-wrap min-h-full"
-          style={{ lineHeight: '1.2' }}
+          className="p-6 font-mono text-base text-terminal-text whitespace-pre-wrap min-h-full"
+          style={{ lineHeight: '1.4' }}
         >
           {activeConnection.data.map((line, index) => (
             <div key={`${activeConnection.id}-${index}`} className="break-words">
@@ -375,8 +375,8 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
       </ScrollArea>
 
       {/* Input area */}
-      <div className="p-2 border-t border-terminal-subtle bg-terminal-bg">
-        <div className="flex items-center space-x-2">
+      <div className="p-4 border-t border-terminal-subtle bg-terminal-bg">
+        <div className="flex items-center space-x-3">
           <span className="text-terminal-highlight font-mono text-sm">$</span>
           <input
             ref={inputRef}
@@ -385,7 +385,7 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={!activeConnection.connected}
-            className="flex-1 bg-transparent border-none outline-none text-terminal-text font-mono text-sm focus:ring-0"
+            className="flex-1 bg-transparent border-none outline-none text-terminal-text font-mono text-base focus:ring-0"
             placeholder={activeConnection.connected ? "Type command and press Enter..." : "Connection not ready"}
             autoComplete="off"
             spellCheck={false}
