@@ -179,7 +179,7 @@ export function Terminal() {
                     onClick={() => setShowConversationHistory(true)}
                     variant="outline"
                     size="sm"
-                    className="bg-black border-terminal-subtle text-terminal-text hover:text-terminal-highlight transition-colors h-auto px-2 py-1 text-xs"
+                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
                     data-testid="button-conversation-history"
                   >
                     <History size={14} className="mr-1" />
@@ -189,7 +189,7 @@ export function Terminal() {
                     onClick={() => setShowProfile(true)}
                     variant="outline"
                     size="sm"
-                    className="bg-black border-terminal-subtle text-terminal-text hover:text-terminal-highlight transition-colors h-auto px-2 py-1 text-xs"
+                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
                     data-testid="button-user-profile"
                   >
                     <User size={14} className="mr-1" />
@@ -199,7 +199,7 @@ export function Terminal() {
                     onClick={() => setShowUpload(true)}
                     variant="outline"
                     size="sm"
-                    className="bg-black border-terminal-subtle text-terminal-text hover:text-terminal-highlight transition-colors h-auto px-2 py-1 text-xs"
+                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
                     data-testid="button-upload"
                   >
                     <Upload size={14} className="mr-1" />
