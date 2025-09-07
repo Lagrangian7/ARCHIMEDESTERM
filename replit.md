@@ -1,6 +1,6 @@
 # Overview
 
-This is an ARCHIMEDES AI Terminal application - a retro-futuristic terminal interface with cyberpunk aesthetics that provides AI assistance in two distinct modes: Natural Chat Mode for conversational interactions and Technical Mode for concise, step-by-step technical responses. The application features a dark terminal with authentic green phosphor text, voice synthesis capabilities, speech recognition, and command history functionality.
+This is an ARCHIMEDES v7 AI Terminal application - expanded from a cyberpunk-styled AI interface into a comprehensive retro computing portal that combines the original terminal functionality (dual AI modes, voice synthesis, authentication, knowledge base) with a complete telehack.com-style system featuring real web telnet connectivity to live BBS systems, vintage network simulation, ANSI terminal emulation, and a curated directory of active telnet boards with addresses and historical phone numbers.
 
 # User Preferences
 
@@ -15,10 +15,14 @@ Preferred communication style: Simple, everyday language.
 - **Styling**: Tailwind CSS with custom terminal-themed color palette (electric green #00FF41, deep black #0D1117)
 - **State Management**: React Query (TanStack Query) for server state, React hooks for local state
 - **Terminal Interface**: Custom terminal component with phosphor display aesthetic, scanlines, and authentic terminal features
+- **Telnet Client**: Full-screen modal with ANSI terminal emulation, WebSocket-based real-time connectivity to BBS systems
+- **Network Commands**: Integrated telnet, ping, bbs-list, and BBS discovery commands in main terminal
 
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js server
-- **API Design**: RESTful API with single chat endpoint (`/api/chat`)
+- **API Design**: RESTful API with chat endpoint (`/api/chat`) and comprehensive BBS directory endpoints
+- **WebSocket Server**: Real-time telnet proxy server on `/ws/telnet` for live BBS connections
+- **Network Services**: Telnet proxy, BBS service, and network connectivity testing
 - **Development Setup**: Vite development server with hot module replacement
 - **Error Handling**: Centralized error middleware with structured error responses
 - **Request Logging**: Custom middleware for API request/response logging
@@ -26,6 +30,7 @@ Preferred communication style: Simple, everyday language.
 ## Data Storage Solutions
 - **Database**: PostgreSQL with Drizzle ORM
 - **Schema**: Users table for authentication, conversations table with JSONB message storage
+- **BBS Directory**: Comprehensive tables for BBS systems, categories, connection logs, and user favorites
 - **Development Storage**: In-memory storage implementation for development/testing
 - **Session Management**: UUID-based session tracking for conversation persistence
 
