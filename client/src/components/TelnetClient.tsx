@@ -426,9 +426,9 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
       </ScrollArea>
 
       {/* Input area */}
-      <div className="p-4 border-t border-terminal-subtle bg-terminal-bg">
+      <div className="p-4 border-t border-terminal-highlight/30 bg-terminal-bg/90">
         <div className="flex items-center space-x-3">
-          <span className="text-terminal-highlight font-mono text-base font-bold">$</span>
+          <span className="text-terminal-highlight font-mono text-lg font-bold glow">$</span>
           <input
             ref={inputRef}
             type="text"
@@ -436,7 +436,7 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={!activeConnection.connected}
-            className="flex-1 bg-transparent border-none outline-none text-terminal-text font-mono text-base focus:ring-0"
+            className="flex-1 bg-transparent border-none outline-none text-terminal-text font-mono text-base focus:ring-0 focus:text-terminal-highlight"
             placeholder={activeConnection.connected ? "Type command and press Enter..." : "Connection not ready"}
             autoComplete="off"
             spellCheck={false}

@@ -288,6 +288,10 @@
   .ansi-italic { font-style: italic; }
   .ansi-underline { text-decoration: underline; }
 
+  .glow {
+    text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+  }
+
   /* Telnet container with glitchy border */
   .telnet-container {
     position: relative;
