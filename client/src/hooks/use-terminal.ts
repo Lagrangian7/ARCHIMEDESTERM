@@ -184,6 +184,106 @@ export function useTerminal(onUploadCommand?: () => void) {
     },
   });
 
+  const stockQuoteMutation = useMutation({
+    mutationFn: async (symbol: string) => {
+      const response = await apiRequest('GET', `/api/stocks/quote/${symbol.toUpperCase()}`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Stock Quote Error: ${error.message}`);
+    },
+  });
+
+  const stockMultipleQuotesMutation = useMutation({
+    mutationFn: async (symbols: string[]) => {
+      const response = await apiRequest('POST', '/api/stocks/quotes', { symbols });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Stock Quotes Error: ${error.message}`);
+    },
+  });
+
+  const stockInfoMutation = useMutation({
+    mutationFn: async (symbol: string) => {
+      const response = await apiRequest('GET', `/api/stocks/info/${symbol.toUpperCase()}`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Stock Info Error: ${error.message}`);
+    },
+  });
+
+  const stockHistoricalMutation = useMutation({
+    mutationFn: async (params: { symbol: string; days?: number }) => {
+      let endpoint = `/api/stocks/historical/${params.symbol.toUpperCase()}`;
+      if (params.days) {
+        endpoint += `?days=${params.days}`;
+      }
+      const response = await apiRequest('GET', endpoint);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Historical Data Error: ${error.message}`);
+    },
+  });
+
+  const stockSearchMutation = useMutation({
+    mutationFn: async (query: string) => {
+      const response = await apiRequest('GET', `/api/stocks/search/${encodeURIComponent(query)}`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Stock Search Error: ${error.message}`);
+    },
+  });
+
+  const stockIntradayMutation = useMutation({
+    mutationFn: async (params: { symbol: string; interval?: string; limit?: number }) => {
+      let endpoint = `/api/stocks/intraday/${params.symbol.toUpperCase()}`;
+      const queryParams = new URLSearchParams();
+      if (params.interval) queryParams.append('interval', params.interval);
+      if (params.limit) queryParams.append('limit', params.limit.toString());
+      if (queryParams.toString()) endpoint += `?${queryParams.toString()}`;
+      
+      const response = await apiRequest('GET', endpoint);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      addEntry('response', data.formatted);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Intraday Data Error: ${error.message}`);
+    },
+  });
+
   const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical') => {
     const entry: TerminalEntry = {
       id: crypto.randomUUID(),
@@ -224,6 +324,15 @@ Network & BBS Commands:
   bbs-popular - Show popular BBS systems
   bbs-favorites - Show your favorite BBS systems
   
+Stock Market Data:
+  stock quote <symbol> - Get current stock price and info
+  stock quotes <symbols> - Get multiple quotes (comma-separated)
+  stock info <symbol> - Get detailed company information
+  stock history <symbol> [days] - Historical data (default: 30 days)
+  stock search <query> - Search for stocks by name or symbol
+  stock intraday <symbol> - Real-time intraday data (premium feature)
+  stock help - Show detailed stock command help
+
 Project Gutenberg Books:
   books popular - Show most popular free ebooks
   books search <query> - Search books by title or author
@@ -560,6 +669,143 @@ Download formats: Plain text, EPUB, HTML, and more.`);
       
       // If no valid subcommand, show help
       addEntry('error', 'Unknown books command. Type "books help" for available commands.');
+      return;
+    }
+
+    // Stock Market Commands
+    if (cmd.startsWith('stock ')) {
+      const subCmd = cmd.substring(6).trim();
+      
+      if (subCmd === 'help') {
+        addEntry('system', `Stock Market Commands:
+
+Basic Commands:
+  stock quote <symbol> - Get current price and trading info
+  stock quotes <symbols> - Multiple quotes (comma-separated: AAPL,MSFT,GOOGL)
+  stock info <symbol> - Detailed company information
+  stock search <query> - Find stocks by company name or symbol
+  
+Historical Data:
+  stock history <symbol> - Last 30 days of trading data
+  stock history <symbol> <days> - Specify number of days (max 100)
+  
+Real-time Data (Premium):
+  stock intraday <symbol> - Live intraday data with 1-minute intervals
+  
+Examples:
+  stock quote AAPL
+  stock quotes AAPL,MSFT,GOOGL
+  stock info TSLA
+  stock search Apple
+  stock history NVDA 7
+  stock intraday AMZN
+
+Data powered by Marketstack API - 125,000+ global stock tickers!
+Free plan includes 100 monthly requests with end-of-day data.`);
+        return;
+      }
+      
+      if (subCmd.startsWith('quote ')) {
+        const symbol = subCmd.substring(6).trim().toUpperCase();
+        if (!symbol) {
+          addEntry('error', 'Usage: stock quote <symbol>');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `Fetching current quote for ${symbol}...`);
+        stockQuoteMutation.mutate(symbol);
+        return;
+      }
+      
+      if (subCmd.startsWith('quotes ')) {
+        const symbolsStr = subCmd.substring(7).trim();
+        if (!symbolsStr) {
+          addEntry('error', 'Usage: stock quotes <symbol1,symbol2,symbol3>');
+          return;
+        }
+        
+        const symbols = symbolsStr.split(',').map(s => s.trim().toUpperCase()).filter(s => s);
+        if (symbols.length === 0) {
+          addEntry('error', 'Please provide at least one valid stock symbol');
+          return;
+        }
+        
+        if (symbols.length > 10) {
+          addEntry('error', 'Maximum 10 symbols allowed per request');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `Fetching quotes for ${symbols.join(', ')}...`);
+        stockMultipleQuotesMutation.mutate(symbols);
+        return;
+      }
+      
+      if (subCmd.startsWith('info ')) {
+        const symbol = subCmd.substring(5).trim().toUpperCase();
+        if (!symbol) {
+          addEntry('error', 'Usage: stock info <symbol>');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `Retrieving company information for ${symbol}...`);
+        stockInfoMutation.mutate(symbol);
+        return;
+      }
+      
+      if (subCmd.startsWith('search ')) {
+        const query = subCmd.substring(7).trim();
+        if (!query) {
+          addEntry('error', 'Usage: stock search <company name or symbol>');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `Searching stocks for "${query}"...`);
+        stockSearchMutation.mutate(query);
+        return;
+      }
+      
+      if (subCmd.startsWith('history ')) {
+        const parts = subCmd.substring(8).trim().split(' ');
+        const symbol = parts[0]?.toUpperCase();
+        const days = parts[1] ? parseInt(parts[1]) : 30;
+        
+        if (!symbol) {
+          addEntry('error', 'Usage: stock history <symbol> [days]');
+          return;
+        }
+        
+        if (days && (isNaN(days) || days < 1 || days > 365)) {
+          addEntry('error', 'Days must be a number between 1 and 365');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `Fetching ${days} days of historical data for ${symbol}...`);
+        stockHistoricalMutation.mutate({ symbol, days });
+        return;
+      }
+      
+      if (subCmd.startsWith('intraday ')) {
+        const parts = subCmd.substring(9).trim().split(' ');
+        const symbol = parts[0]?.toUpperCase();
+        
+        if (!symbol) {
+          addEntry('error', 'Usage: stock intraday <symbol>');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `Fetching real-time intraday data for ${symbol}...`);
+        stockIntradayMutation.mutate({ symbol, interval: '1min', limit: 50 });
+        return;
+      }
+      
+      // If no valid subcommand, show help
+      addEntry('error', 'Unknown stock command. Type "stock help" for available commands.');
       return;
     }
 
