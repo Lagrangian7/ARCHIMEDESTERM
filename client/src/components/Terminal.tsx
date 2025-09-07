@@ -29,7 +29,7 @@ const LogoIcon = () => (
     className="logo-icon"
     style={{
       animation: 'logoGlow 1.2s ease-in-out infinite',
-      filter: 'brightness(6.0) contrast(4.0) saturate(2.0) hue-rotate(10deg) drop-shadow(0 0 20px var(--terminal-orange))',
+      filter: 'brightness(6.0) contrast(4.0) saturate(2.0) hue-rotate(-15deg) drop-shadow(0 0 20px var(--terminal-logo-green))',
       transform: 'scale(1.1)'
     }}
   />
