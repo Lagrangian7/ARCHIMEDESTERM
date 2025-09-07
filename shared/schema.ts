@@ -58,6 +58,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     references: [userPreferences.userId],
   }),
   conversations: many(conversations),
+  documents: many(documents),
 }));
 
 export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
@@ -102,3 +103,60 @@ export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
 export type Conversation = typeof conversations.$inferSelect;
 export type Message = z.infer<typeof messageSchema>;
+
+// Document storage tables for knowledge base
+export const documents = pgTable("documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  fileName: varchar("file_name").notNull(),
+  originalName: varchar("original_name").notNull(),
+  fileSize: varchar("file_size").notNull(),
+  mimeType: varchar("mime_type").notNull(),
+  content: text("content").notNull(),
+  summary: text("summary"),
+  keywords: text("keywords").array(),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  lastAccessedAt: timestamp("last_accessed_at").defaultNow(),
+});
+
+export const knowledgeChunks = pgTable("knowledge_chunks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  documentId: varchar("document_id").references(() => documents.id, { onDelete: 'cascade' }).notNull(),
+  chunkIndex: varchar("chunk_index").notNull(),
+  content: text("content").notNull(),
+  wordCount: varchar("word_count").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Document relations
+export const documentsRelations = relations(documents, ({ one, many }) => ({
+  user: one(users, {
+    fields: [documents.userId],
+    references: [users.id],
+  }),
+  chunks: many(knowledgeChunks),
+}));
+
+export const knowledgeChunksRelations = relations(knowledgeChunks, ({ one }) => ({
+  document: one(documents, {
+    fields: [knowledgeChunks.documentId],
+    references: [documents.id],
+  }),
+}));
+
+// Document schema definitions
+export const insertDocumentSchema = createInsertSchema(documents).omit({
+  id: true,
+  uploadedAt: true,
+  lastAccessedAt: true,
+});
+
+export const insertKnowledgeChunkSchema = createInsertSchema(knowledgeChunks).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Document = typeof documents.$inferSelect;
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type KnowledgeChunk = typeof knowledgeChunks.$inferSelect;
+export type InsertKnowledgeChunk = z.infer<typeof insertKnowledgeChunkSchema>;
