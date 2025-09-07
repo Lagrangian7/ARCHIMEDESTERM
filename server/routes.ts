@@ -137,8 +137,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversation = await storage.getConversation(currentSessionId);
       const conversationHistory = Array.isArray(conversation?.messages) ? conversation.messages as Message[] : [];
       
-      // Generate AI response using LLM
-      const responseContent = await llmService.generateResponse(message, mode as "natural" | "technical", conversationHistory);
+      // Generate AI response using LLM with knowledge base integration
+      const responseContent = await llmService.generateResponse(message, mode as "natural" | "technical", conversationHistory, userId);
       
       const assistantMessage = {
         role: "assistant" as const,
@@ -198,7 +198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (allowedTypes.includes(file.mimetype) || file.originalname.match(/\.(txt|md|json|csv|html|xml)$/i)) {
         cb(null, true);
       } else {
-        cb(new Error('Only text files are allowed'), false);
+        cb(new Error('Only text files are allowed'));
       }
     }
   });

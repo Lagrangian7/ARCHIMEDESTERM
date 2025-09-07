@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { HfInference } from '@huggingface/inference';
 import { Mistral } from '@mistralai/mistralai';
 import type { Message } from '@shared/schema';
+import { knowledgeService } from './knowledge-service';
 
 // Enhanced Mistral AI configuration for Replit
 const mistral = new Mistral({
@@ -102,28 +103,44 @@ Remember: You are a technical chronicler providing precise, actionable informati
   async generateResponse(
     userMessage: string, 
     mode: 'natural' | 'technical',
-    conversationHistory: Message[] = []
+    conversationHistory: Message[] = [],
+    userId?: string
   ): Promise<string> {
+    let contextualMessage = userMessage;
+    
+    // Get knowledge base context if user is authenticated
+    if (userId) {
+      try {
+        const knowledgeContext = await knowledgeService.getContextualKnowledge(userId, userMessage);
+        if (knowledgeContext) {
+          contextualMessage = `${knowledgeContext}\n\nUser Query: ${userMessage}`;
+        }
+      } catch (error) {
+        console.error('Knowledge base error:', error);
+        // Continue without knowledge context if there's an error
+      }
+    }
+
     try {
       // Primary: Use Mistral AI for enhanced responses
-      return await this.generateMistralResponse(userMessage, mode, conversationHistory);
+      return await this.generateMistralResponse(contextualMessage, mode, conversationHistory);
     } catch (primaryError) {
       console.error('Mistral AI error:', primaryError);
       
       try {
         // Secondary: OpenAI fallback with Replit context
-        return await this.generateOpenAIResponse(userMessage, mode, conversationHistory);
+        return await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory);
       } catch (secondaryError) {
         console.error('OpenAI fallback error:', secondaryError);
         
         try {
           // Tertiary: Use optimized Hugging Face models
-          return await this.generateReplitOptimizedResponse(userMessage, mode, conversationHistory);
+          return await this.generateReplitOptimizedResponse(contextualMessage, mode, conversationHistory);
         } catch (tertiaryError) {
           console.error('Hugging Face fallback error:', tertiaryError);
           
           // Final: Enhanced contextual fallback
-          return this.getEnhancedFallbackResponse(userMessage, mode);
+          return this.getEnhancedFallbackResponse(contextualMessage, mode);
         }
       }
     }
