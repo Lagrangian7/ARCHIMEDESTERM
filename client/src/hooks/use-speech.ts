@@ -10,8 +10,8 @@ interface Voice {
 export function useSpeechSynthesis() {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isEnabled, setIsEnabled] = useState(true);
-  const [selectedVoice, setSelectedVoice] = useState<number>(0);
-  const [speechRate, setSpeechRate] = useState(1.0);
+  const [selectedVoice, setSelectedVoice] = useState<number>(1); // Default to JOSHUA voice
+  const [speechRate, setSpeechRate] = useState(0.8); // Slower default rate like JOSHUA
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
@@ -19,10 +19,10 @@ export function useSpeechSynthesis() {
       const loadVoices = () => {
         const availableVoices = window.speechSynthesis.getVoices();
         
-        // Create a custom robot voice option
+        // Create a custom JOSHUA voice option
         const customVoices: Voice[] = [
           { name: 'System Default', lang: 'en-US', voiceURI: 'default', localService: true },
-          { name: 'Robot Voice', lang: 'en-US', voiceURI: 'robot', localService: true },
+          { name: 'JOSHUA (WarGames AI)', lang: 'en-US', voiceURI: 'joshua', localService: true },
         ];
         
         // Add available system voices
@@ -58,10 +58,11 @@ export function useSpeechSynthesis() {
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.rate = speechRate;
     
-    // Handle robot voice simulation
+    // Handle JOSHUA voice simulation (WarGames AI)
     if (selectedVoice === 1) {
-      utterance.pitch = 0.3;
-      utterance.rate = Math.max(0.7, speechRate * 0.8);
+      utterance.pitch = 0.2; // Very low pitch, more computer-like
+      utterance.rate = Math.max(0.6, speechRate * 0.7); // Slower, more deliberate
+      utterance.volume = 0.9; // Slightly lower volume for that computer feel
     }
     
     // Use selected system voice if available
