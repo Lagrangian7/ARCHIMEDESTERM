@@ -24,15 +24,12 @@ const LogoIcon = () => (
   <img 
     src={logoImage} 
     alt="ARCHIMEDES Logo" 
-    width="48" 
-    height="48" 
+    width="32" 
+    height="32" 
     className="logo-icon"
     style={{
-      display: 'block',
-      visibility: 'visible',
-      opacity: 1,
-      backgroundColor: 'red',
-      border: '2px solid yellow'
+      animation: 'logoGlow 1.5s ease-in-out infinite',
+      filter: 'brightness(1.8) contrast(1.3) hue-rotate(90deg) drop-shadow(0 0 8px var(--terminal-logo-green)) drop-shadow(0 0 16px var(--terminal-logo-green))'
     }}
   />
 );
