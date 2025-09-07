@@ -438,6 +438,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/books/popular", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 20;
+      const response = await gutendxService.getPopularBooks(limit);
+      const formatted = gutendxService.formatSearchResults(response);
+
+      res.json({
+        results: response,
+        formatted
+      });
+    } catch (error) {
+      console.error("Popular books error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch popular books";
+      res.status(500).json({ error: message });
+    }
+  });
+
   app.get("/api/books/:id", async (req, res) => {
     try {
       const bookId = parseInt(req.params.id);
@@ -456,23 +473,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get book error:", error);
       const message = error instanceof Error ? error.message : "Failed to get book details";
-      res.status(500).json({ error: message });
-    }
-  });
-
-  app.get("/api/books/popular", async (req, res) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 20;
-      const response = await gutendxService.getPopularBooks(limit);
-      const formatted = gutendxService.formatSearchResults(response);
-
-      res.json({
-        results: response,
-        formatted
-      });
-    } catch (error) {
-      console.error("Popular books error:", error);
-      const message = error instanceof Error ? error.message : "Failed to fetch popular books";
       res.status(500).json({ error: message });
     }
   });
