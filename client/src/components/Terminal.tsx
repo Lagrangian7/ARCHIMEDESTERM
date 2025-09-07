@@ -9,7 +9,6 @@ import { DocumentUpload } from './DocumentUpload';
 import { TelnetClient } from './TelnetClient';
 import { SnakeGame } from './SnakeGame';
 import { TalkingArchimedes } from './TalkingArchimedes';
-import { RadioStreamer } from './RadioStreamer';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
@@ -66,9 +65,10 @@ export function Terminal() {
   const [showSnake, setShowSnake] = useState(false);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   
-  // Radio streaming controls
-  const [isRadioOpen, setIsRadioOpen] = useState(false);
+  // Radio streaming controls - direct playback without modal
+  const [isRadioPlaying, setIsRadioPlaying] = useState(false);
   const [radioStatus, setRadioStatus] = useState('Radio ready');
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [visibleEntries, setVisibleEntries] = useState(Math.min(entries.length, 15));
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -209,6 +209,29 @@ export function Terminal() {
     }, 100);
   };
 
+  // Direct radio toggle function
+  const toggleRadio = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isRadioPlaying) {
+      audio.pause();
+      setRadioStatus('Radio stopped');
+    } else {
+      // Use the working SomaFM stream directly
+      audio.src = 'https://ice1.somafm.com/thetrip-128-mp3';
+      setRadioStatus('Connecting to radio...');
+      
+      try {
+        await audio.play();
+        setRadioStatus('Radio playing');
+      } catch (error) {
+        console.error('Radio play failed:', error);
+        setRadioStatus('Radio connection failed');
+      }
+    }
+  };
+
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
   };
@@ -303,14 +326,18 @@ export function Terminal() {
                     Upload
                   </Button>
                   <Button
-                    onClick={() => setIsRadioOpen(true)}
+                    onClick={toggleRadio}
                     variant="outline"
                     size="sm"
-                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
+                    className={`transition-colors h-auto px-2 py-1 text-xs ${
+                      isRadioPlaying 
+                        ? 'bg-[#00FF41] border-[#00FF41] text-black' 
+                        : 'bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black'
+                    }`}
                     data-testid="button-radio"
                   >
                     <Radio size={14} className="mr-1" />
-                    Radio
+                    {isRadioPlaying ? 'Stop' : 'Radio'}
                   </Button>
                   <Button
                     onClick={() => setShowTelnet(true)}
@@ -564,11 +591,19 @@ export function Terminal() {
           </div>
         </div>
       )}
-      {/* Radio streaming component */}
-      <RadioStreamer 
-        isOpen={isRadioOpen}
-        onClose={() => setIsRadioOpen(false)}
-        onStatusChange={(status) => setRadioStatus(status)}
+      {/* Hidden radio audio element */}
+      <audio
+        ref={audioRef}
+        crossOrigin="anonymous"
+        preload="metadata"
+        onPlay={() => setIsRadioPlaying(true)}
+        onPause={() => setIsRadioPlaying(false)}
+        onError={() => {
+          setIsRadioPlaying(false);
+          setRadioStatus('Radio connection failed');
+        }}
+        onLoadStart={() => setRadioStatus('Connecting to radio...')}
+        onCanPlay={() => setRadioStatus('Radio connected')}
       />
 
       {/* Talking Archimedes Character */}
