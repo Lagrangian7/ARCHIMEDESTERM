@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Volume2, VolumeX, Play, Pause, Radio } from 'lucide-react';
+import { Play, Pause, Radio } from 'lucide-react';
 
 interface RadioStreamerProps {
   isOpen: boolean;
@@ -11,153 +11,87 @@ interface RadioStreamerProps {
 export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.7);
-  const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+  const [connectionStatus, setConnectionStatus] = useState('Ready');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Radio Garden integration - simplified
-  const [currentStation, setCurrentStation] = useState<any>({
-    id: 'jazz24',
-    title: 'Jazz24',
-    place: { title: 'Seattle', country: 'USA' },
-    streamUrl: 'https://live.wostreaming.net/direct/ppm-jazz24aac256-ibc1'
-  });
-  const [stations, setStations] = useState<any[]>([
-    { id: 'jazz24', title: 'Jazz24', place: 'Seattle', country: 'USA' },
-    { id: 'bbc-radio1', title: 'BBC Radio 1', place: 'London', country: 'UK' },
-    { id: 'classical', title: 'Classical KUSC', place: 'Los Angeles', country: 'USA' }
-  ]);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const streamUrl = currentStation?.streamUrl || 'https://live.wostreaming.net/direct/ppm-jazz24aac256-ibc1';
-  const stationName = currentStation?.title || 'Jazz24';
+  // Simple test stream that works
+  const streamUrl = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3';
+  const stationName = 'Test Audio Stream';
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const handleLoadStart = () => {
-      console.log('Audio: loadstart event');
-      setIsLoading(true);
-      setConnectionStatus('Connecting...');
-      onStatusChange?.('Connecting to audio...');
-    };
-
-    const handleCanPlay = () => {
-      console.log('Audio: canplay event');
-      setIsLoading(false);
-      setConnectionStatus('Ready');
-      onStatusChange?.('Audio ready to play');
-    };
-
     const handlePlay = () => {
-      console.log('Audio: play event');
+      console.log('Audio started playing');
       setIsPlaying(true);
       setIsLoading(false);
       setConnectionStatus('Playing');
-      onStatusChange?.('🎵 Audio playing');
+      onStatusChange?.('🎵 Audio is playing');
     };
 
     const handlePause = () => {
-      console.log('Audio: pause event');
+      console.log('Audio paused');
       setIsPlaying(false);
       setConnectionStatus('Paused');
       onStatusChange?.('Audio paused');
     };
 
     const handleError = (error: Event) => {
+      console.error('Audio error:', error);
       setIsLoading(false);
       setIsPlaying(false);
-      setConnectionStatus('Connection Failed');
-      console.error('Radio stream error:', error);
-      
-      // More specific error handling
-      const audioError = (error.target as HTMLAudioElement)?.error;
-      let errorMessage = 'Failed to load audio file';
-      
-      if (audioError) {
-        switch (audioError.code) {
-          case MediaError.MEDIA_ERR_ABORTED:
-            errorMessage = 'Stream loading was aborted';
-            break;
-          case MediaError.MEDIA_ERR_NETWORK:
-            errorMessage = 'Network error loading stream';
-            break;
-          case MediaError.MEDIA_ERR_DECODE:
-            errorMessage = 'Stream format not supported';
-            break;
-          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-            errorMessage = 'Stream source not accessible (may be CORS/HTTPS issue)';
-            break;
-          default:
-            errorMessage = 'Unknown streaming error occurred';
-        }
-      }
-      
-      onStatusChange?.(errorMessage);
+      setConnectionStatus('Error');
+      onStatusChange?.('Audio error occurred');
     };
 
-    const handleWaiting = () => {
-      console.log('Audio: waiting event');
-      setConnectionStatus('Buffering...');
+    const handleLoadStart = () => {
+      console.log('Audio loading started');
+      setIsLoading(true);
+      setConnectionStatus('Loading...');
     };
 
-    const handleLoadedMetadata = () => {
-      console.log('Audio: loadedmetadata event');
+    const handleCanPlay = () => {
+      console.log('Audio can play');
+      setIsLoading(false);
+      setConnectionStatus('Ready');
     };
 
-    const handleTimeUpdate = () => {
-      // Only log occasionally to avoid spam
-      if (Math.floor(audio.currentTime) % 5 === 0) {
-        console.log('Audio playing at:', Math.floor(audio.currentTime), 'seconds');
-      }
-    };
-
-    audio.addEventListener('loadstart', handleLoadStart);
-    audio.addEventListener('canplay', handleCanPlay);
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
     audio.addEventListener('error', handleError);
-    audio.addEventListener('waiting', handleWaiting);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadstart', handleLoadStart);
+    audio.addEventListener('canplay', handleCanPlay);
 
     return () => {
-      audio.removeEventListener('loadstart', handleLoadStart);
-      audio.removeEventListener('canplay', handleCanPlay);
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('error', handleError);
-      audio.removeEventListener('waiting', handleWaiting);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadstart', handleLoadStart);
+      audio.removeEventListener('canplay', handleCanPlay);
     };
   }, [onStatusChange]);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted]);
-
   const togglePlayPause = () => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio) {
+      console.error('Audio element not found');
+      return;
+    }
+
+    console.log('Toggle play/pause clicked, current state:', isPlaying);
 
     if (isPlaying) {
       audio.pause();
     } else {
-      console.log('Attempting to play audio:', streamUrl);
       setIsLoading(true);
-      setConnectionStatus('Connecting...');
-      
+      setConnectionStatus('Starting...');
       audio.play().catch(error => {
-        console.error('Error playing audio:', error);
+        console.error('Play failed:', error);
         setIsLoading(false);
-        setConnectionStatus('Playback Error');
-        onStatusChange?.(`Error: ${error.message || 'Unable to play audio'}`);
+        setConnectionStatus('Play Failed');
+        onStatusChange?.('Failed to play audio: ' + error.message);
       });
     }
   };
@@ -165,82 +99,20 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-  };
-
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-  };
-
-  const selectStation = async (channelId: string) => {
-    // Prevent selecting the same station multiple times
-    if (currentStation?.id === channelId) return;
-    
-    // Use fallback station data to avoid API calls
-    const stationData = {
-      'jazz24': {
-        id: 'jazz24',
-        title: 'Jazz24',
-        place: { title: 'Seattle', country: 'USA' },
-        streamUrl: 'https://live.wostreaming.net/direct/ppm-jazz24aac256-ibc1'
-      },
-      'bbc-radio1': {
-        id: 'bbc-radio1',
-        title: 'BBC Radio 1',
-        place: { title: 'London', country: 'UK' },
-        streamUrl: 'https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one'
-      },
-      'classical': {
-        id: 'classical',
-        title: 'Classical KUSC',
-        place: { title: 'Los Angeles', country: 'USA' },
-        streamUrl: 'https://kusc-ice.streamguys1.com/kusc-128k'
-      }
-    };
-    
-    const station = stationData[channelId as keyof typeof stationData];
-    if (station) {
-      setCurrentStation(station);
-      
-      // Force audio to use new stream
-      const audio = audioRef.current;
-      if (audio) {
-        audio.src = station.streamUrl;
-        audio.load();
-      }
-      
-      onStatusChange?.(`Selected ${station.title} from ${station.place.title}`);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
     }
-  };
-
-  const searchStations = () => {
-    if (!searchQuery.trim()) return;
-    
-    // Simple local search through available stations
-    const allStations = [
-      { id: 'jazz24', title: 'Jazz24', place: 'Seattle', country: 'USA' },
-      { id: 'bbc-radio1', title: 'BBC Radio 1', place: 'London', country: 'UK' },
-      { id: 'classical', title: 'Classical KUSC', place: 'Los Angeles', country: 'USA' }
-    ];
-    
-    const filtered = allStations.filter(station =>
-      station.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      station.place.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      station.country.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    
-    setStations(filtered);
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-terminal-bg border-2 border-terminal-highlight rounded-lg p-6 w-full max-w-md relative">
+      <div className="bg-terminal-bg border-2 border-terminal-highlight rounded-lg p-6 w-full max-w-md">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <Radio className="w-6 h-6 text-terminal-highlight" />
-            <h2 className="text-xl font-bold text-terminal-highlight">Radio Stream</h2>
+            <h2 className="text-xl font-bold text-terminal-highlight">Simple Radio Test</h2>
           </div>
           <Button
             onClick={onClose}
@@ -256,251 +128,60 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
           ref={audioRef}
           src={streamUrl}
           preload="none"
-          crossOrigin="anonymous"
         />
 
         <div className="space-y-4">
           {/* Station Info */}
           <div className="text-center p-3 bg-terminal-bg/50 rounded border border-terminal-subtle">
             <div className="text-terminal-highlight font-semibold">{stationName}</div>
-            <div className="text-terminal-text text-sm">
-              {currentStation ? `${currentStation.place.title}, ${currentStation.place.country}` : 'Select a station'}
-            </div>
+            <div className="text-terminal-text text-sm">Bell Sound Test</div>
             <div className="text-terminal-subtle text-xs mt-1">Status: {connectionStatus}</div>
-            {connectionStatus === 'Connection Failed' && (
-              <div className="text-orange-400 text-xs mt-2">
-                Stream may be temporarily unavailable
-              </div>
-            )}
           </div>
 
-          {/* Station Search */}
-          <div className="space-y-2">
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                placeholder="Search stations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && searchStations()}
-                className="flex-1 px-3 py-1 bg-terminal-bg border border-terminal-subtle text-terminal-text rounded text-sm"
-              />
-              <Button
-                onClick={searchStations}
-                disabled={!searchQuery.trim()}
-                size="sm"
-                className="bg-terminal-subtle hover:bg-terminal-subtle/80 text-terminal-text px-3"
-              >
-                Search
-              </Button>
-            </div>
-          </div>
-
-          {/* Station List */}
-          {stations.length > 0 && (
-            <div className="max-h-32 overflow-y-auto border border-terminal-subtle rounded">
-              {stations.map((station) => (
-                <div
-                  key={station.id}
-                  onClick={() => selectStation(station.id)}
-                  className={`p-2 text-xs cursor-pointer hover:bg-terminal-subtle/20 ${
-                    currentStation?.id === station.id ? 'bg-terminal-highlight/20' : ''
-                  }`}
-                >
-                  <div className="font-semibold text-terminal-highlight">{station.title}</div>
-                  <div className="text-terminal-subtle">{station.place}, {station.country}</div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Controls */}
-          <div className="flex items-center justify-center space-x-4">
+          {/* Simple Play/Pause Button */}
+          <div className="flex items-center justify-center">
             <Button
               onClick={togglePlayPause}
-              disabled={isLoading || !currentStation}
-              className="bg-terminal-highlight hover:bg-terminal-highlight/80 text-terminal-bg px-6"
+              disabled={isLoading}
+              className="bg-terminal-highlight hover:bg-terminal-highlight/80 text-terminal-bg px-8 py-3"
+              data-testid="radio-play-button"
             >
               {isLoading ? (
-                <div className="animate-spin w-4 h-4 border-2 border-terminal-bg border-t-transparent rounded-full" />
+                <div className="animate-spin w-4 h-4 border-2 border-terminal-bg border-t-transparent rounded-full mr-2" />
               ) : isPlaying ? (
-                <Pause className="w-4 h-4" />
+                <Pause className="w-5 h-5 mr-2" />
               ) : (
-                <Play className="w-4 h-4" />
+                <Play className="w-5 h-5 mr-2" />
               )}
-              <span className="ml-2">
-                {isLoading ? 'Connecting...' : isPlaying ? 'Pause' : 'Play'}
+              <span className="text-lg">
+                {isLoading ? 'Loading...' : isPlaying ? 'Pause' : 'Play'}
               </span>
             </Button>
           </div>
 
           {/* Volume Control */}
           <div className="flex items-center space-x-3">
-            <Button
-              onClick={toggleMute}
-              variant="ghost"
-              size="sm"
-              className="text-terminal-text hover:text-terminal-highlight p-2"
-            >
-              {isMuted || volume === 0 ? (
-                <VolumeX className="w-4 h-4" />
-              ) : (
-                <Volume2 className="w-4 h-4" />
-              )}
-            </Button>
-            <div className="flex-1">
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={volume}
-                onChange={handleVolumeChange}
-                className="w-full h-2 bg-terminal-subtle rounded-lg appearance-none cursor-pointer slider"
-                style={{
-                  background: `linear-gradient(to right, var(--terminal-highlight) 0%, var(--terminal-highlight) ${volume * 100}%, var(--terminal-subtle) ${volume * 100}%, var(--terminal-subtle) 100%)`
-                }}
-              />
-            </div>
-            <span className="text-terminal-text text-sm w-8">
-              {Math.round((isMuted ? 0 : volume) * 100)}
-            </span>
+            <span className="text-terminal-text text-sm w-16">Volume:</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={volume}
+              onChange={handleVolumeChange}
+              className="flex-1 h-2 bg-terminal-subtle rounded-lg appearance-none cursor-pointer"
+            />
+            <span className="text-terminal-text text-sm w-12">{Math.round(volume * 100)}%</span>
           </div>
 
-          {/* Terminal Commands Info */}
-          <div className="text-xs text-terminal-subtle bg-terminal-bg/30 p-3 rounded border border-terminal-subtle/50">
-            <div className="font-semibold mb-1">Terminal Commands:</div>
-            <div>• <code>radio play</code> - Start streaming</div>
-            <div>• <code>radio stop</code> - Stop streaming</div>
-            <div>• <code>radio volume &lt;0-100&gt;</code> - Set volume</div>
-            <div>• <code>radio status</code> - Show current status</div>
+          {/* Debug Info */}
+          <div className="text-xs text-terminal-subtle p-2 bg-terminal-bg/30 rounded">
+            <div>Audio URL: {streamUrl}</div>
+            <div>Ready State: {audioRef.current?.readyState || 'Not loaded'}</div>
+            <div>Network State: {audioRef.current?.networkState || 'Not loaded'}</div>
           </div>
         </div>
       </div>
-
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          height: 16px;
-          width: 16px;
-          border-radius: 50%;
-          background: var(--terminal-highlight);
-          cursor: pointer;
-          border: 2px solid var(--terminal-bg);
-          box-shadow: 0 0 6px rgba(0, 255, 65, 0.5);
-        }
-        
-        .slider::-moz-range-thumb {
-          height: 16px;
-          width: 16px;
-          border-radius: 50%;
-          background: var(--terminal-highlight);
-          cursor: pointer;
-          border: 2px solid var(--terminal-bg);
-          box-shadow: 0 0 6px rgba(0, 255, 65, 0.5);
-        }
-      `}} />
     </div>
   );
-}
-
-// Hook for controlling radio from terminal commands
-export function useRadioControl() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [lastStatus, setLastStatus] = useState('');
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Get reference to audio element when component mounts
-  useEffect(() => {
-    const findAudio = () => {
-      const audio = document.querySelector('audio[src*="cloudradionetwork"]') as HTMLAudioElement;
-      if (audio) {
-        audioRef.current = audio;
-      }
-    };
-    
-    const interval = setInterval(findAudio, 1000);
-    findAudio();
-    
-    return () => clearInterval(interval);
-  }, [isOpen]);
-
-  const openRadio = () => setIsOpen(true);
-  const closeRadio = () => setIsOpen(false);
-
-  const play = (): Promise<string> => {
-    return new Promise((resolve) => {
-      const audio = audioRef.current;
-      if (!audio) {
-        openRadio();
-        resolve('Opening radio interface...');
-        return;
-      }
-      
-      audio.play()
-        .then(() => resolve('🎵 KLUX Radio stream started'))
-        .catch(() => resolve('Error: Unable to start radio stream'));
-    });
-  };
-
-  const stop = (): string => {
-    const audio = audioRef.current;
-    if (!audio) {
-      return 'Radio is not currently active';
-    }
-    
-    audio.pause();
-    return '⏹️ KLUX Radio stream stopped';
-  };
-
-  const setVolume = (vol: number): string => {
-    const audio = audioRef.current;
-    if (!audio) {
-      return 'Radio is not currently active';
-    }
-    
-    const volume = Math.max(0, Math.min(1, vol / 100));
-    audio.volume = volume;
-    return `🔊 Volume set to ${Math.round(volume * 100)}%`;
-  };
-
-  const getStatus = (): string => {
-    const audio = audioRef.current;
-    if (!audio) {
-      return 'Radio Status: Inactive\nUse "radio play" to start streaming KLUX Radio';
-    }
-    
-    const isPlaying = !audio.paused;
-    const volume = Math.round(audio.volume * 100);
-    
-    return `Radio Status: ${isPlaying ? 'Streaming 🎵' : 'Stopped ⏹️'}
-Station: KLUX Radio Network
-Stream: Cloud Radio Network
-Volume: ${volume}%
-Connection: ${audio.readyState >= 2 ? 'Ready' : 'Loading...'}`;
-  };
-
-  const handleStatusChange = (status: string) => {
-    setLastStatus(status);
-  };
-
-  return {
-    isOpen,
-    openRadio,
-    closeRadio,
-    play,
-    stop,
-    setVolume,
-    getStatus,
-    handleStatusChange,
-    RadioComponent: ({ ...props }) => (
-      <RadioStreamer 
-        {...props} 
-        isOpen={isOpen} 
-        onClose={closeRadio} 
-        onStatusChange={handleStatusChange}
-      />
-    )
-  };
 }
