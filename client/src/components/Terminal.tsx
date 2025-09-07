@@ -230,15 +230,48 @@ export function Terminal() {
       }`}>
         
         {/* Background Watermark */}
-        <div 
-          className="watermark-background absolute inset-0 z-0 opacity-20"
-          style={{
-            backgroundImage: `url(${skullWatermark})`,
-            backgroundSize: '60%',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-        />
+        {/* Enhanced Multi-layer Glitch Background */}
+        <div className="absolute inset-0 z-0">
+          {/* Primary background with heavy glitch */}
+          <div 
+            className="watermark-background watermark-glitch absolute inset-0 opacity-15"
+            style={{
+              backgroundImage: `url(${skullWatermark})`,
+              backgroundSize: '60%',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+            }}
+          />
+          
+          {/* Color-shifted duplicate layer */}
+          <div 
+            className="watermark-background watermark-glitch-red absolute inset-0 opacity-08"
+            style={{
+              backgroundImage: `url(${skullWatermark})`,
+              backgroundSize: '60%',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              filter: 'hue-rotate(180deg) contrast(1.5) saturate(2)',
+              mixBlendMode: 'screen'
+            }}
+          />
+          
+          {/* Cyan channel separation layer */}
+          <div 
+            className="watermark-background watermark-glitch-cyan absolute inset-0 opacity-06"
+            style={{
+              backgroundImage: `url(${skullWatermark})`,
+              backgroundSize: '60%',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              filter: 'hue-rotate(90deg) contrast(2) saturate(3)',
+              mixBlendMode: 'multiply'
+            }}
+          />
+          
+          {/* Static noise overlay */}
+          <div className="absolute inset-0 watermark-noise opacity-05" />
+        </div>
         
         {/* Header - Fixed at top */}
         <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-terminal-subtle bg-terminal-bg relative z-10">
