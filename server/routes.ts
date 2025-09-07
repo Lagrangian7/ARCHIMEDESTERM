@@ -7,13 +7,23 @@ import { llmService } from "./llm-service";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { weatherService } from "./weather-service";
 import { knowledgeService } from "./knowledge-service";
+import { BbsService } from "./bbs-service";
+import { TelnetProxyService } from "./telnet-proxy";
 import multer from "multer";
 import { z } from "zod";
+import WebSocket from 'ws';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup authentication middleware
   await setupAuth(app);
+
+  // Initialize services
+  const bbsService = new BbsService();
+  
+  // Initialize starter data
+  await bbsService.initializeStarterData();
+  await bbsService.initializeVirtualSystems();
 
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
@@ -383,7 +393,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // BBS Directory API endpoints
+  app.get("/api/bbs/systems", async (req, res) => {
+    try {
+      const category = req.query.category as string;
+      const search = req.query.search as string;
+      
+      let systems;
+      if (search) {
+        systems = await bbsService.searchBbsSystems(search);
+      } else if (category) {
+        systems = await bbsService.getBbsByCategory(category);
+      } else {
+        systems = await bbsService.getAllBbsSystems();
+      }
+      
+      res.json(systems);
+    } catch (error) {
+      console.error("BBS systems error:", error);
+      res.status(500).json({ error: "Failed to fetch BBS systems" });
+    }
+  });
+
+  app.get("/api/bbs/popular", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const systems = await bbsService.getPopularBbsSystems(limit);
+      res.json(systems);
+    } catch (error) {
+      console.error("Popular BBS error:", error);
+      res.status(500).json({ error: "Failed to fetch popular BBS systems" });
+    }
+  });
+
+  app.get("/api/bbs/favorites", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const favorites = await bbsService.getUserFavorites(userId);
+      res.json(favorites);
+    } catch (error) {
+      console.error("BBS favorites error:", error);
+      res.status(500).json({ error: "Failed to fetch favorites" });
+    }
+  });
+
+  app.post("/api/bbs/favorites", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { bbsId, nickname } = req.body;
+      
+      if (!bbsId) {
+        return res.status(400).json({ error: "BBS ID is required" });
+      }
+      
+      await bbsService.addToFavorites(userId, bbsId, nickname);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Add favorite error:", error);
+      res.status(500).json({ error: "Failed to add favorite" });
+    }
+  });
+
+  app.get("/api/bbs/virtual-systems", async (req, res) => {
+    try {
+      const systems = await bbsService.getVirtualSystems();
+      res.json(systems);
+    } catch (error) {
+      console.error("Virtual systems error:", error);
+      res.status(500).json({ error: "Failed to fetch virtual systems" });
+    }
+  });
+
+  // Create HTTP server
   const httpServer = createServer(app);
+  
+  // Create WebSocket server for telnet proxy
+  const wss = new WebSocket.Server({ 
+    server: httpServer, 
+    path: '/ws/telnet' 
+  });
+  
+  // Initialize telnet proxy service
+  const telnetProxy = new TelnetProxyService(wss);
+  console.log('Telnet proxy WebSocket server initialized on /ws/telnet');
+  
   return httpServer;
 }
 
