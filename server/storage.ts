@@ -345,22 +345,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
+    // First check if user already exists
+    const existingUser = await this.getUser(userData.id!);
+    
+    if (existingUser) {
+      // Update existing user
+      const [user] = await db
+        .update(users)
+        .set({
           ...userData,
           updatedAt: new Date(),
-        },
-      })
-      .returning();
+        })
+        .where(eq(users.id, userData.id!))
+        .returning();
+      return user;
+    } else {
+      // Create new user
+      const [user] = await db
+        .insert(users)
+        .values({
+          ...userData,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
 
-    if (user) {
-      // Ensure user preferences exist
-      const existingPrefs = await this.getUserPreferences(user.id);
-      if (!existingPrefs) {
+      // Create default preferences for new user
+      if (user) {
         await this.createUserPreferences({
           userId: user.id,
           defaultMode: "natural",
@@ -370,9 +381,9 @@ export class DatabaseStorage implements IStorage {
           terminalTheme: "classic"
         });
       }
-    }
 
-    return user;
+      return user;
+    }
   }
 
   async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
