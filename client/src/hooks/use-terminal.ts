@@ -307,13 +307,24 @@ export function useTerminal(onUploadCommand?: () => void) {
     
     // Handle built-in terminal commands
     if (cmd === 'help') {
-      // Open interactive help menu instead of static text
-      const openHelpMenu = (window as any).openHelpMenu;
-      if (openHelpMenu) {
-        openHelpMenu();
-        addEntry('system', 'Opening interactive help menu... (Use F1 key for quick access)');
-      } else {
-        addEntry('system', `Available Commands:
+      // Open interactive help menu instead of static text  
+      addEntry('system', 'Opening interactive help menu... (Use F1 key for quick access)');
+      
+      // Trigger the help menu
+      setTimeout(() => {
+        const openHelpMenu = (window as any).openHelpMenu;
+        if (openHelpMenu) {
+          openHelpMenu();
+        } else {
+          addEntry('error', 'Help menu not available. Try pressing F1 key instead.');
+        }
+      }, 50);
+      return;
+    }
+    
+    // Fallback help command if the interactive menu fails
+    if (cmd === 'help-text') {
+      addEntry('system', `Available Commands:
   help - Show this help message
   clear - Clear terminal output
   mode [natural|technical] - Switch AI mode
@@ -366,7 +377,6 @@ Knowledge Base Commands:
   knowledge stats - Show knowledge base statistics
   
 You can also chat naturally or ask technical questions.`);
-      }
       return;
     }
     
