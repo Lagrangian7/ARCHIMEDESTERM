@@ -55,16 +55,24 @@
   --terminal-text: hsl(118 100% 63%);
   --terminal-highlight: hsl(118 100% 75%);
   --terminal-subtle: hsl(151 43% 24%);
-  --terminal-orange: hsl(20 100% 75%);
+  --terminal-orange: hsl(25 100% 85%);
 }
 
 /* Logo pulsating glow animation */
 @keyframes logoGlow {
   0%, 100% { 
-    filter: brightness(2.8) contrast(1.8) hue-rotate(15deg) drop-shadow(0 0 12px var(--terminal-orange)) drop-shadow(0 0 24px var(--terminal-orange)) drop-shadow(0 0 36px var(--terminal-orange));
+    filter: brightness(6.0) contrast(4.0) saturate(2.0) hue-rotate(10deg) 
+           drop-shadow(0 0 20px var(--terminal-orange)) 
+           drop-shadow(0 0 40px var(--terminal-orange)) 
+           drop-shadow(0 0 60px var(--terminal-orange))
+           drop-shadow(0 0 80px var(--terminal-orange));
   }
   50% { 
-    filter: brightness(5.5) contrast(3.0) hue-rotate(15deg) drop-shadow(0 0 28px var(--terminal-orange)) drop-shadow(0 0 56px var(--terminal-orange)) drop-shadow(0 0 84px var(--terminal-orange));
+    filter: brightness(9.0) contrast(6.0) saturate(3.0) hue-rotate(10deg) 
+           drop-shadow(0 0 40px var(--terminal-orange)) 
+           drop-shadow(0 0 80px var(--terminal-orange)) 
+           drop-shadow(0 0 120px var(--terminal-orange))
+           drop-shadow(0 0 160px var(--terminal-orange));
   }
 }
 

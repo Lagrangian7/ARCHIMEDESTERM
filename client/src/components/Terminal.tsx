@@ -28,8 +28,9 @@ const LogoIcon = () => (
     height="32" 
     className="logo-icon"
     style={{
-      animation: 'logoGlow 1.5s ease-in-out infinite',
-      filter: 'brightness(2.8) contrast(1.8) hue-rotate(15deg) drop-shadow(0 0 12px var(--terminal-orange))'
+      animation: 'logoGlow 1.2s ease-in-out infinite',
+      filter: 'brightness(6.0) contrast(4.0) saturate(2.0) hue-rotate(10deg) drop-shadow(0 0 20px var(--terminal-orange))',
+      transform: 'scale(1.1)'
     }}
   />
 );
