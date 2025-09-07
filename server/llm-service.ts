@@ -172,7 +172,10 @@ Remember: You are a technical chronicler providing precise, actionable informati
       throw new Error('No response from Mistral API');
     }
 
-    return this.postProcessResponse(response, mode);
+    // Handle both string and array responses from Mistral
+    const responseText = typeof response === 'string' ? response : response.map((chunk: any) => chunk.text).join('');
+
+    return this.postProcessResponse(responseText, mode);
   }
 
   private async generateReplitOptimizedResponse(
