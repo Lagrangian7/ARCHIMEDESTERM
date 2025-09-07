@@ -105,8 +105,8 @@ Remember: You are a technical chronicler providing precise, actionable informati
     // Build conversation context for Hugging Face
     let prompt = systemPrompt + '\n\n';
     
-    // Add recent conversation history (last 6 messages for context)
-    const recentHistory = conversationHistory.slice(-6);
+    // Add recent conversation history (last 4 messages for context)
+    const recentHistory = conversationHistory.slice(-4);
     for (const msg of recentHistory) {
       if (msg.role === 'user') {
         prompt += `Human: ${msg.content}\n`;
@@ -117,20 +117,67 @@ Remember: You are a technical chronicler providing precise, actionable informati
     
     prompt += `Human: ${userMessage}\nAssistant:`;
 
-    const response = await hf.textGeneration({
-      model: 'gpt2',
-      inputs: prompt,
-      parameters: {
-        max_new_tokens: mode === 'technical' ? 400 : 200,
-        temperature: mode === 'technical' ? 0.4 : 0.7,
-        do_sample: true,
-        top_p: 0.9,
-        repetition_penalty: 1.1,
-        return_full_text: false
-      }
+    // Create timeout promise for 8 seconds
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 8000);
     });
 
-    return response.generated_text.trim() || 'I apologize, but I encountered an error processing your request.';
+    // Direct HTTP call to Hugging Face API with multiple model fallbacks
+    const fetchPromise = this.tryMultipleModels(prompt, mode);
+    
+    const result = await Promise.race([fetchPromise, timeoutPromise]);
+    
+    if (typeof result === 'string' && result.trim()) {
+      return result.trim();
+    }
+    
+    throw new Error('No valid response from Hugging Face API');
+  }
+
+  private async tryMultipleModels(prompt: string, mode: 'natural' | 'technical'): Promise<string> {
+    const models = [
+      'google/flan-t5-base',    // Fast, reliable text generation
+      'distilbert-base-uncased-finetuned-sst-2-english', // Backup option
+      'gpt2'                    // Classic fallback
+    ];
+
+    for (const model of models) {
+      try {
+        const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            inputs: prompt,
+            parameters: {
+              max_new_tokens: mode === 'technical' ? 300 : 150,
+              temperature: mode === 'technical' ? 0.4 : 0.7,
+              return_full_text: false
+            }
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          
+          if (Array.isArray(result) && result[0]?.generated_text) {
+            return result[0].generated_text;
+          }
+          
+          // For some models the response format might be different
+          if (typeof result === 'object' && result.generated_text) {
+            return result.generated_text;
+          }
+        }
+      } catch (error) {
+        console.log(`Model ${model} failed, trying next...`);
+        continue;
+      }
+    }
+
+    throw new Error('All models failed');
   }
 
   private async generateOpenAIResponse(
