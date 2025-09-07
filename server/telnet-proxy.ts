@@ -113,7 +113,7 @@ export class TelnetProxyService {
           connectionId,
           data: data.toString('utf8')
         };
-        console.log(`Sending data for ${connectionId}:`, dataMessage.data.substring(0, 100));
+        console.log(`Receiving data from ${connectionId} (${data.length} bytes):`, JSON.stringify(dataMessage.data.substring(0, 200)));
         ws.send(JSON.stringify(dataMessage));
       });
 
@@ -149,8 +149,9 @@ export class TelnetProxyService {
   private handleData(connectionId: string, data: string) {
     const connection = this.connections.get(connectionId);
     if (connection && connection.socket.writable) {
-      // Send data to telnet server
-      connection.socket.write(data);
+      // Send data to telnet server as a complete buffer to ensure atomicity
+      console.log(`Sending complete data for ${connectionId}:`, JSON.stringify(data));
+      connection.socket.write(Buffer.from(data, 'utf8'));
     }
   }
 

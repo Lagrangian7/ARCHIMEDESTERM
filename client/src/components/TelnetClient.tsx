@@ -237,6 +237,7 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
   const sendData = useCallback((data: string) => {
     if (!websocket || !activeConnectionId) return;
 
+    console.log('TelnetClient sending data:', JSON.stringify(data));
     websocket.send(JSON.stringify({
       type: 'data',
       connectionId: activeConnectionId,
