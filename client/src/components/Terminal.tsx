@@ -52,15 +52,59 @@ export function Terminal() {
   const [showProfile, setShowProfile] = useState(false);
   const [showConversationHistory, setShowConversationHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [showContinuePrompt, setShowContinuePrompt] = useState(false);
+  const [visibleEntries, setVisibleEntries] = useState(Math.min(entries.length, 15));
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll terminal output
+  // Check if content needs pagination
   useEffect(() => {
-    if (outputRef.current) {
+    if (entries.length > 0 && !isTyping) {
+      const shouldPaginate = entries.length > 15; // Show max 15 entries at a time
+      if (shouldPaginate && visibleEntries < entries.length) {
+        setShowContinuePrompt(true);
+      } else {
+        setShowContinuePrompt(false);
+      }
+      
+      // Update visible entries if we have fewer entries than the limit
+      if (entries.length <= 15 && visibleEntries !== entries.length) {
+        setVisibleEntries(entries.length);
+      }
+    }
+  }, [entries, isTyping, visibleEntries]);
+
+  // Auto-scroll terminal output when not paginating
+  useEffect(() => {
+    if (outputRef.current && !showContinuePrompt) {
       outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
-  }, [entries, isTyping]);
+  }, [entries, isTyping, showContinuePrompt]);
+
+  const handleContinue = () => {
+    setVisibleEntries(Math.min(visibleEntries + 10, entries.length)); // Show 10 more entries
+    setShowContinuePrompt(false);
+    
+    // Auto-scroll after showing more content
+    setTimeout(() => {
+      if (outputRef.current) {
+        outputRef.current.scrollTop = outputRef.current.scrollHeight;
+      }
+    }, 100);
+  };
+
+  const handleShowAll = () => {
+    setVisibleEntries(entries.length);
+    setShowContinuePrompt(false);
+    
+    // Auto-scroll after showing all content
+    setTimeout(() => {
+      if (outputRef.current) {
+        outputRef.current.scrollTop = outputRef.current.scrollHeight;
+      }
+    }, 100);
+  };
 
   // Focus input on mount and clicks
   useEffect(() => {
@@ -83,11 +127,20 @@ export function Terminal() {
   }, [entries, speak]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Handle continue prompt with Space or Enter
+    if (showContinuePrompt && (e.key === ' ' || e.key === 'Enter')) {
+      e.preventDefault();
+      handleContinue();
+      return;
+    }
+    
     if (e.key === 'Enter') {
       e.preventDefault();
       if (input.trim() && !isLoading) {
         processCommand(input.trim());
         setInput('');
+        // Reset pagination when new command is entered
+        setVisibleEntries(entries.length + 1); // +1 for the new entry that will be added
       }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
@@ -243,13 +296,13 @@ export function Terminal() {
 
         {/* Terminal Output - Scrollable middle section */}
         <div className="flex-1 min-h-0 relative">
-          <ScrollArea className="h-full">
+          <ScrollArea className="h-full" ref={scrollAreaRef}>
             <div 
               ref={outputRef}
               className="terminal-output p-4 font-mono text-sm leading-relaxed relative z-10"
               data-testid="terminal-output"
             >
-              {entries.map((entry) => (
+              {entries.slice(0, visibleEntries).map((entry) => (
                 <div
                   key={entry.id}
                   className={`mb-2 ${getEntryClassName(entry.type, entry.mode)}`}
@@ -279,6 +332,38 @@ export function Terminal() {
               {isTyping && (
                 <div className="typing-indicator text-terminal-highlight opacity-70" data-testid="typing-indicator">
                   ARCHIMEDES is processing...
+                </div>
+              )}
+
+              {/* Continue Prompt */}
+              {showContinuePrompt && (
+                <div className="continue-prompt mt-4 p-3 border border-terminal-highlight rounded bg-terminal-bg/50">
+                  <div className="text-terminal-highlight mb-2 flex items-center">
+                    <span className="mr-2">⏸️</span>
+                    <span className="terminal-glow">-- More Content Available --</span>
+                  </div>
+                  <div className="text-terminal-text text-xs mb-3">
+                    Showing {visibleEntries} of {entries.length} entries
+                  </div>
+                  <div className="flex space-x-3">
+                    <Button
+                      onClick={handleContinue}
+                      size="sm"
+                      className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors text-xs px-3 py-1"
+                      data-testid="button-continue"
+                    >
+                      Continue (10 more)
+                    </Button>
+                    <Button
+                      onClick={handleShowAll}
+                      size="sm"
+                      variant="outline"
+                      className="bg-transparent border-terminal-subtle text-terminal-text hover:bg-terminal-subtle transition-colors text-xs px-3 py-1"
+                      data-testid="button-show-all"
+                    >
+                      Show All
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
