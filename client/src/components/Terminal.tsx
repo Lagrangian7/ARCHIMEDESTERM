@@ -8,6 +8,7 @@ import { ConversationHistory } from './ConversationHistory';
 import { DocumentUpload } from './DocumentUpload';
 import { TelnetClient } from './TelnetClient';
 import { SnakeGame } from './SnakeGame';
+import { TalkingArchimedes } from './TalkingArchimedes';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
@@ -520,6 +521,11 @@ export function Terminal() {
           </div>
         </div>
       )}
+      {/* Talking Archimedes Character */}
+      <TalkingArchimedes 
+        isTyping={isTyping} 
+        currentMessage={entries.length > 0 ? entries[entries.length - 1]?.content : undefined}
+      />
     </div>
   );
 }
