@@ -752,6 +752,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Radio streaming proxy endpoint
+  app.get('/api/radio/stream', async (req, res) => {
+    try {
+      const streamUrl = 'http://204.141.171.164:12340/stream';
+      
+      // Fetch the stream from the original HTTP endpoint
+      const response = await fetch(streamUrl, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; ARCHIMEDES-Radio/1.0)',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Stream server responded with ${response.status}`);
+      }
+      
+      // Set appropriate headers for audio streaming
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Cache-Control', 'no-cache, no-store');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET');
+      res.setHeader('Access-Control-Allow-Headers', 'Range');
+      
+      // Handle range requests for proper audio streaming
+      if (req.headers.range) {
+        res.setHeader('Accept-Ranges', 'bytes');
+      }
+      
+      // Pipe the stream response to our client
+      if (response.body) {
+        const reader = response.body.getReader();
+        
+        const pump = async () => {
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              if (!res.write(value)) {
+                await new Promise(resolve => res.once('drain', resolve));
+              }
+            }
+            res.end();
+          } catch (error) {
+            console.error('Stream error:', error);
+            res.end();
+          }
+        };
+        
+        pump();
+      } else {
+        throw new Error('No response body received from stream');
+      }
+      
+    } catch (error) {
+      console.error('Radio proxy error:', error);
+      res.status(503).json({ 
+        error: 'Radio stream unavailable',
+        message: 'Unable to connect to KLUX 89.5HD stream'
+      });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
   

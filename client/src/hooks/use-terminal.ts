@@ -1033,7 +1033,7 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       const subCmd = cmd.substring(6).trim();
       
       if (subCmd === 'play') {
-        const radioElement = document.querySelector('audio[src*="204.141.171.164"]') as HTMLAudioElement;
+        const radioElement = document.querySelector('audio[src*="/api/radio/stream"]') as HTMLAudioElement;
         if (radioElement) {
           radioElement.play()
             .then(() => addEntry('system', '🎵 KLUX 89.5HD stream started'))
@@ -1052,7 +1052,7 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       }
       
       if (subCmd === 'stop') {
-        const radioElement = document.querySelector('audio[src*="204.141.171.164"]') as HTMLAudioElement;
+        const radioElement = document.querySelector('audio[src*="/api/radio/stream"]') as HTMLAudioElement;
         if (radioElement) {
           radioElement.pause();
           addEntry('system', '⏹️ KLUX 89.5HD stream stopped');
@@ -1071,7 +1071,7 @@ Free plan includes 100 monthly requests with end-of-day data.`);
           return;
         }
         
-        const radioElement = document.querySelector('audio[src*="204.141.171.164"]') as HTMLAudioElement;
+        const radioElement = document.querySelector('audio[src*="/api/radio/stream"]') as HTMLAudioElement;
         if (radioElement) {
           radioElement.volume = volumeNum / 100;
           addEntry('system', `🔊 Volume set to ${volumeNum}%`);
@@ -1082,7 +1082,7 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       }
       
       if (subCmd === 'status') {
-        const radioElement = document.querySelector('audio[src*="204.141.171.164"]') as HTMLAudioElement;
+        const radioElement = document.querySelector('audio[src*="/api/radio/stream"]') as HTMLAudioElement;
         if (radioElement) {
           const isPlaying = !radioElement.paused;
           const volume = Math.round(radioElement.volume * 100);

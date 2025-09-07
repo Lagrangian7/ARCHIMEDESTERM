@@ -16,7 +16,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const [connectionStatus, setConnectionStatus] = useState('Disconnected');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const streamUrl = 'http://204.141.171.164:12340/stream';
+  const streamUrl = '/api/radio/stream';
   const stationName = 'KLUX 89.5HD - Good Company';
 
   useEffect(() => {
@@ -167,7 +167,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
             <div className="text-terminal-subtle text-xs mt-1">Status: {connectionStatus}</div>
             {connectionStatus === 'Connection Failed' && (
               <div className="text-orange-400 text-xs mt-2">
-                Note: HTTPS/HTTP mixed content may prevent streaming
+                Stream may be temporarily unavailable
               </div>
             )}
           </div>
