@@ -202,7 +202,9 @@ export function Terminal() {
 
   return (
     <div className="h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono">
-      <div className="terminal-container flex flex-col h-full relative z-0">
+      <div className={`terminal-container flex flex-col h-full relative z-0 terminal-glitch ${
+        (isTyping || isSpeaking) ? 'terminal-glitch-active' : ''
+      }`}>
         
         {/* Background Watermark */}
         <div 

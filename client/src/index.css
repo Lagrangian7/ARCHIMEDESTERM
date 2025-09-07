@@ -210,6 +210,51 @@
     filter: brightness(0.7) contrast(1.2) hue-rotate(10deg);
     animation: watermarkGlow 4s ease-in-out infinite alternate, glitchEffect 8s infinite;
   }
+
+  .terminal-glitch {
+    position: relative;
+  }
+
+  .terminal-glitch::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--terminal-bg);
+    animation: terminalGlitch 3s infinite;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .terminal-glitch::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg, 
+      transparent 0%, 
+      rgba(0, 255, 65, 0.03) 20%, 
+      rgba(0, 255, 65, 0.05) 40%,
+      transparent 60%,
+      rgba(0, 255, 65, 0.02) 80%,
+      transparent 100%
+    );
+    animation: terminalScanGlitch 2s infinite;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .terminal-glitch-active::before,
+  .terminal-glitch-active::after {
+    opacity: 1;
+  }
 }
 
 @keyframes blink {
@@ -291,5 +336,50 @@
   82% {
     transform: translateX(1px) skewX(-0.2deg);
     filter: brightness(0.5) contrast(1.7) hue-rotate(10deg) saturate(1.2);
+  }
+}
+
+@keyframes terminalGlitch {
+  0%, 90% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  
+  91% {
+    opacity: 0.1;
+    transform: translateX(-1px);
+    background: rgba(0, 255, 65, 0.02);
+  }
+  
+  92% {
+    opacity: 0.05;
+    transform: translateX(1px);
+    background: rgba(255, 0, 65, 0.01);
+  }
+  
+  93%, 100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+}
+
+@keyframes terminalScanGlitch {
+  0% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  
+  10%, 90% {
+    opacity: 0.3;
+  }
+  
+  50% {
+    opacity: 0.6;
+    transform: translateY(0%);
+  }
+  
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
   }
 }
