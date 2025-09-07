@@ -102,50 +102,16 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    // Get the available domains
-    const domains = process.env.REPLIT_DOMAINS?.split(",") || [];
-    console.log('Available domains:', domains);
-    console.log('Request hostname:', req.hostname);
-    
-    // For development, try to use the first available domain
-    const authDomain = domains.length > 0 ? domains[0] : req.hostname;
-    
-    passport.authenticate(`replitauth:${authDomain}`, {
+    passport.authenticate(`replitauth:${req.hostname}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    // Use the same domain logic as login
-    const domains = process.env.REPLIT_DOMAINS?.split(",") || [];
-    const authDomain = domains.length > 0 ? domains[0] : req.hostname;
-    
-    console.log('Callback called with domain:', authDomain);
-    console.log('Query params:', req.query);
-    
-    passport.authenticate(`replitauth:${authDomain}`, (err, user, info) => {
-      console.log('Auth callback result:', { err, user: !!user, info });
-      
-      if (err) {
-        console.error('Auth error:', err);
-        return res.redirect('/api/login');
-      }
-      
-      if (!user) {
-        console.log('No user returned from auth');
-        return res.redirect('/api/login');
-      }
-      
-      req.logIn(user, (err) => {
-        if (err) {
-          console.error('Login error:', err);
-          return res.redirect('/api/login');
-        }
-        
-        console.log('User logged in successfully');
-        return res.redirect('/');
-      });
+    passport.authenticate(`replitauth:${req.hostname}`, {
+      successReturnToOrRedirect: "/",
+      failureRedirect: "/api/login",
     })(req, res, next);
   });
 
