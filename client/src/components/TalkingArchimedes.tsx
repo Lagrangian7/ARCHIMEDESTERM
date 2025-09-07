@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import skullWatermark from '@assets/wally_1756523512970.jpg';
+import archimedesVideo from '@assets/1131_1757266999585.mp4';
 
 interface TalkingArchimedesProps {
   isTyping: boolean;
@@ -10,10 +11,13 @@ interface TalkingArchimedesProps {
 export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: TalkingArchimedesProps) {
   const [showCharacter, setShowCharacter] = useState(false);
   const [animationPhase, setAnimationPhase] = useState<'idle' | 'talking' | 'thinking'>('idle');
+  const [useVideo, setUseVideo] = useState(false);
 
   useEffect(() => {
     if (isTyping || isSpeaking) {
       setShowCharacter(true);
+      // Randomly choose between image and video each time character appears
+      setUseVideo(Math.random() > 0.5);
       
       if (isTyping) {
         setAnimationPhase('thinking');
@@ -47,15 +51,29 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
       }`}>
         {/* Archimedes Character Container */}
         <div className="relative w-48 h-48 rounded-full overflow-hidden border-2 border-terminal-highlight/20 bg-terminal-bg/70 backdrop-blur-sm">
-          {/* Background Image */}
-          <img 
-            src={skullWatermark} 
-            alt="Archimedes"
-            className={`w-full h-full object-cover transition-all duration-300 ${
-              animationPhase === 'talking' ? 'animate-pulse scale-105' : 
-              animationPhase === 'thinking' ? 'animate-bounce' : ''
-            }`}
-          />
+          {/* Background Media - Either Image or Video */}
+          {useVideo ? (
+            <video 
+              src={archimedesVideo}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className={`w-full h-full object-cover transition-all duration-300 ${
+                animationPhase === 'talking' ? 'animate-pulse scale-105' : 
+                animationPhase === 'thinking' ? 'animate-bounce' : ''
+              }`}
+            />
+          ) : (
+            <img 
+              src={skullWatermark} 
+              alt="Archimedes"
+              className={`w-full h-full object-cover transition-all duration-300 ${
+                animationPhase === 'talking' ? 'animate-pulse scale-105' : 
+                animationPhase === 'thinking' ? 'animate-bounce' : ''
+              }`}
+            />
+          )}
           
           {/* Overlay Effects */}
           <div className="absolute inset-0 bg-gradient-to-br from-terminal-highlight/5 to-transparent" />
