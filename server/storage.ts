@@ -833,56 +833,42 @@ export class DatabaseStorage implements IStorage {
 
   async getUserDirectChats(userId: string): Promise<(DirectChat & { otherUser: User; lastMessage?: UserMessage })[]> {
     // Get chats where user is either user1 or user2
-    const chats = await db
+    const chats1 = await db
       .select({
         chat: directChats,
-        user1: users,
-        user2: users,
+        otherUser: users,
       })
       .from(directChats)
-      .leftJoin(users, eq(directChats.user1Id, users.id))
-      .leftJoin(users, eq(directChats.user2Id, users.id))
-      .where(
-        and(
-          eq(directChats.user1Id, userId)
-        )
-      )
-      .union(
-        db
-          .select({
-            chat: directChats,
-            user1: users,
-            user2: users,
-          })
-          .from(directChats)
-          .leftJoin(users, eq(directChats.user1Id, users.id))
-          .leftJoin(users, eq(directChats.user2Id, users.id))
-          .where(
-            and(
-              eq(directChats.user2Id, userId)
-            )
-          )
-      );
+      .innerJoin(users, eq(directChats.user2Id, users.id))
+      .where(eq(directChats.user1Id, userId));
+
+    const chats2 = await db
+      .select({
+        chat: directChats,
+        otherUser: users,
+      })
+      .from(directChats)
+      .innerJoin(users, eq(directChats.user1Id, users.id))
+      .where(eq(directChats.user2Id, userId));
+
+    const allChats = [...chats1, ...chats2];
 
     const result: (DirectChat & { otherUser: User; lastMessage?: UserMessage })[] = [];
 
-    for (const row of chats) {
-      const otherUser = row.chat.user1Id === userId ? row.user2 : row.user1;
-      if (otherUser) {
-        // Get last message for this chat
-        const [lastMessage] = await db
-          .select()
-          .from(userMessages)
-          .where(eq(userMessages.chatId, row.chat.id))
-          .orderBy(desc(userMessages.sentAt))
-          .limit(1);
+    for (const row of allChats) {
+      // Get last message for this chat
+      const [lastMessage] = await db
+        .select()
+        .from(userMessages)
+        .where(eq(userMessages.chatId, row.chat.id))
+        .orderBy(desc(userMessages.sentAt))
+        .limit(1);
 
-        result.push({
-          ...row.chat,
-          otherUser,
-          lastMessage,
-        });
-      }
+      result.push({
+        ...row.chat,
+        otherUser: row.otherUser,
+        lastMessage,
+      });
     }
 
     // Sort by last message time or creation time

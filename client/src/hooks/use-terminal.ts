@@ -321,6 +321,21 @@ export function useTerminal(onUploadCommand?: () => void) {
       }, 50);
       return;
     }
+
+    if (cmd === 'chat') {
+      addEntry('system', 'Opening chat interface... Connect with other online users!');
+      
+      // Trigger the chat interface
+      setTimeout(() => {
+        const openChatInterface = (window as any).openChatInterface;
+        if (openChatInterface) {
+          openChatInterface();
+        } else {
+          addEntry('error', 'Chat interface not available. Please try using the Chat button in the header.');
+        }
+      }, 50);
+      return;
+    }
     
     // Fallback help command if the interactive menu fails
     if (cmd === 'help-text') {
@@ -332,6 +347,7 @@ export function useTerminal(onUploadCommand?: () => void) {
   history - Show command history
   status - Show system status
   weather - Get current weather (uses location if available)
+  chat - Open user-to-user chat interface
   
 Network & BBS Commands:
   telnet <host> <port> - Connect to remote telnet/BBS system

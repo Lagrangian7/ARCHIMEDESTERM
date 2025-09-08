@@ -12,10 +12,12 @@ import { DTMFDecoder } from './DTMFDecoder';
 import { HelpMenu } from './HelpMenu';
 import { TalkingArchimedes } from './TalkingArchimedes';
 import { RadioCharacter } from './RadioCharacter';
+import { ChatInterface } from './ChatInterface';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
-import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio } from 'lucide-react';
+import { useChat } from '@/hooks/useChat';
+import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare } from 'lucide-react';
 import skullWatermark from '@assets/wally_1756523512970.jpg';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 
@@ -64,10 +66,12 @@ export function Terminal() {
     (window as any).openSnakeGame = () => setShowSnake(true);
     (window as any).openDTMFDecoder = () => setShowDTMF(true);
     (window as any).openHelpMenu = () => setShowHelpMenu(true);
+    (window as any).openChatInterface = () => setShowChat(true);
   }, []);
   
   const { speak, isSpeaking } = useSpeechSynthesis();
   const { user, isAuthenticated, preferences } = useAuth();
+  const { unreadCount } = useChat();
   const [input, setInput] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -77,6 +81,7 @@ export function Terminal() {
   const [showSnake, setShowSnake] = useState(false);
   const [showDTMF, setShowDTMF] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   
   // Radio streaming controls - direct playback without modal
@@ -345,6 +350,21 @@ export function Terminal() {
                   >
                     <Upload size={14} className="mr-1" />
                     Upload
+                  </Button>
+                  <Button
+                    onClick={() => setShowChat(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs relative"
+                    data-testid="button-chat"
+                  >
+                    <MessageSquare size={14} className="mr-1" />
+                    Chat
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
                   </Button>
                   <Button
                     onClick={toggleRadio}
@@ -656,6 +676,14 @@ export function Terminal() {
       <RadioCharacter 
         isRadioPlaying={isRadioPlaying}
       />
+
+      {/* Chat Interface */}
+      {isAuthenticated && (
+        <ChatInterface 
+          isOpen={showChat}
+          onClose={() => setShowChat(false)}
+        />
+      )}
     </div>
   );
 }
