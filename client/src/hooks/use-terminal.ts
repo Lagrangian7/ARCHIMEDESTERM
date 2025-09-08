@@ -380,6 +380,15 @@ Radio Streaming:
   radio volume <0-100> - Set volume level
   radio status - Show current stream status
   
+OSINT (Open Source Intelligence):
+  whois <domain> - Domain registration lookup
+  dns <domain> - DNS records analysis
+  geoip <ip> - IP geolocation tracking
+  headers <url> - HTTP header analysis
+  wayback <url> - Wayback Machine snapshots
+  username <name> - Username availability checker
+  osint - Show OSINT help menu
+  
 Audio & Signal Processing:
   dtmf - Start DTMF decoder for touch-tone signals
   
@@ -1234,6 +1243,144 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       }
       
       addEntry('error', 'Unknown radio command. Use "radio help" for available commands');
+      return;
+    }
+    
+    // Handle OSINT commands
+    if (cmd.startsWith('whois ')) {
+      const domain = cmd.substring(6).trim();
+      if (!domain) {
+        addEntry('error', 'Usage: whois <domain>');
+        return;
+      }
+      
+      addEntry('system', `🔍 Performing WHOIS lookup for ${domain}...`);
+      
+      fetch(`/api/osint/whois/${domain}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'WHOIS lookup failed');
+        });
+      return;
+    }
+    
+    if (cmd.startsWith('dns ')) {
+      const domain = cmd.substring(4).trim();
+      if (!domain) {
+        addEntry('error', 'Usage: dns <domain>');
+        return;
+      }
+      
+      addEntry('system', `🌐 Querying DNS records for ${domain}...`);
+      
+      fetch(`/api/osint/dns/${domain}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'DNS lookup failed');
+        });
+      return;
+    }
+    
+    if (cmd.startsWith('geoip ')) {
+      const ip = cmd.substring(6).trim();
+      if (!ip) {
+        addEntry('error', 'Usage: geoip <ip_address>');
+        return;
+      }
+      
+      addEntry('system', `🌍 Geolocating IP address ${ip}...`);
+      
+      fetch(`/api/osint/geoip/${ip}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'IP geolocation failed');
+        });
+      return;
+    }
+    
+    if (cmd.startsWith('headers ')) {
+      const url = cmd.substring(8).trim();
+      if (!url) {
+        addEntry('error', 'Usage: headers <url>');
+        return;
+      }
+      
+      addEntry('system', `🔍 Analyzing HTTP headers for ${url}...`);
+      
+      fetch(`/api/osint/headers?url=${encodeURIComponent(url)}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'Header analysis failed');
+        });
+      return;
+    }
+    
+    if (cmd.startsWith('wayback ')) {
+      const url = cmd.substring(8).trim();
+      if (!url) {
+        addEntry('error', 'Usage: wayback <url>');
+        return;
+      }
+      
+      addEntry('system', `📚 Searching Wayback Machine for ${url}...`);
+      
+      fetch(`/api/osint/wayback?url=${encodeURIComponent(url)}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'Wayback Machine search failed');
+        });
+      return;
+    }
+    
+    if (cmd.startsWith('username ')) {
+      const username = cmd.substring(9).trim();
+      if (!username) {
+        addEntry('error', 'Usage: username <username>');
+        return;
+      }
+      
+      addEntry('system', `👤 Checking username availability for ${username}...`);
+      
+      fetch(`/api/osint/username/${username}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'Username check failed');
+        });
+      return;
+    }
+
+    if (cmd === 'osint' || cmd === 'osint help') {
+      const helpText = `🔍 OSINT (Open Source Intelligence) Commands:
+
+whois <domain>     - Domain registration lookup
+dns <domain>       - DNS records analysis  
+geoip <ip>         - IP geolocation tracking
+headers <url>      - HTTP header analysis
+wayback <url>      - Wayback Machine snapshots
+username <name>    - Username availability checker
+
+💡 OSINT tools help you gather intelligence from public sources
+🔒 All lookups are performed ethically using public APIs`;
+      
+      addEntry('system', helpText);
       return;
     }
     

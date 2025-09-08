@@ -823,6 +823,343 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OSINT API routes
+  app.get('/api/osint/whois/:domain', async (req, res) => {
+    try {
+      const { domain } = req.params;
+      
+      // Basic domain validation
+      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-._]*[a-zA-Z0-9]$/;
+      if (!domainRegex.test(domain)) {
+        return res.status(400).json({ error: 'Invalid domain format' });
+      }
+
+      // Use public WHOIS API 
+      const whoisUrl = `https://www.whoisxml.com/whoisserver/WhoisService?apiKey=at_free&domainName=${domain}&outputFormat=json`;
+      
+      try {
+        const response = await fetch(whoisUrl);
+        const data = await response.json();
+        
+        if (data.WhoisRecord) {
+          const whois = data.WhoisRecord;
+          const formatted = `
+╭─ WHOIS Information for ${domain}
+├─ Domain: ${whois.domainName || 'N/A'}
+├─ Registrar: ${whois.registrarName || 'N/A'}  
+├─ Creation Date: ${whois.createdDate || 'N/A'}
+├─ Updated Date: ${whois.updatedDate || 'N/A'}
+├─ Expiry Date: ${whois.expiresDate || 'N/A'}
+├─ Status: ${whois.domainStatus || 'N/A'}
+├─ Name Servers: ${whois.nameServers?.hostNames?.join(', ') || 'N/A'}
+╰─ Registry Domain ID: ${whois.registryData?.domainId || 'N/A'}`;
+          
+          res.json({ formatted });
+        } else {
+          // Fallback to basic domain info
+          res.json({ formatted: `╭─ WHOIS lookup for ${domain}\n╰─ Domain information not available or domain may not exist` });
+        }
+      } catch (apiError) {
+        // If API fails, provide basic response
+        res.json({ formatted: `╭─ WHOIS lookup for ${domain}\n╰─ WHOIS information temporarily unavailable` });
+      }
+    } catch (error) {
+      console.error('WHOIS error:', error);
+      res.status(500).json({ error: 'WHOIS lookup failed' });
+    }
+  });
+
+  app.get('/api/osint/dns/:domain', async (req, res) => {
+    try {
+      const { domain } = req.params;
+      const dns = require('dns').promises;
+      
+      const results: {
+        A: string[];
+        AAAA: string[];
+        MX: Array<{exchange: string, priority: number}>;
+        TXT: string[][];
+        NS: string[];
+        CNAME: string[] | null;
+      } = {
+        A: [],
+        AAAA: [],
+        MX: [],
+        TXT: [],
+        NS: [],
+        CNAME: null
+      };
+
+      try {
+        // Get A records
+        try {
+          results.A = await dns.resolve4(domain);
+        } catch (e) {}
+
+        // Get AAAA records
+        try {
+          results.AAAA = await dns.resolve6(domain);
+        } catch (e) {}
+
+        // Get MX records  
+        try {
+          results.MX = await dns.resolveMx(domain);
+        } catch (e) {}
+
+        // Get TXT records
+        try {
+          results.TXT = await dns.resolveTxt(domain);
+        } catch (e) {}
+
+        // Get NS records
+        try {
+          results.NS = await dns.resolveNs(domain);
+        } catch (e) {}
+
+        // Get CNAME
+        try {
+          results.CNAME = await dns.resolveCname(domain);
+        } catch (e) {}
+
+        let formatted = `╭─ DNS Records for ${domain}\n`;
+        
+        if (results.A.length) {
+          formatted += `├─ A Records: ${results.A.join(', ')}\n`;
+        }
+        
+        if (results.AAAA.length) {
+          formatted += `├─ AAAA Records: ${results.AAAA.join(', ')}\n`;
+        }
+        
+        if (results.MX.length) {
+          formatted += `├─ MX Records: ${results.MX.map(mx => `${mx.exchange} (${mx.priority})`).join(', ')}\n`;
+        }
+        
+        if (results.NS.length) {
+          formatted += `├─ NS Records: ${results.NS.join(', ')}\n`;
+        }
+        
+        if (results.TXT.length) {
+          formatted += `├─ TXT Records: ${results.TXT.map(txt => txt.join(' ')).join(', ')}\n`;
+        }
+        
+        if (results.CNAME) {
+          formatted += `├─ CNAME: ${results.CNAME.join(', ')}\n`;
+        }
+        
+        formatted += `╰─ DNS lookup complete`;
+
+        res.json({ formatted });
+        
+      } catch (error) {
+        res.json({ formatted: `╭─ DNS lookup for ${domain}\n╰─ No DNS records found or domain does not exist` });
+      }
+    } catch (error) {
+      console.error('DNS error:', error);
+      res.status(500).json({ error: 'DNS lookup failed' });
+    }
+  });
+
+  app.get('/api/osint/geoip/:ip', async (req, res) => {
+    try {
+      const { ip } = req.params;
+      
+      // Basic IP validation
+      const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+      const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
+      
+      if (!ipv4Regex.test(ip) && !ipv6Regex.test(ip)) {
+        return res.status(400).json({ error: 'Invalid IP address format' });
+      }
+
+      try {
+        // Use ip-api.com free service
+        const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+          const formatted = `
+╭─ IP Geolocation for ${ip}
+├─ Country: ${data.country} (${data.countryCode})
+├─ Region: ${data.regionName} (${data.region})
+├─ City: ${data.city}
+├─ Postal Code: ${data.zip || 'N/A'}
+├─ Coordinates: ${data.lat}, ${data.lon}
+├─ Timezone: ${data.timezone}
+├─ ISP: ${data.isp}
+├─ Organization: ${data.org}
+╰─ AS: ${data.as}`;
+          
+          res.json({ formatted });
+        } else {
+          res.json({ formatted: `╭─ IP Geolocation for ${ip}\n╰─ Geolocation data not available for this IP` });
+        }
+      } catch (apiError) {
+        res.json({ formatted: `╭─ IP Geolocation for ${ip}\n╰─ Geolocation service temporarily unavailable` });
+      }
+    } catch (error) {
+      console.error('GeoIP error:', error);
+      res.status(500).json({ error: 'IP geolocation failed' });
+    }
+  });
+
+  app.get('/api/osint/headers', async (req, res) => {
+    try {
+      const { url } = req.query;
+      
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ error: 'URL parameter required' });
+      }
+
+      // Basic URL validation
+      let targetUrl: URL;
+      try {
+        targetUrl = new URL(url);
+        if (!['http:', 'https:'].includes(targetUrl.protocol)) {
+          throw new Error('Invalid protocol');
+        }
+      } catch (e) {
+        return res.status(400).json({ error: 'Invalid URL format' });
+      }
+
+      try {
+        const response = await fetch(url, { 
+          method: 'HEAD',
+          redirect: 'follow',
+          headers: {
+            'User-Agent': 'ARCHIMEDES-OSINT/1.0'
+          }
+        });
+        
+        let formatted = `╭─ HTTP Headers for ${url}\n`;
+        formatted += `├─ Status: ${response.status} ${response.statusText}\n`;
+        
+        response.headers.forEach((value, key) => {
+          formatted += `├─ ${key}: ${value}\n`;
+        });
+        
+        formatted += `╰─ Header analysis complete`;
+
+        res.json({ formatted });
+        
+      } catch (fetchError) {
+        res.json({ formatted: `╭─ HTTP Headers for ${url}\n╰─ Unable to fetch headers - site may be unreachable` });
+      }
+    } catch (error) {
+      console.error('Headers error:', error);
+      res.status(500).json({ error: 'Header analysis failed' });
+    }
+  });
+
+  app.get('/api/osint/wayback', async (req, res) => {
+    try {
+      const { url } = req.query;
+      
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ error: 'URL parameter required' });
+      }
+
+      try {
+        // Use Wayback Machine CDX API
+        const cdxUrl = `https://web.archive.org/cdx/search/cdx?url=${encodeURIComponent(url)}&output=json&limit=10&sort=timestamp`;
+        const response = await fetch(cdxUrl);
+        const data = await response.json();
+        
+        if (data && data.length > 1) {
+          let formatted = `╭─ Wayback Machine snapshots for ${url}\n`;
+          
+          // Skip first row which contains headers
+          const snapshots = data.slice(1, 6); // Show max 5 snapshots
+          
+          snapshots.forEach((snapshot: any, index: number) => {
+            const timestamp = snapshot[1];
+            const date = `${timestamp.slice(0,4)}-${timestamp.slice(4,6)}-${timestamp.slice(6,8)} ${timestamp.slice(8,10)}:${timestamp.slice(10,12)}`;
+            const statusCode = snapshot[4];
+            const archiveUrl = `https://web.archive.org/web/${timestamp}/${url}`;
+            
+            formatted += `├─ ${index + 1}. ${date} (Status: ${statusCode})\n`;
+            formatted += `│   ${archiveUrl}\n`;
+          });
+          
+          formatted += `╰─ Found ${data.length - 1} total snapshots`;
+          
+          res.json({ formatted });
+        } else {
+          res.json({ formatted: `╭─ Wayback Machine lookup for ${url}\n╰─ No archived snapshots found` });
+        }
+        
+      } catch (apiError) {
+        res.json({ formatted: `╭─ Wayback Machine lookup for ${url}\n╰─ Archive service temporarily unavailable` });
+      }
+    } catch (error) {
+      console.error('Wayback error:', error);
+      res.status(500).json({ error: 'Wayback lookup failed' });
+    }
+  });
+
+  app.get('/api/osint/username/:username', async (req, res) => {
+    try {
+      const { username } = req.params;
+      
+      // Basic username validation
+      const usernameRegex = /^[a-zA-Z0-9_.-]+$/;
+      if (!usernameRegex.test(username) || username.length < 1 || username.length > 30) {
+        return res.status(400).json({ error: 'Invalid username format' });
+      }
+
+      // List of platforms to check
+      const platforms = [
+        { name: 'GitHub', url: `https://github.com/${username}`, checkType: 'status' },
+        { name: 'Twitter', url: `https://twitter.com/${username}`, checkType: 'status' },
+        { name: 'Instagram', url: `https://instagram.com/${username}`, checkType: 'status' },
+        { name: 'Reddit', url: `https://reddit.com/user/${username}`, checkType: 'status' },
+        { name: 'YouTube', url: `https://youtube.com/@${username}`, checkType: 'status' },
+        { name: 'Medium', url: `https://medium.com/@${username}`, checkType: 'status' },
+        { name: 'LinkedIn', url: `https://linkedin.com/in/${username}`, checkType: 'status' }
+      ];
+
+      let formatted = `╭─ Username availability check: ${username}\n`;
+      
+      const checks = await Promise.allSettled(
+        platforms.map(async (platform) => {
+          try {
+            const response = await fetch(platform.url, { 
+              method: 'HEAD',
+              redirect: 'follow',
+              headers: {
+                'User-Agent': 'ARCHIMEDES-OSINT/1.0'
+              }
+            });
+            
+            const exists = response.status === 200;
+            return { platform: platform.name, exists, status: response.status };
+          } catch (error) {
+            return { platform: platform.name, exists: false, status: 'error' };
+          }
+        })
+      );
+      
+      checks.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          const { platform, exists, status } = result.value;
+          const indicator = exists ? '❌' : '✅';
+          const statusText = exists ? 'Taken' : 'Available';
+          formatted += `├─ ${indicator} ${platform}: ${statusText}\n`;
+        } else {
+          formatted += `├─ ⚠️  ${platforms[index].name}: Check failed\n`;
+        }
+      });
+      
+      formatted += `╰─ Username check complete`;
+
+      res.json({ formatted });
+      
+    } catch (error) {
+      console.error('Username check error:', error);
+      res.status(500).json({ error: 'Username check failed' });
+    }
+  });
+
   // Radio streaming proxy endpoint
   app.get('/api/radio/stream', (req, res) => {
     const http = require('http');
