@@ -2003,17 +2003,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Radio streaming proxy endpoint
+  // Radio streaming proxy endpoint - Soma FM Groove Salad
   app.get('/api/radio/stream', (req, res) => {
-    const http = require('http');
-    const streamUrl = 'http://204.141.171.164:12340/stream';
+    const https = require('https');
+    const streamUrl = 'https://ice.somafm.com/groovesalad';
     
     // Parse the URL
     const url = new URL(streamUrl);
     
     const options = {
       hostname: url.hostname,
-      port: url.port || 80,
+      port: url.port || 443,
       path: url.pathname,
       method: 'GET',
       headers: {
@@ -2023,7 +2023,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     };
     
-    const proxyReq = http.request(options, (proxyRes: any) => {
+    const proxyReq = https.request(options, (proxyRes: any) => {
       // Set CORS and streaming headers
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
