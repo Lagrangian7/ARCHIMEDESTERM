@@ -37,6 +37,7 @@ export interface IStorage {
   updateConversation(sessionId: string, messages: Message[]): Promise<void>;
   addMessageToConversation(sessionId: string, message: Message): Promise<void>;
   updateConversationTitle(sessionId: string, title: string): Promise<void>;
+  updateConversationUserId(sessionId: string, userId: string): Promise<void>;
 
   // Document methods for knowledge base
   createDocument(document: InsertDocument): Promise<Document>;
@@ -195,6 +196,14 @@ export class MemStorage implements IStorage {
     const conversation = await this.getConversation(sessionId);
     if (conversation) {
       conversation.title = title;
+      conversation.updatedAt = new Date();
+    }
+  }
+
+  async updateConversationUserId(sessionId: string, userId: string): Promise<void> {
+    const conversation = await this.getConversation(sessionId);
+    if (conversation) {
+      conversation.userId = userId;
       conversation.updatedAt = new Date();
     }
   }
@@ -445,6 +454,13 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(conversations)
       .set({ title, updatedAt: new Date() })
+      .where(eq(conversations.sessionId, sessionId));
+  }
+
+  async updateConversationUserId(sessionId: string, userId: string): Promise<void> {
+    await db
+      .update(conversations)
+      .set({ userId, updatedAt: new Date() })
       .where(eq(conversations.sessionId, sessionId));
   }
 
