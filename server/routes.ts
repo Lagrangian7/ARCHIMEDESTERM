@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import https from "https";
 import { storage } from "./storage";
 import { messageSchema, type Message, insertUserPreferencesSchema, insertDocumentSchema } from "@shared/schema";
 import { randomUUID } from "crypto";
@@ -21,6 +22,83 @@ import { promises as dns } from 'dns';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Radio streaming endpoint (must be BEFORE auth middleware)
+  app.get('/api/radio/stream', (req, res) => {
+    const streamUrl = 'https://ice.somafm.com/groovesalad';
+    
+    // Parse the URL
+    const url = new URL(streamUrl);
+    
+    const options = {
+      hostname: url.hostname,
+      port: url.port || 443,
+      path: url.pathname,
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; ARCHIMEDES-Radio/1.0)',
+        'Accept': 'audio/*',
+        'Connection': 'keep-alive'
+      }
+    };
+    
+    const proxyReq = https.request(options, (proxyRes: any) => {
+      // Set CORS and streaming headers
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Range, Content-Type');
+      
+      // Copy headers from the original stream
+      res.setHeader('Content-Type', proxyRes.headers['content-type'] || 'audio/mpeg');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Accept-Ranges', 'none');
+      
+      // Copy ICY headers if present (Shoutcast metadata)
+      Object.keys(proxyRes.headers).forEach(key => {
+        if (key.startsWith('icy-')) {
+          res.setHeader(key, proxyRes.headers[key]);
+        }
+      });
+      
+      console.log(`✅ Radio stream: ${proxyRes.statusCode} - ${proxyRes.headers['content-type']}`);
+      
+      if (proxyRes.statusCode !== 200) {
+        console.log(`❌ Radio stream error: ${proxyRes.statusCode}`);
+        res.status(503).json({ 
+          error: 'Stream unavailable',
+          status: proxyRes.statusCode 
+        });
+        return;
+      }
+      
+      // Set status code
+      res.status(proxyRes.statusCode);
+      
+      // Pipe the audio stream
+      proxyRes.pipe(res);
+      
+      proxyRes.on('error', (error: any) => {
+        console.error('❌ Stream error:', error);
+        res.end();
+      });
+    });
+    
+    proxyReq.on('error', (error: any) => {
+      console.error('❌ Radio proxy error:', error);
+      res.status(503).json({ 
+        error: 'Radio stream unavailable',
+        message: 'Unable to connect to Soma FM Groove Salad stream'
+      });
+    });
+    
+    proxyReq.setTimeout(30000, () => {
+      console.log('⏰ Radio stream timeout');
+      proxyReq.destroy();
+      res.status(503).json({ error: 'Stream timeout' });
+    });
+    
+    proxyReq.end();
+  });
+
   // Setup authentication middleware
   await setupAuth(app);
 
@@ -2003,82 +2081,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Radio streaming proxy endpoint - Soma FM Groove Salad
-  app.get('/api/radio/stream', (req, res) => {
-    const https = require('https');
-    const streamUrl = 'https://ice.somafm.com/groovesalad';
-    
-    // Parse the URL
-    const url = new URL(streamUrl);
-    
-    const options = {
-      hostname: url.hostname,
-      port: url.port || 443,
-      path: url.pathname,
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; ARCHIMEDES-Radio/1.0)',
-        'Accept': 'audio/*',
-        'Connection': 'keep-alive'
-      }
-    };
-    
-    const proxyReq = https.request(options, (proxyRes: any) => {
-      // Set CORS and streaming headers
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Range, Content-Type');
-      
-      // Copy headers from the original stream
-      res.setHeader('Content-Type', proxyRes.headers['content-type'] || 'audio/mpeg');
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Accept-Ranges', 'none');
-      
-      // Copy ICY headers if present (Shoutcast metadata)
-      Object.keys(proxyRes.headers).forEach(key => {
-        if (key.startsWith('icy-')) {
-          res.setHeader(key, proxyRes.headers[key]);
-        }
-      });
-      
-      console.log(`Radio stream: ${proxyRes.statusCode} - ${proxyRes.headers['content-type']}`);
-      
-      if (proxyRes.statusCode !== 200) {
-        res.status(503).json({ 
-          error: 'Stream unavailable',
-          status: proxyRes.statusCode 
-        });
-        return;
-      }
-      
-      // Set status code
-      res.status(proxyRes.statusCode);
-      
-      // Pipe the audio stream
-      proxyRes.pipe(res);
-      
-      proxyRes.on('error', (error: any) => {
-        console.error('Stream error:', error);
-        res.end();
-      });
-    });
-    
-    proxyReq.on('error', (error: any) => {
-      console.error('Radio proxy error:', error);
-      res.status(503).json({ 
-        error: 'Radio stream unavailable',
-        message: 'Unable to connect to KLUX 89.5HD stream'
-      });
-    });
-    
-    proxyReq.setTimeout(30000, () => {
-      console.log('Radio stream timeout');
-      proxyReq.destroy();
-      res.status(503).json({ error: 'Stream timeout' });
-    });
-    
-    proxyReq.end();
-  });
 
   // CORS proxy for radio streaming - helps bypass CORS restrictions
   app.get("/api/radio-proxy", async (req, res) => {
