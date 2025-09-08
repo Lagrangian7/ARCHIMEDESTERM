@@ -55,27 +55,25 @@ export const useChat = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
 
-  // Fetch online users (reduced polling frequency)
+  // Disable chat queries when WebSocket is disabled to improve performance
   const { data: onlineUsers = [], refetch: refetchOnlineUsers } = useQuery({
     queryKey: ['/api/chat/online-users'],
-    enabled: !!user,
-    refetchInterval: 60000, // Refresh every 60 seconds instead of 30
-    staleTime: 30000, // Data is fresh for 30 seconds
+    enabled: false, // Disabled for performance optimization
+    staleTime: 30000,
   });
 
   // Fetch user's direct chats
   const { data: conversations = [], refetch: refetchConversations } = useQuery({
     queryKey: ['/api/chat/conversations'],
-    enabled: !!user,
-    staleTime: 30000, // Data is fresh for 30 seconds
+    enabled: false, // Disabled for performance optimization  
+    staleTime: 30000,
   });
 
-  // Fetch unread message count (reduced polling frequency)
+  // Fetch unread message count
   const { data: unreadData, refetch: refetchUnreadCount } = useQuery({
     queryKey: ['/api/chat/unread-count'],
-    enabled: !!user,
-    refetchInterval: 30000, // Refresh every 30 seconds instead of 10
-    staleTime: 10000, // Data is fresh for 10 seconds
+    enabled: false, // Disabled for performance optimization
+    staleTime: 10000,
   });
 
   const unreadCount = (unreadData as { count: number })?.count || 0;
@@ -144,7 +142,6 @@ export const useChat = () => {
         wsRef.current = new WebSocket(wsUrl);
 
         wsRef.current.onopen = () => {
-          console.log('Chat WebSocket connected');
           setIsConnected(true);
           reconnectAttempts = 0; // Reset on successful connection
           isConnecting = false;
@@ -197,23 +194,22 @@ export const useChat = () => {
                 break;
                 
               case 'auth_success':
-                console.log('Chat authentication successful');
+                // Authentication successful, connection ready
                 break;
                 
               case 'error':
-                console.error('Chat WebSocket server error:', message.data);
+                // Handle server error gracefully
                 break;
                 
               default:
-                console.log('Unknown WebSocket message type:', message.type);
+                // Unknown message type, ignore silently
             }
           } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
+            // Error parsing message, ignore silently
           }
         };
 
         wsRef.current.onclose = (event) => {
-          console.log('Chat WebSocket disconnected', event.code, event.reason);
           setIsConnected(false);
           isConnecting = false;
           
@@ -221,19 +217,17 @@ export const useChat = () => {
           if (event.code !== 1000 && reconnectAttempts < maxReconnectAttempts) {
             reconnectAttempts++;
             const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Exponential backoff, max 30s
-            console.log(`Attempting to reconnect in ${backoffTime}ms... (attempt ${reconnectAttempts}/${maxReconnectAttempts})`);
+            // Attempting to reconnect with exponential backoff
             
             reconnectTimeout = setTimeout(connectWebSocket, backoffTime);
           }
         };
 
         wsRef.current.onerror = (error) => {
-          console.error('Chat WebSocket error:', error);
           setIsConnected(false);
           isConnecting = false;
         };
       } catch (error) {
-        console.error('Failed to create WebSocket:', error);
         isConnecting = false;
       }
     };
