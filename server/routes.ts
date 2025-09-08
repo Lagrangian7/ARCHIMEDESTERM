@@ -895,8 +895,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             // Try using free WHOIS API service
             const whoisResponse = await fetch(`https://api.whois.vu/?q=${domain}`, {
-              headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' },
-              timeout: 8000
+              headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
             });
             
             if (whoisResponse.ok) {
