@@ -20,13 +20,15 @@ export class TelnetProxyService {
   }
 
   private handleWebSocketConnection(ws: WebSocket, req: IncomingMessage) {
-    console.log('New WebSocket connection for telnet proxy');
+    console.log('New WebSocket connection for telnet proxy from:', req.socket.remoteAddress);
     
     ws.on('message', (data: Buffer | string) => {
+      console.log('Raw WebSocket message received:', data);
       try {
         const messageString = typeof data === 'string' ? data : data.toString();
+        console.log('Message string:', messageString);
         const message = JSON.parse(messageString);
-        console.log('Received WebSocket message:', message);
+        console.log('Parsed WebSocket message:', message);
         this.handleWebSocketMessage(ws, message);
       } catch (error) {
         console.error('Invalid WebSocket message:', error, 'Raw data:', data);

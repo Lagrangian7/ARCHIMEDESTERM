@@ -205,17 +205,27 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
   };
 
   const connectToHost = useCallback((host: string, port: number) => {
+    console.log('connectToHost called with:', { host, port });
+    console.log('WebSocket state:', websocket?.readyState);
+    
     if (!websocket || websocket.readyState !== WebSocket.OPEN) {
       console.error('WebSocket not ready. State:', websocket?.readyState);
       return null;
     }
 
-    console.log('Sending telnet connect message:', { type: 'connect', host, port });
-    websocket.send(JSON.stringify({
+    const message = {
       type: 'connect',
       host,
       port
-    }));
+    };
+    
+    console.log('Sending telnet connect message:', message);
+    try {
+      websocket.send(JSON.stringify(message));
+      console.log('Message sent successfully');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
 
     return 'pending'; // Return a placeholder since backend will provide the real connectionId
   }, [websocket]);
@@ -326,12 +336,24 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
     (window as any).telnetConnect = connectToHost;
     
     // Check for pending connection from terminal command
-    const pendingConnection = (window as any).pendingTelnetConnection;
-    if (pendingConnection && websocket && websocket.readyState === WebSocket.OPEN) {
-      console.log('Connecting to pending telnet connection:', pendingConnection);
-      connectToHost(pendingConnection.host, pendingConnection.port);
-      (window as any).pendingTelnetConnection = null; // Clear pending connection
-    }
+    const checkPendingConnection = () => {
+      const pendingConnection = (window as any).pendingTelnetConnection;
+      console.log('Checking for pending connection:', pendingConnection);
+      console.log('WebSocket state:', websocket?.readyState);
+      
+      if (pendingConnection && websocket && websocket.readyState === WebSocket.OPEN) {
+        console.log('Processing pending telnet connection:', pendingConnection);
+        connectToHost(pendingConnection.host, pendingConnection.port);
+        (window as any).pendingTelnetConnection = null; // Clear pending connection
+      } else if (pendingConnection && websocket && websocket.readyState !== WebSocket.OPEN) {
+        console.log('WebSocket not ready, retrying in 100ms...');
+        setTimeout(checkPendingConnection, 100);
+      }
+    };
+    
+    // Check immediately and also after a short delay
+    checkPendingConnection();
+    setTimeout(checkPendingConnection, 500);
   }, [connectToHost, websocket]);
 
   if (!activeConnection) {
