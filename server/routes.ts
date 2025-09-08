@@ -153,8 +153,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (userId) {
         const conversation = await storage.getConversation(currentSessionId);
         if (conversation && !conversation.userId) {
-          // Update the conversation to link it to the user
-          conversation.userId = userId;
+          // Update the conversation to link it to the user and persist in storage
+          await storage.updateConversationUserId(currentSessionId, userId);
         }
       }
       
