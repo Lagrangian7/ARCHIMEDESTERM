@@ -872,7 +872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Extract name servers
         const nsMatches = whoisData.match(/(?:Name Server|nserver):\s*(.+)/gi);
         const nameServers = nsMatches ? 
-          nsMatches.map(ns => ns.replace(/(?:Name Server|nserver):\s*/i, '').trim()).slice(0, 4).join(', ') : 
+          nsMatches.map((ns: string) => ns.replace(/(?:Name Server|nserver):\s*/i, '').trim()).slice(0, 4).join(', ') : 
           'N/A';
         
         const formatted = `╭─ WHOIS Information for ${domain}
