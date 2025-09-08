@@ -18,6 +18,7 @@ import WebSocket, { WebSocketServer } from 'ws';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { promises as dns } from 'dns';
+import { JuttyService } from './jutty-service';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -2282,6 +2283,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
   
+  // Initialize Jutty service
+  const juttyService = new JuttyService(httpServer);
+  JuttyService.setupStaticRoutes(app);
+  console.log('Jutty service initialized');
 
   // Create WebSocket server for chat system
   const chatWss = new WebSocketServer({

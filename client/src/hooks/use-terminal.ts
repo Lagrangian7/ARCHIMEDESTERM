@@ -609,6 +609,17 @@ You can also chat naturally or ask technical questions.`);
       return;
     }
     
+    if (cmd === 'jutty') {
+      addEntry('system', 'Opening Jutty terminal interface...');
+      const openJuttyInterface = (window as any).openJuttyInterface;
+      if (openJuttyInterface) {
+        openJuttyInterface();
+      } else {
+        addEntry('error', 'Jutty interface not available. Please ensure the system is loaded.');
+      }
+      return;
+    }
+    
     if (cmd.startsWith('mode ')) {
       const newMode = cmd.split(' ')[1] as 'natural' | 'technical';
       if (newMode === 'natural' || newMode === 'technical') {
@@ -1086,18 +1097,51 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         return;
       }
       
-      addEntry('system', `Opening telnet client and connecting to ${host}:${port}...`);
+      addEntry('system', `Opening Jutty telnet client for ${host}:${port}...`);
       
-      // Store the connection request for the telnet client
-      (window as any).pendingTelnetConnection = { host, port };
+      // Open Jutty in a new window/tab
+      const juttyUrl = `/jutty?type=telnet&host=${encodeURIComponent(host)}&port=${port}`;
+      window.open(juttyUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
       
-      // Open the telnet client modal
-      const openTelnetModal = (window as any).openTelnetModal;
-      if (openTelnetModal) {
-        openTelnetModal();
-      } else {
-        addEntry('error', 'Telnet client not available. Please use the Telnet button in the toolbar.');
+      addEntry('system', `Jutty telnet client opened in new window for ${host}:${port}`);
+      return;
+    }
+
+    if (cmd.startsWith('ssh ')) {
+      const parts = cmd.split(' ');
+      if (parts.length < 2) {
+        addEntry('error', 'Usage: ssh <user@host> [port]');
+        return;
       }
+      
+      let userHost = parts[1];
+      let port = 22; // Default SSH port
+      
+      if (parts[2]) {
+        port = parseInt(parts[2]);
+        if (isNaN(port) || port <= 0 || port > 65535) {
+          addEntry('error', 'Invalid port number. Port must be between 1 and 65535.');
+          return;
+        }
+      }
+      
+      // Parse user@host format
+      const atIndex = userHost.indexOf('@');
+      if (atIndex === -1) {
+        addEntry('error', 'Usage: ssh <user@host> [port]');
+        return;
+      }
+      
+      const user = userHost.substring(0, atIndex);
+      const host = userHost.substring(atIndex + 1);
+      
+      addEntry('system', `Opening Jutty SSH client for ${user}@${host}:${port}...`);
+      
+      // Open Jutty in a new window/tab
+      const juttyUrl = `/jutty?type=ssh&host=${encodeURIComponent(host)}&port=${port}&user=${encodeURIComponent(user)}`;
+      window.open(juttyUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
+      
+      addEntry('system', `Jutty SSH client opened in new window for ${user}@${host}:${port}`);
       return;
     }
 
