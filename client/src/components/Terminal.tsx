@@ -13,10 +13,12 @@ import { HelpMenu } from './HelpMenu';
 import { TalkingArchimedes } from './TalkingArchimedes';
 import { RadioCharacter } from './RadioCharacter';
 import { ChatInterface } from './ChatInterface';
+import { PuzzleScreensaver } from './PuzzleScreensaver';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
 import { useChat } from '@/hooks/useChat';
+import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare } from 'lucide-react';
 import skullWatermark from '@assets/wally_1756523512970.jpg';
 import logoImage from '@assets/5721242-200_1756549869080.png';
@@ -84,10 +86,20 @@ export function Terminal() {
   const [showChat, setShowChat] = useState(false);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   
+  // Screensaver state
+  const [screensaverActive, setScreensaverActive] = useState(false);
+  
   // Radio streaming controls - direct playback without modal
   const [isRadioPlaying, setIsRadioPlaying] = useState(false);
   const [radioStatus, setRadioStatus] = useState('Radio ready');
   const audioRef = useRef<HTMLAudioElement>(null);
+  
+  // Activity tracker for screensaver (5 minutes = 300,000ms)
+  const { forceActive } = useActivityTracker({
+    inactivityTimeout: 5 * 60 * 1000, // 5 minutes
+    onInactive: () => setScreensaverActive(true),
+    onActive: () => setScreensaverActive(false)
+  });
   const [visibleEntries, setVisibleEntries] = useState(Math.min(entries.length, 15));
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -684,6 +696,15 @@ export function Terminal() {
           onClose={() => setShowChat(false)}
         />
       )}
+
+      {/* Puzzle Screensaver */}
+      <PuzzleScreensaver 
+        isActive={screensaverActive}
+        onExit={() => {
+          setScreensaverActive(false);
+          forceActive();
+        }}
+      />
     </div>
   );
 }
