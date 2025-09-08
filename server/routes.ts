@@ -93,7 +93,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     proxyReq.setTimeout(30000, () => {
       console.log('⏰ Radio stream timeout');
       proxyReq.destroy();
-      res.status(503).json({ error: 'Stream timeout' });
+      if (!res.headersSent) {
+        res.status(503).json({ error: 'Stream timeout' });
+      }
     });
     
     proxyReq.end();
@@ -1627,7 +1629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (hostnames && hostnames.length > 0) {
           formatted += `├─ Found ${hostnames.length} hostname(s):\n`;
           
-          const uniqueHostnames = [...new Set(hostnames)];
+          const uniqueHostnames = Array.from(new Set(hostnames));
           uniqueHostnames.forEach((hostname, index) => {
             const prefix = index === uniqueHostnames.length - 1 ? '╰─' : '├─';
             formatted += `${prefix} ${hostname}\n`;
