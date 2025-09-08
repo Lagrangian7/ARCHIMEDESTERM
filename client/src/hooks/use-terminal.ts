@@ -580,6 +580,9 @@ Audio & Signal Processing:
 Games:
   snake - Play the classic Snake game
   
+System Commands:
+  xx - Activate screensaver manually
+  
 Knowledge Base Commands:
   docs - List your uploaded documents
   upload - Open document upload interface
@@ -592,6 +595,17 @@ You can also chat naturally or ask technical questions.`);
     
     if (cmd === 'clear') {
       setEntries([]);
+      return;
+    }
+    
+    if (cmd === 'xx') {
+      addEntry('system', 'Activating screensaver...');
+      const activateScreensaver = (window as any).activateScreensaver;
+      if (activateScreensaver) {
+        activateScreensaver();
+      } else {
+        addEntry('error', 'Screensaver not available. Please ensure the system is loaded.');
+      }
       return;
     }
     

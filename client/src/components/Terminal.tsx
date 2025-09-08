@@ -69,6 +69,7 @@ export function Terminal() {
     (window as any).openDTMFDecoder = () => setShowDTMF(true);
     (window as any).openHelpMenu = () => setShowHelpMenu(true);
     (window as any).openChatInterface = () => setShowChat(true);
+    (window as any).activateScreensaver = () => setScreensaverActive(true);
   }, []);
   
   const { speak, isSpeaking } = useSpeechSynthesis();
