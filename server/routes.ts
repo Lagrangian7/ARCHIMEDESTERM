@@ -15,6 +15,9 @@ import { radioGardenService } from "./radio-garden-service";
 import multer from "multer";
 import { z } from "zod";
 import WebSocket, { WebSocketServer } from 'ws';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { promises as dns } from 'dns';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -835,8 +838,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Use system whois command via child_process
-      const { exec } = require('child_process');
-      const { promisify } = require('util');
       const execAsync = promisify(exec);
       
       try {
@@ -891,7 +892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If whois command fails, try with alternative approach
         if (execError.code === 'ENOENT' || execError.message.includes('whois: not found')) {
           // whois command not available, use basic DNS approach
-          const dns = require('dns').promises;
+          // DNS module imported at top of file
           try {
             const addresses = await dns.resolve4(domain);
             const formatted = `╭─ Basic Domain Info for ${domain}
@@ -920,7 +921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/osint/dns/:domain', async (req, res) => {
     try {
       const { domain } = req.params;
-      const dns = require('dns').promises;
+      // DNS module imported at top of file
       
       const results: {
         A: string[];
