@@ -1309,112 +1309,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid IP address or domain format' });
       }
 
-      // Use system traceroute command via child_process
-      const execAsync = promisify(exec);
+      // Use enhanced Node.js traceroute implementation
+      const { NodeTraceroute } = require('./traceroute');
       
       try {
-        // Try traceroute first (Unix/Linux), then tracert (Windows)
-        let command = `traceroute -m 15 -w 3 ${target}`; // Max 15 hops, 3 sec timeout per hop
+        const options = {
+          maxHops: 15,
+          timeoutMs: 5000,
+          retries: 2
+        };
         
-        const { stdout, stderr } = await execAsync(command, { 
-          timeout: 30000, // 30 second timeout
-          encoding: 'utf8'
-        });
+        const result = await NodeTraceroute.traceroute(target, options);
         
-        if (stderr && stderr.includes('not found')) {
-          // Try Windows tracert command
-          try {
-            const { stdout: winStdout } = await execAsync(`tracert -h 15 -w 3000 ${target}`, { 
-              timeout: 30000,
-              encoding: 'utf8'
-            });
-            
-            // Parse Windows tracert output
-            const lines = winStdout.split('\n').filter(line => line.trim());
-            let formatted = `╭─ Traceroute to ${target}\n`;
-            
-            lines.forEach((line, index) => {
-              if (line.includes('ms') && /^\s*\d+/.test(line)) {
-                const hopMatch = line.match(/^\s*(\d+)\s+(.+)/);
-                if (hopMatch) {
-                  const hopNum = hopMatch[1];
-                  const hopData = hopMatch[2].trim();
-                  formatted += `├─ ${hopNum.padStart(2, ' ')}: ${hopData}\n`;
-                }
-              }
-            });
-            
-            formatted += `╰─ Traceroute complete`;
-            return res.json({ formatted });
-          } catch (winError) {
-            throw new Error('Both traceroute and tracert commands failed');
-          }
+        // Format the results similar to system traceroute
+        let formatted = `╭─ Enhanced Traceroute to ${target}\n`;
+        
+        if (result.destinationAddress) {
+          formatted += `├─ Target: ${target} (${result.destinationAddress})\n`;
         }
         
-        // Parse Unix traceroute output
-        const lines = stdout.split('\n').filter(line => line.trim());
-        let formatted = `╭─ Traceroute to ${target}\n`;
-        
-        lines.forEach((line, index) => {
-          if (index === 0) {
-            // First line contains target info
-            const targetMatch = line.match(/to\s+([^\s]+)\s+\(([^)]+)\)/);
-            if (targetMatch) {
-              formatted += `├─ Target: ${targetMatch[1]} (${targetMatch[2]})\n`;
+        if (result.hops && result.hops.length > 0) {
+          result.hops.forEach((hop) => {
+            const hopNum = hop.ttl.toString().padStart(2, ' ');
+            let hopInfo = '';
+            
+            if (hop.timeout) {
+              hopInfo = '*';
+            } else if (hop.success) {
+              const addr = hop.addressString();
+              const host = hop.host ? `${hop.host} (${addr})` : addr;
+              const time = hop.elapsedTime || 'N/A';
+              hopInfo = `${host}  ${time}`;
+            } else {
+              hopInfo = '* * *';
             }
-          } else if (line.includes('ms') || line.includes('*')) {
-            // Hop lines
-            const hopMatch = line.match(/^\s*(\d+)\s+(.+)/);
-            if (hopMatch) {
-              const hopNum = hopMatch[1];
-              let hopData = hopMatch[2].trim();
-              
-              // Clean up the hop data for better readability
-              hopData = hopData
-                .replace(/\s+/g, ' ')
-                .replace(/\(\d+\.\d+\.\d+\.\d+\)/g, '') // Remove duplicate IPs in parens
-                .trim();
-              
-              formatted += `├─ ${hopNum.padStart(2, ' ')}: ${hopData}\n`;
-            }
+            
+            formatted += `├─ ${hopNum}: ${hopInfo}\n`;
+          });
+        } else {
+          formatted += `├─ No hops detected - using basic connectivity analysis\n`;
+          
+          // Fallback to DNS resolution info
+          try {
+            const addresses = await dns.resolve4(target);
+            formatted += `├─ Resolved to: ${addresses.join(', ')}\n`;
+            formatted += `├─ Target appears reachable via DNS\n`;
+          } catch (dnsError) {
+            formatted += `├─ DNS resolution failed for ${target}\n`;
           }
-        });
+        }
         
         formatted += `╰─ Traceroute complete`;
         res.json({ formatted });
         
-      } catch (execError: any) {
-        console.log('Traceroute command error:', execError.message);
+      } catch (traceError) {
+        console.log('Enhanced traceroute error:', traceError.message);
         
-        // Fallback: Basic network path analysis using DNS and ping-like approach
+        // Ultimate fallback: Basic network analysis
         try {
           let formatted = `╭─ Network Path Analysis for ${target}\n`;
-          formatted += `├─ Status: System traceroute unavailable, using fallback analysis\n`;
+          formatted += `├─ Status: Enhanced traceroute unavailable, using basic analysis\n`;
           
-          // Try to resolve the target first
+          // Try to resolve the target
           try {
             const addresses = await dns.resolve4(target);
             formatted += `├─ Resolved to: ${addresses.join(', ')}\n`;
-            
-            // Simple reachability test description
-            formatted += `├─ Performing basic connectivity test...\n`;
-            formatted += `├─ Note: Full route tracing requires system traceroute/tracert\n`;
-            formatted += `├─ Consider running: traceroute ${target} (Unix) or tracert ${target} (Windows)\n`;
-            formatted += `├─ Alternative: Use online traceroute tools for detailed path analysis\n`;
+            formatted += `├─ Target appears reachable via DNS\n`;
+            formatted += `├─ Note: Install system traceroute/tracert for detailed path analysis\n`;
+            formatted += `├─ Alternative: Use online looking glass services\n`;
           } catch (dnsError) {
             formatted += `├─ DNS resolution failed for ${target}\n`;
             formatted += `├─ Target may be unreachable or invalid\n`;
           }
           
-          formatted += `╰─ Limited analysis complete`;
+          formatted += `╰─ Basic analysis complete`;
           res.json({ formatted });
           
         } catch (fallbackError) {
-          res.status(500).json({ error: 'Traceroute analysis failed' });
+          res.status(500).json({ error: 'All traceroute methods failed' });
         }
       }
     } catch (error) {
-      console.error('Traceroute error:', error);
+      console.error('Traceroute endpoint error:', error);
       res.status(500).json({ error: 'Traceroute lookup failed' });
     }
   });
