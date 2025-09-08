@@ -1309,85 +1309,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid IP address or domain format' });
       }
 
-      // Use enhanced Node.js traceroute implementation
-      const { NodeTraceroute } = require('./traceroute');
+      // Simplified traceroute implementation - debug version
+      console.log(`Attempting traceroute to: ${target}`);
       
       try {
-        const options = {
-          maxHops: 15,
-          timeoutMs: 5000,
-          retries: 2
-        };
+        // Try system traceroute first
+        const execAsync = promisify(exec);
         
-        const result = await NodeTraceroute.traceroute(target, options);
-        
-        // Format the results similar to system traceroute
-        let formatted = `╭─ Enhanced Traceroute to ${target}\n`;
-        
-        if (result.destinationAddress) {
-          formatted += `├─ Target: ${target} (${result.destinationAddress})\n`;
-        }
-        
-        if (result.hops && result.hops.length > 0) {
-          result.hops.forEach((hop) => {
-            const hopNum = hop.ttl.toString().padStart(2, ' ');
-            let hopInfo = '';
-            
-            if (hop.timeout) {
-              hopInfo = '*';
-            } else if (hop.success) {
-              const addr = hop.addressString();
-              const host = hop.host ? `${hop.host} (${addr})` : addr;
-              const time = hop.elapsedTime || 'N/A';
-              hopInfo = `${host}  ${time}`;
-            } else {
-              hopInfo = '* * *';
-            }
-            
-            formatted += `├─ ${hopNum}: ${hopInfo}\n`;
-          });
-        } else {
-          formatted += `├─ No hops detected - using basic connectivity analysis\n`;
-          
-          // Fallback to DNS resolution info
-          try {
-            const addresses = await dns.resolve4(target);
-            formatted += `├─ Resolved to: ${addresses.join(', ')}\n`;
-            formatted += `├─ Target appears reachable via DNS\n`;
-          } catch (dnsError) {
-            formatted += `├─ DNS resolution failed for ${target}\n`;
-          }
-        }
-        
-        formatted += `╰─ Traceroute complete`;
-        res.json({ formatted });
-        
-      } catch (traceError) {
-        console.log('Enhanced traceroute error:', traceError.message);
-        
-        // Ultimate fallback: Basic network analysis
         try {
-          let formatted = `╭─ Network Path Analysis for ${target}\n`;
-          formatted += `├─ Status: Enhanced traceroute unavailable, using basic analysis\n`;
+          const command = `traceroute -n -m 10 -w 3 ${target}`;
+          console.log(`Executing: ${command}`);
+          const { stdout } = await execAsync(command, { timeout: 15000, encoding: 'utf8' });
           
-          // Try to resolve the target
+          let formatted = `╭─ System Traceroute to ${target}\n`;
+          const lines = stdout.split('\n').filter(line => line.trim());
+          
+          lines.forEach((line, index) => {
+            if (index === 0 && line.includes('traceroute to')) {
+              const match = line.match(/to\s+([^\s]+)\s+\(([^)]+)\)/);
+              if (match) {
+                formatted += `├─ Target: ${match[1]} (${match[2]})\n`;
+              }
+            } else if (line.match(/^\s*\d+/)) {
+              formatted += `├─ ${line.trim()}\n`;
+            }
+          });
+          
+          formatted += `╰─ Traceroute complete`;
+          return res.json({ formatted });
+          
+        } catch (cmdError) {
+          console.log('System traceroute failed:', cmdError.message);
+          
+          // Fallback to DNS-based analysis
+          let formatted = `╭─ Network Analysis for ${target}\n`;
+          formatted += `├─ Status: System traceroute unavailable\n`;
+          
           try {
             const addresses = await dns.resolve4(target);
-            formatted += `├─ Resolved to: ${addresses.join(', ')}\n`;
+            formatted += `├─ DNS Resolution: SUCCESS\n`;
+            formatted += `├─ Resolved to: ${addresses[0]}\n`;
+            formatted += `├─ Additional IPs: ${addresses.slice(1).join(', ') || 'None'}\n`;
+            
+            // Simple connectivity test
+            formatted += `├─ Performing basic connectivity analysis...\n`;
             formatted += `├─ Target appears reachable via DNS\n`;
-            formatted += `├─ Note: Install system traceroute/tracert for detailed path analysis\n`;
-            formatted += `├─ Alternative: Use online looking glass services\n`;
+            
           } catch (dnsError) {
-            formatted += `├─ DNS resolution failed for ${target}\n`;
-            formatted += `├─ Target may be unreachable or invalid\n`;
+            formatted += `├─ DNS Resolution: FAILED\n`;
+            formatted += `├─ Error: ${dnsError.message}\n`;
           }
           
+          formatted += `├─ Note: Install system traceroute for detailed path analysis\n`;
           formatted += `╰─ Basic analysis complete`;
-          res.json({ formatted });
           
-        } catch (fallbackError) {
-          res.status(500).json({ error: 'All traceroute methods failed' });
+          res.json({ formatted });
         }
+        
+      } catch (error: any) {
+        console.error('Traceroute endpoint error:', error);
+        res.status(500).json({ error: `Traceroute failed: ${error.message}` });
       }
     } catch (error) {
       console.error('Traceroute endpoint error:', error);

@@ -63,17 +63,18 @@ class NodeTraceroute {
       try {
         // Try Unix traceroute first
         command = `traceroute -n -m ${this.options.maxHops} -w 3 ${this.destination}`;
-        const { stdout } = await execAsync(command, { timeout: 30000 });
+        const { stdout } = await execAsync(command, { timeout: 30000, encoding: 'utf8' });
         return this.parseUnixTraceroute(stdout);
       } catch (unixError) {
         try {
           // Try Windows tracert
           command = `tracert -h ${this.options.maxHops} -w 3000 ${this.destination}`;
-          const { stdout } = await execAsync(command, { timeout: 30000 });
+          const { stdout } = await execAsync(command, { timeout: 30000, encoding: 'utf8' });
           isWindows = true;
           return this.parseWindowsTraceroute(stdout);
         } catch (windowsError) {
           // Fallback to our custom implementation
+          console.log('Both system traceroute commands failed, using fallback');
           return this.performCustomTraceroute();
         }
       }
@@ -225,6 +226,7 @@ class NodeTraceroute {
       const result = await this.performHybridTraceroute();
       return result;
     } catch (error) {
+      console.error('Traceroute error:', error);
       throw new Error(`Traceroute failed: ${error.message}`);
     }
   }
