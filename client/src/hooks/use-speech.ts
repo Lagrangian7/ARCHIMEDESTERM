@@ -65,6 +65,31 @@ export function useSpeechSynthesis() {
       .replace(/<[^>]*>/g, '') // Remove HTML tags
       .replace(/\*/g, '') // Remove asterisks
       .replace(/(?<!\d\s?)>\s*(?!\d)/g, '') // Remove > unless it's between numbers (like "5 > 3")
+      // Remove high ASCII/Unicode box-drawing and visual formatting characters
+      .replace(/[╭╮╯╰├┤┬┴┼│─┌┐└┘]/g, '') // Remove box-drawing characters
+      .replace(/[◆◇▲△▼▽●○■□▪▫]/g, '') // Remove geometric symbols
+      .replace(/[░▒▓█]/g, '') // Remove block characters
+      .replace(/[€£¥¢§¶†‡•…‰′″‴]/g, '') // Remove currency and special symbols
+      // Preserve mathematical operators in formulas - check if surrounded by alphanumeric
+      .replace(/([a-zA-Z0-9]\s*)([\+\-×÷=<>≤≥≠∞∑∏∫])(\s*[a-zA-Z0-9])/g, (match, before, op, after) => {
+        const operatorWords: { [key: string]: string } = {
+          '+': ' plus ',
+          '-': ' minus ',
+          '×': ' times ',
+          '÷': ' divided by ',
+          '=': ' equals ',
+          '<': ' less than ',
+          '>': ' greater than ',
+          '≤': ' less than or equal to ',
+          '≥': ' greater than or equal to ',
+          '≠': ' not equal to ',
+          '∞': ' infinity ',
+          '∑': ' sum ',
+          '∏': ' product ',
+          '∫': ' integral '
+        };
+        return before + (operatorWords[op] || op) + after;
+      })
       // Replace punctuation that creates natural pauses
       .replace(/[.!?]+/g, '.') // Normalize sentence endings to single period for pause
       .replace(/[,;:]/g, ',') // Normalize pause punctuation to comma
@@ -75,8 +100,8 @@ export function useSpeechSynthesis() {
       .replace(/[*_~`]/g, '') // Remove formatting characters
       .replace(/-{2,}/g, ' ') // Replace multiple dashes with space
       .replace(/\|/g, ' ') // Replace pipes with space
-      .replace(/\+/g, ' plus ') // Replace + with word
-      .replace(/=/g, ' equals ') // Replace = with word
+      .replace(/\+/g, ' plus ') // Replace remaining + with word
+      .replace(/=/g, ' equals ') // Replace remaining = with word
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
     if (!cleanText) return;
