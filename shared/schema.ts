@@ -59,6 +59,14 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   conversations: many(conversations),
   documents: many(documents),
+  presence: one(userPresence, {
+    fields: [users.id],
+    references: [userPresence.userId],
+  }),
+  directChatsAsUser1: many(directChats, { relationName: "user1" }),
+  directChatsAsUser2: many(directChats, { relationName: "user2" }),
+  sentMessages: many(userMessages, { relationName: "fromUser" }),
+  receivedMessages: many(userMessages, { relationName: "toUser" }),
 }));
 
 export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
@@ -333,6 +341,103 @@ export const insertVirtualSystemSchema = createInsertSchema(virtualSystems).omit
   updatedAt: true,
 });
 
+// User-to-User Chat System Tables
+export const userPresence = pgTable("user_presence", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  isOnline: boolean("is_online").notNull().default(false),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  socketId: varchar("socket_id"), // WebSocket connection ID
+  status: varchar("status").default("online"), // online, away, busy, offline
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const directChats = pgTable("direct_chats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  user1Id: varchar("user1_id").references(() => users.id).notNull(),
+  user2Id: varchar("user2_id").references(() => users.id).notNull(),
+  lastMessageAt: timestamp("last_message_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const userMessages = pgTable("user_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  chatId: varchar("chat_id").references(() => directChats.id).notNull(),
+  fromUserId: varchar("from_user_id").references(() => users.id).notNull(),
+  toUserId: varchar("to_user_id").references(() => users.id).notNull(),
+  content: text("content").notNull(),
+  messageType: varchar("message_type").notNull().default("text"), // text, image, file, system
+  isRead: boolean("is_read").notNull().default(false),
+  isDelivered: boolean("is_delivered").notNull().default(false),
+  sentAt: timestamp("sent_at").notNull().defaultNow(),
+  readAt: timestamp("read_at"),
+});
+
+// Chat system relations
+export const userPresenceRelations = relations(userPresence, ({ one }) => ({
+  user: one(users, {
+    fields: [userPresence.userId],
+    references: [users.id],
+  }),
+}));
+
+export const directChatsRelations = relations(directChats, ({ one, many }) => ({
+  user1: one(users, {
+    fields: [directChats.user1Id],
+    references: [users.id],
+    relationName: "user1",
+  }),
+  user2: one(users, {
+    fields: [directChats.user2Id],
+    references: [users.id],
+    relationName: "user2",
+  }),
+  messages: many(userMessages),
+}));
+
+export const userMessagesRelations = relations(userMessages, ({ one }) => ({
+  chat: one(directChats, {
+    fields: [userMessages.chatId],
+    references: [directChats.id],
+  }),
+  fromUser: one(users, {
+    fields: [userMessages.fromUserId],
+    references: [users.id],
+    relationName: "fromUser",
+  }),
+  toUser: one(users, {
+    fields: [userMessages.toUserId],
+    references: [users.id],
+    relationName: "toUser",
+  }),
+}));
+
+// Chat schema definitions
+export const insertUserPresenceSchema = createInsertSchema(userPresence).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDirectChatSchema = createInsertSchema(directChats).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserMessageSchema = createInsertSchema(userMessages).omit({
+  id: true,
+  sentAt: true,
+});
+
+// User message schema for validation
+export const userMessageSchema = z.object({
+  content: z.string().min(1).max(1000),
+  messageType: z.enum(["text", "image", "file", "system"]).default("text"),
+});
+
 // Type exports
 export type BbsSystem = typeof bbsSystems.$inferSelect;
 export type InsertBbsSystem = z.infer<typeof insertBbsSystemSchema>;
@@ -344,3 +449,11 @@ export type BbsRating = typeof bbsRatings.$inferSelect;
 export type VirtualSystem = typeof virtualSystems.$inferSelect;
 export type InsertVirtualSystem = z.infer<typeof insertVirtualSystemSchema>;
 export type NetworkConnection = typeof networkConnections.$inferSelect;
+
+// Chat system types
+export type UserPresence = typeof userPresence.$inferSelect;
+export type InsertUserPresence = z.infer<typeof insertUserPresenceSchema>;
+export type DirectChat = typeof directChats.$inferSelect;
+export type InsertDirectChat = z.infer<typeof insertDirectChatSchema>;
+export type UserMessage = typeof userMessages.$inferSelect;
+export type InsertUserMessage = z.infer<typeof insertUserMessageSchema>;
