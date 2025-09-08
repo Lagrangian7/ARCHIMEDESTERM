@@ -448,6 +448,46 @@ export function useTerminal(onUploadCommand?: () => void) {
           });
         return;
       }
+      
+      if (osintMode === 'reverse-ip') {
+        addEntry('system', `🔄 Performing reverse IP lookup for ${target}...`);
+        fetch(`/api/osint/reverse-ip/${target}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'Reverse IP lookup failed');
+          });
+        return;
+      }
+      
+      if (osintMode === 'portscan') {
+        addEntry('system', `🛡️ Scanning ports on ${target}...`);
+        fetch(`/api/osint/portscan/${target}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'Port scan failed');
+          });
+        return;
+      }
+      
+      if (osintMode === 'report') {
+        addEntry('system', `📋 Generating comprehensive OSINT report for ${target}...`);
+        addEntry('system', 'This may take a moment as we gather intelligence from multiple sources...');
+        fetch(`/api/osint/report/${target}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'OSINT report generation failed');
+          });
+        return;
+      }
     }
     
     // Handle built-in terminal commands
@@ -1591,6 +1631,67 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         });
       return;
     }
+    
+    if (cmd.startsWith('reverse-ip ')) {
+      const ip = cmd.substring(11).trim();
+      if (!ip) {
+        addEntry('error', 'Usage: reverse-ip <ip_address>');
+        return;
+      }
+      
+      addEntry('system', `🔄 Performing reverse IP lookup for ${ip}...`);
+      
+      fetch(`/api/osint/reverse-ip/${ip}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'Reverse IP lookup failed');
+        });
+      return;
+    }
+    
+    if (cmd.startsWith('portscan ')) {
+      const target = cmd.substring(9).trim();
+      if (!target) {
+        addEntry('error', 'Usage: portscan <ip_or_domain>');
+        return;
+      }
+      
+      addEntry('system', `🛡️ Scanning ports on ${target}...`);
+      
+      fetch(`/api/osint/portscan/${target}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'Port scan failed');
+        });
+      return;
+    }
+    
+    if (cmd.startsWith('osint-report ')) {
+      const target = cmd.substring(13).trim();
+      if (!target) {
+        addEntry('error', 'Usage: osint-report <domain_or_ip>');
+        return;
+      }
+      
+      addEntry('system', `📋 Generating comprehensive OSINT report for ${target}...`);
+      addEntry('system', 'This may take a moment as we gather intelligence from multiple sources...');
+      
+      fetch(`/api/osint/report/${target}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'OSINT report generation failed');
+        });
+      return;
+    }
 
     if (cmd === 'osint' || cmd === 'osint help') {
       const menuText = `🔍 OSINT (Open Source Intelligence) Services:
@@ -1606,6 +1707,9 @@ Select a service by typing the number:
 8. Subdomains - Subdomain enumeration
 9. SSL - SSL/TLS certificate analysis
 10. Tech - Technology stack detection
+11. Reverse IP - Find domains on same IP
+12. Port Scan - Network port reconnaissance
+13. Report - Comprehensive intelligence gathering
 
 Type: osint <number> (e.g., "osint 1")
 💡 All lookups performed ethically using public APIs`;
@@ -1689,8 +1793,29 @@ Type: osint <number> (e.g., "osint 1")
         return;
       }
       
+      if (selection === '11') {
+        addEntry('system', '🔄 Reverse IP Lookup selected');
+        addEntry('system', 'Enter IP address (e.g., "8.8.8.8"):');
+        localStorage.setItem('osintMode', 'reverse-ip');
+        return;
+      }
+      
+      if (selection === '12') {
+        addEntry('system', '🛡️ Port Scan selected');
+        addEntry('system', 'Enter IP or domain (e.g., "example.com"):');
+        localStorage.setItem('osintMode', 'portscan');
+        return;
+      }
+      
+      if (selection === '13') {
+        addEntry('system', '📋 Comprehensive OSINT Report selected');
+        addEntry('system', 'Enter domain or IP (e.g., "github.com"):');
+        localStorage.setItem('osintMode', 'report');
+        return;
+      }
+      
       // Invalid selection
-      addEntry('error', 'Invalid selection. Choose 1-10 or type "osint" to see menu.');
+      addEntry('error', 'Invalid selection. Choose 1-13 or type "osint" to see menu.');
       return;
     }
     

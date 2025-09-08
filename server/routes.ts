@@ -1529,6 +1529,178 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reverse IP Lookup endpoint
+  app.get('/api/osint/reverse-ip/:ip', async (req, res) => {
+    try {
+      const { ip } = req.params;
+      
+      // Validate IP format
+      const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+      if (!ipRegex.test(ip)) {
+        return res.status(400).json({ error: 'Invalid IP address format' });
+      }
+
+      let formatted = `╭─ Reverse IP Lookup for ${ip}\n`;
+      
+      try {
+        // Perform reverse DNS lookup to get hostnames
+        const hostnames = await dns.reverse(ip);
+        
+        if (hostnames && hostnames.length > 0) {
+          formatted += `├─ Found ${hostnames.length} hostname(s):\n`;
+          
+          const uniqueHostnames = [...new Set(hostnames)];
+          uniqueHostnames.forEach((hostname, index) => {
+            const prefix = index === uniqueHostnames.length - 1 ? '╰─' : '├─';
+            formatted += `${prefix} ${hostname}\n`;
+          });
+          
+          // Try to extract domain patterns to find related domains
+          const domains = uniqueHostnames
+            .map(hostname => {
+              const parts = hostname.split('.');
+              if (parts.length >= 2) {
+                return parts.slice(-2).join('.');
+              }
+              return hostname;
+            })
+            .filter((domain, index, arr) => arr.indexOf(domain) === index);
+          
+          if (domains.length > 1) {
+            formatted += `├─ Related domains detected: ${domains.slice(0, 5).join(', ')}`;
+            if (domains.length > 5) {
+              formatted += ` and ${domains.length - 5} more`;
+            }
+            formatted += '\n';
+          }
+          
+        } else {
+          formatted += `├─ No hostnames found for this IP\n`;
+          formatted += `├─ IP may not have reverse DNS configured\n`;
+        }
+      } catch (reverseError) {
+        formatted += `├─ Reverse DNS lookup failed\n`;
+        formatted += `├─ IP may not have PTR records configured\n`;
+      }
+      
+      formatted += `╰─ Reverse IP analysis complete`;
+      res.json({ formatted });
+      
+    } catch (error) {
+      console.error('Reverse IP lookup error:', error);
+      res.status(500).json({ error: 'Reverse IP lookup failed' });
+    }
+  });
+
+  // Port Scanning endpoint
+  app.get('/api/osint/portscan/:target', async (req, res) => {
+    try {
+      const { target } = req.params;
+      
+      // Validate target format (IP or domain)
+      const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-._]*[a-zA-Z0-9]$/;
+      if (!ipRegex.test(target) && !domainRegex.test(target)) {
+        return res.status(400).json({ error: 'Invalid IP address or domain format' });
+      }
+
+      let formatted = `╭─ Port Scan for ${target}\n`;
+      
+      // Common ports to scan
+      const commonPorts = [21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 993, 995, 1723, 3389, 5432, 3306];
+      const net = require('net');
+      const openPorts: number[] = [];
+      
+      formatted += `├─ Scanning ${commonPorts.length} common ports...\n`;
+      
+      // Scan ports concurrently but with limited concurrency
+      const maxConcurrent = 10;
+      for (let i = 0; i < commonPorts.length; i += maxConcurrent) {
+        const batch = commonPorts.slice(i, i + maxConcurrent);
+        
+        const batchPromises = batch.map(port => {
+          return new Promise<number | null>((resolve) => {
+            const socket = new net.Socket();
+            const timeout = setTimeout(() => {
+              socket.destroy();
+              resolve(null);
+            }, 2000); // 2 second timeout per port
+            
+            socket.on('connect', () => {
+              clearTimeout(timeout);
+              socket.destroy();
+              resolve(port);
+            });
+            
+            socket.on('error', () => {
+              clearTimeout(timeout);
+              resolve(null);
+            });
+            
+            try {
+              socket.connect(port, target);
+            } catch (error) {
+              clearTimeout(timeout);
+              resolve(null);
+            }
+          });
+        });
+        
+        const batchResults = await Promise.all(batchPromises);
+        batchResults.forEach(port => {
+          if (port !== null) {
+            openPorts.push(port);
+          }
+        });
+        
+        // Small delay between batches to be respectful
+        if (i + maxConcurrent < commonPorts.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      
+      if (openPorts.length > 0) {
+        formatted += `├─ Found ${openPorts.length} open ports:\n`;
+        
+        const portServices: { [key: number]: string } = {
+          21: 'FTP',
+          22: 'SSH',
+          23: 'Telnet',
+          25: 'SMTP',
+          53: 'DNS',
+          80: 'HTTP',
+          110: 'POP3',
+          135: 'RPC',
+          139: 'NetBIOS',
+          143: 'IMAP',
+          443: 'HTTPS',
+          993: 'IMAPS',
+          995: 'POP3S',
+          1723: 'PPTP',
+          3389: 'RDP',
+          5432: 'PostgreSQL',
+          3306: 'MySQL'
+        };
+        
+        openPorts.forEach((port, index) => {
+          const service = portServices[port] || 'Unknown';
+          const prefix = index === openPorts.length - 1 ? '╰─' : '├─';
+          formatted += `${prefix} Port ${port}/tcp (${service})\n`;
+        });
+      } else {
+        formatted += `├─ No open ports found in common port range\n`;
+        formatted += `├─ Target may have firewall protection or be offline\n`;
+      }
+      
+      formatted += `╰─ Port scan complete`;
+      res.json({ formatted });
+      
+    } catch (error) {
+      console.error('Port scan error:', error);
+      res.status(500).json({ error: 'Port scan failed' });
+    }
+  });
+
   // Technology Stack Detection endpoint
   app.get('/api/osint/tech/:domain', async (req, res) => {
     try {
@@ -1661,6 +1833,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Technology analysis error:', error);
       res.status(500).json({ error: 'Technology analysis failed' });
+    }
+  });
+
+  // Comprehensive OSINT Report endpoint
+  app.get('/api/osint/report/:target', async (req, res) => {
+    try {
+      const { target } = req.params;
+      
+      // Determine if target is IP or domain
+      const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+      const isIP = ipRegex.test(target);
+      
+      let formatted = `╭─ Comprehensive OSINT Report for ${target}\n`;
+      formatted += `├─ Target Type: ${isIP ? 'IP Address' : 'Domain'}\n`;
+      formatted += `├─ Report Generated: ${new Date().toISOString()}\n`;
+      formatted += `├─ Gathering intelligence from multiple sources...\n`;
+      formatted += `│\n`;
+      
+      const results: { [key: string]: any } = {};
+      
+      // For domains, gather comprehensive intelligence
+      if (!isIP) {
+        // WHOIS Lookup
+        try {
+          const whoisRes = await fetch(`http://localhost:5000/api/osint/whois/${target}`);
+          const whoisData = await whoisRes.json();
+          results.whois = whoisData;
+        } catch (e) {
+          results.whois = { error: 'WHOIS lookup failed' };
+        }
+        
+        // DNS Records
+        try {
+          const dnsRes = await fetch(`http://localhost:5000/api/osint/dns/${target}`);
+          const dnsData = await dnsRes.json();
+          results.dns = dnsData;
+        } catch (e) {
+          results.dns = { error: 'DNS lookup failed' };
+        }
+        
+        // SSL Certificate
+        try {
+          const sslRes = await fetch(`http://localhost:5000/api/osint/ssl/${target}`);
+          const sslData = await sslRes.json();
+          results.ssl = sslData;
+        } catch (e) {
+          results.ssl = { error: 'SSL analysis failed' };
+        }
+        
+        // Technology Stack
+        try {
+          const techRes = await fetch(`http://localhost:5000/api/osint/tech/${target}`);
+          const techData = await techRes.json();
+          results.tech = techData;
+        } catch (e) {
+          results.tech = { error: 'Technology analysis failed' };
+        }
+        
+        // Subdomain Enumeration (limited for report)
+        try {
+          const subdomainsRes = await fetch(`http://localhost:5000/api/osint/subdomains/${target}`);
+          const subdomainsData = await subdomainsRes.json();
+          results.subdomains = subdomainsData;
+        } catch (e) {
+          results.subdomains = { error: 'Subdomain enumeration failed' };
+        }
+      }
+      
+      // For both IPs and domains, resolve to IP if needed
+      let resolvedIP = target;
+      if (!isIP) {
+        try {
+          const addresses = await dns.resolve4(target);
+          resolvedIP = addresses[0];
+          results.resolvedIP = resolvedIP;
+        } catch (e) {
+          results.resolvedIP = null;
+        }
+      }
+      
+      // GeoIP for the resolved IP
+      if (resolvedIP) {
+        try {
+          const geoipRes = await fetch(`http://localhost:5000/api/osint/geoip/${resolvedIP}`);
+          const geoipData = await geoipRes.json();
+          results.geoip = geoipData;
+        } catch (e) {
+          results.geoip = { error: 'GeoIP lookup failed' };
+        }
+        
+        // Reverse IP if we have an IP
+        try {
+          const reverseRes = await fetch(`http://localhost:5000/api/osint/reverse-ip/${resolvedIP}`);
+          const reverseData = await reverseRes.json();
+          results.reverse = reverseData;
+        } catch (e) {
+          results.reverse = { error: 'Reverse IP lookup failed' };
+        }
+      }
+      
+      // Format comprehensive report
+      formatted += `├─ DOMAIN INTELLIGENCE:\n`;
+      if (results.whois && !results.whois.error) {
+        const whoisLines = results.whois.formatted.split('\n').slice(1, 4);
+        whoisLines.forEach((line: string) => {
+          if (line.trim()) formatted += `│  ${line}\n`;
+        });
+      }
+      
+      if (results.dns && !results.dns.error) {
+        formatted += `│  DNS: Multiple record types detected\n`;
+      }
+      
+      if (results.ssl && !results.ssl.error) {
+        const sslLines = results.ssl.formatted.split('\n').slice(1, 3);
+        sslLines.forEach((line: string) => {
+          if (line.trim()) formatted += `│  ${line}\n`;
+        });
+      }
+      
+      formatted += `│\n`;
+      formatted += `├─ INFRASTRUCTURE ANALYSIS:\n`;
+      
+      if (results.geoip && !results.geoip.error) {
+        const geoLines = results.geoip.formatted.split('\n').slice(1, 4);
+        geoLines.forEach((line: string) => {
+          if (line.trim()) formatted += `│  ${line}\n`;
+        });
+      }
+      
+      if (results.reverse && !results.reverse.error) {
+        formatted += `│  Multiple domains may share this infrastructure\n`;
+      }
+      
+      formatted += `│\n`;
+      formatted += `├─ TECHNOLOGY STACK:\n`;
+      if (results.tech && !results.tech.error) {
+        const techLines = results.tech.formatted.split('\n').slice(2, 6);
+        techLines.forEach((line: string) => {
+          if (line.trim()) formatted += `│  ${line}\n`;
+        });
+      } else {
+        formatted += `│  Technology analysis unavailable\n`;
+      }
+      
+      formatted += `│\n`;
+      formatted += `├─ ATTACK SURFACE:\n`;
+      if (results.subdomains && !results.subdomains.error) {
+        const subdomainCount = (results.subdomains.formatted.match(/Found (\d+) active/)?.[1]) || 'Unknown';
+        formatted += `│  Subdomains discovered: ${subdomainCount}\n`;
+      }
+      formatted += `│  Recommend: Port scan, directory enumeration\n`;
+      
+      formatted += `│\n`;
+      formatted += `├─ RECOMMENDATIONS:\n`;
+      formatted += `│  • Run detailed port scan: portscan ${resolvedIP || target}\n`;
+      formatted += `│  • Check HTTP headers: headers https://${target}\n`;
+      formatted += `│  • Search historical data: wayback https://${target}\n`;
+      formatted += `│  • Verify username patterns: username ${target.split('.')[0]}\n`;
+      formatted += `│\n`;
+      formatted += `╰─ Comprehensive OSINT report complete`;
+      
+      res.json({ formatted, data: results });
+      
+    } catch (error) {
+      console.error('OSINT report error:', error);
+      res.status(500).json({ error: 'OSINT report generation failed' });
     }
   });
 
