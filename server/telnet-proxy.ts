@@ -43,37 +43,52 @@ export class TelnetProxyService {
   }
 
   private handleWebSocketMessage(ws: WebSocket, message: any) {
-    switch (message.type) {
-      case 'connect':
-        this.handleConnect(ws, message.host, message.port);
-        break;
-      case 'data':
-        this.handleData(message.connectionId, message.data);
-        break;
-      case 'break':
-        this.handleBreak(message.connectionId);
-        break;
-      case 'disconnect':
-        this.handleDisconnect(message.connectionId);
-        break;
-      default:
-        ws.send(JSON.stringify({ 
-          type: 'error', 
-          message: 'Unknown message type' 
-        }));
+    console.log('Processing WebSocket message:', message);
+    try {
+      switch (message.type) {
+        case 'connect':
+          this.handleConnect(ws, message.host, message.port);
+          break;
+        case 'data':
+          this.handleData(message.connectionId, message.data);
+          break;
+        case 'break':
+          this.handleBreak(message.connectionId);
+          break;
+        case 'disconnect':
+          this.handleDisconnect(message.connectionId);
+          break;
+        default:
+          console.error('Unknown message type:', message.type);
+          ws.send(JSON.stringify({ 
+            type: 'error', 
+            message: 'Unknown message type' 
+          }));
+      }
+    } catch (error: any) {
+      console.error('Error processing WebSocket message:', error);
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: `Message processing error: ${error.message}`
+      }));
     }
   }
 
   private async handleConnect(ws: WebSocket, host: string, port: number) {
     const connectionId = `telnet_${++this.connectionCounter}`;
     
-    console.log(`Attempting telnet connection to ${host}:${port}`);
+    console.log(`Attempting telnet connection to ${host}:${port} with connectionId: ${connectionId}`);
 
     try {
       // Validate host and port
-      if (!this.isValidHost(host) || !this.isValidPort(port)) {
-        throw new Error('Invalid host or port');
+      if (!this.isValidHost(host)) {
+        throw new Error(`Invalid host: ${host}`);
       }
+      if (!this.isValidPort(port)) {
+        throw new Error(`Invalid port: ${port}`);
+      }
+      
+      console.log('Host and port validation passed');
 
       // Create TCP connection
       const socket = createConnection({
@@ -94,7 +109,7 @@ export class TelnetProxyService {
       this.connections.set(connectionId, connection);
 
       socket.on('connect', () => {
-        console.log(`Connected to ${host}:${port}`);
+        console.log(`Successfully connected to ${host}:${port} with connectionId: ${connectionId}`);
         const connectedMessage = {
           type: 'connected',
           connectionId,
@@ -103,7 +118,11 @@ export class TelnetProxyService {
           message: `Connected to ${host}:${port}`
         };
         console.log('Sending connected message:', connectedMessage);
-        ws.send(JSON.stringify(connectedMessage));
+        try {
+          ws.send(JSON.stringify(connectedMessage));
+        } catch (wsError: any) {
+          console.error('Error sending connected message:', wsError);
+        }
       });
 
       socket.on('data', (data: Buffer) => {
@@ -118,12 +137,16 @@ export class TelnetProxyService {
       });
 
       socket.on('error', (error: Error) => {
-        console.error(`Telnet connection error: ${error.message}`);
-        ws.send(JSON.stringify({
-          type: 'error',
-          connectionId,
-          message: `Connection error: ${error.message}`
-        }));
+        console.error(`Telnet connection error for ${host}:${port} (${connectionId}): ${error.message}`);
+        try {
+          ws.send(JSON.stringify({
+            type: 'error',
+            connectionId,
+            message: `Connection error: ${error.message}`
+          }));
+        } catch (wsError: any) {
+          console.error('Error sending error message:', wsError);
+        }
         this.connections.delete(connectionId);
       });
 
