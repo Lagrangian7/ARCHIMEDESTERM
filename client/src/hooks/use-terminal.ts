@@ -396,6 +396,19 @@ export function useTerminal(onUploadCommand?: () => void) {
           });
         return;
       }
+      
+      if (osintMode === 'traceroute') {
+        addEntry('system', `🛤️ Tracing network path to ${target}...`);
+        fetch(`/api/osint/traceroute/${target}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'Traceroute failed');
+          });
+        return;
+      }
     }
     
     // Handle built-in terminal commands
@@ -1459,6 +1472,26 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         });
       return;
     }
+    
+    if (cmd.startsWith('traceroute ')) {
+      const target = cmd.substring(11).trim();
+      if (!target) {
+        addEntry('error', 'Usage: traceroute <ip_or_domain>');
+        return;
+      }
+      
+      addEntry('system', `🛤️ Tracing network path to ${target}...`);
+      
+      fetch(`/api/osint/traceroute/${target}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'Traceroute failed');
+        });
+      return;
+    }
 
     if (cmd === 'osint' || cmd === 'osint help') {
       const menuText = `🔍 OSINT (Open Source Intelligence) Services:
@@ -1470,6 +1503,7 @@ Select a service by typing the number:
 4. Headers - HTTP header analysis  
 5. Wayback - Historical website snapshots
 6. Username - Username availability checker
+7. Traceroute - Network path tracing
 
 Type: osint <number> (e.g., "osint 1")
 💡 All lookups performed ethically using public APIs`;
@@ -1525,8 +1559,15 @@ Type: osint <number> (e.g., "osint 1")
         return;
       }
       
+      if (selection === '7') {
+        addEntry('system', '🛤️ Network Path Tracing selected');
+        addEntry('system', 'Enter target IP or domain (e.g., "8.8.8.8" or "google.com"):');
+        localStorage.setItem('osintMode', 'traceroute');
+        return;
+      }
+      
       // Invalid selection
-      addEntry('error', 'Invalid selection. Choose 1-6 or type "osint" to see menu.');
+      addEntry('error', 'Invalid selection. Choose 1-7 or type "osint" to see menu.');
       return;
     }
     
