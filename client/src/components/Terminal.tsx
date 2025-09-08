@@ -13,7 +13,6 @@ import { TalkingArchimedes } from './TalkingArchimedes';
 import { RadioCharacter } from './RadioCharacter';
 import { ChatInterface } from './ChatInterface';
 import { PuzzleScreensaver } from './PuzzleScreensaver';
-import { JuttyInterface } from './JuttyInterface';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
@@ -69,7 +68,6 @@ export function Terminal() {
     (window as any).openHelpMenu = () => setShowHelpMenu(true);
     (window as any).openChatInterface = () => setShowChat(true);
     (window as any).activateScreensaver = () => setScreensaverActive(true);
-    (window as any).openJuttyInterface = () => setShowJutty(true);
   }, []);
   
   const { speak, isSpeaking } = useSpeechSynthesis();
@@ -85,7 +83,6 @@ export function Terminal() {
   const [showHelpMenu, setShowHelpMenu] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
-  const [showJutty, setShowJutty] = useState(false);
   
   // Screensaver state
   const [screensaverActive, setScreensaverActive] = useState(false);
@@ -393,16 +390,6 @@ export function Terminal() {
                     <Radio size={14} className="mr-1" />
                     {isRadioPlaying ? 'Stop' : 'Radio'}
                   </Button>
-                  <Button
-                    onClick={() => setShowJutty(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
-                    data-testid="button-jutty"
-                  >
-                    <TerminalIcon size={14} className="mr-1" />
-                    Jutty
-                  </Button>
                 </>
               ) : (
                 <Button
@@ -673,14 +660,6 @@ export function Terminal() {
         />
       )}
 
-      {/* Jutty Interface */}
-      {showJutty && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="w-[90vw] h-[80vh] bg-terminal-bg border border-terminal-highlight rounded-lg overflow-hidden">
-            <JuttyInterface onClose={() => setShowJutty(false)} />
-          </div>
-        </div>
-      )}
 
       {/* Puzzle Screensaver */}
       <PuzzleScreensaver 

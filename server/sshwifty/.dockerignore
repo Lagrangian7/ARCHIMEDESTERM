@@ -1,0 +1,12 @@
+**/*
+
+!application/*
+!ui/*
+!*.md
+!*.go
+!*.sum
+!*.mod
+!*.json
+!*.js
+!*.cjs
+!*.mjs

@@ -609,14 +609,13 @@ You can also chat naturally or ask technical questions.`);
       return;
     }
     
-    if (cmd === 'jutty') {
-      addEntry('system', 'Opening Jutty terminal interface...');
-      const openJuttyInterface = (window as any).openJuttyInterface;
-      if (openJuttyInterface) {
-        openJuttyInterface();
-      } else {
-        addEntry('error', 'Jutty interface not available. Please ensure the system is loaded.');
-      }
+    if (cmd === 'ssh-client' || cmd === 'sshwifty') {
+      addEntry('system', 'Opening Sshwifty terminal interface...');
+      
+      // Open Sshwifty main interface in a new window
+      window.open('/sshwifty', '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
+      
+      addEntry('system', 'Sshwifty interface opened in new window');
       return;
     }
     
@@ -1097,13 +1096,13 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         return;
       }
       
-      addEntry('system', `Opening Jutty telnet client for ${host}:${port}...`);
+      addEntry('system', `Opening telnet client for ${host}:${port}...`);
       
-      // Open Jutty in a new window/tab
-      const juttyUrl = `/jutty?type=telnet&host=${encodeURIComponent(host)}&port=${port}`;
-      window.open(juttyUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
+      // Open Sshwifty in a new window/tab
+      const sshwiftyUrl = `/sshwifty?host=${encodeURIComponent(host)}&port=${port}&type=telnet`;
+      window.open(sshwiftyUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
       
-      addEntry('system', `Jutty telnet client opened in new window for ${host}:${port}`);
+      addEntry('system', `Telnet client opened in new window for ${host}:${port}`);
       return;
     }
 
@@ -1135,13 +1134,13 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       const user = userHost.substring(0, atIndex);
       const host = userHost.substring(atIndex + 1);
       
-      addEntry('system', `Opening Jutty SSH client for ${user}@${host}:${port}...`);
+      addEntry('system', `Opening SSH client for ${user}@${host}:${port}...`);
       
-      // Open Jutty in a new window/tab
-      const juttyUrl = `/jutty?type=ssh&host=${encodeURIComponent(host)}&port=${port}&user=${encodeURIComponent(user)}`;
-      window.open(juttyUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
+      // Open Sshwifty in a new window/tab
+      const sshwiftyUrl = `/sshwifty?host=${encodeURIComponent(host)}&port=${port}&user=${encodeURIComponent(user)}&type=ssh`;
+      window.open(sshwiftyUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
       
-      addEntry('system', `Jutty SSH client opened in new window for ${user}@${host}:${port}`);
+      addEntry('system', `SSH client opened in new window for ${user}@${host}:${port}`);
       return;
     }
 
