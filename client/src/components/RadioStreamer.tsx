@@ -20,14 +20,16 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
     '/api/radio-proxy?url=' + encodeURIComponent('https://playerservices.streamtheworld.com/api/livestream-redirect/INFOWARS.mp3'),
     'https://ice1.somafm.com/thetrip-128-mp3', // SomaFM - CORS enabled, works reliably
     'https://ice2.somafm.com/groovesalad-128-mp3', // SomaFM alternative with CORS
+    'https://ice1.somafm.com/deepspaceone-128-mp3', // SomaFM Deep Space One - Deep ambient electronic
     'https://samples-files.com/samples/Audio/mp3/mp3-example-1.mp3' // Working test fallback
   ];
   
   const [currentStreamIndex, setCurrentStreamIndex] = useState(0);
   const streamUrl = INFOWARS_STREAMS[currentStreamIndex];
   const stationName = currentStreamIndex === 0 ? 'Infowars Live Stream' : 
-                     currentStreamIndex === 1 ? 'Talk Radio Stream' :
-                     currentStreamIndex === 2 ? 'Alternative Stream' : 'Test Audio';
+                     currentStreamIndex === 1 ? 'SomaFM - The Trip' :
+                     currentStreamIndex === 2 ? 'SomaFM - Groove Salad' : 
+                     currentStreamIndex === 3 ? 'SomaFM - Deep Space One' : 'Test Audio';
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -244,8 +246,9 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
             <div className="text-terminal-highlight font-semibold">{stationName}</div>
 <div className="text-terminal-text text-sm">{
   currentStreamIndex === 0 ? '🎙️ Alex Jones Show - Live Stream' : 
-  currentStreamIndex === 1 ? '📻 Talk Radio Network' :
-  currentStreamIndex === 2 ? '📡 Radio Stream Relay' : 
+  currentStreamIndex === 1 ? '🎵 Downbeat, chillout, and trip-hop' :
+  currentStreamIndex === 2 ? '🎧 Downtempo, ambient, and chillout' : 
+  currentStreamIndex === 3 ? '🌌 Deep ambient electronic space music' : 
   '🔧 Test Audio Stream'
 }</div>
             <div className="text-terminal-subtle text-xs mt-1">Status: {connectionStatus}</div>
@@ -305,8 +308,9 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
                 }`}
               >
                 index === 0 ? 'Live' : 
-                index === 1 ? 'Talk' : 
-                index === 2 ? 'Alt' : 'Test'
+                index === 1 ? 'Trip' : 
+                index === 2 ? 'Groove' : 
+                index === 3 ? 'Space' : 'Test'
               </button>
             ))}
           </div>
