@@ -120,98 +120,128 @@ export const useChat = () => {
     return await response.json();
   }, []);
 
-  // WebSocket connection management
+  // WebSocket connection management with improved reliability
   useEffect(() => {
     if (!user?.id) return;
 
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    let reconnectTimeout: NodeJS.Timeout;
+    let isConnecting = false;
+
     const connectWebSocket = () => {
+      if (isConnecting) return;
+      
+      isConnecting = true;
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${protocol}//${window.location.host}/ws/chat`;
       
-      wsRef.current = new WebSocket(wsUrl);
+      try {
+        wsRef.current = new WebSocket(wsUrl);
 
-      wsRef.current.onopen = () => {
-        console.log('Chat WebSocket connected');
-        setIsConnected(true);
-        
-        // Authenticate with the server
-        wsRef.current?.send(JSON.stringify({
-          type: 'auth',
-          userId: user.id,
-        }));
-      };
-
-      wsRef.current.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
+        wsRef.current.onopen = () => {
+          console.log('Chat WebSocket connected');
+          setIsConnected(true);
+          reconnectAttempts = 0; // Reset on successful connection
+          isConnecting = false;
           
-          switch (message.type) {
-            case 'message':
-              // New message received
-              queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
-              refetchUnreadCount();
-              break;
-              
-            case 'user_online':
-              // User came online
-              refetchOnlineUsers();
-              break;
-              
-            case 'user_offline':
-              // User went offline
-              refetchOnlineUsers();
-              break;
-              
-            case 'typing':
-              // Handle typing indicators
-              const { fromUserId, isTyping } = message.data;
-              setTypingUsers(prev => ({
-                ...prev,
-                [fromUserId]: isTyping,
-              }));
-              
-              // Clear typing indicator after 3 seconds
-              if (isTyping) {
-                setTimeout(() => {
-                  setTypingUsers(prev => ({
-                    ...prev,
-                    [fromUserId]: false,
-                  }));
-                }, 3000);
-              }
-              break;
-              
-            case 'auth_success':
-              console.log('Chat authentication successful');
-              break;
-              
-            default:
-              console.log('Unknown WebSocket message type:', message.type);
+          // Authenticate with the server
+          wsRef.current?.send(JSON.stringify({
+            type: 'auth',
+            userId: user.id,
+          }));
+        };
+
+        wsRef.current.onmessage = (event) => {
+          try {
+            const message = JSON.parse(event.data);
+            
+            switch (message.type) {
+              case 'message':
+                // New message received
+                queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
+                refetchUnreadCount();
+                break;
+                
+              case 'user_online':
+                // User came online
+                refetchOnlineUsers();
+                break;
+                
+              case 'user_offline':
+                // User went offline
+                refetchOnlineUsers();
+                break;
+                
+              case 'typing':
+                // Handle typing indicators
+                const { fromUserId, isTyping } = message.data;
+                setTypingUsers(prev => ({
+                  ...prev,
+                  [fromUserId]: isTyping,
+                }));
+                
+                // Clear typing indicator after 3 seconds
+                if (isTyping) {
+                  setTimeout(() => {
+                    setTypingUsers(prev => ({
+                      ...prev,
+                      [fromUserId]: false,
+                    }));
+                  }, 3000);
+                }
+                break;
+                
+              case 'auth_success':
+                console.log('Chat authentication successful');
+                break;
+                
+              case 'error':
+                console.error('Chat WebSocket server error:', message.data);
+                break;
+                
+              default:
+                console.log('Unknown WebSocket message type:', message.type);
+            }
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
           }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      };
+        };
 
-      wsRef.current.onclose = () => {
-        console.log('Chat WebSocket disconnected');
-        setIsConnected(false);
-        
-        // Attempt to reconnect after 3 seconds
-        setTimeout(connectWebSocket, 3000);
-      };
+        wsRef.current.onclose = (event) => {
+          console.log('Chat WebSocket disconnected', event.code, event.reason);
+          setIsConnected(false);
+          isConnecting = false;
+          
+          // Only attempt to reconnect if it wasn't a manual close (code 1000)
+          if (event.code !== 1000 && reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Exponential backoff, max 30s
+            console.log(`Attempting to reconnect in ${backoffTime}ms... (attempt ${reconnectAttempts}/${maxReconnectAttempts})`);
+            
+            reconnectTimeout = setTimeout(connectWebSocket, backoffTime);
+          }
+        };
 
-      wsRef.current.onerror = (error) => {
-        console.error('Chat WebSocket error:', error);
-        setIsConnected(false);
-      };
+        wsRef.current.onerror = (error) => {
+          console.error('Chat WebSocket error:', error);
+          setIsConnected(false);
+          isConnecting = false;
+        };
+      } catch (error) {
+        console.error('Failed to create WebSocket:', error);
+        isConnecting = false;
+      }
     };
 
     connectWebSocket();
 
     return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+      if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
+        wsRef.current.close(1000, 'Component unmounting'); // Normal closure
       }
     };
   }, [user?.id, queryClient, refetchOnlineUsers, refetchUnreadCount]);
