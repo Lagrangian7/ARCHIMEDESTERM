@@ -1336,6 +1336,334 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Subdomain enumeration OSINT endpoint
+  app.get('/api/osint/subdomains/:domain', async (req, res) => {
+    try {
+      const { domain } = req.params;
+      
+      // Validate domain format
+      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-._]*[a-zA-Z0-9]$/;
+      if (!domainRegex.test(domain)) {
+        return res.status(400).json({ error: 'Invalid domain format' });
+      }
+
+      let formatted = `╭─ Subdomain Enumeration for ${domain}\n`;
+      
+      // Common subdomain wordlist
+      const commonSubdomains = [
+        'www', 'mail', 'email', 'webmail', 'admin', 'administrator', 'login',
+        'api', 'app', 'apps', 'dev', 'development', 'test', 'testing', 'stage', 'staging',
+        'prod', 'production', 'blog', 'forum', 'shop', 'store', 'cdn', 'static',
+        'assets', 'media', 'images', 'img', 'js', 'css', 'files', 'downloads',
+        'ftp', 'sftp', 'ssh', 'vpn', 'remote', 'secure', 'ssl', 'tls',
+        'db', 'database', 'mysql', 'postgres', 'redis', 'mongo', 'elasticsearch',
+        'search', 'help', 'support', 'docs', 'documentation', 'wiki',
+        'mobile', 'm', 'beta', 'alpha', 'demo', 'preview', 'portal'
+      ];
+
+      const foundSubdomains: string[] = [];
+      const maxConcurrent = 5;
+      
+      // Process subdomains in batches to avoid overwhelming DNS
+      for (let i = 0; i < commonSubdomains.length; i += maxConcurrent) {
+        const batch = commonSubdomains.slice(i, i + maxConcurrent);
+        
+        const batchPromises = batch.map(async (subdomain) => {
+          const fullDomain = `${subdomain}.${domain}`;
+          try {
+            const addresses = await dns.resolve4(fullDomain);
+            if (addresses && addresses.length > 0) {
+              return { subdomain: fullDomain, ip: addresses[0] };
+            }
+          } catch (error) {
+            // Subdomain doesn't exist, ignore
+          }
+          return null;
+        });
+        
+        const batchResults = await Promise.all(batchPromises);
+        batchResults.forEach(result => {
+          if (result) {
+            foundSubdomains.push(`${result.subdomain} → ${result.ip}`);
+          }
+        });
+        
+        // Small delay between batches to be respectful
+        if (i + maxConcurrent < commonSubdomains.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      
+      if (foundSubdomains.length > 0) {
+        formatted += `├─ Found ${foundSubdomains.length} active subdomains:\n`;
+        foundSubdomains.forEach((subdomain, index) => {
+          const prefix = index === foundSubdomains.length - 1 ? '╰─' : '├─';
+          formatted += `${prefix} ${subdomain}\n`;
+        });
+      } else {
+        formatted += `├─ No common subdomains discovered\n`;
+        formatted += `╰─ Try advanced enumeration tools for comprehensive scanning`;
+      }
+      
+      if (foundSubdomains.length > 0 && foundSubdomains.length < commonSubdomains.length) {
+        formatted += `╰─ Scanned ${commonSubdomains.length} common patterns`;
+      }
+
+      res.json({ formatted });
+      
+    } catch (error) {
+      console.error('Subdomain enumeration error:', error);
+      res.status(500).json({ error: 'Subdomain enumeration failed' });
+    }
+  });
+
+  // SSL/TLS Certificate Analysis endpoint
+  app.get('/api/osint/ssl/:domain', async (req, res) => {
+    try {
+      const { domain } = req.params;
+      
+      // Validate domain format
+      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-._]*[a-zA-Z0-9]$/;
+      if (!domainRegex.test(domain)) {
+        return res.status(400).json({ error: 'Invalid domain format' });
+      }
+
+      let formatted = `╭─ SSL/TLS Certificate Analysis for ${domain}\n`;
+      
+      try {
+        // Get certificate information via HTTPS connection
+        const https = require('https');
+        const { URL } = require('url');
+        
+        const checkSSL = new Promise((resolve, reject) => {
+          const options = {
+            hostname: domain,
+            port: 443,
+            method: 'HEAD',
+            timeout: 10000,
+            rejectUnauthorized: false // Allow self-signed certs for analysis
+          };
+          
+          const req = https.request(options, (res: any) => {
+            const cert = res.connection.getPeerCertificate(true);
+            resolve(cert);
+          });
+          
+          req.on('error', (error: any) => {
+            reject(error);
+          });
+          
+          req.on('timeout', () => {
+            req.destroy();
+            reject(new Error('SSL connection timeout'));
+          });
+          
+          req.end();
+        });
+        
+        const cert: any = await checkSSL;
+        
+        if (cert && cert.subject) {
+          formatted += `├─ Certificate Found: ✅\n`;
+          formatted += `├─ Subject: ${cert.subject.CN || 'N/A'}\n`;
+          formatted += `├─ Issuer: ${cert.issuer.CN || cert.issuer.O || 'Unknown'}\n`;
+          formatted += `├─ Valid From: ${new Date(cert.valid_from).toISOString().split('T')[0]}\n`;
+          formatted += `├─ Valid To: ${new Date(cert.valid_to).toISOString().split('T')[0]}\n`;
+          
+          // Check if certificate is expired
+          const now = new Date();
+          const validTo = new Date(cert.valid_to);
+          const daysUntilExpiry = Math.floor((validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (daysUntilExpiry < 0) {
+            formatted += `├─ Status: ❌ EXPIRED (${Math.abs(daysUntilExpiry)} days ago)\n`;
+          } else if (daysUntilExpiry < 30) {
+            formatted += `├─ Status: ⚠️ EXPIRING SOON (${daysUntilExpiry} days)\n`;
+          } else {
+            formatted += `├─ Status: ✅ VALID (${daysUntilExpiry} days remaining)\n`;
+          }
+          
+          // Alternative names (SAN)
+          if (cert.subjectaltname) {
+            const altNames = cert.subjectaltname
+              .split(', ')
+              .map((name: string) => name.replace('DNS:', ''))
+              .slice(0, 5); // Limit to first 5 for readability
+            formatted += `├─ Alt Names: ${altNames.join(', ')}\n`;
+            if (cert.subjectaltname.split(', ').length > 5) {
+              formatted += `├─ ... and ${cert.subjectaltname.split(', ').length - 5} more\n`;
+            }
+          }
+          
+          // Serial number and fingerprint
+          if (cert.serialNumber) {
+            formatted += `├─ Serial: ${cert.serialNumber.substring(0, 20)}...\n`;
+          }
+          
+        } else {
+          formatted += `├─ Certificate: ❌ Not found or invalid\n`;
+        }
+        
+      } catch (sslError: any) {
+        formatted += `├─ Certificate: ❌ Unable to retrieve\n`;
+        formatted += `├─ Error: ${sslError.message}\n`;
+        
+        // Try to determine if SSL is available at all
+        try {
+          const response = await fetch(`https://${domain}`, { 
+            method: 'HEAD', 
+            signal: AbortSignal.timeout(5000) 
+          });
+          formatted += `├─ HTTPS Available: ✅ (Status: ${response.status})\n`;
+        } catch (httpsError) {
+          formatted += `├─ HTTPS Available: ❌\n`;
+        }
+      }
+      
+      formatted += `╰─ SSL analysis complete`;
+      res.json({ formatted });
+      
+    } catch (error) {
+      console.error('SSL analysis error:', error);
+      res.status(500).json({ error: 'SSL analysis failed' });
+    }
+  });
+
+  // Technology Stack Detection endpoint
+  app.get('/api/osint/tech/:domain', async (req, res) => {
+    try {
+      const { domain } = req.params;
+      
+      // Validate domain format
+      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-._]*[a-zA-Z0-9]$/;
+      if (!domainRegex.test(domain)) {
+        return res.status(400).json({ error: 'Invalid domain format' });
+      }
+
+      let formatted = `╭─ Technology Stack Analysis for ${domain}\n`;
+      
+      try {
+        const url = `https://${domain}`;
+        const response = await fetch(url, { 
+          method: 'GET',
+          signal: AbortSignal.timeout(10000),
+          headers: {
+            'User-Agent': 'ARCHIMEDES-TechScan/1.0'
+          }
+        });
+        
+        const headers = response.headers;
+        const html = await response.text();
+        
+        const technologies: string[] = [];
+        
+        // Analyze HTTP headers
+        const server = headers.get('server');
+        if (server) {
+          technologies.push(`Server: ${server}`);
+        }
+        
+        const poweredBy = headers.get('x-powered-by');
+        if (poweredBy) {
+          technologies.push(`Powered By: ${poweredBy}`);
+        }
+        
+        // Analyze HTML content for common technologies
+        const htmlLower = html.toLowerCase();
+        
+        // Frameworks and Libraries
+        if (htmlLower.includes('react') || html.includes('_jsx') || html.includes('React.')) {
+          technologies.push('Frontend: React');
+        }
+        if (htmlLower.includes('vue.js') || htmlLower.includes('vue/dist')) {
+          technologies.push('Frontend: Vue.js');
+        }
+        if (htmlLower.includes('angular') || html.includes('ng-')) {
+          technologies.push('Frontend: Angular');
+        }
+        if (htmlLower.includes('jquery')) {
+          technologies.push('Library: jQuery');
+        }
+        if (htmlLower.includes('bootstrap')) {
+          technologies.push('CSS Framework: Bootstrap');
+        }
+        if (htmlLower.includes('tailwind')) {
+          technologies.push('CSS Framework: Tailwind');
+        }
+        
+        // CMS Detection
+        if (htmlLower.includes('wp-content') || htmlLower.includes('wordpress')) {
+          technologies.push('CMS: WordPress');
+        }
+        if (htmlLower.includes('drupal')) {
+          technologies.push('CMS: Drupal');
+        }
+        if (htmlLower.includes('/ghost/')) {
+          technologies.push('CMS: Ghost');
+        }
+        
+        // E-commerce
+        if (htmlLower.includes('shopify')) {
+          technologies.push('E-commerce: Shopify');
+        }
+        if (htmlLower.includes('woocommerce')) {
+          technologies.push('E-commerce: WooCommerce');
+        }
+        
+        // Analytics and Tracking
+        if (htmlLower.includes('google-analytics') || htmlLower.includes('gtag')) {
+          technologies.push('Analytics: Google Analytics');
+        }
+        if (htmlLower.includes('gtm.js') || htmlLower.includes('googletagmanager')) {
+          technologies.push('Tag Manager: Google Tag Manager');
+        }
+        
+        // CDN Detection
+        if (headers.get('cf-ray') || headers.get('cf-cache-status')) {
+          technologies.push('CDN: Cloudflare');
+        }
+        if (headers.get('x-amz-cf-id')) {
+          technologies.push('CDN: AWS CloudFront');
+        }
+        
+        formatted += `├─ Response Status: ${response.status} ${response.statusText}\n`;
+        
+        if (technologies.length > 0) {
+          formatted += `├─ Detected Technologies:\n`;
+          technologies.forEach((tech, index) => {
+            const prefix = index === technologies.length - 1 ? '│  ╰─' : '│  ├─';
+            formatted += `${prefix} ${tech}\n`;
+          });
+        } else {
+          formatted += `├─ No obvious technologies detected\n`;
+        }
+        
+        // Check for common security headers
+        const securityHeaders = [
+          'strict-transport-security',
+          'x-frame-options',
+          'x-content-type-options',
+          'content-security-policy'
+        ];
+        
+        const presentHeaders = securityHeaders.filter(header => headers.get(header));
+        if (presentHeaders.length > 0) {
+          formatted += `├─ Security Headers: ${presentHeaders.length}/${securityHeaders.length} present\n`;
+        }
+        
+      } catch (techError: any) {
+        formatted += `├─ Unable to analyze: ${techError.message}\n`;
+      }
+      
+      formatted += `╰─ Technology analysis complete`;
+      res.json({ formatted });
+      
+    } catch (error) {
+      console.error('Technology analysis error:', error);
+      res.status(500).json({ error: 'Technology analysis failed' });
+    }
+  });
+
   // Radio streaming proxy endpoint
   app.get('/api/radio/stream', (req, res) => {
     const http = require('http');

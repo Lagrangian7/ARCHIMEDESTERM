@@ -409,6 +409,45 @@ export function useTerminal(onUploadCommand?: () => void) {
           });
         return;
       }
+      
+      if (osintMode === 'subdomains') {
+        addEntry('system', `🌐 Enumerating subdomains for ${target}...`);
+        fetch(`/api/osint/subdomains/${target}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'Subdomain enumeration failed');
+          });
+        return;
+      }
+      
+      if (osintMode === 'ssl') {
+        addEntry('system', `🔒 Analyzing SSL certificate for ${target}...`);
+        fetch(`/api/osint/ssl/${target}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'SSL analysis failed');
+          });
+        return;
+      }
+      
+      if (osintMode === 'tech') {
+        addEntry('system', `⚙️ Detecting technology stack for ${target}...`);
+        fetch(`/api/osint/tech/${target}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'Technology detection failed');
+          });
+        return;
+      }
     }
     
     // Handle built-in terminal commands
@@ -1492,6 +1531,66 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         });
       return;
     }
+    
+    if (cmd.startsWith('subdomains ')) {
+      const domain = cmd.substring(11).trim();
+      if (!domain) {
+        addEntry('error', 'Usage: subdomains <domain>');
+        return;
+      }
+      
+      addEntry('system', `🌐 Enumerating subdomains for ${domain}...`);
+      
+      fetch(`/api/osint/subdomains/${domain}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'Subdomain enumeration failed');
+        });
+      return;
+    }
+    
+    if (cmd.startsWith('ssl ')) {
+      const domain = cmd.substring(4).trim();
+      if (!domain) {
+        addEntry('error', 'Usage: ssl <domain>');
+        return;
+      }
+      
+      addEntry('system', `🔒 Analyzing SSL certificate for ${domain}...`);
+      
+      fetch(`/api/osint/ssl/${domain}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'SSL analysis failed');
+        });
+      return;
+    }
+    
+    if (cmd.startsWith('tech ')) {
+      const domain = cmd.substring(5).trim();
+      if (!domain) {
+        addEntry('error', 'Usage: tech <domain>');
+        return;
+      }
+      
+      addEntry('system', `⚙️ Detecting technology stack for ${domain}...`);
+      
+      fetch(`/api/osint/tech/${domain}`)
+        .then(res => res.json())
+        .then(data => {
+          addEntry('response', data.formatted);
+        })
+        .catch(() => {
+          addEntry('error', 'Technology detection failed');
+        });
+      return;
+    }
 
     if (cmd === 'osint' || cmd === 'osint help') {
       const menuText = `🔍 OSINT (Open Source Intelligence) Services:
@@ -1504,6 +1603,9 @@ Select a service by typing the number:
 5. Wayback - Historical website snapshots
 6. Username - Username availability checker
 7. Traceroute - Network path tracing
+8. Subdomains - Subdomain enumeration
+9. SSL - SSL/TLS certificate analysis
+10. Tech - Technology stack detection
 
 Type: osint <number> (e.g., "osint 1")
 💡 All lookups performed ethically using public APIs`;
@@ -1566,8 +1668,29 @@ Type: osint <number> (e.g., "osint 1")
         return;
       }
       
+      if (selection === '8') {
+        addEntry('system', '🌐 Subdomain Enumeration selected');
+        addEntry('system', 'Enter domain (e.g., "example.com"):');
+        localStorage.setItem('osintMode', 'subdomains');
+        return;
+      }
+      
+      if (selection === '9') {
+        addEntry('system', '🔒 SSL Certificate Analysis selected');
+        addEntry('system', 'Enter domain (e.g., "google.com"):');
+        localStorage.setItem('osintMode', 'ssl');
+        return;
+      }
+      
+      if (selection === '10') {
+        addEntry('system', '⚙️ Technology Stack Detection selected');
+        addEntry('system', 'Enter domain (e.g., "github.com"):');
+        localStorage.setItem('osintMode', 'tech');
+        return;
+      }
+      
       // Invalid selection
-      addEntry('error', 'Invalid selection. Choose 1-7 or type "osint" to see menu.');
+      addEntry('error', 'Invalid selection. Choose 1-10 or type "osint" to see menu.');
       return;
     }
     
