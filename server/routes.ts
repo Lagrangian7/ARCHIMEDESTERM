@@ -1462,29 +1462,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         switch (message.type) {
           case 'auth':
-            // Set user ID for this connection
-            ws.userId = message.userId;
-            
-            // Update user presence as online
-            await storage.updateUserPresence(message.userId, true, ws.id);
-            
-            // Mark messages as delivered for this user
-            await storage.markMessagesAsDelivered(message.userId);
-            
-            // Broadcast user online status
-            chatWss.clients.forEach((client: any) => {
-              if (client.readyState === WebSocket.OPEN && client !== ws) {
-                client.send(JSON.stringify({
-                  type: 'user_online',
-                  data: { userId: message.userId }
-                }));
+            try {
+              // Set user ID for this connection
+              ws.userId = message.userId;
+              
+              // Update user presence as online (if method exists)
+              try {
+                await storage.updateUserPresence?.(message.userId, true, ws.id);
+              } catch (error) {
+                console.error('Error updating user presence:', error);
               }
-            });
-            
-            ws.send(JSON.stringify({
-              type: 'auth_success',
-              data: { connected: true }
-            }));
+              
+              // Mark messages as delivered for this user (if method exists)  
+              try {
+                await storage.markMessagesAsDelivered?.(message.userId);
+              } catch (error) {
+                console.error('Error marking messages as delivered:', error);
+              }
+              
+              // Broadcast user online status
+              chatWss.clients.forEach((client: any) => {
+                if (client.readyState === WebSocket.OPEN && client !== ws) {
+                  client.send(JSON.stringify({
+                    type: 'user_online',
+                    data: { userId: message.userId }
+                  }));
+                }
+              });
+              
+              ws.send(JSON.stringify({
+                type: 'auth_success',
+                data: { connected: true }
+              }));
+            } catch (error) {
+              console.error('Error during WebSocket auth:', error);
+              ws.send(JSON.stringify({
+                type: 'error',
+                data: { message: 'Authentication failed' }
+              }));
+            }
             break;
 
           case 'typing':

@@ -55,24 +55,27 @@ export const useChat = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
 
-  // Fetch online users
+  // Fetch online users (reduced polling frequency)
   const { data: onlineUsers = [], refetch: refetchOnlineUsers } = useQuery({
     queryKey: ['/api/chat/online-users'],
     enabled: !!user,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 60000, // Refresh every 60 seconds instead of 30
+    staleTime: 30000, // Data is fresh for 30 seconds
   });
 
   // Fetch user's direct chats
   const { data: conversations = [], refetch: refetchConversations } = useQuery({
     queryKey: ['/api/chat/conversations'],
     enabled: !!user,
+    staleTime: 30000, // Data is fresh for 30 seconds
   });
 
-  // Fetch unread message count
+  // Fetch unread message count (reduced polling frequency)
   const { data: unreadData, refetch: refetchUnreadCount } = useQuery({
     queryKey: ['/api/chat/unread-count'],
     enabled: !!user,
-    refetchInterval: 10000, // Refresh every 10 seconds
+    refetchInterval: 30000, // Refresh every 30 seconds instead of 10
+    staleTime: 10000, // Data is fresh for 10 seconds
   });
 
   const unreadCount = (unreadData as { count: number })?.count || 0;
@@ -122,7 +125,8 @@ export const useChat = () => {
 
   // WebSocket connection management with improved reliability
   useEffect(() => {
-    if (!user?.id) return;
+    // Temporarily disable WebSocket connections to fix performance issues
+    if (!user?.id || true) return;
 
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 5;
