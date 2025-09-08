@@ -305,6 +305,92 @@ export function useTerminal(onUploadCommand?: () => void) {
     
     const cmd = command.toLowerCase().trim();
     
+    // Check if we're in OSINT input mode
+    const osintMode = localStorage.getItem('osintMode');
+    if (osintMode && command.trim()) {
+      const target = command.trim();
+      localStorage.removeItem('osintMode'); // Clear the mode
+      
+      // Execute the selected OSINT command
+      if (osintMode === 'whois') {
+        addEntry('system', `🔍 Performing WHOIS lookup for ${target}...`);
+        fetch(`/api/osint/whois/${target}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'WHOIS lookup failed');
+          });
+        return;
+      }
+      
+      if (osintMode === 'dns') {
+        addEntry('system', `🌐 Querying DNS records for ${target}...`);
+        fetch(`/api/osint/dns/${target}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'DNS lookup failed');
+          });
+        return;
+      }
+      
+      if (osintMode === 'geoip') {
+        addEntry('system', `🌍 Geolocating IP address ${target}...`);
+        fetch(`/api/osint/geoip/${target}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'IP geolocation failed');
+          });
+        return;
+      }
+      
+      if (osintMode === 'headers') {
+        addEntry('system', `🔍 Analyzing HTTP headers for ${target}...`);
+        fetch(`/api/osint/headers?url=${encodeURIComponent(target)}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'Header analysis failed');
+          });
+        return;
+      }
+      
+      if (osintMode === 'wayback') {
+        addEntry('system', `📚 Searching Wayback Machine for ${target}...`);
+        fetch(`/api/osint/wayback?url=${encodeURIComponent(target)}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'Wayback Machine search failed');
+          });
+        return;
+      }
+      
+      if (osintMode === 'username') {
+        addEntry('system', `👤 Checking username availability for ${target}...`);
+        fetch(`/api/osint/username/${target}`)
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'Username check failed');
+          });
+        return;
+      }
+    }
+    
     // Handle built-in terminal commands
     if (cmd === 'help') {
       // Open interactive help menu instead of static text  
@@ -1368,19 +1454,72 @@ Free plan includes 100 monthly requests with end-of-day data.`);
     }
 
     if (cmd === 'osint' || cmd === 'osint help') {
-      const helpText = `🔍 OSINT (Open Source Intelligence) Commands:
+      const menuText = `🔍 OSINT (Open Source Intelligence) Services:
 
-whois <domain>     - Domain registration lookup
-dns <domain>       - DNS records analysis  
-geoip <ip>         - IP geolocation tracking
-headers <url>      - HTTP header analysis
-wayback <url>      - Wayback Machine snapshots
-username <name>    - Username availability checker
+Select a service by typing the number:
+1. WHOIS - Domain registration lookup  
+2. DNS - DNS records analysis
+3. GeoIP - IP geolocation tracking
+4. Headers - HTTP header analysis  
+5. Wayback - Historical website snapshots
+6. Username - Username availability checker
 
-💡 OSINT tools help you gather intelligence from public sources
-🔒 All lookups are performed ethically using public APIs`;
+Type: osint <number> (e.g., "osint 1")
+💡 All lookups performed ethically using public APIs`;
       
-      addEntry('system', helpText);
+      addEntry('system', menuText);
+      return;
+    }
+    
+    if (cmd.startsWith('osint ')) {
+      const selection = cmd.substring(6).trim();
+      
+      // Handle service selection
+      if (selection === '1') {
+        addEntry('system', '🔍 WHOIS Domain Lookup selected');
+        addEntry('system', 'Enter domain (e.g., "google.com"):');
+        // Set a flag to expect domain input
+        localStorage.setItem('osintMode', 'whois');
+        return;
+      }
+      
+      if (selection === '2') {
+        addEntry('system', '🌐 DNS Records Analysis selected');
+        addEntry('system', 'Enter domain (e.g., "google.com"):');
+        localStorage.setItem('osintMode', 'dns');
+        return;
+      }
+      
+      if (selection === '3') {
+        addEntry('system', '🌍 GeoIP Location Tracking selected');
+        addEntry('system', 'Enter IP address (e.g., "8.8.8.8"):');
+        localStorage.setItem('osintMode', 'geoip');
+        return;
+      }
+      
+      if (selection === '4') {
+        addEntry('system', '🔍 HTTP Headers Analysis selected');
+        addEntry('system', 'Enter URL (e.g., "https://github.com"):');
+        localStorage.setItem('osintMode', 'headers');
+        return;
+      }
+      
+      if (selection === '5') {
+        addEntry('system', '📚 Wayback Machine Search selected');
+        addEntry('system', 'Enter URL (e.g., "https://example.com"):');
+        localStorage.setItem('osintMode', 'wayback');
+        return;
+      }
+      
+      if (selection === '6') {
+        addEntry('system', '👤 Username Availability Check selected');
+        addEntry('system', 'Enter username (e.g., "johndoe123"):');
+        localStorage.setItem('osintMode', 'username');
+        return;
+      }
+      
+      // Invalid selection
+      addEntry('error', 'Invalid selection. Choose 1-6 or type "osint" to see menu.');
       return;
     }
     
