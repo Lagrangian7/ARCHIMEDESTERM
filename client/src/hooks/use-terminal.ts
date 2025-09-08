@@ -535,7 +535,9 @@ export function useTerminal(onUploadCommand?: () => void) {
   chat - Open user-to-user chat interface
   
 Network & BBS Commands:
-  telnet <host> <port> - Connect to remote telnet/BBS system
+  telnet <host> <port> - Connect via web-based telnet client
+  ssh <user@host> [port] - Connect via web-based SSH client
+  ssh-client / sshwifty - Open SSH/Telnet client interface
   ping <host> - Test connectivity to remote host
   bbs-list - Show available BBS systems directory
   bbs-search <query> - Search BBS systems by name or location
@@ -610,12 +612,13 @@ You can also chat naturally or ask technical questions.`);
     }
     
     if (cmd === 'ssh-client' || cmd === 'sshwifty') {
-      addEntry('system', 'Opening Sshwifty terminal interface...');
-      
-      // Open Sshwifty main interface in a new window
-      window.open('/sshwifty', '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
-      
-      addEntry('system', 'Sshwifty interface opened in new window');
+      addEntry('system', 'Opening SSH/Telnet client interface...');
+      const openSshwiftyInterface = (window as any).openSshwiftyInterface;
+      if (openSshwiftyInterface) {
+        openSshwiftyInterface();
+      } else {
+        addEntry('error', 'SSH/Telnet interface not available. Please ensure the system is loaded.');
+      }
       return;
     }
     

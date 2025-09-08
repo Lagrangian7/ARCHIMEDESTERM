@@ -18,6 +18,7 @@ import WebSocket, { WebSocketServer } from 'ws';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { promises as dns } from 'dns';
+import { SshwiftyService } from './sshwifty-service';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -2282,6 +2283,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
   
+  // Initialize Sshwifty service
+  const sshwiftyService = new SshwiftyService(httpServer);
+  SshwiftyService.setupStaticRoutes(app);
+  console.log('Sshwifty service initialized');
 
   // Create WebSocket server for chat system
   const chatWss = new WebSocketServer({
