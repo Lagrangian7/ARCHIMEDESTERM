@@ -308,6 +308,13 @@ export function useTerminal(onUploadCommand?: () => void) {
     // Check if we're in OSINT input mode
     const osintMode = localStorage.getItem('osintMode');
     if (osintMode && command.trim()) {
+      // Allow users to cancel OSINT mode
+      if (cmd === 'cancel' || cmd === 'exit' || cmd === 'quit') {
+        localStorage.removeItem('osintMode');
+        addEntry('system', '❌ OSINT operation cancelled');
+        return;
+      }
+      
       const target = command.trim();
       localStorage.removeItem('osintMode'); // Clear the mode
       
