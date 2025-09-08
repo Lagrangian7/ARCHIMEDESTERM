@@ -77,14 +77,13 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
               data: [...updated[connectionIndex].data, `Connected to ${message.host}:${message.port}`]
             };
           } else {
-            console.warn('Received connected message for unknown connection:', message.connectionId);
-            // Create the connection if it doesn't exist
+            // Create the connection when we receive the connected message from backend
             const newConnection: TelnetConnection = {
               id: message.connectionId,
               host: message.host,
               port: message.port,
               connected: true,
-              data: [`Connected to ${message.host}:${message.port}`]
+              data: [`Connecting to ${message.host}:${message.port}...`, `Connected to ${message.host}:${message.port}`]
             };
             updated.push(newConnection);
             setActiveConnectionId(message.connectionId);
@@ -211,19 +210,6 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
       return null;
     }
 
-    const connectionId = `conn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    const newConnection: TelnetConnection = {
-      id: connectionId,
-      host,
-      port,
-      connected: false,
-      data: [`Connecting to ${host}:${port}...`]
-    };
-
-    setConnections(prev => [...prev, newConnection]);
-    setActiveConnectionId(connectionId);
-
     console.log('Sending telnet connect message:', { type: 'connect', host, port });
     websocket.send(JSON.stringify({
       type: 'connect',
@@ -231,7 +217,7 @@ export function TelnetClient({ onConnectionUpdate, onClose }: TelnetClientProps)
       port
     }));
 
-    return connectionId;
+    return 'pending'; // Return a placeholder since backend will provide the real connectionId
   }, [websocket]);
 
   const sendData = useCallback((data: string) => {

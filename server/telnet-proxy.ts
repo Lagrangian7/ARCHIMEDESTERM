@@ -164,6 +164,7 @@ export class TelnetProxyService {
       console.error('Failed to create telnet connection:', error);
       ws.send(JSON.stringify({
         type: 'error',
+        connectionId,
         message: `Failed to connect to ${host}:${port}: ${error.message}`
       }));
     }
