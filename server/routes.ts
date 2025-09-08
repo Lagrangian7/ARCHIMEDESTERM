@@ -891,18 +891,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (execError: any) {
         // If whois command fails, try with alternative approach
         if (execError.code === 'ENOENT' || execError.message.includes('whois: not found')) {
-          // whois command not available, use basic DNS approach
-          // DNS module imported at top of file
+          // whois command not available, use enhanced DNS approach with WHOIS API fallback
           try {
-            const addresses = await dns.resolve4(domain);
-            const formatted = `╭─ Basic Domain Info for ${domain}
-├─ IPv4 Addresses: ${addresses.join(', ')}
-├─ Status: Domain resolves to IP addresses
-╰─ WHOIS command not available, showing DNS resolution`;
+            // Try using free WHOIS API service
+            const whoisResponse = await fetch(`https://api.whois.vu/?q=${domain}`, {
+              headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' },
+              timeout: 8000
+            });
+            
+            if (whoisResponse.ok) {
+              const whoisData = await whoisResponse.json();
+              
+              let formatted = `╭─ WHOIS Information for ${domain}\n`;
+              
+              if (whoisData.domain) {
+                formatted += `├─ Domain: ${whoisData.domain}\n`;
+              }
+              
+              if (whoisData.registrar) {
+                formatted += `├─ Registrar: ${whoisData.registrar}\n`;
+              }
+              
+              if (whoisData.registered) {
+                formatted += `├─ Registration Date: ${whoisData.registered}\n`;
+              }
+              
+              if (whoisData.expires) {
+                formatted += `├─ Expiration Date: ${whoisData.expires}\n`;
+              }
+              
+              if (whoisData.updated) {
+                formatted += `├─ Last Updated: ${whoisData.updated}\n`;
+              }
+              
+              if (whoisData.nameservers && whoisData.nameservers.length > 0) {
+                formatted += `├─ Name Servers: ${whoisData.nameservers.join(', ')}\n`;
+              }
+              
+              if (whoisData.status && whoisData.status.length > 0) {
+                formatted += `├─ Domain Status: ${whoisData.status.join(', ')}\n`;
+              }
+              
+              // Add IP addresses from DNS lookup
+              try {
+                const addresses = await dns.resolve4(domain);
+                formatted += `├─ IPv4 Addresses: ${addresses.join(', ')}\n`;
+              } catch (e) {}
+              
+              formatted += `╰─ WHOIS lookup complete`;
+              res.json({ formatted });
+              return;
+            }
+          } catch (whoisApiError) {
+            console.log('WHOIS API failed, falling back to enhanced DNS lookup');
+          }
+          
+          // Enhanced DNS fallback with comprehensive information
+          try {
+            let formatted = `╭─ Enhanced Domain Information for ${domain}\n`;
+            
+            // Get A records
+            try {
+              const addresses = await dns.resolve4(domain);
+              formatted += `├─ IPv4 Addresses: ${addresses.join(', ')}\n`;
+            } catch (e) {}
+            
+            // Get AAAA records
+            try {
+              const ipv6Addresses = await dns.resolve6(domain);
+              formatted += `├─ IPv6 Addresses: ${ipv6Addresses.join(', ')}\n`;
+            } catch (e) {}
+            
+            // Get MX records
+            try {
+              const mxRecords = await dns.resolveMx(domain);
+              const mxList = mxRecords.map(mx => `${mx.exchange} (${mx.priority})`).join(', ');
+              formatted += `├─ Mail Servers: ${mxList}\n`;
+            } catch (e) {}
+            
+            // Get NS records
+            try {
+              const nsRecords = await dns.resolveNs(domain);
+              formatted += `├─ Name Servers: ${nsRecords.join(', ')}\n`;
+            } catch (e) {}
+            
+            // Get TXT records (may contain SPF, DMARC, verification records)
+            try {
+              const txtRecords = await dns.resolveTxt(domain);
+              const txtList = txtRecords.map(record => record.join('')).slice(0, 3); // Limit to 3 records
+              if (txtList.length > 0) {
+                formatted += `├─ TXT Records: ${txtList.join(' | ')}\n`;
+              }
+            } catch (e) {}
+            
+            formatted += `├─ Status: Enhanced DNS resolution (WHOIS service unavailable)\n`;
+            formatted += `╰─ Domain analysis complete`;
+            
             res.json({ formatted });
           } catch (dnsError) {
             res.json({ 
-              formatted: `╭─ Domain lookup for ${domain}\n╰─ Domain does not resolve or WHOIS service unavailable` 
+              formatted: `╭─ Domain lookup for ${domain}\n╰─ Domain does not resolve or all services unavailable` 
             });
           }
         } else {
