@@ -6,7 +6,6 @@ import { CommandHistory } from './CommandHistory';
 import { UserProfile } from './UserProfile';
 import { ConversationHistory } from './ConversationHistory';
 import { DocumentUpload } from './DocumentUpload';
-import { TelnetClient } from './TelnetClient';
 import { SnakeGame } from './SnakeGame';
 import { DTMFDecoder } from './DTMFDecoder';
 import { HelpMenu } from './HelpMenu';
@@ -64,7 +63,6 @@ export function Terminal() {
 
   // Expose modal openers globally
   useEffect(() => {
-    (window as any).openTelnetModal = () => setShowTelnet(true);
     (window as any).openSnakeGame = () => setShowSnake(true);
     (window as any).openDTMFDecoder = () => setShowDTMF(true);
     (window as any).openHelpMenu = () => setShowHelpMenu(true);
@@ -80,7 +78,6 @@ export function Terminal() {
   const [showProfile, setShowProfile] = useState(false);
   const [showConversationHistory, setShowConversationHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
-  const [showTelnet, setShowTelnet] = useState(false);
   const [showSnake, setShowSnake] = useState(false);
   const [showDTMF, setShowDTMF] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
@@ -393,16 +390,6 @@ export function Terminal() {
                     <Radio size={14} className="mr-1" />
                     {isRadioPlaying ? 'Stop' : 'Radio'}
                   </Button>
-                  <Button
-                    onClick={() => setShowTelnet(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
-                    data-testid="button-telnet"
-                  >
-                    <TerminalIcon size={14} className="mr-1" />
-                    Telnet
-                  </Button>
                 </>
               ) : (
                 <Button
@@ -606,31 +593,6 @@ export function Terminal() {
         </div>
       )}
 
-      {showTelnet && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="w-[90vw] h-[80vh] bg-terminal-bg border border-terminal-highlight rounded-lg overflow-hidden">
-            <div className="h-full flex flex-col">
-              <div className="flex items-center justify-between p-3 border-b border-terminal-subtle">
-                <div className="flex items-center space-x-2">
-                  <TerminalIcon className="w-5 h-5 text-terminal-highlight" />
-                  <h2 className="text-terminal-text font-semibold">Telnet Client</h2>
-                </div>
-                <Button
-                  onClick={() => setShowTelnet(false)}
-                  variant="outline"
-                  size="sm"
-                  className="bg-transparent border-terminal-subtle hover:bg-terminal-subtle"
-                >
-                  Close
-                </Button>
-              </div>
-              <div className="flex-1">
-                <TelnetClient onClose={() => setShowTelnet(false)} />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showSnake && (
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">

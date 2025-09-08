@@ -9,7 +9,6 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { weatherService } from "./weather-service";
 import { knowledgeService } from "./knowledge-service";
 import { BbsService } from "./bbs-service";
-import { TelnetProxyService } from "./telnet-proxy";
 import { gutendxService } from "./gutendx-service";
 import { marketstackService } from "./marketstack-service";
 import { radioGardenService } from "./radio-garden-service";
@@ -2283,15 +2282,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create HTTP server
   const httpServer = createServer(app);
   
-  // Create WebSocket server for telnet proxy
-  const wss = new WebSocketServer({ 
-    server: httpServer, 
-    path: '/ws/telnet' 
-  });
-  
-  // Initialize telnet proxy service
-  const telnetProxy = new TelnetProxyService(wss);
-  console.log('Telnet proxy WebSocket server initialized on /ws/telnet');
 
   // Create WebSocket server for chat system
   const chatWss = new WebSocketServer({
