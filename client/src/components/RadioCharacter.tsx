@@ -144,10 +144,17 @@ export function RadioCharacter({ isRadioPlaying }: RadioCharacterProps) {
           }`} />
         </div>
 
-        {/* Status Text */}
+        {/* Now Playing Display */}
         <div className="mt-2 text-center">
           <div className="text-xs text-orange-400/80 font-mono bg-terminal-bg/70 rounded px-2 py-1 border border-orange-500/30">
-            📻 RADIO STREAMING
+            <div className="flex items-center justify-center space-x-1">
+              <span>📻</span>
+              <span>NOW PLAYING</span>
+            </div>
+          </div>
+          <div className="text-xs text-terminal-highlight/80 font-mono bg-terminal-bg/60 rounded px-2 py-1 mt-1 border border-terminal-highlight/20">
+            <div className="font-semibold">SomaFM - Groove Salad</div>
+            <div className="text-terminal-text/70 text-[10px]">🎧 Ambient Downtempo Electronic</div>
           </div>
         </div>
 

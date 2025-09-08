@@ -15,21 +15,10 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
   const [connectionStatus, setConnectionStatus] = useState('Ready');
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Enhanced streaming URLs with CORS proxy support
-  const INFOWARS_STREAMS = [
-    '/api/radio-proxy?url=' + encodeURIComponent('https://playerservices.streamtheworld.com/api/livestream-redirect/INFOWARS.mp3'),
-    'https://ice1.somafm.com/thetrip-128-mp3', // SomaFM - CORS enabled, works reliably
-    'https://ice2.somafm.com/groovesalad-128-mp3', // SomaFM alternative with CORS
-    'https://ice1.somafm.com/deepspaceone-128-mp3', // SomaFM Deep Space One - Deep ambient electronic
-    'https://samples-files.com/samples/Audio/mp3/mp3-example-1.mp3' // Working test fallback
-  ];
-  
-  const [currentStreamIndex, setCurrentStreamIndex] = useState(0);
-  const streamUrl = INFOWARS_STREAMS[currentStreamIndex];
-  const stationName = currentStreamIndex === 0 ? 'Infowars Live Stream' : 
-                     currentStreamIndex === 1 ? 'SomaFM - The Trip' :
-                     currentStreamIndex === 2 ? 'SomaFM - Groove Salad' : 
-                     currentStreamIndex === 3 ? 'SomaFM - Deep Space One' : 'Test Audio';
+  // Soma FM Groove Salad - hardcoded station
+  const streamUrl = '/api/radio/stream';
+  const stationName = 'SomaFM - Groove Salad';
+  const stationDescription = '🎧 Ambient downtempo electronica';
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -55,37 +44,8 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
       setIsLoading(false);
       setIsPlaying(false);
       
-      // Try next stream if current one fails
-      if (currentStreamIndex < INFOWARS_STREAMS.length - 1) {
-        const nextIndex = currentStreamIndex + 1;
-        console.log(`🔄 Switching to stream ${nextIndex + 1}`);
-        setCurrentStreamIndex(nextIndex);
-        setConnectionStatus(`🔄 Switching to stream ${nextIndex + 1}...`);
-        onStatusChange?.(`Stream failed, trying stream ${nextIndex + 1}...`);
-        
-        // Auto-retry with next stream with enhanced error handling
-        setTimeout(async () => {
-          if (audioRef.current) {
-            const nextUrl = INFOWARS_STREAMS[nextIndex];
-            console.log(`🔄 Auto-switching to stream ${nextIndex + 1}:`, nextUrl);
-            
-            // Update the source and reload
-            audioRef.current.src = nextUrl;
-            audioRef.current.load();
-            
-            try {
-              await audioRef.current.play();
-              console.log(`✅ Stream ${nextIndex + 1} connected successfully`);
-            } catch (error) {
-              console.error(`❌ Stream ${nextIndex + 1} also failed:`, error);
-              setConnectionStatus(`❌ Stream ${nextIndex + 1} failed`);
-            }
-          }
-        }, 2000);
-      } else {
-        setConnectionStatus('❌ All streams failed');
-        onStatusChange?.('❌ All test streams unavailable');
-      }
+      setConnectionStatus('❌ Stream failed');
+      onStatusChange?.('❌ Soma FM stream unavailable');
     };
 
     const handleLoadStart = () => {
@@ -127,7 +87,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
       audio.removeEventListener('waiting', handleWaiting);
       audio.removeEventListener('loadeddata', handleLoadedData);
     };
-  }, [onStatusChange, currentStreamIndex, streamUrl]);
+  }, [onStatusChange, streamUrl]);
 
   const togglePlayPause = async () => {
     const audio = audioRef.current;
@@ -219,7 +179,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <Radio className="w-6 h-6 text-terminal-highlight" />
-<h2 className="text-xl font-bold text-terminal-highlight">Infowars Live Radio</h2>
+<h2 className="text-xl font-bold text-terminal-highlight">ARCHIMEDES Radio</h2>
           </div>
           <Button
             onClick={onClose}
@@ -244,13 +204,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
           {/* Station Info */}
           <div className="text-center p-3 bg-terminal-bg/50 rounded border border-terminal-subtle">
             <div className="text-terminal-highlight font-semibold">{stationName}</div>
-<div className="text-terminal-text text-sm">{
-  currentStreamIndex === 0 ? '🎙️ Alex Jones Show - Live Stream' : 
-  currentStreamIndex === 1 ? '🎵 Downbeat, chillout, and trip-hop' :
-  currentStreamIndex === 2 ? '🎧 Downtempo, ambient, and chillout' : 
-  currentStreamIndex === 3 ? '🌌 Deep ambient electronic space music' : 
-  '🔧 Test Audio Stream'
-}</div>
+            <div className="text-terminal-text text-sm">{stationDescription}</div>
             <div className="text-terminal-subtle text-xs mt-1">Status: {connectionStatus}</div>
           </div>
 
@@ -290,37 +244,6 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
             <span className="text-terminal-text text-sm w-12">{Math.round(volume * 100)}%</span>
           </div>
 
-          {/* Stream Options */}
-          <div className="flex items-center justify-center space-x-2">
-            {INFOWARS_STREAMS.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setCurrentStreamIndex(index);
-                  if (audioRef.current) {
-                    audioRef.current.load();
-                  }
-                }}
-                className={`px-2 py-1 text-xs rounded ${
-                  currentStreamIndex === index 
-                    ? 'bg-terminal-highlight text-terminal-bg' 
-                    : 'bg-terminal-subtle text-terminal-text hover:bg-terminal-highlight/50'
-                }`}
-              >
-                index === 0 ? 'Live' : 
-                index === 1 ? 'Trip' : 
-                index === 2 ? 'Groove' : 
-                index === 3 ? 'Space' : 'Test'
-              </button>
-            ))}
-          </div>
-
-          {/* Debug Info */}
-          <div className="text-xs text-terminal-subtle p-2 bg-terminal-bg/30 rounded">
-            <div>Current: {streamUrl}</div>
-            <div>Stream {currentStreamIndex + 1} of {INFOWARS_STREAMS.length}</div>
-            <div>Ready: {audioRef.current?.readyState || 'Not loaded'}</div>
-          </div>
         </div>
       </div>
     </div>
