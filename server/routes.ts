@@ -834,34 +834,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid domain format' });
       }
 
-      // Use public WHOIS API 
-      const whoisUrl = `https://www.whoisxml.com/whoisserver/WhoisService?apiKey=at_free&domainName=${domain}&outputFormat=json`;
+      // Use system whois command via child_process
+      const { exec } = require('child_process');
+      const { promisify } = require('util');
+      const execAsync = promisify(exec);
       
       try {
-        const response = await fetch(whoisUrl);
-        const data = await response.json();
+        const { stdout, stderr } = await execAsync(`whois ${domain}`, { 
+          timeout: 10000, // 10 second timeout
+          encoding: 'utf8'
+        });
         
-        if (data.WhoisRecord) {
-          const whois = data.WhoisRecord;
-          const formatted = `
-╭─ WHOIS Information for ${domain}
-├─ Domain: ${whois.domainName || 'N/A'}
-├─ Registrar: ${whois.registrarName || 'N/A'}  
-├─ Creation Date: ${whois.createdDate || 'N/A'}
-├─ Updated Date: ${whois.updatedDate || 'N/A'}
-├─ Expiry Date: ${whois.expiresDate || 'N/A'}
-├─ Status: ${whois.domainStatus || 'N/A'}
-├─ Name Servers: ${whois.nameServers?.hostNames?.join(', ') || 'N/A'}
-╰─ Registry Domain ID: ${whois.registryData?.domainId || 'N/A'}`;
-          
-          res.json({ formatted });
-        } else {
-          // Fallback to basic domain info
-          res.json({ formatted: `╭─ WHOIS lookup for ${domain}\n╰─ Domain information not available or domain may not exist` });
+        if (stderr && !stdout) {
+          throw new Error(`WHOIS command failed: ${stderr}`);
         }
-      } catch (apiError) {
-        // If API fails, provide basic response
-        res.json({ formatted: `╭─ WHOIS lookup for ${domain}\n╰─ WHOIS information temporarily unavailable` });
+        
+        // Parse the whois output for key information
+        const whoisData = stdout || '';
+        
+        // Extract key fields from whois output
+        const extractField = (pattern: string) => {
+          const match = whoisData.match(new RegExp(pattern, 'i'));
+          return match ? match[1].trim() : 'N/A';
+        };
+        
+        const registrar = extractField('(?:Registrar|Sponsoring Registrar):\\s*(.+)') || 
+                         extractField('registrar:\\s*(.+)');
+        const created = extractField('(?:Creation Date|Created On|Registered):\\s*(.+)') || 
+                       extractField('created:\\s*(.+)');
+        const updated = extractField('(?:Updated Date|Last Modified|Modified):\\s*(.+)') || 
+                       extractField('changed:\\s*(.+)');
+        const expires = extractField('(?:Expiry Date|Registry Expiry Date|Expires):\\s*(.+)') || 
+                       extractField('expire:\\s*(.+)');
+        const status = extractField('(?:Domain Status|Status):\\s*(.+)') || 
+                      extractField('status:\\s*(.+)');
+        
+        // Extract name servers
+        const nsMatches = whoisData.match(/(?:Name Server|nserver):\s*(.+)/gi);
+        const nameServers = nsMatches ? 
+          nsMatches.map(ns => ns.replace(/(?:Name Server|nserver):\s*/i, '').trim()).slice(0, 4).join(', ') : 
+          'N/A';
+        
+        const formatted = `╭─ WHOIS Information for ${domain}
+├─ Domain: ${domain}
+├─ Registrar: ${registrar}
+├─ Creation Date: ${created}
+├─ Updated Date: ${updated}
+├─ Expiry Date: ${expires}
+├─ Status: ${status}
+├─ Name Servers: ${nameServers}
+╰─ Query completed using system whois`;
+        
+        res.json({ formatted });
+        
+      } catch (execError: any) {
+        // If whois command fails, try with alternative approach
+        if (execError.code === 'ENOENT' || execError.message.includes('whois: not found')) {
+          // whois command not available, use basic DNS approach
+          const dns = require('dns').promises;
+          try {
+            const addresses = await dns.resolve4(domain);
+            const formatted = `╭─ Basic Domain Info for ${domain}
+├─ IPv4 Addresses: ${addresses.join(', ')}
+├─ Status: Domain resolves to IP addresses
+╰─ WHOIS command not available, showing DNS resolution`;
+            res.json({ formatted });
+          } catch (dnsError) {
+            res.json({ 
+              formatted: `╭─ Domain lookup for ${domain}\n╰─ Domain does not resolve or WHOIS service unavailable` 
+            });
+          }
+        } else {
+          // Other execution errors
+          res.json({ 
+            formatted: `╭─ WHOIS lookup for ${domain}\n╰─ Unable to retrieve WHOIS information: ${execError.message || 'Unknown error'}` 
+          });
+        }
       }
     } catch (error) {
       console.error('WHOIS error:', error);
