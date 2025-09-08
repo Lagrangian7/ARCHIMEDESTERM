@@ -10,15 +10,24 @@ import {
   type InsertDocument,
   type KnowledgeChunk,
   type InsertKnowledgeChunk,
+  type UserPresence,
+  type InsertUserPresence,
+  type DirectChat,
+  type InsertDirectChat,
+  type UserMessage,
+  type InsertUserMessage,
   users,
   userPreferences,
   conversations,
   documents,
-  knowledgeChunks
+  knowledgeChunks,
+  userPresence,
+  directChats,
+  userMessages
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { eq, like, desc, and } from "drizzle-orm";
+import { eq, like, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User methods for Replit Auth
@@ -52,6 +61,23 @@ export interface IStorage {
   getDocumentChunks(documentId: string): Promise<KnowledgeChunk[]>;
   searchKnowledgeChunks(userId: string, query: string): Promise<KnowledgeChunk[]>;
   deleteDocumentChunks(documentId: string): Promise<void>;
+
+  // User presence methods
+  updateUserPresence(userId: string, isOnline: boolean, socketId?: string): Promise<UserPresence>;
+  getUserPresence(userId: string): Promise<UserPresence | undefined>;
+  getOnlineUsers(): Promise<(User & { presence: UserPresence })[]>;
+  setUserOffline(socketId: string): Promise<void>;
+
+  // Direct chat methods
+  getOrCreateDirectChat(user1Id: string, user2Id: string): Promise<DirectChat>;
+  getUserDirectChats(userId: string): Promise<(DirectChat & { otherUser: User; lastMessage?: UserMessage })[]>;
+  
+  // Message methods
+  sendMessage(message: InsertUserMessage): Promise<UserMessage>;
+  getChatMessages(chatId: string, limit?: number): Promise<UserMessage[]>;
+  markMessageAsRead(messageId: string): Promise<void>;
+  markMessagesAsDelivered(userId: string): Promise<void>;
+  getUnreadMessageCount(userId: string): Promise<number>;
 }
 
 export class MemStorage implements IStorage {
@@ -60,6 +86,9 @@ export class MemStorage implements IStorage {
   private conversations: Map<string, Conversation>;
   private documents: Map<string, Document>;
   private knowledgeChunks: Map<string, KnowledgeChunk>;
+  private userPresences: Map<string, UserPresence>;
+  private directChats: Map<string, DirectChat>;
+  private userMessages: Map<string, UserMessage>;
 
   constructor() {
     this.users = new Map();
@@ -67,6 +96,9 @@ export class MemStorage implements IStorage {
     this.conversations = new Map();
     this.documents = new Map();
     this.knowledgeChunks = new Map();
+    this.userPresences = new Map();
+    this.directChats = new Map();
+    this.userMessages = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -345,6 +377,182 @@ export class MemStorage implements IStorage {
     });
     idsToDelete.forEach(id => this.knowledgeChunks.delete(id));
   }
+
+  // User presence methods implementation
+  async updateUserPresence(userId: string, isOnline: boolean, socketId?: string): Promise<UserPresence> {
+    let presence = Array.from(this.userPresences.values()).find(p => p.userId === userId);
+    
+    if (presence) {
+      presence.isOnline = isOnline;
+      presence.lastSeen = new Date();
+      presence.socketId = socketId || null;
+      presence.updatedAt = new Date();
+    } else {
+      const id = randomUUID();
+      const now = new Date();
+      presence = {
+        id,
+        userId,
+        isOnline,
+        lastSeen: now,
+        socketId: socketId || null,
+        status: "online",
+        createdAt: now,
+        updatedAt: now,
+      };
+      this.userPresences.set(id, presence);
+    }
+    
+    return presence;
+  }
+
+  async getUserPresence(userId: string): Promise<UserPresence | undefined> {
+    return Array.from(this.userPresences.values()).find(p => p.userId === userId);
+  }
+
+  async getOnlineUsers(): Promise<(User & { presence: UserPresence })[]> {
+    const onlinePresences = Array.from(this.userPresences.values()).filter(p => p.isOnline);
+    const result: (User & { presence: UserPresence })[] = [];
+    
+    for (const presence of onlinePresences) {
+      const user = this.users.get(presence.userId);
+      if (user) {
+        result.push({ ...user, presence });
+      }
+    }
+    
+    return result;
+  }
+
+  async setUserOffline(socketId: string): Promise<void> {
+    const presence = Array.from(this.userPresences.values()).find(p => p.socketId === socketId);
+    if (presence) {
+      presence.isOnline = false;
+      presence.lastSeen = new Date();
+      presence.socketId = null;
+      presence.updatedAt = new Date();
+    }
+  }
+
+  // Direct chat methods implementation
+  async getOrCreateDirectChat(user1Id: string, user2Id: string): Promise<DirectChat> {
+    // Look for existing chat between these users
+    const existingChat = Array.from(this.directChats.values()).find(chat => 
+      (chat.user1Id === user1Id && chat.user2Id === user2Id) ||
+      (chat.user1Id === user2Id && chat.user2Id === user1Id)
+    );
+    
+    if (existingChat) {
+      return existingChat;
+    }
+    
+    // Create new chat
+    const id = randomUUID();
+    const now = new Date();
+    const chat: DirectChat = {
+      id,
+      user1Id,
+      user2Id,
+      lastMessageAt: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    
+    this.directChats.set(id, chat);
+    return chat;
+  }
+
+  async getUserDirectChats(userId: string): Promise<(DirectChat & { otherUser: User; lastMessage?: UserMessage })[]> {
+    const userChats = Array.from(this.directChats.values()).filter(chat => 
+      chat.user1Id === userId || chat.user2Id === userId
+    );
+    
+    const result: (DirectChat & { otherUser: User; lastMessage?: UserMessage })[] = [];
+    
+    for (const chat of userChats) {
+      const otherUserId = chat.user1Id === userId ? chat.user2Id : chat.user1Id;
+      const otherUser = this.users.get(otherUserId);
+      
+      if (otherUser) {
+        // Get last message for this chat
+        const chatMessages = Array.from(this.userMessages.values())
+          .filter(msg => msg.chatId === chat.id)
+          .sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime());
+        
+        const lastMessage = chatMessages[0];
+        
+        result.push({
+          ...chat,
+          otherUser,
+          lastMessage
+        });
+      }
+    }
+    
+    return result.sort((a, b) => {
+      const aTime = a.lastMessage?.sentAt.getTime() || a.createdAt?.getTime() || 0;
+      const bTime = b.lastMessage?.sentAt.getTime() || b.createdAt?.getTime() || 0;
+      return bTime - aTime;
+    });
+  }
+
+  // Message methods implementation
+  async sendMessage(message: InsertUserMessage): Promise<UserMessage> {
+    const id = randomUUID();
+    const now = new Date();
+    const userMessage: UserMessage = {
+      id,
+      chatId: message.chatId,
+      fromUserId: message.fromUserId,
+      toUserId: message.toUserId,
+      content: message.content,
+      messageType: message.messageType || "text",
+      isRead: message.isRead || false,
+      isDelivered: message.isDelivered || false,
+      sentAt: now,
+      readAt: message.readAt || null,
+    };
+    
+    this.userMessages.set(id, userMessage);
+    
+    // Update chat's lastMessageAt
+    const chat = this.directChats.get(message.chatId);
+    if (chat) {
+      chat.lastMessageAt = now;
+      chat.updatedAt = now;
+    }
+    
+    return userMessage;
+  }
+
+  async getChatMessages(chatId: string, limit: number = 50): Promise<UserMessage[]> {
+    return Array.from(this.userMessages.values())
+      .filter(msg => msg.chatId === chatId)
+      .sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime())
+      .slice(-limit);
+  }
+
+  async markMessageAsRead(messageId: string): Promise<void> {
+    const message = this.userMessages.get(messageId);
+    if (message) {
+      message.isRead = true;
+      message.readAt = new Date();
+    }
+  }
+
+  async markMessagesAsDelivered(userId: string): Promise<void> {
+    this.userMessages.forEach(message => {
+      if (message.toUserId === userId && !message.isDelivered) {
+        message.isDelivered = true;
+      }
+    });
+  }
+
+  async getUnreadMessageCount(userId: string): Promise<number> {
+    return Array.from(this.userMessages.values())
+      .filter(msg => msg.toUserId === userId && !msg.isRead)
+      .length;
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -518,6 +726,237 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDocumentChunks(documentId: string): Promise<void> {
     await db.delete(knowledgeChunks).where(eq(knowledgeChunks.documentId, documentId));
+  }
+
+  // User presence methods implementation
+  async updateUserPresence(userId: string, isOnline: boolean, socketId?: string): Promise<UserPresence> {
+    // Try to update existing presence
+    const existing = await db.select().from(userPresence).where(eq(userPresence.userId, userId));
+    
+    if (existing.length > 0) {
+      const [updated] = await db
+        .update(userPresence)
+        .set({
+          isOnline,
+          lastSeen: new Date(),
+          socketId: socketId || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(userPresence.userId, userId))
+        .returning();
+      return updated;
+    } else {
+      // Create new presence record
+      const [created] = await db
+        .insert(userPresence)
+        .values({
+          userId,
+          isOnline,
+          lastSeen: new Date(),
+          socketId: socketId || null,
+          status: "online",
+        })
+        .returning();
+      return created;
+    }
+  }
+
+  async getUserPresence(userId: string): Promise<UserPresence | undefined> {
+    const [presence] = await db.select().from(userPresence).where(eq(userPresence.userId, userId));
+    return presence;
+  }
+
+  async getOnlineUsers(): Promise<(User & { presence: UserPresence })[]> {
+    const result = await db
+      .select({
+        user: users,
+        presence: userPresence,
+      })
+      .from(users)
+      .innerJoin(userPresence, eq(users.id, userPresence.userId))
+      .where(eq(userPresence.isOnline, true));
+
+    return result.map(row => ({ ...row.user, presence: row.presence }));
+  }
+
+  async setUserOffline(socketId: string): Promise<void> {
+    await db
+      .update(userPresence)
+      .set({
+        isOnline: false,
+        lastSeen: new Date(),
+        socketId: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(userPresence.socketId, socketId));
+  }
+
+  // Direct chat methods implementation
+  async getOrCreateDirectChat(user1Id: string, user2Id: string): Promise<DirectChat> {
+    // Look for existing chat between these users (in either direction)
+    const [existingChat] = await db
+      .select()
+      .from(directChats)
+      .where(
+        and(
+          eq(directChats.user1Id, user1Id),
+          eq(directChats.user2Id, user2Id)
+        )
+      )
+      .union(
+        db
+          .select()
+          .from(directChats)
+          .where(
+            and(
+              eq(directChats.user1Id, user2Id),
+              eq(directChats.user2Id, user1Id)
+            )
+          )
+      );
+
+    if (existingChat) {
+      return existingChat;
+    }
+
+    // Create new chat
+    const [newChat] = await db
+      .insert(directChats)
+      .values({
+        user1Id,
+        user2Id,
+      })
+      .returning();
+
+    return newChat;
+  }
+
+  async getUserDirectChats(userId: string): Promise<(DirectChat & { otherUser: User; lastMessage?: UserMessage })[]> {
+    // Get chats where user is either user1 or user2
+    const chats = await db
+      .select({
+        chat: directChats,
+        user1: users,
+        user2: users,
+      })
+      .from(directChats)
+      .leftJoin(users, eq(directChats.user1Id, users.id))
+      .leftJoin(users, eq(directChats.user2Id, users.id))
+      .where(
+        and(
+          eq(directChats.user1Id, userId)
+        )
+      )
+      .union(
+        db
+          .select({
+            chat: directChats,
+            user1: users,
+            user2: users,
+          })
+          .from(directChats)
+          .leftJoin(users, eq(directChats.user1Id, users.id))
+          .leftJoin(users, eq(directChats.user2Id, users.id))
+          .where(
+            and(
+              eq(directChats.user2Id, userId)
+            )
+          )
+      );
+
+    const result: (DirectChat & { otherUser: User; lastMessage?: UserMessage })[] = [];
+
+    for (const row of chats) {
+      const otherUser = row.chat.user1Id === userId ? row.user2 : row.user1;
+      if (otherUser) {
+        // Get last message for this chat
+        const [lastMessage] = await db
+          .select()
+          .from(userMessages)
+          .where(eq(userMessages.chatId, row.chat.id))
+          .orderBy(desc(userMessages.sentAt))
+          .limit(1);
+
+        result.push({
+          ...row.chat,
+          otherUser,
+          lastMessage,
+        });
+      }
+    }
+
+    // Sort by last message time or creation time
+    return result.sort((a, b) => {
+      const aTime = a.lastMessage?.sentAt.getTime() || a.createdAt?.getTime() || 0;
+      const bTime = b.lastMessage?.sentAt.getTime() || b.createdAt?.getTime() || 0;
+      return bTime - aTime;
+    });
+  }
+
+  // Message methods implementation
+  async sendMessage(message: InsertUserMessage): Promise<UserMessage> {
+    const [sentMessage] = await db
+      .insert(userMessages)
+      .values(message)
+      .returning();
+
+    // Update chat's lastMessageAt
+    await db
+      .update(directChats)
+      .set({
+        lastMessageAt: sentMessage.sentAt,
+        updatedAt: new Date(),
+      })
+      .where(eq(directChats.id, message.chatId));
+
+    return sentMessage;
+  }
+
+  async getChatMessages(chatId: string, limit: number = 50): Promise<UserMessage[]> {
+    return await db
+      .select()
+      .from(userMessages)
+      .where(eq(userMessages.chatId, chatId))
+      .orderBy(userMessages.sentAt)
+      .limit(limit);
+  }
+
+  async markMessageAsRead(messageId: string): Promise<void> {
+    await db
+      .update(userMessages)
+      .set({
+        isRead: true,
+        readAt: new Date(),
+      })
+      .where(eq(userMessages.id, messageId));
+  }
+
+  async markMessagesAsDelivered(userId: string): Promise<void> {
+    await db
+      .update(userMessages)
+      .set({
+        isDelivered: true,
+      })
+      .where(
+        and(
+          eq(userMessages.toUserId, userId),
+          eq(userMessages.isDelivered, false)
+        )
+      );
+  }
+
+  async getUnreadMessageCount(userId: string): Promise<number> {
+    const result = await db
+      .select({ count: sql`COUNT(*)` })
+      .from(userMessages)
+      .where(
+        and(
+          eq(userMessages.toUserId, userId),
+          eq(userMessages.isRead, false)
+        )
+      );
+
+    return parseInt(result[0].count as string) || 0;
   }
 }
 

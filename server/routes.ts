@@ -960,6 +960,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chat system API endpoints
+  
+  // Get online users
+  app.get("/api/chat/online-users", isAuthenticated, async (req: any, res) => {
+    try {
+      const onlineUsers = await storage.getOnlineUsers();
+      res.json(onlineUsers);
+    } catch (error) {
+      console.error("Get online users error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get user's direct chats
+  app.get("/api/chat/conversations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const chats = await storage.getUserDirectChats(userId);
+      res.json(chats);
+    } catch (error) {
+      console.error("Get direct chats error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Start or get existing direct chat
+  app.post("/api/chat/conversations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { otherUserId } = req.body;
+
+      if (!otherUserId || otherUserId === userId) {
+        return res.status(400).json({ error: "Invalid other user ID" });
+      }
+
+      const chat = await storage.getOrCreateDirectChat(userId, otherUserId);
+      res.json(chat);
+    } catch (error) {
+      console.error("Create direct chat error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get messages for a specific chat
+  app.get("/api/chat/conversations/:chatId/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { chatId } = req.params;
+      const { limit = 50 } = req.query;
+
+      // Verify user has access to this chat
+      const userChats = await storage.getUserDirectChats(userId);
+      const hasAccess = userChats.some(chat => chat.id === chatId);
+
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const messages = await storage.getChatMessages(chatId, parseInt(limit));
+      res.json(messages);
+    } catch (error) {
+      console.error("Get chat messages error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Send a message
+  app.post("/api/chat/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { chatId, content, toUserId } = req.body;
+
+      if (!content || !chatId || !toUserId) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Verify user has access to this chat
+      const userChats = await storage.getUserDirectChats(userId);
+      const hasAccess = userChats.some(chat => chat.id === chatId);
+
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      const message = await storage.sendMessage({
+        chatId,
+        fromUserId: userId,
+        toUserId,
+        content,
+        messageType: "text",
+        isRead: false,
+        isDelivered: false,
+      });
+
+      // Emit message via WebSocket to connected users
+      chatWss.clients.forEach((client: any) => {
+        if (client.readyState === WebSocket.OPEN && 
+            (client.userId === userId || client.userId === toUserId)) {
+          client.send(JSON.stringify({
+            type: 'message',
+            data: message
+          }));
+        }
+      });
+
+      res.json(message);
+    } catch (error) {
+      console.error("Send message error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Mark messages as read
+  app.put("/api/chat/messages/:messageId/read", isAuthenticated, async (req: any, res) => {
+    try {
+      const { messageId } = req.params;
+      await storage.markMessageAsRead(messageId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark message as read error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get unread message count
+  app.get("/api/chat/unread-count", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const count = await storage.getUnreadMessageCount(userId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Get unread count error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
   
@@ -972,6 +1108,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize telnet proxy service
   const telnetProxy = new TelnetProxyService(wss);
   console.log('Telnet proxy WebSocket server initialized on /ws/telnet');
+
+  // Create WebSocket server for chat system
+  const chatWss = new WebSocketServer({
+    server: httpServer,
+    path: '/ws/chat'
+  });
+
+  // Handle chat WebSocket connections
+  chatWss.on('connection', (ws: any, req) => {
+    console.log('Chat WebSocket client connected');
+
+    ws.on('message', async (data: Buffer) => {
+      try {
+        const message = JSON.parse(data.toString());
+        
+        switch (message.type) {
+          case 'auth':
+            // Set user ID for this connection
+            ws.userId = message.userId;
+            
+            // Update user presence as online
+            await storage.updateUserPresence(message.userId, true, ws.id);
+            
+            // Mark messages as delivered for this user
+            await storage.markMessagesAsDelivered(message.userId);
+            
+            // Broadcast user online status
+            chatWss.clients.forEach((client: any) => {
+              if (client.readyState === WebSocket.OPEN && client !== ws) {
+                client.send(JSON.stringify({
+                  type: 'user_online',
+                  data: { userId: message.userId }
+                }));
+              }
+            });
+            
+            ws.send(JSON.stringify({
+              type: 'auth_success',
+              data: { connected: true }
+            }));
+            break;
+
+          case 'typing':
+            // Broadcast typing indicator to other user
+            chatWss.clients.forEach((client: any) => {
+              if (client.readyState === WebSocket.OPEN && 
+                  client.userId === message.toUserId) {
+                client.send(JSON.stringify({
+                  type: 'typing',
+                  data: {
+                    fromUserId: ws.userId,
+                    chatId: message.chatId,
+                    isTyping: message.isTyping
+                  }
+                }));
+              }
+            });
+            break;
+
+          default:
+            console.log('Unknown message type:', message.type);
+        }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+        ws.send(JSON.stringify({
+          type: 'error',
+          data: { message: 'Invalid message format' }
+        }));
+      }
+    });
+
+    ws.on('close', async () => {
+      console.log('Chat WebSocket client disconnected');
+      
+      if (ws.userId) {
+        // Set user offline
+        await storage.updateUserPresence(ws.userId, false);
+        
+        // Broadcast user offline status
+        chatWss.clients.forEach((client: any) => {
+          if (client.readyState === WebSocket.OPEN && client !== ws) {
+            client.send(JSON.stringify({
+              type: 'user_offline',
+              data: { userId: ws.userId }
+            }));
+          }
+        });
+      }
+    });
+
+    ws.on('error', (error: Error) => {
+      console.error('Chat WebSocket error:', error);
+    });
+  });
+
+  console.log('Chat WebSocket server initialized on /ws/chat');
   
   return httpServer;
 }
