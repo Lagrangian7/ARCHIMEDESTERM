@@ -55,24 +55,24 @@ export const useChat = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
 
-  // Disable chat queries when WebSocket is disabled to improve performance
+  // Enable chat queries when user is authenticated
   const { data: onlineUsers = [], refetch: refetchOnlineUsers } = useQuery({
     queryKey: ['/api/chat/online-users'],
-    enabled: false, // Disabled for performance optimization
+    enabled: !!user,
     staleTime: 30000,
   });
 
   // Fetch user's direct chats
   const { data: conversations = [], refetch: refetchConversations } = useQuery({
     queryKey: ['/api/chat/conversations'],
-    enabled: false, // Disabled for performance optimization  
+    enabled: !!user,
     staleTime: 30000,
   });
 
   // Fetch unread message count
   const { data: unreadData, refetch: refetchUnreadCount } = useQuery({
     queryKey: ['/api/chat/unread-count'],
-    enabled: false, // Disabled for performance optimization
+    enabled: !!user,
     staleTime: 10000,
   });
 
