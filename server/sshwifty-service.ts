@@ -282,7 +282,7 @@ export class SshwiftyService {
             
             showStatus('Connecting to ' + connectionConfig.host + ':' + connectionConfig.port + '...');
             
-            socket = io({
+            socket = io(window.location.origin, {
                 path: '/socket.io/sshwifty'
             });
             
