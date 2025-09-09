@@ -123,8 +123,8 @@ export const useChat = () => {
 
   // WebSocket connection management with improved reliability
   useEffect(() => {
-    // Temporarily disable WebSocket connections to fix performance issues
-    if (!user?.id || true) return;
+    // Only connect if user is authenticated
+    if (!user?.id) return;
 
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 5;
@@ -149,7 +149,7 @@ export const useChat = () => {
           // Authenticate with the server
           wsRef.current?.send(JSON.stringify({
             type: 'auth',
-            userId: user.id,
+            userId: user?.id,
           }));
         };
 
