@@ -63,6 +63,15 @@ export class SshwiftyService {
           }
 
           if (terminalProcess) {
+            // Handle spawn errors (e.g., command not found)
+            terminalProcess.on('error', (error: Error) => {
+              console.error('Terminal process error:', error);
+              socket.emit('terminal-error', { 
+                message: `Failed to start ${type} command: ${error.message}` 
+              });
+              terminalProcess = null;
+            });
+
             // Send terminal output to client
             terminalProcess.stdout.on('data', (data: Buffer) => {
               socket.emit('terminal-output', data.toString());
