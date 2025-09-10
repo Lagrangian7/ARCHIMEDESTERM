@@ -71,13 +71,20 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
         y: prevSnake[0].y + nextDirRef.current.y 
       };
       
-      const willGrow = head.x === foodRef.current.x && head.y === foodRef.current.y;
-      const bodyToCheck = willGrow ? prevSnake : prevSnake.slice(0, -1);
+      // Check wall collision
+      if (head.x < 0 || head.x >= BOARD_SIZE || head.y < 0 || head.y >= BOARD_SIZE) {
+        const finalScore = scoreRef.current;
+        setGameState('gameOver');
+        onGameOver(finalScore);
+        return prevSnake;
+      }
       
-      if (checkCollision(head, bodyToCheck)) {
-        const finalScore = scoreRef.current; // Don't award points on collision
-        scoreRef.current = finalScore;
-        setScore(finalScore);
+      const willGrow = head.x === foodRef.current.x && head.y === foodRef.current.y;
+      
+      // Check self collision - only against body (excluding head)
+      const bodyToCheckForCollision = prevSnake.slice(1); // Always exclude the head for self-collision
+      if (bodyToCheckForCollision.some(segment => segment.x === head.x && segment.y === head.y)) {
+        const finalScore = scoreRef.current;
         setGameState('gameOver');
         onGameOver(finalScore);
         return prevSnake;
@@ -93,7 +100,7 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
         scoreRef.current = newScore;
         setScore(newScore);
       } else {
-        nextSnake.pop();
+        nextSnake.pop(); // Remove tail
       }
       
       return nextSnake;
@@ -101,7 +108,7 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
     
     // Update direction for next frame
     setDirection(nextDirRef.current);
-  }, [checkCollision, generateFood, onGameOver]);
+  }, [generateFood, onGameOver]);
 
   // Main game loop with fixed timestep
   const gameLoopRef = useRef<(currentTime: number) => void>();
