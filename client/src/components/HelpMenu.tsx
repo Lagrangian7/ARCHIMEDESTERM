@@ -119,15 +119,6 @@ const helpMenuItems: HelpMenuItem[] = [
     icon: <TrendingUp size={16} />
   },
   {
-    id: 'stock-history',
-    category: 'Stock Market',
-    title: 'Historical Data',
-    description: 'View historical stock price data',
-    command: 'stock history',
-    example: 'stock history AAPL 30',
-    icon: <TrendingUp size={16} />
-  },
-  {
     id: 'stock-search',
     category: 'Stock Market',
     title: 'Search Stocks',

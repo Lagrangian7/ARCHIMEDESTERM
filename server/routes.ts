@@ -665,44 +665,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/stocks/historical/:symbol", async (req, res) => {
-    try {
-      const symbol = req.params.symbol.toUpperCase();
-      const { days = '30', date_from, date_to } = req.query;
-      
-      let dateFrom = date_from as string;
-      let dateTo = date_to as string;
-      
-      // If no specific dates provided, use the days parameter
-      if (!dateFrom && !dateTo) {
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(endDate.getDate() - parseInt(days as string));
-        
-        dateFrom = startDate.toISOString().split('T')[0];
-        dateTo = endDate.toISOString().split('T')[0];
-      }
-
-      const response = await marketstackService.getEODData({
-        symbols: [symbol],
-        dateFrom,
-        dateTo,
-        limit: 100,
-        sort: 'desc'
-      });
-
-      const formatted = marketstackService.formatHistoricalDataForTerminal(response.data, symbol);
-
-      res.json({
-        data: response.data,
-        formatted
-      });
-    } catch (error) {
-      console.error("Historical data error:", error);
-      const message = error instanceof Error ? error.message : "Failed to fetch historical data";
-      res.status(500).json({ error: message });
-    }
-  });
 
   app.get("/api/stocks/search/:query", async (req, res) => {
     try {
@@ -735,35 +697,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/stocks/intraday/:symbol", async (req, res) => {
-    try {
-      const symbol = req.params.symbol.toUpperCase();
-      const { interval = '1min', limit = '50' } = req.query;
-
-      const response = await marketstackService.getIntradayData({
-        symbols: [symbol],
-        interval: interval as any,
-        limit: parseInt(limit as string)
-      });
-
-      const formatted = `Intraday Data: ${symbol} (${interval} intervals, last ${response.data.length} points)\n\n` +
-        response.data.map(point => {
-          const time = new Date(point.date).toLocaleTimeString();
-          const change = point.close - point.open;
-          const changePercent = ((change / point.open) * 100).toFixed(2);
-          return `${time} | $${point.close.toFixed(2)} (${change >= 0 ? '+' : ''}${changePercent}%) Vol: ${point.volume.toLocaleString()}`;
-        }).join('\n');
-
-      res.json({
-        data: response.data,
-        formatted
-      });
-    } catch (error) {
-      console.error("Intraday data error:", error);
-      const message = error instanceof Error ? error.message : "Failed to fetch intraday data (may require higher plan)";
-      res.status(500).json({ error: message });
-    }
-  });
 
   // BBS Directory API endpoints
   app.get("/api/bbs/systems", async (req, res) => {

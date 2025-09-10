@@ -229,24 +229,6 @@ export function useTerminal(onUploadCommand?: () => void) {
     },
   });
 
-  const stockHistoricalMutation = useMutation({
-    mutationFn: async (params: { symbol: string; days?: number }) => {
-      let endpoint = `/api/stocks/historical/${params.symbol.toUpperCase()}`;
-      if (params.days) {
-        endpoint += `?days=${params.days}`;
-      }
-      const response = await apiRequest('GET', endpoint);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setIsTyping(false);
-      addEntry('response', data.formatted);
-    },
-    onError: (error) => {
-      setIsTyping(false);
-      addEntry('error', `Historical Data Error: ${error.message}`);
-    },
-  });
 
   const stockSearchMutation = useMutation({
     mutationFn: async (query: string) => {
@@ -263,26 +245,6 @@ export function useTerminal(onUploadCommand?: () => void) {
     },
   });
 
-  const stockIntradayMutation = useMutation({
-    mutationFn: async (params: { symbol: string; interval?: string; limit?: number }) => {
-      let endpoint = `/api/stocks/intraday/${params.symbol.toUpperCase()}`;
-      const queryParams = new URLSearchParams();
-      if (params.interval) queryParams.append('interval', params.interval);
-      if (params.limit) queryParams.append('limit', params.limit.toString());
-      if (queryParams.toString()) endpoint += `?${queryParams.toString()}`;
-      
-      const response = await apiRequest('GET', endpoint);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setIsTyping(false);
-      addEntry('response', data.formatted);
-    },
-    onError: (error) => {
-      setIsTyping(false);
-      addEntry('error', `Intraday Data Error: ${error.message}`);
-    },
-  });
 
   const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical') => {
     const entry: TerminalEntry = {
@@ -548,9 +510,7 @@ Stock Market Data:
   stock quote <symbol> - Get current stock price and info
   stock quotes <symbols> - Get multiple quotes (comma-separated)
   stock info <symbol> - Get detailed company information
-  stock history <symbol> [days] - Historical data (default: 30 days)
   stock search <query> - Search for stocks by name or symbol
-  stock intraday <symbol> - Real-time intraday data (premium feature)
   stock help - Show detailed stock command help
 
 Project Gutenberg Books:
@@ -959,20 +919,11 @@ Basic Commands:
   stock info <symbol> - Detailed company information
   stock search <query> - Find stocks by company name or symbol
   
-Historical Data:
-  stock history <symbol> - Last 30 days of trading data
-  stock history <symbol> <days> - Specify number of days (max 100)
-  
-Real-time Data (Premium):
-  stock intraday <symbol> - Live intraday data with 1-minute intervals
-  
 Examples:
   stock quote AAPL
   stock quotes AAPL,MSFT,GOOGL
   stock info TSLA
   stock search Apple
-  stock history NVDA 7
-  stock intraday AMZN
 
 Data powered by Marketstack API - 125,000+ global stock tickers!
 Free plan includes 100 monthly requests with end-of-day data.`);
@@ -1042,41 +993,7 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         return;
       }
       
-      if (subCmd.startsWith('history ')) {
-        const parts = subCmd.substring(8).trim().split(' ');
-        const symbol = parts[0]?.toUpperCase();
-        const days = parts[1] ? parseInt(parts[1]) : 30;
-        
-        if (!symbol) {
-          addEntry('error', 'Usage: stock history <symbol> [days]');
-          return;
-        }
-        
-        if (days && (isNaN(days) || days < 1 || days > 365)) {
-          addEntry('error', 'Days must be a number between 1 and 365');
-          return;
-        }
-        
-        setIsTyping(true);
-        addEntry('system', `Fetching ${days} days of historical data for ${symbol}...`);
-        stockHistoricalMutation.mutate({ symbol, days });
-        return;
-      }
       
-      if (subCmd.startsWith('intraday ')) {
-        const parts = subCmd.substring(9).trim().split(' ');
-        const symbol = parts[0]?.toUpperCase();
-        
-        if (!symbol) {
-          addEntry('error', 'Usage: stock intraday <symbol>');
-          return;
-        }
-        
-        setIsTyping(true);
-        addEntry('system', `Fetching real-time intraday data for ${symbol}...`);
-        stockIntradayMutation.mutate({ symbol, interval: '1min', limit: 50 });
-        return;
-      }
       
       // If no valid subcommand, show help
       addEntry('error', 'Unknown stock command. Type "stock help" for available commands.');
