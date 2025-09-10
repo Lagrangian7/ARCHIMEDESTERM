@@ -107,6 +107,13 @@ export function Terminal() {
     onInactive: () => setScreensaverActive(true),
     onActive: () => setScreensaverActive(false)
   });
+
+  // Set radio volume on mount
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.7; // Set volume to 70% (decreased by 30%)
+    }
+  }, []);
   const [visibleEntries, setVisibleEntries] = useState(Math.min(entries.length, 15));
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -660,7 +667,6 @@ export function Terminal() {
         ref={audioRef}
         crossOrigin="anonymous"
         preload="metadata"
-        volume={0.7}
         onPlay={() => setIsRadioPlaying(true)}
         onPause={() => setIsRadioPlaying(false)}
         onError={() => {
