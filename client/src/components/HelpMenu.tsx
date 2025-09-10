@@ -252,6 +252,125 @@ const helpMenuItems: HelpMenuItem[] = [
     description: 'Stop speech synthesis immediately and await next command',
     command: 'stop',
     icon: <Mic size={16} />
+  },
+
+  // OSINT Commands
+  {
+    id: 'whois',
+    category: 'OSINT (Intelligence)',
+    title: 'WHOIS Lookup',
+    description: 'Domain registration information and ownership details',
+    command: 'whois',
+    example: 'whois google.com',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'dns',
+    category: 'OSINT (Intelligence)',
+    title: 'DNS Records',
+    description: 'Comprehensive DNS record analysis (A, AAAA, MX, NS, TXT)',
+    command: 'dns',
+    example: 'dns example.com',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'geoip',
+    category: 'OSINT (Intelligence)',
+    title: 'IP Geolocation',
+    description: 'Geographic location and ISP information for IP addresses',
+    command: 'geoip',
+    example: 'geoip 8.8.8.8',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'headers',
+    category: 'OSINT (Intelligence)',
+    title: 'HTTP Headers',
+    description: 'Analyze HTTP response headers and security configurations',
+    command: 'headers',
+    example: 'headers https://example.com',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'wayback',
+    category: 'OSINT (Intelligence)',
+    title: 'Wayback Machine',
+    description: 'Historical snapshots and archived versions of websites',
+    command: 'wayback',
+    example: 'wayback example.com',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'username',
+    category: 'OSINT (Intelligence)',
+    title: 'Username Check',
+    description: 'Check username availability across multiple platforms',
+    command: 'username',
+    example: 'username johndoe',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'traceroute',
+    category: 'OSINT (Intelligence)',
+    title: 'Network Traceroute',
+    description: 'Trace network path and routing information to target',
+    command: 'traceroute',
+    example: 'traceroute google.com',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'subdomains',
+    category: 'OSINT (Intelligence)',
+    title: 'Subdomain Discovery',
+    description: 'Enumerate and discover subdomains for a target domain',
+    command: 'subdomains',
+    example: 'subdomains example.com',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'ssl',
+    category: 'OSINT (Intelligence)',
+    title: 'SSL Certificate',
+    description: 'Analyze SSL/TLS certificates and security configurations',
+    command: 'ssl',
+    example: 'ssl example.com',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'tech',
+    category: 'OSINT (Intelligence)',
+    title: 'Technology Stack',
+    description: 'Detect technologies, frameworks, and libraries used by a website',
+    command: 'tech',
+    example: 'tech github.com',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'reverse-ip',
+    category: 'OSINT (Intelligence)',
+    title: 'Reverse IP Lookup',
+    description: 'Find other domains hosted on the same IP address',
+    command: 'reverse-ip',
+    example: 'reverse-ip 192.168.1.1',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'portscan',
+    category: 'OSINT (Intelligence)',
+    title: 'Port Scanner',
+    description: 'Scan common network ports for open services',
+    command: 'portscan',
+    example: 'portscan example.com',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'osint-report',
+    category: 'OSINT (Intelligence)',
+    title: 'OSINT Report',
+    description: 'Generate comprehensive intelligence report combining multiple sources',
+    command: 'osint-report',
+    example: 'osint-report example.com',
+    icon: <TerminalIcon size={16} />
   }
 ];
 

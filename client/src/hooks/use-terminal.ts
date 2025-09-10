@@ -532,9 +532,15 @@ OSINT (Open Source Intelligence):
   dns <domain> - DNS records analysis
   geoip <ip> - IP geolocation tracking
   headers <url> - HTTP header analysis
-  wayback <url> - Wayback Machine snapshots
-  username <name> - Username availability checker
-  osint - Show OSINT help menu
+  wayback <url> - Website snapshots
+  username <name> - Username availability
+  traceroute <host> - Network path trace
+  subdomains <domain> - Subdomain discovery
+  ssl <domain> - SSL certificate analysis
+  tech <domain> - Technology stack detection
+  reverse-ip <ip> - Reverse IP lookup
+  portscan <target> - Port scanner
+  osint-report <target> - Comprehensive OSINT report
   
 Audio & Signal Processing:
   dtmf - Start DTMF decoder for touch-tone signals
@@ -1724,131 +1730,7 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       return;
     }
 
-    if (cmd === 'osint' || cmd === 'osint help') {
-      const menuText = `🔍 OSINT (Open Source Intelligence) Services:
-
-Select a service by typing the number:
-1. WHOIS - Domain registration lookup  
-2. DNS - DNS records analysis
-3. GeoIP - IP geolocation tracking
-4. Headers - HTTP header analysis  
-5. Wayback - Historical website snapshots
-6. Username - Username availability checker
-7. Traceroute - Network path tracing
-8. Subdomains - Subdomain enumeration
-9. SSL - SSL/TLS certificate analysis
-10. Tech - Technology stack detection
-11. Reverse IP - Find domains on same IP
-12. Port Scan - Network port reconnaissance
-13. Report - Comprehensive intelligence gathering
-
-Type: osint <number> (e.g., "osint 1")
-💡 All lookups performed ethically using public APIs`;
       
-      addEntry('system', menuText);
-      return;
-    }
-    
-    if (cmd.startsWith('osint ')) {
-      const selection = cmd.substring(6).trim();
-      
-      // Handle service selection
-      if (selection === '1') {
-        addEntry('system', '🔍 WHOIS Domain Lookup selected');
-        addEntry('system', 'Enter domain (e.g., "google.com"):');
-        // Set a flag to expect domain input
-        localStorage.setItem('osintMode', 'whois');
-        return;
-      }
-      
-      if (selection === '2') {
-        addEntry('system', '🌐 DNS Records Analysis selected');
-        addEntry('system', 'Enter domain (e.g., "google.com"):');
-        localStorage.setItem('osintMode', 'dns');
-        return;
-      }
-      
-      if (selection === '3') {
-        addEntry('system', '🌍 GeoIP Location Tracking selected');
-        addEntry('system', 'Enter IP address (e.g., "8.8.8.8"):');
-        localStorage.setItem('osintMode', 'geoip');
-        return;
-      }
-      
-      if (selection === '4') {
-        addEntry('system', '🔍 HTTP Headers Analysis selected');
-        addEntry('system', 'Enter URL (e.g., "https://github.com"):');
-        localStorage.setItem('osintMode', 'headers');
-        return;
-      }
-      
-      if (selection === '5') {
-        addEntry('system', '📚 Wayback Machine Search selected');
-        addEntry('system', 'Enter URL (e.g., "https://example.com"):');
-        localStorage.setItem('osintMode', 'wayback');
-        return;
-      }
-      
-      if (selection === '6') {
-        addEntry('system', '👤 Username Availability Check selected');
-        addEntry('system', 'Enter username (e.g., "johndoe123"):');
-        localStorage.setItem('osintMode', 'username');
-        return;
-      }
-      
-      if (selection === '7') {
-        addEntry('system', '🛤️ Network Path Tracing selected');
-        addEntry('system', 'Enter target IP or domain (e.g., "8.8.8.8" or "google.com"):');
-        localStorage.setItem('osintMode', 'traceroute');
-        return;
-      }
-      
-      if (selection === '8') {
-        addEntry('system', '🌐 Subdomain Enumeration selected');
-        addEntry('system', 'Enter domain (e.g., "example.com"):');
-        localStorage.setItem('osintMode', 'subdomains');
-        return;
-      }
-      
-      if (selection === '9') {
-        addEntry('system', '🔒 SSL Certificate Analysis selected');
-        addEntry('system', 'Enter domain (e.g., "google.com"):');
-        localStorage.setItem('osintMode', 'ssl');
-        return;
-      }
-      
-      if (selection === '10') {
-        addEntry('system', '⚙️ Technology Stack Detection selected');
-        addEntry('system', 'Enter domain (e.g., "github.com"):');
-        localStorage.setItem('osintMode', 'tech');
-        return;
-      }
-      
-      if (selection === '11') {
-        addEntry('system', '🔄 Reverse IP Lookup selected');
-        addEntry('system', 'Enter IP address (e.g., "8.8.8.8"):');
-        localStorage.setItem('osintMode', 'reverse-ip');
-        return;
-      }
-      
-      if (selection === '12') {
-        addEntry('system', '🛡️ Port Scan selected');
-        addEntry('system', 'Enter IP or domain (e.g., "example.com"):');
-        localStorage.setItem('osintMode', 'portscan');
-        return;
-      }
-      
-      if (selection === '13') {
-        addEntry('system', '📋 Comprehensive OSINT Report selected');
-        addEntry('system', 'Enter domain or IP (e.g., "github.com"):');
-        localStorage.setItem('osintMode', 'report');
-        return;
-      }
-      
-      // Invalid selection
-      addEntry('error', 'Invalid selection. Choose 1-13 or type "osint" to see menu.');
-      return;
-    }
     
     // For non-command inputs, send to AI
     setIsTyping(true);
