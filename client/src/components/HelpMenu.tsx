@@ -191,6 +191,15 @@ const helpMenuItems: HelpMenuItem[] = [
     command: 'dtmf',
     icon: <Mic size={16} />
   },
+  {
+    id: 'weather',
+    category: 'System Information',
+    title: 'Weather Data',
+    description: 'Get current weather conditions for your location or specified city',
+    command: 'weather',
+    example: 'weather  or  weather London',
+    icon: <TerminalIcon size={16} />
+  },
 
   // Games & Entertainment
   {
