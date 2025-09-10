@@ -1257,6 +1257,17 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       return;
     }
 
+    if (cmd === 'mud') {
+      addEntry('system', 'Launching MUD Client...');
+      const openMudClient = (window as any).openMudClient;
+      if (openMudClient) {
+        openMudClient();
+      } else {
+        addEntry('error', 'MUD client not available. Please ensure the MUD system is loaded.');
+      }
+      return;
+    }
+
     if (cmd === 'zork') {
       addEntry('system', 'Launching ZORK: The Great Underground Empire...');
       const openZorkGame = (window as any).openZorkGame;

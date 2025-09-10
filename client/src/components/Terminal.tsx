@@ -15,6 +15,7 @@ import { RadioCharacter } from './RadioCharacter';
 import { ChatInterface } from './ChatInterface';
 import { PuzzleScreensaver } from './PuzzleScreensaver';
 import { SshwiftyInterface } from './SshwiftyInterface';
+import { MudClient } from './MudClient';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
@@ -72,6 +73,7 @@ export function Terminal() {
     (window as any).openChatInterface = () => setShowChat(true);
     (window as any).activateScreensaver = () => setScreensaverActive(true);
     (window as any).openSshwiftyInterface = () => setShowSshwifty(true);
+    (window as any).openMudClient = () => setShowMud(true);
   }, []);
   
   const { speak, isSpeaking } = useSpeechSynthesis();
@@ -89,6 +91,7 @@ export function Terminal() {
   const [showChat, setShowChat] = useState(false);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   const [showSshwifty, setShowSshwifty] = useState(false);
+  const [showMud, setShowMud] = useState(false);
   
   // Screensaver state
   const [screensaverActive, setScreensaverActive] = useState(false);
@@ -694,6 +697,12 @@ export function Terminal() {
           </div>
         </div>
       )}
+
+      {/* MUD Client */}
+      <MudClient 
+        isOpen={showMud}
+        onClose={() => setShowMud(false)}
+      />
 
       {/* Puzzle Screensaver */}
       <PuzzleScreensaver 
