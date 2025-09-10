@@ -371,6 +371,15 @@ const helpMenuItems: HelpMenuItem[] = [
     command: 'osint-report',
     example: 'osint-report example.com',
     icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'threat-actors',
+    category: 'OSINT (Intelligence)',
+    title: 'Threat Actors',
+    description: 'Display current threat actors from MISP Galaxy intelligence database',
+    command: 'threat-actors',
+    example: 'threat-actors',
+    icon: <TerminalIcon size={16} />
   }
 ];
 

@@ -2229,6 +2229,185 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // MISP Galaxy Threat Actors endpoint
+  app.get('/api/osint/threat-actors', async (req, res) => {
+    try {
+      console.log('🎯 Fetching MISP Galaxy threat actors...');
+      
+      const response = await fetch('https://raw.githubusercontent.com/MISP/misp-galaxy/main/clusters/threat-actor.json', {
+        signal: AbortSignal.timeout(10000),
+        headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`GitHub fetch failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.values || !Array.isArray(data.values)) {
+        throw new Error('Invalid MISP Galaxy data format');
+      }
+      
+      // Format the threat actor data for terminal display
+      let formatted = `╭─ MISP Galaxy Threat Actors Intelligence\n`;
+      formatted += `├─ Source: ${data.source || 'MISP Project'}\n`;
+      formatted += `├─ Type: ${data.type}\n`;
+      formatted += `├─ Total Actors: ${data.values.length}\n`;
+      formatted += `├─ Last Updated: ${new Date().toISOString().split('T')[0]}\n`;
+      formatted += `├─\n`;
+      formatted += `├─ Top 20 Current Threat Actors:\n`;
+      formatted += `├─\n`;
+      
+      // Sort by attribution confidence and take top 20
+      const sortedActors = data.values
+        .filter((actor: any) => actor.value && actor.description)
+        .sort((a: any, b: any) => {
+          const aConfidence = parseInt(a.meta?.['attribution-confidence'] || '0');
+          const bConfidence = parseInt(b.meta?.['attribution-confidence'] || '0');
+          return bConfidence - aConfidence;
+        })
+        .slice(0, 20);
+      
+      sortedActors.forEach((actor: any, index: number) => {
+        const confidence = actor.meta?.['attribution-confidence'] || 'Unknown';
+        const country = actor.meta?.country || 'Unknown';
+        const synonyms = actor.meta?.synonyms?.slice(0, 3)?.join(', ') || 'None';
+        const description = actor.description.length > 100 
+          ? actor.description.substring(0, 97) + '...'
+          : actor.description;
+        
+        formatted += `├─ ${index + 1}. ${actor.value}\n`;
+        formatted += `│  ├─ Country: ${country}\n`;
+        formatted += `│  ├─ Confidence: ${confidence}%\n`;
+        formatted += `│  ├─ Aliases: ${synonyms}\n`;
+        formatted += `│  ├─ Description: ${description}\n`;
+        if (actor.meta?.refs && actor.meta.refs.length > 0) {
+          formatted += `│  └─ References: ${actor.meta.refs.slice(0, 2).join(', ')}\n`;
+        }
+        formatted += `├─\n`;
+      });
+      
+      formatted += `└─ Use 'threat-actors <name>' for detailed actor information\n`;
+      
+      res.json({ 
+        formatted,
+        count: data.values.length,
+        source: 'MISP Galaxy',
+        type: 'threat-actors'
+      });
+      
+    } catch (error) {
+      console.error('❌ Threat actors fetch error:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch threat actor intelligence',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // MISP Galaxy specific threat actor lookup
+  app.get('/api/osint/threat-actors/:name', async (req, res) => {
+    try {
+      const { name } = req.params;
+      console.log(`🎯 Looking up threat actor: ${name}`);
+      
+      const response = await fetch('https://raw.githubusercontent.com/MISP/misp-galaxy/main/clusters/threat-actor.json', {
+        signal: AbortSignal.timeout(10000),
+        headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`GitHub fetch failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Search for the specific threat actor
+      const actor = data.values.find((actor: any) => 
+        actor.value.toLowerCase().includes(name.toLowerCase()) ||
+        actor.meta?.synonyms?.some((synonym: string) => 
+          synonym.toLowerCase().includes(name.toLowerCase())
+        )
+      );
+      
+      if (!actor) {
+        return res.status(404).json({ 
+          error: `Threat actor '${name}' not found in MISP Galaxy database`,
+          suggestion: 'Try using partial names or known aliases'
+        });
+      }
+      
+      // Format detailed actor information
+      let formatted = `╭─ Threat Actor: ${actor.value}\n`;
+      formatted += `├─ UUID: ${actor.uuid}\n`;
+      formatted += `├─\n`;
+      formatted += `├─ Description:\n`;
+      formatted += `├─ ${actor.description}\n`;
+      formatted += `├─\n`;
+      
+      if (actor.meta) {
+        const meta = actor.meta;
+        
+        if (meta.country) {
+          formatted += `├─ Country/Origin: ${meta.country}\n`;
+        }
+        
+        if (meta['attribution-confidence']) {
+          formatted += `├─ Attribution Confidence: ${meta['attribution-confidence']}%\n`;
+        }
+        
+        if (meta['cfr-suspected-state-sponsor']) {
+          formatted += `├─ Suspected State Sponsor: ${meta['cfr-suspected-state-sponsor']}\n`;
+        }
+        
+        if (meta['cfr-suspected-victims']) {
+          formatted += `├─ Known Victims: ${meta['cfr-suspected-victims'].slice(0, 5).join(', ')}\n`;
+          if (meta['cfr-suspected-victims'].length > 5) {
+            formatted += `├─   (and ${meta['cfr-suspected-victims'].length - 5} more)\n`;
+          }
+        }
+        
+        if (meta['cfr-target-category']) {
+          formatted += `├─ Target Categories: ${meta['cfr-target-category'].join(', ')}\n`;
+        }
+        
+        if (meta['cfr-type-of-incident']) {
+          formatted += `├─ Incident Type: ${meta['cfr-type-of-incident']}\n`;
+        }
+        
+        if (meta.synonyms) {
+          formatted += `├─ Known Aliases: ${meta.synonyms.join(', ')}\n`;
+        }
+        
+        if (meta.refs) {
+          formatted += `├─\n├─ References:\n`;
+          meta.refs.slice(0, 8).forEach((ref: string, index: number) => {
+            formatted += `├─ ${index + 1}. ${ref}\n`;
+          });
+          if (meta.refs.length > 8) {
+            formatted += `├─   (and ${meta.refs.length - 8} more references)\n`;
+          }
+        }
+      }
+      
+      formatted += `└─ Intelligence sourced from MISP Galaxy\n`;
+      
+      res.json({ 
+        formatted,
+        actor: actor.value,
+        source: 'MISP Galaxy'
+      });
+      
+    } catch (error) {
+      console.error('❌ Threat actor lookup error:', error);
+      res.status(500).json({ 
+        error: 'Failed to lookup threat actor',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
 
   // CORS proxy for radio streaming - helps bypass CORS restrictions
   app.get("/api/radio-proxy", async (req, res) => {

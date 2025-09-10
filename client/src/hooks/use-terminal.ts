@@ -541,6 +541,8 @@ OSINT (Open Source Intelligence):
   reverse-ip <ip> - Reverse IP lookup
   portscan <target> - Port scanner
   osint-report <target> - Comprehensive OSINT report
+  threat-actors - MISP Galaxy threat actor intelligence
+  threat-actors <name> - Look up specific threat actor details
   
 Audio & Signal Processing:
   dtmf - Start DTMF decoder for touch-tone signals
@@ -1726,6 +1728,49 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         })
         .catch(() => {
           addEntry('error', 'OSINT report generation failed');
+        });
+      return;
+    }
+
+    if (cmd.startsWith('threat-actors')) {
+      if (cmd === 'threat-actors') {
+        addEntry('system', '🎯 Fetching MISP Galaxy threat actor intelligence...');
+        addEntry('system', 'This may take a moment as we retrieve current threat data...');
+        
+        fetch('/api/osint/threat-actors')
+          .then(res => res.json())
+          .then(data => {
+            addEntry('response', data.formatted);
+          })
+          .catch(() => {
+            addEntry('error', 'Failed to fetch threat actor intelligence');
+          });
+        return;
+      }
+      
+      const actorName = cmd.substring(13).trim();
+      if (!actorName) {
+        addEntry('error', 'Usage: threat-actors <name> or just threat-actors for all actors');
+        return;
+      }
+      
+      addEntry('system', `🎯 Looking up threat actor: ${actorName}...`);
+      addEntry('system', 'Searching MISP Galaxy intelligence database...');
+      
+      fetch(`/api/osint/threat-actors/${encodeURIComponent(actorName)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            addEntry('error', data.error);
+            if (data.suggestion) {
+              addEntry('system', `💡 ${data.suggestion}`);
+            }
+          } else {
+            addEntry('response', data.formatted);
+          }
+        })
+        .catch(() => {
+          addEntry('error', 'Failed to lookup threat actor');
         });
       return;
     }
