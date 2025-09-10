@@ -1315,8 +1315,10 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       if (subCmd === 'play') {
         const radioElement = document.querySelector('audio') as HTMLAudioElement;
         if (radioElement && radioElement.src) {
+          // Set volume to 70% (reduced by 30%) before playing
+          radioElement.volume = 0.7;
           radioElement.play()
-            .then(() => addEntry('system', '🎵 Radio station playback started'))
+            .then(() => addEntry('system', '🎵 Radio station playback started (volume: 70%)'))
             .catch(() => addEntry('error', 'Error: Unable to start radio stream'));
         } else {
           // Trigger radio interface to open
@@ -1399,8 +1401,10 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         
         const radioElement = document.querySelector('audio') as HTMLAudioElement;
         if (radioElement) {
-          radioElement.volume = volumeNum / 100;
-          addEntry('system', `🔊 Volume set to ${volumeNum}%`);
+          // Apply 30% reduction to the requested volume
+          const reducedVolume = (volumeNum * 0.7) / 100;
+          radioElement.volume = reducedVolume;
+          addEntry('system', `🔊 Volume set to ${volumeNum}% (reduced by 30% = ${Math.round(reducedVolume * 100)}%)`);
         } else {
           addEntry('error', 'Radio is not currently active');
         }
