@@ -11,9 +11,13 @@ interface GameState {
   inventory: string[];
   score: number;
   moves: number;
-  flags: Record<string, boolean>;
-  objectLocations: Record<string, string>;
-  objectStates: Record<string, Record<string, any>>;
+  roomObjects: Record<string, string[]>;
+  objectStates: Record<string, {
+    open?: boolean;
+    lit?: boolean;
+    moved?: boolean;
+    location?: string;
+  }>;
 }
 
 // Room definitions based on original Zork
@@ -226,32 +230,49 @@ const OBJECTS = {
 } as const;
 
 // Verb mappings based on original Zork parser
+// Multi-word verb patterns
+const MULTI_WORD_VERBS: Record<string, string> = {
+  'pick up': 'take',
+  'put down': 'drop',
+  'turn on': 'light',
+  'turn off': 'extinguish',
+  'look at': 'examine',
+  'go north': 'north',
+  'go south': 'south',
+  'go east': 'east',
+  'go west': 'west',
+  'go up': 'up',
+  'go down': 'down',
+  'go in': 'in',
+  'go out': 'out'
+};
+
 const VERB_MAPPINGS: Record<string, string> = {
   // Movement
-  'n': 'north', 'north': 'north', 'go north': 'north',
-  's': 'south', 'south': 'south', 'go south': 'south',
-  'e': 'east', 'east': 'east', 'go east': 'east',
-  'w': 'west', 'west': 'west', 'go west': 'west',
-  'u': 'up', 'up': 'up', 'go up': 'up',
-  'd': 'down', 'down': 'down', 'go down': 'down',
+  'n': 'north', 'north': 'north',
+  's': 'south', 'south': 'south',
+  'e': 'east', 'east': 'east',
+  'w': 'west', 'west': 'west',
+  'u': 'up', 'up': 'up',
+  'd': 'down', 'down': 'down',
   'ne': 'northeast', 'northeast': 'northeast',
   'nw': 'northwest', 'northwest': 'northwest',
   'se': 'southeast', 'southeast': 'southeast',
   'sw': 'southwest', 'southwest': 'southwest',
-  'in': 'in', 'enter': 'in', 'go in': 'in',
-  'out': 'out', 'exit': 'out', 'go out': 'out',
+  'in': 'in', 'enter': 'in',
+  'out': 'out', 'exit': 'out',
   
   // Actions
   'l': 'look', 'look': 'look', 'examine': 'examine', 'x': 'examine',
-  'take': 'take', 'get': 'get', 'pick up': 'take',
-  'drop': 'drop', 'put down': 'drop',
+  'take': 'take', 'get': 'get',
+  'drop': 'drop',
   'open': 'open', 'close': 'close', 'shut': 'close',
-  'read': 'read', 'turn on': 'light', 'light': 'light',
-  'turn off': 'extinguish', 'extinguish': 'extinguish',
+  'read': 'read', 'light': 'light',
+  'extinguish': 'extinguish',
   'move': 'move', 'push': 'push', 'pull': 'pull',
   'inventory': 'inventory', 'i': 'inventory',
   'score': 'score', 'quit': 'quit', 'q': 'quit',
-  'help': 'help', 'save': 'save', 'restore': 'restore'
+  'help': 'help'
 };
 
 const HELP_TEXT = `Welcome to ZORK I: The Great Underground Empire
@@ -287,21 +308,35 @@ function ZorkGame({ onClose }: ZorkGameProps) {
     inventory: [],
     score: 0,
     moves: 0,
-    flags: {
-      mailboxOpen: false,
-      sackOpen: false,
-      lampLit: false,
-      windowOpen: false,
-      rugMoved: false,
-      leavesSearched: false
+    roomObjects: {
+      'west-of-house': ['mailbox'],
+      'north-of-house': [],
+      'behind-house': ['window'],
+      'south-of-house': [],
+      'kitchen': ['sack', 'bottle'],
+      'living-room': ['trophy-case', 'rug', 'lamp'],
+      'attic': ['rope'],
+      'cellar': [],
+      'forest-west': [],
+      'forest-east': [],
+      'forest-path': [],
+      'clearing': ['leaves']
     },
-    objectLocations: {
-      'leaflet': 'mailbox',
-      'lunch': 'sack',
-      'garlic': 'sack',
-      'water': 'bottle'
-    },
-    objectStates: {}
+    objectStates: {
+      'mailbox': { open: false, location: 'west-of-house' },
+      'leaflet': { location: 'mailbox' },
+      'window': { open: false, location: 'behind-house' },
+      'sack': { open: false, location: 'kitchen' },
+      'lunch': { location: 'sack' },
+      'garlic': { location: 'sack' },
+      'bottle': { location: 'kitchen' },
+      'water': { location: 'bottle' },
+      'trophy-case': { open: false, location: 'living-room' },
+      'rug': { moved: false, location: 'living-room' },
+      'lamp': { lit: false, location: 'living-room' },
+      'rope': { location: 'attic' },
+      'leaves': { moved: false, location: 'clearing' }
+    }
   });
 
   const [output, setOutput] = useState<string[]>([
@@ -340,14 +375,30 @@ function ZorkGame({ onClose }: ZorkGameProps) {
   }, []);
 
   const parseCommand = useCallback((input: string) => {
-    const words = input.toLowerCase().trim().split(/\s+/);
-    const verb = VERB_MAPPINGS[words.join(' ')] || VERB_MAPPINGS[words[0]] || words[0];
-    const objects = words.slice(1);
+    const cleanInput = input.toLowerCase().trim();
+    const words = cleanInput.split(/\s+/);
+    
+    // Try multi-word verbs first
+    for (const [phrase, verb] of Object.entries(MULTI_WORD_VERBS)) {
+      if (cleanInput.startsWith(phrase)) {
+        const remainingText = cleanInput.slice(phrase.length).trim();
+        const objects = remainingText ? remainingText.split(/\s+/) : [];
+        return { verb, objects, fullInput: cleanInput };
+      }
+    }
+    
+    // Try single-word verbs
+    const firstWord = words[0];
+    const verb = VERB_MAPPINGS[firstWord] || firstWord;
+    
+    // Filter out common prepositions from objects
+    const prepositions = ['at', 'in', 'into', 'on', 'with', 'to', 'from'];
+    const objects = words.slice(1).filter(word => !prepositions.includes(word));
     
     return {
       verb,
       objects,
-      fullInput: input.toLowerCase().trim()
+      fullInput: cleanInput
     };
   }, []);
 
@@ -356,24 +407,24 @@ function ZorkGame({ onClose }: ZorkGameProps) {
   }, [gameState.currentRoom]);
 
   const isObjectPresent = useCallback((objectId: string): boolean => {
-    // Check if object is in current room
-    const room = getCurrentRoom();
-    if (room.objects.includes(objectId)) return true;
-    
     // Check if object is in inventory
     if (gameState.inventory.includes(objectId)) return true;
     
-    // Check if object is inside another object that's present
-    const objectLocation = gameState.objectLocations[objectId];
-    if (objectLocation && isObjectPresent(objectLocation)) {
-      const container = OBJECTS[objectLocation as keyof typeof OBJECTS];
-      if (container && 'open' in container && container.open) {
+    // Check if object is in current room
+    const roomObjects = gameState.roomObjects[gameState.currentRoom] || [];
+    if (roomObjects.includes(objectId)) return true;
+    
+    // Check if object is inside another object that's present and open
+    const objectState = gameState.objectStates[objectId];
+    if (objectState?.location) {
+      const containerState = gameState.objectStates[objectState.location];
+      if (containerState?.open && isObjectPresent(objectState.location)) {
         return true;
       }
     }
     
     return false;
-  }, [gameState, getCurrentRoom]);
+  }, [gameState]);
 
   const findObject = useCallback((name: string) => {
     const objectIds = Object.keys(OBJECTS);
@@ -389,20 +440,32 @@ function ZorkGame({ onClose }: ZorkGameProps) {
     const room = getCurrentRoom();
     addOutput(['', room.name, room.description]);
     
-    // Show visible objects
+    // Show visible objects in room
+    const roomObjects = gameState.roomObjects[gameState.currentRoom] || [];
     const visibleObjects: string[] = [];
     
-    room.objects.forEach(objId => {
+    roomObjects.forEach(objId => {
       if (objId in OBJECTS) {
         const obj = OBJECTS[objId as keyof typeof OBJECTS];
+        const objectState = gameState.objectStates[objId];
         let description = obj.description;
         
-        // Special descriptions based on state
-        if (objId === 'mailbox' && gameState.flags.mailboxOpen) {
-          description = 'The small mailbox is open.';
-        }
-        if (objId === 'window' && gameState.flags.windowOpen) {
-          description = 'The window is open.';
+        // Dynamic descriptions based on state
+        if (objId === 'mailbox') {
+          description = objectState?.open ? 'The small mailbox is open.' : 'The small mailbox is closed.';
+          if (objectState?.open) {
+            // Show contents if open
+            Object.entries(gameState.objectStates).forEach(([id, state]) => {
+              if (state.location === 'mailbox' && id in OBJECTS) {
+                const contentObj = OBJECTS[id as keyof typeof OBJECTS];
+                visibleObjects.push(`  ${contentObj.name}`);
+              }
+            });
+          }
+        } else if (objId === 'window') {
+          description = objectState?.open ? 'The window is open.' : 'The window is slightly ajar, but not enough to allow entry.';
+        } else if (objId === 'lamp') {
+          description = objectState?.lit ? 'A brass lantern (providing light)' : 'A brass lantern';
         }
         
         visibleObjects.push(description);
@@ -441,7 +504,8 @@ function ZorkGame({ onClose }: ZorkGameProps) {
         
         if (nextRoom && nextRoom in ROOMS) {
           if (verb === 'in' && gameState.currentRoom === 'behind-house') {
-            if (!gameState.flags.windowOpen) {
+            const windowState = gameState.objectStates['window'];
+            if (!windowState?.open) {
               addOutput('The window is not open.');
               break;
             }
@@ -489,10 +553,28 @@ function ZorkGame({ onClose }: ZorkGameProps) {
             } else if (gameState.inventory.includes(objectId)) {
               addOutput("You already have that.");
             } else {
-              setGameState(prev => ({
-                ...prev,
-                inventory: [...prev.inventory, objectId]
-              }));
+              setGameState(prev => {
+                const newState = { ...prev };
+                
+                // Add to inventory
+                newState.inventory = [...prev.inventory, objectId];
+                
+                // Remove from room or container
+                const objectState = prev.objectStates[objectId];
+                if (objectState?.location) {
+                  if (prev.roomObjects[objectState.location]) {
+                    newState.roomObjects[objectState.location] = prev.roomObjects[objectState.location].filter(id => id !== objectId);
+                  }
+                }
+                
+                // Update object state
+                newState.objectStates = {
+                  ...prev.objectStates,
+                  [objectId]: { ...objectState, location: 'inventory' }
+                };
+                
+                return newState;
+              });
               addOutput('Taken.');
             }
           }
@@ -507,10 +589,26 @@ function ZorkGame({ onClose }: ZorkGameProps) {
           if (!objectId || !gameState.inventory.includes(objectId)) {
             addOutput("You don't have that.");
           } else {
-            setGameState(prev => ({
-              ...prev,
-              inventory: prev.inventory.filter(id => id !== objectId)
-            }));
+            setGameState(prev => {
+              const newState = { ...prev };
+              
+              // Remove from inventory
+              newState.inventory = prev.inventory.filter(id => id !== objectId);
+              
+              // Add to current room
+              if (!newState.roomObjects[prev.currentRoom]) {
+                newState.roomObjects[prev.currentRoom] = [];
+              }
+              newState.roomObjects[prev.currentRoom] = [...newState.roomObjects[prev.currentRoom], objectId];
+              
+              // Update object state
+              newState.objectStates = {
+                ...prev.objectStates,
+                [objectId]: { ...prev.objectStates[objectId], location: prev.currentRoom }
+              };
+              
+              return newState;
+            });
             addOutput('Dropped.');
           }
         }
@@ -525,17 +623,27 @@ function ZorkGame({ onClose }: ZorkGameProps) {
             addOutput("I don't see that here.");
           } else {
             const obj = OBJECTS[objectId as keyof typeof OBJECTS];
+            const objectState = gameState.objectStates[objectId];
+            
             if (!('openable' in obj) || !obj.openable) {
               addOutput("You can't open that.");
-            } else if ('open' in obj && obj.open) {
+            } else if (objectState?.open) {
               addOutput("It's already open.");
             } else {
+              setGameState(prev => ({
+                ...prev,
+                objectStates: {
+                  ...prev.objectStates,
+                  [objectId]: { ...prev.objectStates[objectId], open: true }
+                }
+              }));
+              
               if (objectId === 'mailbox') {
-                setGameState(prev => ({ ...prev, flags: { ...prev.flags, mailboxOpen: true } }));
                 addOutput('Opening the small mailbox reveals a leaflet.');
               } else if (objectId === 'window') {
-                setGameState(prev => ({ ...prev, flags: { ...prev.flags, windowOpen: true } }));
                 addOutput('With great effort, you open the window far enough to allow entry.');
+              } else if (objectId === 'sack') {
+                addOutput('Opening the brown sack reveals a lunch and a clove of garlic.');
               } else {
                 addOutput('Opened.');
               }
@@ -576,6 +684,114 @@ function ZorkGame({ onClose }: ZorkGameProps) {
       case 'score':
         addOutput(`Your score is ${gameState.score} (total of 350 points), in ${gameState.moves} moves.`);
         addOutput('This gives you the rank of Beginner.');
+        break;
+
+      case 'light':
+        if (objects.length === 0) {
+          addOutput('Light what?');
+        } else {
+          const objectId = findObject(objects.join(' '));
+          if (!objectId) {
+            addOutput("I don't see that here.");
+          } else {
+            const obj = OBJECTS[objectId as keyof typeof OBJECTS];
+            const objectState = gameState.objectStates[objectId];
+            
+            if (!('lightable' in obj) || !obj.lightable) {
+              addOutput("You can't light that.");
+            } else if (objectState?.lit) {
+              addOutput("It's already lit.");
+            } else {
+              setGameState(prev => ({
+                ...prev,
+                objectStates: {
+                  ...prev.objectStates,
+                  [objectId]: { ...prev.objectStates[objectId], lit: true }
+                }
+              }));
+              addOutput('The brass lantern is now on.');
+            }
+          }
+        }
+        break;
+
+      case 'extinguish':
+        if (objects.length === 0) {
+          addOutput('Extinguish what?');
+        } else {
+          const objectId = findObject(objects.join(' '));
+          if (!objectId) {
+            addOutput("I don't see that here.");
+          } else {
+            const objectState = gameState.objectStates[objectId];
+            
+            if (!objectState?.lit) {
+              addOutput("It's not lit.");
+            } else {
+              setGameState(prev => ({
+                ...prev,
+                objectStates: {
+                  ...prev.objectStates,
+                  [objectId]: { ...prev.objectStates[objectId], lit: false }
+                }
+              }));
+              addOutput('The brass lantern is now off.');
+            }
+          }
+        }
+        break;
+
+      case 'close':
+        if (objects.length === 0) {
+          addOutput('Close what?');
+        } else {
+          const objectId = findObject(objects.join(' '));
+          if (!objectId) {
+            addOutput("I don't see that here.");
+          } else {
+            const obj = OBJECTS[objectId as keyof typeof OBJECTS];
+            const objectState = gameState.objectStates[objectId];
+            
+            if (!('openable' in obj) || !obj.openable) {
+              addOutput("You can't close that.");
+            } else if (!objectState?.open) {
+              addOutput("It's already closed.");
+            } else {
+              setGameState(prev => ({
+                ...prev,
+                objectStates: {
+                  ...prev.objectStates,
+                  [objectId]: { ...prev.objectStates[objectId], open: false }
+                }
+              }));
+              addOutput('Closed.');
+            }
+          }
+        }
+        break;
+
+      case 'move':
+      case 'push':
+      case 'pull':
+        if (objects.length === 0) {
+          addOutput(`${verb.charAt(0).toUpperCase() + verb.slice(1)} what?`);
+        } else {
+          const objectId = findObject(objects.join(' '));
+          if (!objectId) {
+            addOutput("I don't see that here.");
+          } else if (objectId === 'rug') {
+            setGameState(prev => ({
+              ...prev,
+              objectStates: {
+                ...prev.objectStates,
+                rug: { ...prev.objectStates.rug, moved: true }
+              }
+            }));
+            addOutput('With a great effort, the rug is moved to one side of the room. Underneath the rug is a closed trap door!');
+          } else {
+            addOutput("Moving that doesn't seem to accomplish anything.");
+          }
+        }
         break;
 
       case 'help':
