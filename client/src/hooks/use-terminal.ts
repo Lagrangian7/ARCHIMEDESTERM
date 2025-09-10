@@ -623,29 +623,39 @@ You can also chat naturally or ask technical questions.`);
     }
 
     // Handle weather command
-    if (cmd === 'weather') {
+    if (cmd.startsWith('weather')) {
       setIsTyping(true);
-      addEntry('system', 'Getting weather information...');
       
-      // Try to get user's location
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const coordinates = {
-              lat: position.coords.latitude,
-              lon: position.coords.longitude
-            };
-            weatherMutation.mutate({ coordinates });
-          },
-          (error) => {
-            // If geolocation fails, get default weather
-            weatherMutation.mutate({});
-          },
-          { timeout: 5000, enableHighAccuracy: false }
-        );
+      // Parse weather command arguments
+      const weatherArgs = command.trim().split(/\s+/).slice(1);
+      const location = weatherArgs.join(' ');
+      
+      if (location) {
+        // Use provided location
+        addEntry('system', `Getting weather information for ${location}...`);
+        weatherMutation.mutate({ location });
       } else {
-        // If geolocation not supported, get default weather
-        weatherMutation.mutate({});
+        // Try to get user's location
+        addEntry('system', 'Getting weather information...');
+        if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const coordinates = {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+              };
+              weatherMutation.mutate({ coordinates });
+            },
+            (error) => {
+              // If geolocation fails, get default weather
+              weatherMutation.mutate({});
+            },
+            { timeout: 5000, enableHighAccuracy: false }
+          );
+        } else {
+          // If geolocation not supported, get default weather
+          weatherMutation.mutate({});
+        }
       }
       return;
     }
