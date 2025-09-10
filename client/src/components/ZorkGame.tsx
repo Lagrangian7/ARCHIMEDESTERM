@@ -282,12 +282,29 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
     }
   }, [output]);
 
-  // Focus input on mount
+  // Focus input on mount and whenever needed
   useEffect(() => {
+    const focusInput = () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    };
+    
+    // Initial focus with a slight delay to ensure modal is rendered
+    const timer = setTimeout(focusInput, 100);
+    
+    // Also focus immediately
+    focusInput();
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Re-focus input when container is clicked
+  const handleContainerClick = () => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
-  }, []);
+  };
 
   const addOutput = useCallback((text: string | string[]) => {
     setOutput(prev => [...prev, ...(Array.isArray(text) ? text : [text])]);
@@ -493,7 +510,10 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-black text-green-400 font-mono p-4">
+    <div 
+      className="flex flex-col h-full bg-black text-green-400 font-mono p-4"
+      onClick={handleContainerClick}
+    >
       {/* Header */}
       <div className="text-center mb-4">
         <h2 className="text-xl font-bold text-terminal-highlight mb-2">
@@ -505,7 +525,15 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
       </div>
 
       {/* Game Output */}
-      <ScrollArea className="flex-1 border border-terminal-highlight bg-black p-3 mb-4">
+      <ScrollArea 
+        className="flex-1 border border-terminal-highlight bg-black p-3 mb-4"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        }}
+      >
         <div ref={scrollRef} className="space-y-1">
           {output.map((line, index) => (
             <div key={index} className="text-sm leading-relaxed">
@@ -523,9 +551,18 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          onBlur={() => {
+            // Re-focus if focus is lost unless user is clicking the close button
+            setTimeout(() => {
+              if (inputRef.current && document.activeElement !== inputRef.current) {
+                inputRef.current.focus();
+              }
+            }, 100);
+          }}
           className="flex-1 bg-black border-terminal-subtle text-terminal-text font-mono focus:border-terminal-highlight"
           placeholder="Enter command..."
           data-testid="input-command"
+          autoFocus
         />
       </form>
 
