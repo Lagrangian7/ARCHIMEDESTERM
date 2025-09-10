@@ -153,19 +153,19 @@
     right: 0;
     bottom: 0;
     background: 
-      linear-gradient(transparent 50%, rgba(0, 255, 65, 0.02) 50%),
-      linear-gradient(90deg, transparent 50%, rgba(0, 255, 65, 0.015) 50%),
+      linear-gradient(transparent 50%, rgba(0, 255, 65, 0.04) 50%),
+      linear-gradient(90deg, transparent 50%, rgba(0, 255, 65, 0.025) 50%),
       repeating-linear-gradient(
         0deg,
         transparent,
         transparent 2px,
-        rgba(0, 255, 65, 0.008) 2px,
-        rgba(0, 255, 65, 0.008) 4px
+        rgba(0, 255, 65, 0.015) 2px,
+        rgba(0, 255, 65, 0.015) 4px
       );
-    background-size: 100% 3px, 2px 100%, 100% 4px;
+    background-size: 100% 2px, 2px 100%, 100% 3px;
     pointer-events: none;
     z-index: 1;
-    animation: subtleFlicker 8.7s infinite;
+    animation: subtleFlicker 6.5s infinite;
   }
 
   /* Moving glitchy scanline */
@@ -175,25 +175,26 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 1px;
+    height: 2px;
     background: linear-gradient(90deg, transparent, var(--terminal-highlight), transparent);
-    animation: scanlineGlitch 4.2s linear infinite;
-    opacity: 0.2;
+    animation: scanlineGlitch 3.8s linear infinite;
+    opacity: 0.4;
     z-index: 3;
     pointer-events: none;
     box-shadow: 
-      0 0 1px var(--terminal-highlight),
-      0 1px 0 rgba(0, 255, 65, 0.06),
-      0 -1px 0 rgba(0, 255, 65, 0.06);
+      0 0 3px var(--terminal-highlight),
+      0 1px 0 rgba(0, 255, 65, 0.12),
+      0 -1px 0 rgba(0, 255, 65, 0.12),
+      0 2px 0 rgba(0, 255, 65, 0.08);
   }
 
   /* Subtle noise texture for more realism */
   .terminal-container {
     background: 
       var(--terminal-bg),
-      radial-gradient(circle at 20% 80%, rgba(0, 255, 65, 0.003) 0%, transparent 70%),
-      radial-gradient(circle at 80% 20%, rgba(0, 255, 65, 0.002) 0%, transparent 70%),
-      radial-gradient(circle at 40% 40%, rgba(0, 255, 65, 0.001) 0%, transparent 70%);
+      radial-gradient(circle at 20% 80%, rgba(0, 255, 65, 0.008) 0%, transparent 60%),
+      radial-gradient(circle at 80% 20%, rgba(0, 255, 65, 0.006) 0%, transparent 60%),
+      radial-gradient(circle at 40% 40%, rgba(0, 255, 65, 0.004) 0%, transparent 60%);
   }
 
   .terminal-text {
@@ -473,53 +474,53 @@
 }
 
 @keyframes subtleFlicker {
-  0%, 94% { 
+  0%, 92% { 
     opacity: 1;
     filter: brightness(1) contrast(1);
   }
   2.3% { 
-    opacity: 0.98;
-    filter: brightness(1.03) contrast(1.01);
+    opacity: 0.96;
+    filter: brightness(1.06) contrast(1.02);
   }
   5.7% { 
-    opacity: 0.995;
-    filter: brightness(0.97) contrast(0.99);
+    opacity: 0.99;
+    filter: brightness(0.94) contrast(0.98);
   }
   12.4% { 
-    opacity: 0.985;
-    filter: brightness(1.01) contrast(1.005);
+    opacity: 0.97;
+    filter: brightness(1.02) contrast(1.01);
   }
   23.1% { 
-    opacity: 0.99;
-    filter: brightness(1.015) contrast(1.02);
+    opacity: 0.98;
+    filter: brightness(1.03) contrast(1.04);
   }
   34.8% { 
-    opacity: 0.975;
-    filter: brightness(0.985) contrast(0.98);
+    opacity: 0.95;
+    filter: brightness(0.97) contrast(0.96);
   }
   47.2% { 
-    opacity: 0.97;
-    filter: brightness(1.05) contrast(1.03);
+    opacity: 0.94;
+    filter: brightness(1.08) contrast(1.06);
   }
   51.6% { 
-    opacity: 1.005;
-    filter: brightness(0.93) contrast(0.96);
+    opacity: 1.01;
+    filter: brightness(0.89) contrast(0.93);
   }
   63.9% { 
-    opacity: 0.992;
-    filter: brightness(1.008) contrast(1.01);
+    opacity: 0.985;
+    filter: brightness(1.015) contrast(1.02);
   }
   73.5% { 
-    opacity: 0.996;
-    filter: brightness(1.012) contrast(1.008);
+    opacity: 0.993;
+    filter: brightness(1.024) contrast(1.016);
   }
   87.1% { 
-    opacity: 0.98;
-    filter: brightness(1.025) contrast(1.015);
+    opacity: 0.96;
+    filter: brightness(1.05) contrast(1.03);
   }
   91.8% { 
-    opacity: 0.988;
-    filter: brightness(0.995) contrast(0.992);
+    opacity: 0.975;
+    filter: brightness(0.99) contrast(0.985);
   }
 }
 
