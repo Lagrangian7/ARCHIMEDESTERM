@@ -272,7 +272,6 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
     ''
   ]);
   const [input, setInput] = useState('');
-  const [showPrompt, setShowPrompt] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -361,7 +360,6 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
   const executeCommand = useCallback((command: string) => {
     if (!command.trim()) return;
     
-    setShowPrompt(false);
     addOutput(`> ${command}`);
     
     const { verb, object, direction } = parseCommand(command);
@@ -377,7 +375,7 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
           if (nextRoomId && ROOMS[nextRoomId]) {
             if (nextRoomId === 'front-door') {
               addOutput('The door is locked, and there is evidently no key.');
-              return;
+              break;
             }
             
             setGameState(prev => ({ ...prev, currentRoom: nextRoomId }));
@@ -414,7 +412,7 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
       case 'get':
         if (!object) {
           addOutput('Take what?');
-          return;
+          break;
         }
         const takeObj = findObject(object);
         if (!takeObj) {
@@ -437,7 +435,7 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
       case 'drop':
         if (!object) {
           addOutput('Drop what?');
-          return;
+          break;
         }
         const dropObj = gameState.inventory.find(id => 
           OBJECTS[id].name.toLowerCase().includes(object.toLowerCase()) ||
@@ -462,7 +460,7 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
       case 'x':
         if (!object) {
           addOutput('Examine what?');
-          return;
+          break;
         }
         const examObjId = findObject(object)?.id || 
           gameState.inventory.find(id => 
@@ -506,21 +504,13 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
         break;
     }
     
-    // Show prompt again after command execution
-    setTimeout(() => {
-      setShowPrompt(true);
-      // Ensure we scroll after command execution
-      setTimeout(() => {
-        if (scrollRef.current) {
-          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-      }, 10);
-    }, 100);
+    // Add empty line and ensure prompt shows again
+    addOutput('');
   }, [gameState, addOutput, parseCommand, getCurrentRoom, getVisibleObjects, findObject]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim() && showPrompt) {
+    if (input.trim()) {
       executeCommand(input);
       setInput('');
     }
@@ -530,7 +520,7 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
     if (e.key === 'Escape') {
       onClose();
     }
-    if (e.key === 'Enter' && input.trim() && showPrompt) {
+    if (e.key === 'Enter' && input.trim()) {
       e.preventDefault();
       executeCommand(input);
       setInput('');
@@ -568,29 +558,27 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
           ))}
           
           {/* Command prompt line */}
-          {showPrompt && (
-            <div className="flex items-center mt-2">
-              <span className="text-terminal-highlight mr-1">{'>'}</span>
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onBlur={() => {
-                  setTimeout(() => {
-                    if (inputRef.current && document.activeElement !== inputRef.current) {
-                      inputRef.current.focus();
-                    }
-                  }, 100);
-                }}
-                className="flex-1 bg-transparent border-none outline-none text-terminal-text font-mono caret-terminal-highlight"
-                placeholder=""
-                data-testid="input-command"
-                autoFocus
-                style={{ caretColor: '#00FF41' }}
-              />
-            </div>
-          )}
+          <div className="flex items-center mt-2">
+            <span className="text-terminal-highlight mr-1">{'>'}</span>
+            <input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={() => {
+                setTimeout(() => {
+                  if (inputRef.current && document.activeElement !== inputRef.current) {
+                    inputRef.current.focus();
+                  }
+                }, 100);
+              }}
+              className="flex-1 bg-transparent border-none outline-none text-terminal-text font-mono caret-terminal-highlight"
+              placeholder=""
+              data-testid="input-command"
+              autoFocus
+              style={{ caretColor: '#00FF41' }}
+            />
+          </div>
         </div>
       </div>
 
