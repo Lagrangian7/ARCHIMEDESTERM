@@ -27,12 +27,17 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
   const [nextDirection, setNextDirection] = useState<Direction>(INITIAL_DIRECTION);
   const [food, setFood] = useState<Position>({ x: 16, y: 16 });
   const [score, setScore] = useState(0);
-  const [gameState, setGameState] = useState<GameState>('menu');
+  const [gameState, setGameState] = useState<GameState>('playing');
   
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const lastUpdateTimeRef = useRef<number>(0);
   const accumulatedTimeRef = useRef<number>(0);
+  
+  // Refs for authoritative state to avoid stale closures in multi-step updates
+  const foodRef = useRef<Position>(food);
+  const scoreRef = useRef<number>(score);
+  const nextDirRef = useRef<Direction>(nextDirection);
 
   // Generate random food position avoiding snake
   const generateFood = useCallback((snakeBody: Position[]) => {
@@ -58,44 +63,45 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
     return snakeBody.slice(1).some(segment => segment.x === head.x && segment.y === head.y);
   }, []);
 
-  // Game update logic
+  // Game update logic with refs to avoid stale closures
   const updateGame = useCallback(() => {
     setSnake(prevSnake => {
-      const newSnake = [...prevSnake];
-      const head = { ...newSnake[0] };
+      const head = { 
+        x: prevSnake[0].x + nextDirRef.current.x, 
+        y: prevSnake[0].y + nextDirRef.current.y 
+      };
       
-      // Apply next direction
-      const currentDirection = nextDirection;
-      head.x += currentDirection.x;
-      head.y += currentDirection.y;
-
-      // Check if food will be eaten
-      const willGrow = head.x === food.x && head.y === food.y;
+      const willGrow = head.x === foodRef.current.x && head.y === foodRef.current.y;
+      const bodyToCheck = willGrow ? prevSnake : prevSnake.slice(0, -1);
       
-      // Check collision (exclude tail if not growing)
-      const bodyToCheck = willGrow ? newSnake : newSnake.slice(0, -1);
       if (checkCollision(head, bodyToCheck)) {
+        const finalScore = scoreRef.current; // Don't award points on collision
+        scoreRef.current = finalScore;
+        setScore(finalScore);
         setGameState('gameOver');
-        onGameOver(score);
+        onGameOver(finalScore);
         return prevSnake;
       }
-
-      newSnake.unshift(head);
-
-      // Handle food consumption and tail removal
+      
+      const nextSnake = [head, ...prevSnake];
+      
       if (willGrow) {
-        setScore(prev => prev + 10);
-        setFood(generateFood(newSnake));
+        const newFood = generateFood(nextSnake);
+        foodRef.current = newFood;
+        setFood(newFood);
+        const newScore = scoreRef.current + 10;
+        scoreRef.current = newScore;
+        setScore(newScore);
       } else {
-        newSnake.pop(); // Remove tail if no food eaten
+        nextSnake.pop();
       }
-
-      return newSnake;
+      
+      return nextSnake;
     });
     
     // Update direction for next frame
-    setDirection(nextDirection);
-  }, [nextDirection, food, score, checkCollision, generateFood, onGameOver]);
+    setDirection(nextDirRef.current);
+  }, [checkCollision, generateFood, onGameOver]);
 
   // Main game loop with fixed timestep
   const gameLoop = useCallback((currentTime: number) => {
@@ -190,6 +196,11 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
     lastUpdateTimeRef.current = performance.now();
   }, [generateFood]);
 
+  // Auto-start game on mount (like old version)
+  useEffect(() => {
+    startGame();
+  }, [startGame]);
+
   // Pause/unpause game
   const togglePause = useCallback(() => {
     if (gameState === 'playing') {
@@ -217,27 +228,27 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
     };
   }, [gameState, gameLoop]);
 
+  // Keep refs in sync with state
+  useEffect(() => { foodRef.current = food; }, [food]);
+  useEffect(() => { scoreRef.current = score; }, [score]);
+  useEffect(() => { nextDirRef.current = nextDirection; }, [nextDirection]);
+
   // Setup keyboard listeners
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
 
-  // Focus game area and prevent scrolling
+  // Focus game area on mount
   useEffect(() => {
     if (gameAreaRef.current) {
       gameAreaRef.current.focus();
     }
-    
-    // Prevent scrolling while game is active
-    const preventDefault = (e: Event) => e.preventDefault();
-    document.addEventListener('touchmove', preventDefault, { passive: false });
-    document.addEventListener('wheel', preventDefault, { passive: false });
-    
-    return () => {
-      document.removeEventListener('touchmove', preventDefault);
-      document.removeEventListener('wheel', preventDefault);
-    };
+  }, []);
+
+  // Prevent scrolling only in game area
+  const handlePreventScroll = useCallback((e: React.WheelEvent | React.TouchEvent) => {
+    e.preventDefault();
   }, []);
 
   return (
@@ -262,6 +273,8 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
           width: BOARD_SIZE * CELL_SIZE,
           height: BOARD_SIZE * CELL_SIZE,
         }}
+        onWheel={handlePreventScroll}
+        onTouchMove={handlePreventScroll}
         data-testid="game-board"
       >
         {/* Snake */}
@@ -317,7 +330,7 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
           </div>
         )}
 
-        {/* Start Screen */}
+        {/* Start Screen (only shows on manual restart) */}
         {gameState === 'menu' && (
           <div className="absolute inset-0 bg-black/90 flex items-center justify-center" data-testid="start-screen">
             <div className="text-center text-terminal-highlight font-mono">
