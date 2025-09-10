@@ -457,3 +457,96 @@ export type DirectChat = typeof directChats.$inferSelect;
 export type InsertDirectChat = z.infer<typeof insertDirectChatSchema>;
 export type UserMessage = typeof userMessages.$inferSelect;
 export type InsertUserMessage = z.infer<typeof insertUserMessageSchema>;
+
+// MUD Client tables for persistent MUD connectivity
+export const mudProfiles = pgTable("mud_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  name: varchar("name").notNull(),
+  host: varchar("host").notNull(),
+  port: varchar("port").notNull(),
+  description: text("description"),
+  aliases: jsonb("aliases").notNull().default('{}'), // { "alias": "expansion" }
+  triggers: jsonb("triggers").notNull().default('[]'), // [ { pattern, response, enabled } ]
+  macros: jsonb("macros").notNull().default('{}'), // { "key": "command" }
+  autoConnect: boolean("auto_connect").notNull().default(false),
+  theme: varchar("theme").default("classic"), // classic, green, amber, etc
+  fontSize: varchar("font_size").default("14"),
+  scrollbackLines: varchar("scrollback_lines").default("1000"),
+  enableAnsi: boolean("enable_ansi").notNull().default(true),
+  enableTriggers: boolean("enable_triggers").notNull().default(true),
+  enableAliases: boolean("enable_aliases").notNull().default(true),
+  enableLog: boolean("enable_log").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const mudSessions = pgTable("mud_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id),
+  profileId: varchar("profile_id").references(() => mudProfiles.id),
+  sessionId: varchar("session_id").notNull(), // WebSocket session identifier
+  status: varchar("status").notNull().default("disconnected"), // connected, disconnected, connecting, error
+  connectTime: timestamp("connect_time"),
+  disconnectTime: timestamp("disconnect_time"),
+  lastActivity: timestamp("last_activity").defaultNow(),
+  bytesReceived: varchar("bytes_received").default("0"),
+  bytesSent: varchar("bytes_sent").default("0"),
+  commandCount: varchar("command_count").default("0"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// MUD client relations
+export const mudProfilesRelations = relations(mudProfiles, ({ one, many }) => ({
+  user: one(users, {
+    fields: [mudProfiles.userId],
+    references: [users.id],
+  }),
+  sessions: many(mudSessions),
+}));
+
+export const mudSessionsRelations = relations(mudSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [mudSessions.userId],
+    references: [users.id],
+  }),
+  profile: one(mudProfiles, {
+    fields: [mudSessions.profileId],
+    references: [mudProfiles.id],
+  }),
+}));
+
+// MUD schema definitions
+export const insertMudProfileSchema = createInsertSchema(mudProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMudSessionSchema = createInsertSchema(mudSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+// MUD alias and trigger schemas for validation
+export const mudAliasSchema = z.object({
+  alias: z.string().min(1),
+  expansion: z.string().min(1),
+  enabled: z.boolean().default(true),
+});
+
+export const mudTriggerSchema = z.object({
+  pattern: z.string().min(1),
+  response: z.string().min(1),
+  enabled: z.boolean().default(true),
+  isRegex: z.boolean().default(false),
+});
+
+// MUD client types
+export type MudProfile = typeof mudProfiles.$inferSelect;
+export type InsertMudProfile = z.infer<typeof insertMudProfileSchema>;
+export type MudSession = typeof mudSessions.$inferSelect;
+export type InsertMudSession = z.infer<typeof insertMudSessionSchema>;
+export type MudAlias = z.infer<typeof mudAliasSchema>;
+export type MudTrigger = z.infer<typeof mudTriggerSchema>;
