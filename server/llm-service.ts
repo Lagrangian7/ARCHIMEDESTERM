@@ -1,10 +1,15 @@
 import OpenAI from 'openai';
 import { HfInference } from '@huggingface/inference';
 import { Mistral } from '@mistralai/mistralai';
+import { GoogleGenAI } from '@google/genai';
 import type { Message } from '@shared/schema';
 import { knowledgeService } from './knowledge-service';
 
-// Enhanced Mistral AI configuration for Replit
+// Enhanced AI configuration for budget-friendly options
+const gemini = new GoogleGenAI({ 
+  apiKey: process.env.GEMINI_API_KEY || '' 
+});
+
 const mistral = new Mistral({
   apiKey: process.env.MISTRAL_API_KEY,
 });
@@ -14,6 +19,9 @@ const openai = new OpenAI({
 });
 
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+
+// Perplexity configuration for up-to-date information
+const PERPLEXITY_API_URL = 'https://api.perplexity.ai/chat/completions';
 
 // Replit-specific AI configuration
 const REPLIT_AI_CONFIG = {
@@ -127,28 +135,147 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
     }
 
     try {
-      // Primary: Use Mistral AI for enhanced responses
-      return await this.generateMistralResponse(contextualMessage, mode, conversationHistory);
+      // Primary: Use Google Gemini (free tier, excellent quality)
+      if (process.env.GEMINI_API_KEY) {
+        console.log('[LLM] Using Google Gemini (primary choice)');
+        return await this.generateGeminiResponse(contextualMessage, mode, conversationHistory);
+      }
+      
+      // Secondary: Perplexity for technical queries requiring recent information
+      if (mode === 'technical' && process.env.PERPLEXITY_API_KEY) {
+        console.log('[LLM] Using Perplexity for technical query');
+        return await this.generatePerplexityResponse(contextualMessage, mode, conversationHistory);
+      }
+      
+      // Tertiary: Enhanced Hugging Face models
+      console.log('[LLM] Using enhanced Hugging Face models');
+      return await this.generateReplitOptimizedResponse(contextualMessage, mode, conversationHistory);
+      
     } catch (primaryError) {
-      console.error('Mistral AI error:', primaryError);
+      console.error('Primary AI models error:', primaryError);
       
       try {
-        // Secondary: OpenAI fallback with Replit context
-        return await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory);
+        // Backup: Mistral AI fallback
+        if (process.env.MISTRAL_API_KEY) {
+          return await this.generateMistralResponse(contextualMessage, mode, conversationHistory);
+        }
+        
+        // If no Mistral key, try OpenAI
+        if (process.env.OPENAI_API_KEY) {
+          return await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory);
+        }
+        
+        // Final fallback
+        return this.getEnhancedFallbackResponse(contextualMessage, mode);
       } catch (secondaryError) {
-        console.error('OpenAI fallback error:', secondaryError);
+        console.error('Fallback AI models error:', secondaryError);
         
         try {
-          // Tertiary: Use optimized Hugging Face models
-          return await this.generateReplitOptimizedResponse(contextualMessage, mode, conversationHistory);
+          // Final paid option: OpenAI fallback
+          if (process.env.OPENAI_API_KEY) {
+            return await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory);
+          }
         } catch (tertiaryError) {
-          console.error('Hugging Face fallback error:', tertiaryError);
-          
-          // Final: Enhanced contextual fallback
-          return this.getEnhancedFallbackResponse(contextualMessage, mode);
+          console.error('OpenAI fallback error:', tertiaryError);
         }
+        
+        // Ultimate: Enhanced contextual fallback
+        return this.getEnhancedFallbackResponse(contextualMessage, mode);
       }
     }
+  }
+
+  private async generateGeminiResponse(
+    userMessage: string, 
+    mode: 'natural' | 'technical',
+    conversationHistory: Message[] = []
+  ): Promise<string> {
+    const systemPrompt = mode === 'natural' 
+      ? this.getNaturalChatSystemPrompt()
+      : this.getTechnicalModeSystemPrompt();
+
+    // Build conversation context for Gemini
+    const conversationContext = conversationHistory
+      .slice(-8) // Last 8 messages for context
+      .map(msg => `${msg.role}: ${msg.content}`)
+      .join('\n');
+
+    const fullPrompt = `${systemPrompt}
+
+Conversation History:
+${conversationContext}
+
+Current User Message: ${userMessage}
+
+Please respond as ARCHIMEDES v7:`;
+
+    const response = await gemini.models.generateContent({
+      model: 'gemini-2.5-flash', // Fast, free tier model
+      contents: fullPrompt,
+      config: {
+        maxOutputTokens: mode === 'technical' ? 1500 : 500,
+        temperature: mode === 'technical' ? 0.3 : 0.7,
+      }
+    });
+
+    const responseText = response.text || 'I apologize, but I encountered an error processing your request.';
+    return this.postProcessResponse(responseText, mode);
+  }
+
+  private async generatePerplexityResponse(
+    userMessage: string, 
+    mode: 'natural' | 'technical',
+    conversationHistory: Message[] = []
+  ): Promise<string> {
+    const systemPrompt = mode === 'natural' 
+      ? this.getNaturalChatSystemPrompt()
+      : this.getTechnicalModeSystemPrompt();
+
+    // Build messages array for Perplexity
+    const messages = [
+      { role: 'system', content: systemPrompt }
+    ];
+
+    // Add recent conversation history
+    const recentHistory = conversationHistory.slice(-6);
+    for (const msg of recentHistory) {
+      if (msg.role === 'user' || msg.role === 'assistant') {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
+
+    // Add current user message
+    messages.push({ role: 'user', content: userMessage });
+
+    const response = await fetch(PERPLEXITY_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-sonar-small-128k-online',
+        messages,
+        max_tokens: mode === 'technical' ? 1500 : 500,
+        temperature: mode === 'technical' ? 0.3 : 0.7,
+        top_p: 0.9,
+        search_recency_filter: 'month',
+        return_related_questions: false,
+        stream: false
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Perplexity API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const responseText = data.choices?.[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
+    
+    return this.postProcessResponse(responseText, mode);
   }
 
   private async generateMistralResponse(
