@@ -132,83 +132,18 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
 
   // Handle direction change with 180° prevention
   const changeDirection = useCallback((newDirection: Direction) => {
-    console.log('changeDirection called:', newDirection, 'current game state:', gameState, 'current direction:', direction);
-    
-    if (gameState !== 'playing') {
-      console.log('Not playing - ignoring direction change');
-      return;
-    }
+    if (gameState !== 'playing') return;
     
     // Prevent 180° reversals
     if (direction.x === -newDirection.x && direction.y === -newDirection.y) {
-      console.log('180° reversal prevented');
       return;
     }
     
-    console.log('Setting next direction:', newDirection);
     setNextDirection(newDirection);
   }, [gameState, direction]);
 
-  // Handle keyboard input with debug logging
-  const handleKeyPress = useCallback((e: KeyboardEvent) => {
-    console.log('Key pressed:', e.key, 'Game state:', gameState);
-    
-    switch (e.key) {
-      case 'ArrowUp':
-      case 'w':
-      case 'W':
-        e.preventDefault();
-        console.log('Moving up');
-        changeDirection({ x: 0, y: -1 });
-        break;
-      case 'ArrowDown':
-      case 's':
-      case 'S':
-        e.preventDefault();
-        console.log('Moving down');
-        changeDirection({ x: 0, y: 1 });
-        break;
-      case 'ArrowLeft':
-      case 'a':
-      case 'A':
-        e.preventDefault();
-        console.log('Moving left');
-        changeDirection({ x: -1, y: 0 });
-        break;
-      case 'ArrowRight':
-      case 'd':
-      case 'D':
-        e.preventDefault();
-        console.log('Moving right');
-        changeDirection({ x: 1, y: 0 });
-        break;
-      case ' ':
-        e.preventDefault();
-        console.log('Spacebar pressed - toggling pause');
-        if (gameState === 'playing') {
-          setGameState('paused');
-        } else if (gameState === 'paused') {
-          setGameState('playing');
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        console.log('Escape pressed - closing game');
-        onClose();
-        break;
-      case 'Enter':
-        e.preventDefault();
-        console.log('Enter pressed');
-        if (gameState === 'menu' || gameState === 'gameOver') {
-          startGame();
-        }
-        break;
-    }
-  }, [gameState, changeDirection, onClose, startGame]);
-
-  // Start/restart game
+  // Start/restart game  
   const startGame = useCallback(() => {
-    console.log('Starting snake game...');
     const initialSnake = [{ x: 11, y: 11 }];
     setSnake(initialSnake);
     setDirection({ x: 1, y: 0 });
@@ -218,8 +153,55 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
     setGameState('playing');
     accumulatedTimeRef.current = 0;
     lastUpdateTimeRef.current = performance.now();
-    console.log('Snake game started, state set to playing');
   }, [generateFood]);
+
+  // Handle keyboard input
+  const handleKeyPress = useCallback((e: KeyboardEvent) => {
+    switch (e.key) {
+      case 'ArrowUp':
+      case 'w':
+      case 'W':
+        e.preventDefault();
+        changeDirection({ x: 0, y: -1 });
+        break;
+      case 'ArrowDown':
+      case 's':
+      case 'S':
+        e.preventDefault();
+        changeDirection({ x: 0, y: 1 });
+        break;
+      case 'ArrowLeft':
+      case 'a':
+      case 'A':
+        e.preventDefault();
+        changeDirection({ x: -1, y: 0 });
+        break;
+      case 'ArrowRight':
+      case 'd':
+      case 'D':
+        e.preventDefault();
+        changeDirection({ x: 1, y: 0 });
+        break;
+      case ' ':
+        e.preventDefault();
+        if (gameState === 'playing') {
+          setGameState('paused');
+        } else if (gameState === 'paused') {
+          setGameState('playing');
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        onClose();
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (gameState === 'menu' || gameState === 'gameOver') {
+          startGame();
+        }
+        break;
+    }
+  }, [gameState, changeDirection, onClose, startGame]);
 
   // Auto-start game on mount (like old version)
   useEffect(() => {
@@ -264,20 +246,11 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
 
-  // Focus game area on mount and ensure it gets focus
+  // Focus game area on mount
   useEffect(() => {
-    const focusArea = () => {
-      if (gameAreaRef.current) {
-        gameAreaRef.current.focus();
-        console.log('Game area focused');
-      }
-    };
-    
-    // Focus immediately and also after a short delay
-    focusArea();
-    const timer = setTimeout(focusArea, 100);
-    
-    return () => clearTimeout(timer);
+    if (gameAreaRef.current) {
+      gameAreaRef.current.focus();
+    }
   }, []);
 
   // Prevent scrolling only in game area
