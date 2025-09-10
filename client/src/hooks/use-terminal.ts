@@ -1264,6 +1264,17 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       }
       return;
     }
+    
+    if (cmd === 'theharvester' || cmd === 'harvester') {
+      addEntry('system', 'Launching theHarvester OSINT reconnaissance tool...');
+      const openTheHarvester = (window as any).openTheHarvester;
+      if (openTheHarvester) {
+        openTheHarvester();
+      } else {
+        addEntry('error', 'theHarvester interface not available. Please ensure the OSINT tool is loaded.');
+      }
+      return;
+    }
 
     if (cmd === 'mud') {
       addEntry('system', 'Launching MUD Client...');

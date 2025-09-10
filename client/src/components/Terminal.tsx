@@ -16,6 +16,7 @@ import { ChatInterface } from './ChatInterface';
 import { PuzzleScreensaver } from './PuzzleScreensaver';
 import { SshwiftyInterface } from './SshwiftyInterface';
 import { MudClient } from './MudClient';
+import { TheHarvester } from './TheHarvester';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
@@ -74,6 +75,7 @@ export function Terminal() {
     (window as any).activateScreensaver = () => setScreensaverActive(true);
     (window as any).openSshwiftyInterface = () => setShowSshwifty(true);
     (window as any).openMudClient = () => setShowMud(true);
+    (window as any).openTheHarvester = () => setShowTheHarvester(true);
   }, []);
   
   const { speak, isSpeaking } = useSpeechSynthesis();
@@ -92,6 +94,7 @@ export function Terminal() {
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   const [showSshwifty, setShowSshwifty] = useState(false);
   const [showMud, setShowMud] = useState(false);
+  const [showTheHarvester, setShowTheHarvester] = useState(false);
   
   // Screensaver state
   const [screensaverActive, setScreensaverActive] = useState(false);
@@ -711,6 +714,11 @@ export function Terminal() {
         isOpen={showMud}
         onClose={() => setShowMud(false)}
       />
+
+      {/* theHarvester OSINT Tool */}
+      {showTheHarvester && (
+        <TheHarvester onClose={() => setShowTheHarvester(false)} />
+      )}
 
       {/* Puzzle Screensaver */}
       <PuzzleScreensaver 

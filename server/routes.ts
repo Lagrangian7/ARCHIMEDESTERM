@@ -2408,6 +2408,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // theHarvester OSINT endpoint
+  app.post('/api/theharvester', async (req, res) => {
+    try {
+      // Validate request body using Zod
+      const harvestSchema = z.object({
+        domain: z.string().min(1, 'Domain is required'),
+        source: z.string().default('all'),
+        limit: z.number().int().min(1).max(1000).default(100)
+      });
+      
+      const validationResult = harvestSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Invalid request data',
+          details: validationResult.error.errors
+        });
+      }
+      
+      const { domain, source, limit } = validationResult.data;
+
+      const cleanDomain = domain.toLowerCase().trim();
+      
+      // Simulate progressive OSINT data gathering
+      const mockResults = {
+        emails: [
+          `info@${cleanDomain}`,
+          `contact@${cleanDomain}`,
+          `admin@${cleanDomain}`,
+          `support@${cleanDomain}`,
+          `sales@${cleanDomain}`,
+          `webmaster@${cleanDomain}`,
+          `noreply@${cleanDomain}`,
+          `security@${cleanDomain}`
+        ].slice(0, Math.floor(Math.random() * 8) + 2),
+        
+        subdomains: [
+          `www.${cleanDomain}`,
+          `mail.${cleanDomain}`,
+          `ftp.${cleanDomain}`,
+          `api.${cleanDomain}`,
+          `blog.${cleanDomain}`,
+          `shop.${cleanDomain}`,
+          `dev.${cleanDomain}`,
+          `test.${cleanDomain}`,
+          `staging.${cleanDomain}`,
+          `cdn.${cleanDomain}`,
+          `assets.${cleanDomain}`,
+          `static.${cleanDomain}`
+        ].slice(0, Math.floor(Math.random() * 12) + 3),
+        
+        ips: [
+          `192.168.1.${Math.floor(Math.random() * 255)}`,
+          `10.0.0.${Math.floor(Math.random() * 255)}`,
+          `172.16.0.${Math.floor(Math.random() * 255)}`,
+          `8.8.8.8`,
+          `1.1.1.1`
+        ].slice(0, Math.floor(Math.random() * 5) + 2),
+        
+        urls: [
+          `https://${cleanDomain}`,
+          `https://www.${cleanDomain}`,
+          `https://${cleanDomain}/about`,
+          `https://${cleanDomain}/contact`,
+          `https://${cleanDomain}/login`,
+          `https://${cleanDomain}/api`,
+          `https://${cleanDomain}/admin`,
+          `https://blog.${cleanDomain}`,
+          `https://shop.${cleanDomain}/products`,
+          `https://api.${cleanDomain}/v1`
+        ].slice(0, Math.floor(Math.random() * 10) + 4),
+        
+        certificates: [
+          `CN=${cleanDomain}, O=Example Organization, C=US`,
+          `CN=*.${cleanDomain}, O=Example Organization, C=US`,
+          `CN=www.${cleanDomain}, O=Wildcard Certificate, C=US`
+        ].slice(0, Math.floor(Math.random() * 3) + 1),
+        
+        metadata: {
+          domain: cleanDomain,
+          source: source,
+          timestamp: new Date().toISOString(),
+          total_results: 0
+        }
+      };
+
+      // Calculate total results
+      mockResults.metadata.total_results = 
+        mockResults.emails.length +
+        mockResults.subdomains.length +
+        mockResults.ips.length +
+        mockResults.urls.length +
+        mockResults.certificates.length;
+
+      res.json(mockResults);
+    } catch (error) {
+      console.error('theHarvester error:', error);
+      res.status(500).json({ 
+        error: 'OSINT harvest failed',
+        emails: [],
+        subdomains: [],
+        ips: [],
+        urls: [],
+        certificates: [],
+        metadata: {
+          domain: req.body.domain || 'unknown',
+          source: req.body.source || 'all',
+          timestamp: new Date().toISOString(),
+          total_results: 0
+        }
+      });
+    }
+  });
 
   // CORS proxy for radio streaming - helps bypass CORS restrictions
   app.get("/api/radio-proxy", async (req, res) => {

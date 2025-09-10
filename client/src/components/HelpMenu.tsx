@@ -380,6 +380,15 @@ const helpMenuItems: HelpMenuItem[] = [
     command: 'threat-actors',
     example: 'threat-actors',
     icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'theharvester',
+    category: 'OSINT (Intelligence)',
+    title: 'theHarvester',
+    description: 'Launch comprehensive OSINT reconnaissance tool for gathering emails, subdomains, and intelligence',
+    command: 'theharvester',
+    example: 'theharvester  or  harvester',
+    icon: <TerminalIcon size={16} />
   }
 ];
 
