@@ -452,8 +452,8 @@ function ZorkGame({ onClose }: ZorkGameProps) {
         
         // Dynamic descriptions based on state
         if (objId === 'mailbox') {
-          description = objectState?.open ? 'The small mailbox is open.' : 'The small mailbox is closed.';
           if (objectState?.open) {
+            visibleObjects.push('The small mailbox is open.');
             // Show contents if open
             Object.entries(gameState.objectStates).forEach(([id, state]) => {
               if (state.location === 'mailbox' && id in OBJECTS) {
@@ -461,11 +461,27 @@ function ZorkGame({ onClose }: ZorkGameProps) {
                 visibleObjects.push(`  ${contentObj.name}`);
               }
             });
+            return; // Skip the default description
+          } else {
+            visibleObjects.push('The small mailbox is closed.');
+            return;
           }
         } else if (objId === 'window') {
-          description = objectState?.open ? 'The window is open.' : 'The window is slightly ajar, but not enough to allow entry.';
+          if (objectState?.open) {
+            visibleObjects.push('The window is open.');
+            return;
+          } else {
+            visibleObjects.push('The window is slightly ajar, but not enough to allow entry.');
+            return;
+          }
         } else if (objId === 'lamp') {
-          description = objectState?.lit ? 'A brass lantern (providing light)' : 'A brass lantern';
+          if (objectState?.lit) {
+            visibleObjects.push('A brass lantern (providing light)');
+            return;
+          } else {
+            visibleObjects.push('A brass lantern');
+            return;
+          }
         }
         
         visibleObjects.push(description);
