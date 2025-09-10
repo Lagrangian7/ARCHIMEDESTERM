@@ -660,6 +660,7 @@ export function Terminal() {
         ref={audioRef}
         crossOrigin="anonymous"
         preload="metadata"
+        volume={0.7}
         onPlay={() => setIsRadioPlaying(true)}
         onPause={() => setIsRadioPlaying(false)}
         onError={() => {
