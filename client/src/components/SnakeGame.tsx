@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Button } from '@/components/ui/button';
 
 interface Position {
   x: number;
@@ -11,29 +10,31 @@ interface SnakeGameProps {
   onGameOver: (score: number) => void;
 }
 
-const BOARD_SIZE = 20;
-const CELL_SIZE = 20;
-const INITIAL_SNAKE = [{ x: 10, y: 10 }];
-const INITIAL_FOOD = { x: 15, y: 15 };
-const GAME_SPEED = 200;
+const BOARD_WIDTH = 40;
+const BOARD_HEIGHT = 20;
+const INITIAL_SNAKE = [{ x: 5, y: 10 }];
+const INITIAL_DIRECTION = { x: 1, y: 0 };
+const GAME_SPEED = 150;
 
 export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
   const [snake, setSnake] = useState<Position[]>(INITIAL_SNAKE);
-  const [food, setFood] = useState<Position>(INITIAL_FOOD);
-  const [direction, setDirection] = useState<Position>({ x: 1, y: 0 });
+  const [food, setFood] = useState<Position>({ x: 15, y: 10 });
+  const [direction, setDirection] = useState<Position>(INITIAL_DIRECTION);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   
   const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Generate random food position
+  // Generate food at random position
   const generateFood = useCallback((snakeBody: Position[]) => {
     let newFood: Position;
     do {
       newFood = {
-        x: Math.floor(Math.random() * BOARD_SIZE),
-        y: Math.floor(Math.random() * BOARD_SIZE),
+        x: Math.floor(Math.random() * BOARD_WIDTH),
+        y: Math.floor(Math.random() * BOARD_HEIGHT),
       };
     } while (snakeBody.some(segment => segment.x === newFood.x && segment.y === newFood.y));
     return newFood;
@@ -41,7 +42,7 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
 
   // Game logic
   const moveSnake = useCallback(() => {
-    if (!gameStarted || gameOver) return;
+    if (gameOver || paused) return;
 
     setSnake(currentSnake => {
       const head = currentSnake[0];
@@ -50,178 +51,203 @@ export function SnakeGame({ onClose, onGameOver }: SnakeGameProps) {
         y: head.y + direction.y
       };
 
-      // Check wall collision
-      if (newHead.x < 0 || newHead.x >= BOARD_SIZE || newHead.y < 0 || newHead.y >= BOARD_SIZE) {
+      // Wall collision
+      if (newHead.x < 0 || newHead.x >= BOARD_WIDTH || newHead.y < 0 || newHead.y >= BOARD_HEIGHT) {
         setGameOver(true);
+        if (gameLoopRef.current) clearInterval(gameLoopRef.current);
         onGameOver(score);
         return currentSnake;
       }
 
-      // Check self collision
+      // Self collision
       if (currentSnake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
         setGameOver(true);
+        if (gameLoopRef.current) clearInterval(gameLoopRef.current);
         onGameOver(score);
         return currentSnake;
       }
 
       const newSnake = [newHead, ...currentSnake];
 
-      // Check food collision
+      // Food collision
       if (newHead.x === food.x && newHead.y === food.y) {
         setScore(prev => prev + 10);
         setFood(generateFood(newSnake));
         return newSnake; // Don't remove tail (grow)
       }
 
-      // Remove tail (normal move)
+      // Normal move - remove tail
       newSnake.pop();
       return newSnake;
     });
-  }, [direction, food, gameOver, gameStarted, onGameOver, score, generateFood]);
+  }, [direction, food, gameOver, paused, onGameOver, score, generateFood]);
 
   // Handle keyboard input
   const handleKeyPress = useCallback((e: KeyboardEvent) => {
-    if (gameOver) return;
+    e.preventDefault();
 
-    switch (e.key) {
-      case 'ArrowUp':
+    switch (e.key.toLowerCase()) {
+      case 'arrowup':
       case 'w':
-      case 'W':
-        e.preventDefault();
         if (direction.y === 0) setDirection({ x: 0, y: -1 });
         break;
-      case 'ArrowDown':
+      case 'arrowdown':
       case 's':
-      case 'S':
-        e.preventDefault();
         if (direction.y === 0) setDirection({ x: 0, y: 1 });
         break;
-      case 'ArrowLeft':
+      case 'arrowleft':
       case 'a':
-      case 'A':
-        e.preventDefault();
         if (direction.x === 0) setDirection({ x: -1, y: 0 });
         break;
-      case 'ArrowRight':
+      case 'arrowright':
       case 'd':
-      case 'D':
-        e.preventDefault();
         if (direction.x === 0) setDirection({ x: 1, y: 0 });
         break;
-      case 'Escape':
-        e.preventDefault();
+      case 'p':
+        if (!gameOver) setPaused(prev => !prev);
+        break;
+      case 'h':
+        if (!gameOver) setShowHelp(prev => !prev);
+        break;
+      case 'q':
+      case 'escape':
         onClose();
+        break;
+      case 'r':
+        if (gameOver) restartGame();
         break;
     }
   }, [direction, gameOver, onClose]);
 
-  // Start game
-  const startGame = () => {
-    setGameStarted(true);
-    setGameOver(false);
+  // Restart game
+  const restartGame = useCallback(() => {
     setSnake(INITIAL_SNAKE);
-    setFood(INITIAL_FOOD);
-    setDirection({ x: 1, y: 0 });
+    setFood({ x: 15, y: 10 });
+    setDirection(INITIAL_DIRECTION);
     setScore(0);
-  };
+    setGameOver(false);
+    setPaused(false);
+    setShowHelp(false);
+  }, []);
 
   // Game loop
   useEffect(() => {
-    if (gameStarted && !gameOver) {
+    if (!gameOver && !paused) {
       gameLoopRef.current = setInterval(moveSnake, GAME_SPEED);
       return () => {
         if (gameLoopRef.current) clearInterval(gameLoopRef.current);
       };
     }
-  }, [gameStarted, gameOver, moveSnake]);
+  }, [moveSnake, gameOver, paused]);
 
   // Keyboard events
   useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.focus();
+    }
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [handleKeyPress]);
 
-  // Auto-start on mount
-  useEffect(() => {
-    startGame();
-  }, []);
+  // Create game board
+  const renderBoard = () => {
+    const board: string[][] = Array(BOARD_HEIGHT).fill(null).map(() => Array(BOARD_WIDTH).fill(' '));
+    
+    // Add border
+    for (let x = 0; x < BOARD_WIDTH; x++) {
+      board[0][x] = '─';
+      board[BOARD_HEIGHT - 1][x] = '─';
+    }
+    for (let y = 0; y < BOARD_HEIGHT; y++) {
+      board[y][0] = '│';
+      board[y][BOARD_WIDTH - 1] = '│';
+    }
+    board[0][0] = '┌';
+    board[0][BOARD_WIDTH - 1] = '┐';
+    board[BOARD_HEIGHT - 1][0] = '└';
+    board[BOARD_HEIGHT - 1][BOARD_WIDTH - 1] = '┘';
+
+    // Add snake
+    snake.forEach((segment, index) => {
+      if (segment.x >= 0 && segment.x < BOARD_WIDTH && segment.y >= 0 && segment.y < BOARD_HEIGHT) {
+        board[segment.y][segment.x] = index === 0 ? '●' : '○';
+      }
+    });
+
+    // Add food
+    if (food.x >= 0 && food.x < BOARD_WIDTH && food.y >= 0 && food.y < BOARD_HEIGHT) {
+      board[food.y][food.x] = '*';
+    }
+
+    return board.map((row, y) => (
+      <div key={y} className="font-mono text-terminal-highlight leading-none">
+        {row.join('')}
+      </div>
+    ));
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-terminal-bg text-terminal-text p-4">
+    <div 
+      ref={containerRef}
+      tabIndex={0}
+      className="fixed inset-0 bg-terminal-bg text-terminal-text flex flex-col items-center justify-center p-4 focus:outline-none"
+      style={{ fontFamily: 'monospace' }}
+    >
       {/* Header */}
       <div className="text-center mb-4">
-        <h2 className="text-2xl font-bold text-terminal-highlight font-mono mb-2">
-          🐍 SNAKE GAME
-        </h2>
-        <div className="text-terminal-text font-mono">
-          SCORE: <span className="text-terminal-highlight">{score}</span>
+        <div className="text-terminal-highlight font-mono text-lg">
+          ╔══════════════════════════════════════╗
+        </div>
+        <div className="text-terminal-highlight font-mono text-lg">
+          ║                nSnake                ║
+        </div>
+        <div className="text-terminal-highlight font-mono text-lg">
+          ╠══════════════════════════════════════╣
+        </div>
+        <div className="text-terminal-highlight font-mono text-lg">
+          ║ Score: {score.toString().padStart(6, ' ')}                   ║
+        </div>
+        <div className="text-terminal-highlight font-mono text-lg">
+          ╚══════════════════════════════════════╝
         </div>
       </div>
 
       {/* Game Board */}
-      <div 
-        className="relative border-2 border-terminal-highlight bg-black mb-4"
-        style={{
-          width: BOARD_SIZE * CELL_SIZE,
-          height: BOARD_SIZE * CELL_SIZE,
-        }}
-      >
-        {/* Snake */}
-        {snake.map((segment, index) => (
-          <div
-            key={index}
-            className={`absolute ${
-              index === 0 ? 'bg-terminal-highlight' : 'bg-green-400'
-            }`}
-            style={{
-              left: segment.x * CELL_SIZE,
-              top: segment.y * CELL_SIZE,
-              width: CELL_SIZE,
-              height: CELL_SIZE,
-            }}
-          />
-        ))}
-
-        {/* Food */}
-        <div
-          className="absolute bg-red-400"
-          style={{
-            left: food.x * CELL_SIZE,
-            top: food.y * CELL_SIZE,
-            width: CELL_SIZE,
-            height: CELL_SIZE,
-          }}
-        />
-
-        {/* Game Over Overlay */}
-        {gameOver && (
-          <div className="absolute inset-0 bg-black/90 flex items-center justify-center">
-            <div className="text-center text-terminal-highlight font-mono">
-              <div className="text-xl mb-2">GAME OVER!</div>
-              <div className="text-lg mb-4">Final Score: {score}</div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={startGame}
-                  className="bg-black border-terminal-highlight text-terminal-highlight hover:bg-terminal-highlight hover:text-black font-mono"
-                >
-                  PLAY AGAIN
-                </Button>
-                <Button
-                  onClick={onClose}
-                  className="bg-black border-terminal-highlight text-terminal-highlight hover:bg-terminal-highlight hover:text-black font-mono"
-                >
-                  CLOSE
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+      <div className="bg-black border border-terminal-highlight p-2 mb-4">
+        {renderBoard()}
       </div>
 
-      {/* Controls */}
+      {/* Status Messages */}
       <div className="text-center text-terminal-text font-mono text-sm">
-        <div>Use WASD or Arrow Keys to move</div>
-        <div>Press ESC to close</div>
+        {gameOver && (
+          <div className="text-red-400 mb-2">
+            ═══ GAME OVER ═══<br/>
+            Final Score: {score}<br/>
+            Press 'R' to restart or 'Q' to quit
+          </div>
+        )}
+        {paused && !gameOver && (
+          <div className="text-yellow-400 mb-2">
+            ═══ PAUSED ═══<br/>
+            Press 'P' to continue
+          </div>
+        )}
+        {showHelp && !gameOver && (
+          <div className="text-terminal-highlight mb-2 border border-terminal-highlight p-2">
+            <div>╔════════ HELP ════════╗</div>
+            <div>║ Arrow Keys: Move     ║</div>
+            <div>║ WASD: Move           ║</div>
+            <div>║ P: Pause/Unpause     ║</div>
+            <div>║ H: Toggle Help       ║</div>
+            <div>║ Q/ESC: Quit          ║</div>
+            <div>╚══════════════════════╝</div>
+          </div>
+        )}
+        {!gameOver && !paused && !showHelp && (
+          <div className="text-terminal-subtle">
+            Use Arrow Keys or WASD to move • P to pause • H for help • Q to quit
+          </div>
+        )}
       </div>
     </div>
   );
