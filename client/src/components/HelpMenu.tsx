@@ -202,14 +202,6 @@ const helpMenuItems: HelpMenuItem[] = [
   },
 
   // Games & Entertainment
-  {
-    id: 'snake',
-    category: 'Games & Entertainment',
-    title: 'Snake Game',
-    description: 'Play the classic Snake game in retro style',
-    command: 'snake',
-    icon: <Gamepad2 size={16} />
-  },
 
   // Knowledge Base
   {

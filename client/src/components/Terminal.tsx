@@ -6,7 +6,6 @@ import { CommandHistory } from './CommandHistory';
 import { UserProfile } from './UserProfile';
 import { ConversationHistory } from './ConversationHistory';
 import { DocumentUpload } from './DocumentUpload';
-import { SnakeGame } from './SnakeGame';
 import { ZorkGame } from './ZorkGame';
 import { DTMFDecoder } from './DTMFDecoder';
 import { HelpMenu } from './HelpMenu';
@@ -67,7 +66,6 @@ export function Terminal() {
 
   // Expose modal openers globally
   useEffect(() => {
-    (window as any).openSnakeGame = () => setShowSnake(true);
     (window as any).openZorkGame = () => setShowZork(true);
     (window as any).openDTMFDecoder = () => setShowDTMF(true);
     (window as any).openHelpMenu = () => setShowHelpMenu(true);
@@ -86,7 +84,6 @@ export function Terminal() {
   const [showProfile, setShowProfile] = useState(false);
   const [showConversationHistory, setShowConversationHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
-  const [showSnake, setShowSnake] = useState(false);
   const [showZork, setShowZork] = useState(false);
   const [showDTMF, setShowDTMF] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
@@ -624,19 +621,6 @@ export function Terminal() {
       )}
 
 
-      {showSnake && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
-          <div className="w-full h-full max-w-4xl max-h-full">
-            <SnakeGame 
-              onClose={() => setShowSnake(false)}
-              onGameOver={(score) => {
-                setShowSnake(false);
-                processCommand(`Echo: Snake Game Over! Final Score: ${score}`);
-              }}
-            />
-          </div>
-        </div>
-      )}
 
       {showZork && (
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
