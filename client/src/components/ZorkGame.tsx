@@ -277,9 +277,19 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
 
   // Auto-scroll to bottom when output changes
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    const scrollToBottom = () => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    };
+    
+    // Immediate scroll
+    scrollToBottom();
+    
+    // Also scroll after a short delay to handle any rendering delays
+    const timer = setTimeout(scrollToBottom, 10);
+    
+    return () => clearTimeout(timer);
   }, [output]);
 
   // Focus input on mount and whenever needed
@@ -355,6 +365,13 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
     const { verb, object, direction } = parseCommand(command);
     
     setGameState(prev => ({ ...prev, moves: prev.moves + 1 }));
+    
+    // Ensure we scroll after command execution
+    setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    }, 50);
 
     switch (verb) {
       case 'go':
@@ -525,23 +542,24 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
       </div>
 
       {/* Game Output */}
-      <ScrollArea 
-        className="flex-1 border border-terminal-highlight bg-black p-3 mb-4"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (inputRef.current) {
-            inputRef.current.focus();
-          }
-        }}
-      >
-        <div ref={scrollRef} className="space-y-1">
+      <div className="flex-1 border border-terminal-highlight bg-black mb-4 overflow-hidden">
+        <div 
+          ref={scrollRef}
+          className="h-full overflow-y-auto p-3 space-y-1"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (inputRef.current) {
+              inputRef.current.focus();
+            }
+          }}
+        >
           {output.map((line, index) => (
             <div key={index} className="text-sm leading-relaxed">
               {line || '\u00A0'}
             </div>
           ))}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Command Input */}
       <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
