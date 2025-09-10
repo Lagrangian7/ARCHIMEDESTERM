@@ -10,7 +10,7 @@ interface RadioStreamerProps {
 
 export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.7);
+  const [volume, setVolume] = useState(0.4);
   const [isLoading, setIsLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('Ready');
   const audioRef = useRef<HTMLAudioElement>(null);
