@@ -144,7 +144,7 @@
     overflow: hidden;
   }
 
-  /* Base scanline pattern */
+  /* Base scanline pattern - much more visible */
   .terminal-container::before {
     content: '';
     position: absolute;
@@ -153,48 +153,46 @@
     right: 0;
     bottom: 0;
     background: 
-      linear-gradient(transparent 50%, rgba(0, 255, 65, 0.04) 50%),
-      linear-gradient(90deg, transparent 50%, rgba(0, 255, 65, 0.025) 50%),
       repeating-linear-gradient(
         0deg,
         transparent,
-        transparent 2px,
-        rgba(0, 255, 65, 0.015) 2px,
-        rgba(0, 255, 65, 0.015) 4px
+        transparent 1px,
+        rgba(0, 255, 65, 0.15) 1px,
+        rgba(0, 255, 65, 0.15) 2px
       );
-    background-size: 100% 2px, 2px 100%, 100% 3px;
+    background-size: 100% 2px;
     pointer-events: none;
     z-index: 1;
-    animation: subtleFlicker 6.5s infinite;
+    animation: subtleFlicker 3s infinite;
   }
 
-  /* Moving glitchy scanline */
+  /* Moving glitchy scanline - very obvious */
   .terminal-container::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--terminal-highlight), transparent);
-    animation: scanlineGlitch 3.8s linear infinite;
-    opacity: 0.4;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #00FF41, transparent);
+    animation: scanlineGlitch 2s linear infinite;
+    opacity: 0.8;
     z-index: 3;
     pointer-events: none;
     box-shadow: 
-      0 0 3px var(--terminal-highlight),
-      0 1px 0 rgba(0, 255, 65, 0.12),
-      0 -1px 0 rgba(0, 255, 65, 0.12),
-      0 2px 0 rgba(0, 255, 65, 0.08);
+      0 0 12px #00FF41,
+      0 2px 0 rgba(0, 255, 65, 0.4),
+      0 -2px 0 rgba(0, 255, 65, 0.4),
+      0 4px 0 rgba(0, 255, 65, 0.3);
   }
 
-  /* Subtle noise texture for more realism */
+  /* Enhanced background for visibility */
   .terminal-container {
     background: 
       var(--terminal-bg),
-      radial-gradient(circle at 20% 80%, rgba(0, 255, 65, 0.008) 0%, transparent 60%),
-      radial-gradient(circle at 80% 20%, rgba(0, 255, 65, 0.006) 0%, transparent 60%),
-      radial-gradient(circle at 40% 40%, rgba(0, 255, 65, 0.004) 0%, transparent 60%);
+      radial-gradient(circle at 20% 80%, rgba(0, 255, 65, 0.02) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(0, 255, 65, 0.015) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(0, 255, 65, 0.01) 0%, transparent 50%);
   }
 
   .terminal-text {
@@ -474,53 +472,37 @@
 }
 
 @keyframes subtleFlicker {
-  0%, 92% { 
+  0%, 85% { 
     opacity: 1;
     filter: brightness(1) contrast(1);
   }
-  2.3% { 
-    opacity: 0.96;
-    filter: brightness(1.06) contrast(1.02);
+  5% { 
+    opacity: 0.9;
+    filter: brightness(1.15) contrast(1.1);
   }
-  5.7% { 
-    opacity: 0.99;
-    filter: brightness(0.94) contrast(0.98);
-  }
-  12.4% { 
-    opacity: 0.97;
-    filter: brightness(1.02) contrast(1.01);
-  }
-  23.1% { 
-    opacity: 0.98;
-    filter: brightness(1.03) contrast(1.04);
-  }
-  34.8% { 
+  15% { 
     opacity: 0.95;
-    filter: brightness(0.97) contrast(0.96);
+    filter: brightness(0.85) contrast(0.9);
   }
-  47.2% { 
-    opacity: 0.94;
-    filter: brightness(1.08) contrast(1.06);
+  25% { 
+    opacity: 0.88;
+    filter: brightness(1.1) contrast(1.05);
   }
-  51.6% { 
-    opacity: 1.01;
-    filter: brightness(0.89) contrast(0.93);
+  40% { 
+    opacity: 0.92;
+    filter: brightness(1.2) contrast(1.15);
   }
-  63.9% { 
-    opacity: 0.985;
-    filter: brightness(1.015) contrast(1.02);
+  55% { 
+    opacity: 0.85;
+    filter: brightness(0.8) contrast(0.85);
   }
-  73.5% { 
-    opacity: 0.993;
-    filter: brightness(1.024) contrast(1.016);
+  70% { 
+    opacity: 0.93;
+    filter: brightness(1.12) contrast(1.08);
   }
-  87.1% { 
-    opacity: 0.96;
-    filter: brightness(1.05) contrast(1.03);
-  }
-  91.8% { 
-    opacity: 0.975;
-    filter: brightness(0.99) contrast(0.985);
+  90% { 
+    opacity: 0.87;
+    filter: brightness(1.18) contrast(1.12);
   }
 }
 
