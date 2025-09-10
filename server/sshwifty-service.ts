@@ -127,7 +127,7 @@ export class SshwiftyService {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sshwifty Terminal - ${type || 'SSH/Telnet'} Client</title>
+    <title>Archimedes Terminal - ${type || 'SSH/Telnet'} Client</title>
     <link rel="stylesheet" href="https://unpkg.com/@xterm/xterm@5.5.0/css/xterm.css" />
     <style>
         body {
