@@ -272,6 +272,7 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
     ''
   ]);
   const [input, setInput] = useState('');
+  const [showPrompt, setShowPrompt] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -360,18 +361,12 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
   const executeCommand = useCallback((command: string) => {
     if (!command.trim()) return;
     
+    setShowPrompt(false);
     addOutput(`> ${command}`);
     
     const { verb, object, direction } = parseCommand(command);
     
     setGameState(prev => ({ ...prev, moves: prev.moves + 1 }));
-    
-    // Ensure we scroll after command execution
-    setTimeout(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      }
-    }, 50);
 
     switch (verb) {
       case 'go':
@@ -510,11 +505,22 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
         addOutput("I don't understand that command. Type HELP for assistance.");
         break;
     }
+    
+    // Show prompt again after command execution
+    setTimeout(() => {
+      setShowPrompt(true);
+      // Ensure we scroll after command execution
+      setTimeout(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+      }, 10);
+    }, 100);
   }, [gameState, addOutput, parseCommand, getCurrentRoom, getVisibleObjects, findObject]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim()) {
+    if (input.trim() && showPrompt) {
       executeCommand(input);
       setInput('');
     }
@@ -524,28 +530,23 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
     if (e.key === 'Escape') {
       onClose();
     }
+    if (e.key === 'Enter' && input.trim() && showPrompt) {
+      e.preventDefault();
+      executeCommand(input);
+      setInput('');
+    }
   };
 
   return (
     <div 
-      className="flex flex-col h-full bg-black text-green-400 font-mono p-4"
+      className="flex flex-col h-full bg-black text-green-400 font-mono"
       onClick={handleContainerClick}
     >
-      {/* Header */}
-      <div className="text-center mb-4">
-        <h2 className="text-xl font-bold text-terminal-highlight mb-2">
-          ▓▓▓ ZORK I ▓▓▓
-        </h2>
-        <div className="text-sm text-terminal-subtle">
-          Score: {gameState.score} | Moves: {gameState.moves}
-        </div>
-      </div>
-
-      {/* Game Output */}
-      <div className="flex-1 border border-terminal-highlight bg-black mb-4 overflow-hidden">
+      {/* Integrated Game Display */}
+      <div className="flex-1 border border-terminal-highlight bg-black overflow-hidden">
         <div 
           ref={scrollRef}
-          className="h-full overflow-y-auto p-3 space-y-1"
+          className="h-full overflow-y-auto p-4 space-y-1"
           onClick={(e) => {
             e.stopPropagation();
             if (inputRef.current) {
@@ -553,49 +554,58 @@ export function ZorkGame({ onClose }: ZorkGameProps) {
             }
           }}
         >
+          {/* Game title header */}
+          <div className="text-center mb-4 text-terminal-highlight">
+            <div className="text-lg font-bold">▓▓▓ ZORK I: The Great Underground Empire ▓▓▓</div>
+            <div className="text-xs mt-1">Score: {gameState.score} | Moves: {gameState.moves}</div>
+          </div>
+          
+          {/* Game output */}
           {output.map((line, index) => (
             <div key={index} className="text-sm leading-relaxed">
               {line || '\u00A0'}
             </div>
           ))}
+          
+          {/* Command prompt line */}
+          {showPrompt && (
+            <div className="flex items-center mt-2">
+              <span className="text-terminal-highlight mr-1">{'>'}</span>
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onBlur={() => {
+                  setTimeout(() => {
+                    if (inputRef.current && document.activeElement !== inputRef.current) {
+                      inputRef.current.focus();
+                    }
+                  }, 100);
+                }}
+                className="flex-1 bg-transparent border-none outline-none text-terminal-text font-mono caret-terminal-highlight"
+                placeholder=""
+                data-testid="input-command"
+                autoFocus
+                style={{ caretColor: '#00FF41' }}
+              />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Command Input */}
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
-        <div className="text-terminal-highlight">{'>'}</div>
-        <Input
-          ref={inputRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={() => {
-            // Re-focus if focus is lost unless user is clicking the close button
-            setTimeout(() => {
-              if (inputRef.current && document.activeElement !== inputRef.current) {
-                inputRef.current.focus();
-              }
-            }, 100);
-          }}
-          className="flex-1 bg-black border-terminal-subtle text-terminal-text font-mono focus:border-terminal-highlight"
-          placeholder="Enter command..."
-          data-testid="input-command"
-          autoFocus
-        />
-      </form>
-
-      {/* Controls */}
-      <div className="flex justify-between items-center text-xs">
+      {/* Minimal controls */}
+      <div className="flex justify-between items-center text-xs p-2 border-t border-terminal-subtle bg-black">
         <div className="text-terminal-subtle">
-          Type HELP for commands • ESC to exit
+          ESC to exit • Type HELP for commands
         </div>
         <Button
           onClick={onClose}
-          variant="outline" 
-          className="bg-transparent border-terminal-subtle hover:bg-terminal-subtle font-mono text-xs"
+          variant="ghost" 
+          className="text-xs text-terminal-subtle hover:text-terminal-highlight"
           data-testid="button-close"
         >
-          QUIT GAME
+          [QUIT]
         </Button>
       </div>
     </div>
