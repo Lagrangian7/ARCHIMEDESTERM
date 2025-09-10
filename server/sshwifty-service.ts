@@ -202,7 +202,7 @@ export class SshwiftyService {
 <body>
     <div class="header">
         <div class="connection-info">
-            <strong>Sshwifty Terminal</strong> - 
+            <strong>Archimedes Terminal</strong> - 
             ${type === 'ssh' ? 'SSH' : 'Telnet'} connection to 
             ${user ? user + '@' : ''}${host || 'localhost'}:${port || (type === 'ssh' ? '22' : '23')}
         </div>
