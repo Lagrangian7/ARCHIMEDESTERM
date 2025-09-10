@@ -21,6 +21,10 @@ import { promises as dns } from 'dns';
 import { SshwiftyService } from './sshwifty-service';
 import { mudService } from './mud-service';
 import { insertMudProfileSchema, insertMudSessionSchema } from '@shared/schema';
+import session from 'express-session';
+import { parse } from 'cookie';
+import signature from 'cookie-signature';
+import { getSession } from './replitAuth';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -335,6 +339,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // If profileId is provided, validate ownership
+      if (validationResult.data.profileId) {
+        const profile = await storage.getMudProfile(validationResult.data.profileId);
+        if (!profile || profile.userId !== userId) {
+          return res.status(403).json({ error: "Profile access denied" });
+        }
+      }
+      
       const session = await storage.createMudSession(validationResult.data);
       res.json(session);
     } catch (error) {
@@ -375,6 +387,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           error: "Invalid session data",
           details: validationResult.error.errors
         });
+      }
+      
+      // If profileId is being updated, validate ownership
+      if (validationResult.data.profileId) {
+        const profile = await storage.getMudProfile(validationResult.data.profileId);
+        if (!profile || profile.userId !== userId) {
+          return res.status(403).json({ error: "Profile access denied" });
+        }
       }
       
       const updatedSession = await storage.updateMudSession(req.params.id, validationResult.data);
@@ -2539,6 +2559,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log('Chat WebSocket server initialized on /ws/chat');
 
+  // Helper function to authenticate WebSocket connections using Express sessions
+  async function authenticateWebSocket(req: any): Promise<{ userId: string | null, isAuthenticated: boolean }> {
+    return new Promise((resolve) => {
+      try {
+        // Use Express session parser directly on WebSocket upgrade request
+        const sessionParser = getSession();
+        
+        // Create a mock response object for session parsing
+        const mockRes: any = {
+          getHeader: () => {},
+          setHeader: () => {},
+          end: () => {}
+        };
+        
+        // Parse the session using Express session middleware
+        sessionParser(req, mockRes, async () => {
+          try {
+            // Check if session exists and contains passport data
+            if (!req.session) {
+              console.log('WebSocket authentication failed: No session data');
+              resolve({ userId: null, isAuthenticated: false });
+              return;
+            }
+
+            if (!req.session.passport || !req.session.passport.user) {
+              console.log('WebSocket authentication failed: No passport user in session');
+              resolve({ userId: null, isAuthenticated: false });
+              return;
+            }
+
+            // Get user from passport session data
+            const user = req.session.passport.user;
+            
+            // Validate user claims and expiration
+            if (!user.claims || !user.claims.sub) {
+              console.log('WebSocket authentication failed: No user claims in session');
+              resolve({ userId: null, isAuthenticated: false });
+              return;
+            }
+
+            // Check if token is expired
+            const now = Math.floor(Date.now() / 1000);
+            if (user.expires_at && now > user.expires_at) {
+              console.log('WebSocket authentication failed: Token expired');
+              resolve({ userId: null, isAuthenticated: false });
+              return;
+            }
+
+            const userId = user.claims.sub;
+            console.log(`WebSocket authentication successful for user: ${userId}`);
+            resolve({ userId, isAuthenticated: true });
+            
+          } catch (error) {
+            console.error('WebSocket session validation error:', error);
+            resolve({ userId: null, isAuthenticated: false });
+          }
+        });
+        
+      } catch (error) {
+        console.error('WebSocket authentication error:', error);
+        resolve({ userId: null, isAuthenticated: false });
+      }
+    });
+  }
+
   // Create WebSocket server for MUD connections
   const mudWss = new WebSocketServer({
     server: httpServer,
@@ -2546,40 +2631,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Handle MUD WebSocket connections
-  mudWss.on('connection', (ws: any, req) => {
+  mudWss.on('connection', async (ws: any, req) => {
     console.log('MUD WebSocket client connected');
     
-    // Track authentication status
-    ws.isAuthenticated = false;
+    // Authenticate WebSocket connection using Express sessions
+    const auth = await authenticateWebSocket(req);
+    
+    if (!auth.isAuthenticated || !auth.userId) {
+      console.log('MUD WebSocket authentication failed');
+      ws.close(1008, 'Authentication failed - valid session required');
+      return;
+    }
+    
+    ws.userId = auth.userId;
+    ws.isAuthenticated = true;
+    
+    console.log(`MUD WebSocket authenticated for user: ${auth.userId}`);
+    
+    // Send authentication success
+    ws.send(JSON.stringify({
+      type: 'auth_success',
+      message: 'Authentication successful'
+    }));
 
     ws.on('message', async (data: Buffer) => {
       try {
         const message = JSON.parse(data.toString());
         
-        // Handle authentication first
-        if (message.type === 'auth') {
-          // Set user ID for this connection (basic auth)
-          ws.userId = message.userId;
-          ws.isAuthenticated = true;
-          
-          ws.send(JSON.stringify({
-            type: 'auth_success',
-            message: 'Authentication successful'
-          }));
-          return;
-        }
-        
-        // Require authentication for all other operations
-        if (!ws.isAuthenticated) {
-          ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Authentication required. Send auth message first.'
-          }));
-          return;
-        }
+        // All operations require authentication (already validated on connection)
         
         if (message.type === 'connect') {
-          const { host, port, sessionId } = message;
+          const { host, port, sessionId, profileId } = message;
           
           // Validate required parameters
           if (!host || !port || !sessionId) {
@@ -2590,9 +2672,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return;
           }
 
+          // Validate session ownership - ensure sessionId belongs to authenticated user
+          try {
+            const existingSession = await storage.getMudSession(sessionId);
+            if (existingSession && existingSession.userId !== ws.userId) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Session access denied - session belongs to another user'
+              }));
+              return;
+            }
+          } catch (error) {
+            console.error('Session validation error:', error);
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Session validation failed'
+            }));
+            return;
+          }
+
+          // If profileId is provided, validate ownership
+          if (profileId) {
+            try {
+              const profile = await storage.getMudProfile(profileId);
+              if (!profile || profile.userId !== ws.userId) {
+                ws.send(JSON.stringify({
+                  type: 'error',
+                  message: 'Profile access denied'
+                }));
+                return;
+              }
+            } catch (error) {
+              ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Profile validation failed'
+              }));
+              return;
+            }
+          }
+
           // Create MUD connection using the MUD service
           try {
-            await mudService.createConnection(ws, host, parseInt(port), sessionId);
+            await mudService.createConnection(ws, host, parseInt(port), sessionId, ws.userId);
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Connection failed';
             ws.send(JSON.stringify({
@@ -2600,11 +2721,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
               message: errorMessage
             }));
           }
+        } else if (message.type === 'send') {
+          // Send raw data to MUD connection - validate session ownership
+          const { sessionId, data } = message;
+          if (!sessionId || !data) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Missing sessionId or data for send operation'
+            }));
+            return;
+          }
+
+          // Validate session ownership before sending data
+          if (!mudService.validateSessionOwnership(sessionId, ws.userId)) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Send denied - session access not authorized'
+            }));
+            return;
+          }
+
+          mudService.sendData(sessionId, data);
         } else if (message.type === 'disconnect') {
           const { sessionId } = message;
-          if (sessionId) {
-            mudService.closeConnection(sessionId, 'Client requested disconnect');
+          if (!sessionId) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Missing sessionId for disconnect operation'
+            }));
+            return;
           }
+
+          // Validate session ownership before disconnecting
+          if (!mudService.validateSessionOwnership(sessionId, ws.userId)) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Disconnect denied - session access not authorized'
+            }));
+            return;
+          }
+
+          mudService.closeConnection(sessionId, 'Client requested disconnect');
         }
       } catch (error) {
         console.error('Invalid MUD WebSocket message:', error);

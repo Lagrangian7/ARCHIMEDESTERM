@@ -9,6 +9,7 @@ interface MudConnection {
   host: string;
   port: number;
   sessionId: string;
+  userId: string; // Track which user owns this connection
   isConnected: boolean;
   bytesReceived: number;
   bytesSent: number;
@@ -31,7 +32,8 @@ export class MudService extends EventEmitter {
     websocket: WebSocket, 
     host: string, 
     port: number, 
-    sessionId: string
+    sessionId: string,
+    userId: string
   ): Promise<void> {
     // Security: Validate host and port
     const hostValidation = await this.isValidHost(host);
@@ -46,6 +48,7 @@ export class MudService extends EventEmitter {
       host,
       port,
       sessionId,
+      userId,
       isConnected: false,
       bytesReceived: 0,
       bytesSent: 0,
@@ -144,6 +147,14 @@ export class MudService extends EventEmitter {
     }
   }
 
+  // Send data to a MUD connection
+  sendData(sessionId: string, data: string): void {
+    const connection = this.connections.get(sessionId);
+    if (connection && connection.tcpSocket && connection.tcpSocket.writable) {
+      connection.tcpSocket.write(data + '\r\n');
+    }
+  }
+
   // Close a specific connection
   closeConnection(sessionId: string, reason?: string): void {
     const connection = this.connections.get(sessionId);
@@ -178,6 +189,22 @@ export class MudService extends EventEmitter {
   // Get all active connections
   getActiveConnections(): string[] {
     return Array.from(this.connections.keys());
+  }
+
+  // Validate session ownership - critical security method
+  validateSessionOwnership(sessionId: string, userId: string): boolean {
+    const connection = this.connections.get(sessionId);
+    if (!connection) {
+      console.warn(`Session ownership validation failed: session ${sessionId} not found`);
+      return false;
+    }
+    
+    const isOwner = connection.userId === userId;
+    if (!isOwner) {
+      console.warn(`Session ownership validation failed: user ${userId} attempted to access session ${sessionId} owned by ${connection.userId}`);
+    }
+    
+    return isOwner;
   }
 
   // Basic telnet IAC (Interpret As Command) processing
@@ -289,6 +316,28 @@ export class MudService extends EventEmitter {
     if (lower.startsWith('fd00:')) return true; // unique local
     if (lower.startsWith('fe80:')) return true; // link-local
     if (lower.startsWith('ff00:')) return true; // multicast
+    
+    // SECURITY FIX: Block IPv4-mapped IPv6 addresses (SSRF bypass prevention)
+    if (lower.startsWith('::ffff:')) {
+      // Extract the IPv4 part and check if it's private
+      const ipv4Part = lower.substring('::ffff:'.length);
+      // Check for both dotted decimal and hex formats
+      if (ipv4Part.includes('.')) {
+        // Dotted decimal format (e.g., ::ffff:127.0.0.1)
+        return this.isPrivateIPv4(ipv4Part);
+      } else {
+        // Hex format (e.g., ::ffff:7f00:0001 for 127.0.0.1)
+        const parts = ipv4Part.split(':');
+        if (parts.length === 2) {
+          const part1 = parseInt(parts[0], 16);
+          const part2 = parseInt(parts[1], 16);
+          const ipv4 = `${(part1 >> 8) & 0xff}.${part1 & 0xff}.${(part2 >> 8) & 0xff}.${part2 & 0xff}`;
+          return this.isPrivateIPv4(ipv4);
+        }
+      }
+      // If we can't parse it, block it to be safe
+      return true;
+    }
     
     return false;
   }
