@@ -25,7 +25,7 @@ const REPLIT_AI_CONFIG = {
   ],
   maxTokens: {
     natural: 200,
-    technical: 400
+    technical: 1200
   },
   temperature: {
     natural: 0.8,
@@ -183,7 +183,7 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
     const chatResponse = await mistral.chat.complete({
       model: 'mistral-large-latest', // Use the latest Mistral model
       messages: messages as any,
-      maxTokens: mode === 'technical' ? 800 : 400,
+      maxTokens: mode === 'technical' ? 1500 : 400,
       temperature: mode === 'technical' ? 0.3 : 0.7,
       topP: 0.9,
     });
@@ -347,7 +347,7 @@ Conversation Context:\n`;
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages,
-      max_tokens: mode === 'technical' ? 800 : 500,
+      max_tokens: mode === 'technical' ? 1500 : 500,
       temperature: mode === 'technical' ? 0.3 : 0.7,
       presence_penalty: 0.1,
       frequency_penalty: 0.1,
