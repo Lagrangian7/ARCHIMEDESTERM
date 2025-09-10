@@ -7,6 +7,7 @@ import { UserProfile } from './UserProfile';
 import { ConversationHistory } from './ConversationHistory';
 import { DocumentUpload } from './DocumentUpload';
 import { SnakeGame } from './SnakeGame';
+import { ZorkGame } from './ZorkGame';
 import { DTMFDecoder } from './DTMFDecoder';
 import { HelpMenu } from './HelpMenu';
 import { TalkingArchimedes } from './TalkingArchimedes';
@@ -65,6 +66,7 @@ export function Terminal() {
   // Expose modal openers globally
   useEffect(() => {
     (window as any).openSnakeGame = () => setShowSnake(true);
+    (window as any).openZorkGame = () => setShowZork(true);
     (window as any).openDTMFDecoder = () => setShowDTMF(true);
     (window as any).openHelpMenu = () => setShowHelpMenu(true);
     (window as any).openChatInterface = () => setShowChat(true);
@@ -81,6 +83,7 @@ export function Terminal() {
   const [showConversationHistory, setShowConversationHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [showSnake, setShowSnake] = useState(false);
+  const [showZork, setShowZork] = useState(false);
   const [showDTMF, setShowDTMF] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -616,6 +619,16 @@ export function Terminal() {
                 setShowSnake(false);
                 processCommand(`Echo: Snake Game Over! Final Score: ${score}`);
               }}
+            />
+          </div>
+        </div>
+      )}
+
+      {showZork && (
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+          <div className="w-full h-full max-w-4xl max-h-full">
+            <ZorkGame 
+              onClose={() => setShowZork(false)}
             />
           </div>
         </div>

@@ -541,6 +541,7 @@ Audio & Signal Processing:
   
 Games:
   snake - Play the classic Snake game
+  zork - Play ZORK: The Great Underground Empire
   
 System Commands:
   xx - Activate screensaver manually
@@ -1252,6 +1253,17 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         openSnakeGame();
       } else {
         addEntry('error', 'Snake game not available. Please ensure the game component is loaded.');
+      }
+      return;
+    }
+
+    if (cmd === 'zork') {
+      addEntry('system', 'Launching ZORK: The Great Underground Empire...');
+      const openZorkGame = (window as any).openZorkGame;
+      if (openZorkGame) {
+        openZorkGame();
+      } else {
+        addEntry('error', 'ZORK game not available. Please ensure the game component is loaded.');
       }
       return;
     }
