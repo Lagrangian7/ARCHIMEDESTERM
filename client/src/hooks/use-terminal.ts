@@ -1254,16 +1254,6 @@ Free plan includes 100 monthly requests with end-of-day data.`);
     }
 
     // Games
-    if (cmd === 'snake') {
-      addEntry('system', 'Launching Snake Game...');
-      const openSnakeGame = (window as any).openSnakeGame;
-      if (openSnakeGame) {
-        openSnakeGame();
-      } else {
-        addEntry('error', 'Snake game not available. Please ensure the game component is loaded.');
-      }
-      return;
-    }
     
     if (cmd === 'theharvester' || cmd === 'harvester') {
       addEntry('system', 'Launching theHarvester OSINT reconnaissance tool...');
