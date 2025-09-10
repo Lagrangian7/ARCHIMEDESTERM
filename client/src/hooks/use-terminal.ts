@@ -1257,22 +1257,10 @@ Free plan includes 100 monthly requests with end-of-day data.`);
     if (cmd === 'snake') {
       addEntry('system', 'Launching Snake Game...');
       const openSnakeGame = (window as any).openSnakeGame;
-      console.log('Snake game function available:', !!openSnakeGame);
-      console.log('Window object keys:', Object.keys(window as any).filter(k => k.includes('Snake') || k.includes('snake') || k.includes('open')));
       if (openSnakeGame) {
-        console.log('Calling openSnakeGame()');
-        try {
-          openSnakeGame();
-          addEntry('system', '✅ Snake game launched successfully!');
-        } catch (error) {
-          console.error('Error launching snake game:', error);
-          addEntry('error', `Failed to launch snake game: ${error}`);
-        }
+        openSnakeGame();
       } else {
         addEntry('error', 'Snake game not available. Please ensure the game component is loaded.');
-        addEntry('system', 'Debug: Available global functions:');
-        const globals = Object.keys(window as any).filter(k => k.startsWith('open'));
-        addEntry('system', `Found globals: ${globals.join(', ')}`);
       }
       return;
     }
