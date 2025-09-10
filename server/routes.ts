@@ -1072,171 +1072,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Basic domain validation
       const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-._]*[a-zA-Z0-9]$/;
-      if (!domainRegex.test(domain)) {
+      if (!domainRegex.test(domain) || domain.length > 253) {
         return res.status(400).json({ error: 'Invalid domain format' });
       }
 
-      // Use system whois command via child_process
-      const execAsync = promisify(exec);
-      
+      console.log(`🔍 WHOIS lookup for: ${domain}`);
+
+      // Try RDAP first (more reliable and standardized)
       try {
-        const { stdout, stderr } = await execAsync(`whois ${domain}`, { 
-          timeout: 10000, // 10 second timeout
-          encoding: 'utf8'
+        const rdapResponse = await fetch(`https://rdap.org/domain/${domain}`, {
+          signal: AbortSignal.timeout(8000),
+          headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
         });
         
-        if (stderr && !stdout) {
-          throw new Error(`WHOIS command failed: ${stderr}`);
-        }
-        
-        // Parse the whois output for key information
-        const whoisData = stdout || '';
-        
-        // Extract key fields from whois output
-        const extractField = (pattern: string) => {
-          const match = whoisData.match(new RegExp(pattern, 'i'));
-          return match ? match[1].trim() : 'N/A';
-        };
-        
-        const registrar = extractField('(?:Registrar|Sponsoring Registrar):\\s*(.+)') || 
-                         extractField('registrar:\\s*(.+)');
-        const created = extractField('(?:Creation Date|Created On|Registered):\\s*(.+)') || 
-                       extractField('created:\\s*(.+)');
-        const updated = extractField('(?:Updated Date|Last Modified|Modified):\\s*(.+)') || 
-                       extractField('changed:\\s*(.+)');
-        const expires = extractField('(?:Expiry Date|Registry Expiry Date|Expires):\\s*(.+)') || 
-                       extractField('expire:\\s*(.+)');
-        const status = extractField('(?:Domain Status|Status):\\s*(.+)') || 
-                      extractField('status:\\s*(.+)');
-        
-        // Extract name servers
-        const nsMatches = whoisData.match(/(?:Name Server|nserver):\s*(.+)/gi);
-        const nameServers = nsMatches ? 
-          nsMatches.map((ns: string) => ns.replace(/(?:Name Server|nserver):\s*/i, '').trim()).slice(0, 4).join(', ') : 
-          'N/A';
-        
-        const formatted = `╭─ WHOIS Information for ${domain}
-├─ Domain: ${domain}
-├─ Registrar: ${registrar}
-├─ Creation Date: ${created}
-├─ Updated Date: ${updated}
-├─ Expiry Date: ${expires}
-├─ Status: ${status}
-├─ Name Servers: ${nameServers}
-╰─ Query completed using system whois`;
-        
-        res.json({ formatted });
-        
-      } catch (execError: any) {
-        // If whois command fails, try with alternative approach
-        if (execError.code === 'ENOENT' || execError.message.includes('whois: not found')) {
-          // whois command not available, use enhanced DNS approach with WHOIS API fallback
-          try {
-            // Try using free WHOIS API service
-            const whoisResponse = await fetch(`https://api.whois.vu/?q=${domain}`, {
-              headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
-            });
-            
-            if (whoisResponse.ok) {
-              const whoisData = await whoisResponse.json();
-              
-              let formatted = `╭─ WHOIS Information for ${domain}\n`;
-              
-              if (whoisData.domain) {
-                formatted += `├─ Domain: ${whoisData.domain}\n`;
-              }
-              
-              if (whoisData.registrar) {
-                formatted += `├─ Registrar: ${whoisData.registrar}\n`;
-              }
-              
-              if (whoisData.registered) {
-                formatted += `├─ Registration Date: ${whoisData.registered}\n`;
-              }
-              
-              if (whoisData.expires) {
-                formatted += `├─ Expiration Date: ${whoisData.expires}\n`;
-              }
-              
-              if (whoisData.updated) {
-                formatted += `├─ Last Updated: ${whoisData.updated}\n`;
-              }
-              
-              if (whoisData.nameservers && whoisData.nameservers.length > 0) {
-                formatted += `├─ Name Servers: ${whoisData.nameservers.join(', ')}\n`;
-              }
-              
-              if (whoisData.status && whoisData.status.length > 0) {
-                formatted += `├─ Domain Status: ${whoisData.status.join(', ')}\n`;
-              }
-              
-              // Add IP addresses from DNS lookup
-              try {
-                const addresses = await dns.resolve4(domain);
-                formatted += `├─ IPv4 Addresses: ${addresses.join(', ')}\n`;
-              } catch (e) {}
-              
-              formatted += `╰─ WHOIS lookup complete`;
-              res.json({ formatted });
-              return;
-            }
-          } catch (whoisApiError) {
-            console.log('WHOIS API failed, falling back to enhanced DNS lookup');
+        if (rdapResponse.ok) {
+          const rdapData = await rdapResponse.json();
+          
+          let formatted = `╭─ WHOIS Information for ${domain}\n`;
+          formatted += `├─ Domain: ${domain}\n`;
+          
+          // Extract registrar from entities
+          const registrar = rdapData.entities?.find((entity: any) => 
+            entity.roles?.includes('registrar'))?.vcardArray?.[1]?.find((item: any) => 
+              item[0] === 'fn')?.[3];
+          if (registrar) {
+            formatted += `├─ Registrar: ${registrar}\n`;
           }
           
-          // Enhanced DNS fallback with comprehensive information
-          try {
-            let formatted = `╭─ Enhanced Domain Information for ${domain}\n`;
+          // Extract dates from events
+          if (rdapData.events) {
+            const registration = rdapData.events.find((event: any) => event.eventAction === 'registration');
+            const expiration = rdapData.events.find((event: any) => event.eventAction === 'expiration');
+            const lastChanged = rdapData.events.find((event: any) => event.eventAction === 'last changed');
             
-            // Get A records
-            try {
-              const addresses = await dns.resolve4(domain);
-              formatted += `├─ IPv4 Addresses: ${addresses.join(', ')}\n`;
-            } catch (e) {}
-            
-            // Get AAAA records
-            try {
-              const ipv6Addresses = await dns.resolve6(domain);
-              formatted += `├─ IPv6 Addresses: ${ipv6Addresses.join(', ')}\n`;
-            } catch (e) {}
-            
-            // Get MX records
-            try {
-              const mxRecords = await dns.resolveMx(domain);
-              const mxList = mxRecords.map(mx => `${mx.exchange} (${mx.priority})`).join(', ');
-              formatted += `├─ Mail Servers: ${mxList}\n`;
-            } catch (e) {}
-            
-            // Get NS records
-            try {
-              const nsRecords = await dns.resolveNs(domain);
-              formatted += `├─ Name Servers: ${nsRecords.join(', ')}\n`;
-            } catch (e) {}
-            
-            // Get TXT records (may contain SPF, DMARC, verification records)
-            try {
-              const txtRecords = await dns.resolveTxt(domain);
-              const txtList = txtRecords.map(record => record.join('')).slice(0, 3); // Limit to 3 records
-              if (txtList.length > 0) {
-                formatted += `├─ TXT Records: ${txtList.join(' | ')}\n`;
-              }
-            } catch (e) {}
-            
-            formatted += `├─ Status: Enhanced DNS resolution (WHOIS service unavailable)\n`;
-            formatted += `╰─ Domain analysis complete`;
-            
-            res.json({ formatted });
-          } catch (dnsError) {
-            res.json({ 
-              formatted: `╭─ Domain lookup for ${domain}\n╰─ Domain does not resolve or all services unavailable` 
-            });
+            if (registration?.eventDate) {
+              formatted += `├─ Creation Date: ${registration.eventDate.split('T')[0]}\n`;
+            }
+            if (expiration?.eventDate) {
+              formatted += `├─ Expiration Date: ${expiration.eventDate.split('T')[0]}\n`;
+            }
+            if (lastChanged?.eventDate) {
+              formatted += `├─ Updated Date: ${lastChanged.eventDate.split('T')[0]}\n`;
+            }
           }
+          
+          // Extract status
+          if (rdapData.status) {
+            formatted += `├─ Domain Status: ${rdapData.status.join(', ')}\n`;
+          }
+          
+          // Extract nameservers
+          if (rdapData.nameservers) {
+            const nameServers = rdapData.nameservers.map((ns: any) => ns.ldhName).slice(0, 4);
+            if (nameServers.length > 0) {
+              formatted += `├─ Name Servers: ${nameServers.join(', ')}\n`;
+            }
+          }
+          
+          formatted += `╰─ Query completed using RDAP`;
+          res.json({ formatted });
+          return;
+        }
+      } catch (rdapError) {
+        console.log('RDAP failed, trying WHOIS API fallback');
+      }
+      
+      // Fallback to whois.vu API
+      try {
+        const whoisResponse = await fetch(`https://api.whois.vu/?q=${domain}`, {
+          signal: AbortSignal.timeout(8000),
+          headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
+        });
+        
+        if (whoisResponse.ok) {
+          const whoisData = await whoisResponse.json();
+          
+          let formatted = `╭─ WHOIS Information for ${domain}\n`;
+          formatted += `├─ Domain: ${domain}\n`;
+          
+          if (whoisData.registrar) {
+            formatted += `├─ Registrar: ${whoisData.registrar}\n`;
+          }
+          if (whoisData.registered) {
+            formatted += `├─ Creation Date: ${whoisData.registered}\n`;
+          }
+          if (whoisData.expires) {
+            formatted += `├─ Expiration Date: ${whoisData.expires}\n`;
+          }
+          if (whoisData.updated) {
+            formatted += `├─ Updated Date: ${whoisData.updated}\n`;
+          }
+          if (whoisData.nameservers && whoisData.nameservers.length > 0) {
+            formatted += `├─ Name Servers: ${whoisData.nameservers.slice(0, 4).join(', ')}\n`;
+          }
+          if (whoisData.status) {
+            const status = Array.isArray(whoisData.status) ? whoisData.status.join(', ') : whoisData.status;
+            formatted += `├─ Domain Status: ${status}\n`;
+          }
+          
+          formatted += `╰─ Query completed using WHOIS API`;
+          res.json({ formatted });
+          return;
+        }
+      } catch (whoisApiError) {
+        console.log('WHOIS API failed, falling back to DNS-only lookup');
+      }
+      
+      // Final fallback: Enhanced DNS-only information
+      try {
+        let formatted = `╭─ Domain Information for ${domain}\n`;
+        let hasData = false;
+        
+        // Get A records
+        try {
+          const addresses = await dns.resolve4(domain);
+          formatted += `├─ IPv4 Addresses: ${addresses.join(', ')}\n`;
+          hasData = true;
+        } catch (e) {}
+        
+        // Get AAAA records
+        try {
+          const ipv6Addresses = await dns.resolve6(domain);
+          formatted += `├─ IPv6 Addresses: ${ipv6Addresses.join(', ')}\n`;
+          hasData = true;
+        } catch (e) {}
+        
+        // Get MX records
+        try {
+          const mxRecords = await dns.resolveMx(domain);
+          const mxList = mxRecords.map(mx => `${mx.exchange} (${mx.priority})`).join(', ');
+          formatted += `├─ Mail Servers: ${mxList}\n`;
+          hasData = true;
+        } catch (e) {}
+        
+        // Get NS records
+        try {
+          const nsRecords = await dns.resolveNs(domain);
+          formatted += `├─ Name Servers: ${nsRecords.join(', ')}\n`;
+          hasData = true;
+        } catch (e) {}
+        
+        if (hasData) {
+          formatted += `╰─ DNS resolution complete (WHOIS services unavailable)`;
+          res.json({ formatted });
         } else {
-          // Other execution errors
           res.json({ 
-            formatted: `╭─ WHOIS lookup for ${domain}\n╰─ Unable to retrieve WHOIS information: ${execError.message || 'Unknown error'}` 
+            formatted: `╭─ Domain lookup for ${domain}\n╰─ Domain does not resolve or is not accessible` 
           });
         }
+      } catch (finalError) {
+        res.json({ 
+          formatted: `╭─ Domain lookup for ${domain}\n╰─ All lookup methods failed - domain may not exist` 
+        });
       }
     } catch (error) {
       console.error('WHOIS error:', error);
