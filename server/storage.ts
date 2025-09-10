@@ -580,6 +580,9 @@ export class MemStorage implements IStorage {
 
   // MUD profile methods implementation (memory storage)
   async createMudProfile(profile: InsertMudProfile): Promise<MudProfile> {
+    if (!profile.userId) {
+      throw new Error('User ID is required for MUD profile');
+    }
     const id = randomUUID();
     const now = new Date();
     const mudProfile: MudProfile = {
@@ -637,12 +640,15 @@ export class MemStorage implements IStorage {
 
   // MUD session methods implementation (memory storage)
   async createMudSession(session: InsertMudSession): Promise<MudSession> {
+    if (!session.userId) {
+      throw new Error('User ID is required for MUD session');
+    }
     const id = randomUUID();
     const now = new Date();
     const mudSession: MudSession = {
       id,
       userId: session.userId,
-      profileId: session.profileId,
+      profileId: session.profileId || null,
       sessionId: session.sessionId,
       status: session.status || "disconnected",
       connectTime: session.connectTime || null,

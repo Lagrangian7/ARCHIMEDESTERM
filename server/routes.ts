@@ -19,6 +19,8 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { promises as dns } from 'dns';
 import { SshwiftyService } from './sshwifty-service';
+import { mudService } from './mud-service';
+import { insertMudProfileSchema, insertMudSessionSchema } from '@shared/schema';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -195,6 +197,210 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(conversations);
     } catch (error) {
       console.error("Get user conversations error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // MUD Profile routes
+  app.get("/api/mud/profiles", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const profiles = await storage.getUserMudProfiles(userId);
+      res.json(profiles);
+    } catch (error) {
+      console.error("Get MUD profiles error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/mud/profiles", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const validationResult = insertMudProfileSchema.safeParse({
+        ...req.body,
+        userId
+      });
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid profile data",
+          details: validationResult.error.errors
+        });
+      }
+      
+      const profile = await storage.createMudProfile(validationResult.data);
+      res.json(profile);
+    } catch (error) {
+      console.error("Create MUD profile error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/mud/profiles/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const profile = await storage.getMudProfile(req.params.id);
+      
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+      
+      // Ensure user owns this profile
+      if (profile.userId !== req.user.claims.sub) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      res.json(profile);
+    } catch (error) {
+      console.error("Get MUD profile error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.put("/api/mud/profiles/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const profile = await storage.getMudProfile(req.params.id);
+      
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+      
+      if (profile.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const validationResult = insertMudProfileSchema.partial().safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid profile data",
+          details: validationResult.error.errors
+        });
+      }
+      
+      const updatedProfile = await storage.updateMudProfile(req.params.id, validationResult.data);
+      res.json(updatedProfile);
+    } catch (error) {
+      console.error("Update MUD profile error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/mud/profiles/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const profile = await storage.getMudProfile(req.params.id);
+      
+      if (!profile) {
+        return res.status(404).json({ error: "Profile not found" });
+      }
+      
+      if (profile.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      await storage.deleteMudProfile(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete MUD profile error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // MUD Session routes
+  app.get("/api/mud/sessions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const sessions = await storage.getUserMudSessions(userId);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Get MUD sessions error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/mud/sessions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const validationResult = insertMudSessionSchema.safeParse({
+        ...req.body,
+        userId
+      });
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid session data",
+          details: validationResult.error.errors
+        });
+      }
+      
+      const session = await storage.createMudSession(validationResult.data);
+      res.json(session);
+    } catch (error) {
+      console.error("Create MUD session error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.get("/api/mud/sessions/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const sessions = await storage.getUserMudSessions(req.user.claims.sub);
+      const session = sessions.find(s => s.id === req.params.id);
+      
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      
+      res.json(session);
+    } catch (error) {
+      console.error("Get MUD session error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/mud/sessions/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const sessions = await storage.getUserMudSessions(userId);
+      const session = sessions.find(s => s.id === req.params.id);
+      
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      
+      const validationResult = insertMudSessionSchema.partial().safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid session data",
+          details: validationResult.error.errors
+        });
+      }
+      
+      const updatedSession = await storage.updateMudSession(req.params.id, validationResult.data);
+      res.json(updatedSession);
+    } catch (error) {
+      console.error("Update MUD session error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/mud/sessions/:id/close", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const sessions = await storage.getUserMudSessions(userId);
+      const session = sessions.find(s => s.id === req.params.id);
+      
+      if (!session) {
+        return res.status(404).json({ error: "Session not found" });
+      }
+      
+      await storage.closeMudSession(session.sessionId);
+      mudService.closeConnection(session.sessionId, 'Session closed via API');
+      
+      res.json({ success: true, message: 'Session closed' });
+    } catch (error) {
+      console.error("Close MUD session error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -2332,6 +2538,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   console.log('Chat WebSocket server initialized on /ws/chat');
+
+  // Create WebSocket server for MUD connections
+  const mudWss = new WebSocketServer({
+    server: httpServer,
+    path: '/ws/mud'
+  });
+
+  // Handle MUD WebSocket connections
+  mudWss.on('connection', (ws: any, req) => {
+    console.log('MUD WebSocket client connected');
+    
+    // Track authentication status
+    ws.isAuthenticated = false;
+
+    ws.on('message', async (data: Buffer) => {
+      try {
+        const message = JSON.parse(data.toString());
+        
+        // Handle authentication first
+        if (message.type === 'auth') {
+          // Set user ID for this connection (basic auth)
+          ws.userId = message.userId;
+          ws.isAuthenticated = true;
+          
+          ws.send(JSON.stringify({
+            type: 'auth_success',
+            message: 'Authentication successful'
+          }));
+          return;
+        }
+        
+        // Require authentication for all other operations
+        if (!ws.isAuthenticated) {
+          ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Authentication required. Send auth message first.'
+          }));
+          return;
+        }
+        
+        if (message.type === 'connect') {
+          const { host, port, sessionId } = message;
+          
+          // Validate required parameters
+          if (!host || !port || !sessionId) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Missing required parameters: host, port, sessionId'
+            }));
+            return;
+          }
+
+          // Create MUD connection using the MUD service
+          try {
+            await mudService.createConnection(ws, host, parseInt(port), sessionId);
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Connection failed';
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: errorMessage
+            }));
+          }
+        } else if (message.type === 'disconnect') {
+          const { sessionId } = message;
+          if (sessionId) {
+            mudService.closeConnection(sessionId, 'Client requested disconnect');
+          }
+        }
+      } catch (error) {
+        console.error('Invalid MUD WebSocket message:', error);
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Invalid message format'
+        }));
+      }
+    });
+
+    ws.on('close', () => {
+      console.log('MUD WebSocket client disconnected');
+    });
+
+    ws.on('error', (error: Error) => {
+      console.error('MUD WebSocket error:', error);
+    });
+  });
+
+  console.log('MUD WebSocket server initialized on /ws/mud');
   
   return httpServer;
 }
