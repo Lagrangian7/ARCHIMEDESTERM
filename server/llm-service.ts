@@ -213,19 +213,14 @@ Please respond as ARCHIMEDES v7:`;
 
     const response = await gemini.models.generateContent({
       model: 'gemini-2.0-flash-exp',
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: fullPrompt }]
-        }
-      ],
-      generationConfig: {
+      contents: fullPrompt,
+      config: {
         maxOutputTokens: mode === 'technical' ? 1500 : 500,
         temperature: mode === 'technical' ? 0.3 : 0.7,
       }
     });
 
-    const responseText = response.response?.text() || 'I apologize, but I encountered an error processing your request.';
+    const responseText = response.text || 'I apologize, but I encountered an error processing your request.';
     return this.postProcessResponse(responseText, mode);
   }
 
