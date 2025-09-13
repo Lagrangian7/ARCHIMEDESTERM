@@ -114,8 +114,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const bbsService = new BbsService();
   
   // Initialize starter data
-  await bbsService.initializeStarterData();
-  await bbsService.initializeVirtualSystems();
+  try {
+    await bbsService.initializeStarterData();
+    await bbsService.initializeVirtualSystems();
+    console.log("✅ BBS service initialized successfully");
+  } catch (error) {
+    console.error("⚠️  BBS service initialization failed, continuing without initial data:", error.message);
+  }
 
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
