@@ -211,6 +211,8 @@ Current User Message: ${userMessage}
 
 Please respond as ARCHIMEDES v7:`;
 
+    console.log('[LLM] Sending prompt to Gemini:', fullPrompt.substring(0, 200) + '...');
+    
     const response = await gemini.models.generateContent({
       model: 'gemini-2.0-flash-exp',
       contents: fullPrompt,
@@ -220,6 +222,7 @@ Please respond as ARCHIMEDES v7:`;
       }
     });
 
+    console.log('[LLM] Gemini raw response:', JSON.stringify(response, null, 2));
     const responseText = response.text || 'I apologize, but I encountered an error processing your request.';
     return this.postProcessResponse(responseText, mode);
   }
