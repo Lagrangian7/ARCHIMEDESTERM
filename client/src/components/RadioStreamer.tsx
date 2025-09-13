@@ -24,6 +24,9 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
     const audio = audioRef.current;
     if (!audio) return;
 
+    // Set initial volume
+    audio.volume = volume;
+
     const handlePlay = () => {
       console.log('✅ Audio started playing:', streamUrl);
       setIsPlaying(true);
@@ -87,7 +90,7 @@ export function RadioStreamer({ isOpen, onClose, onStatusChange }: RadioStreamer
       audio.removeEventListener('waiting', handleWaiting);
       audio.removeEventListener('loadeddata', handleLoadedData);
     };
-  }, [onStatusChange, streamUrl]);
+  }, [onStatusChange, streamUrl, volume]);
 
   const togglePlayPause = async () => {
     const audio = audioRef.current;
