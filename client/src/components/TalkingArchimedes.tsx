@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import skullWatermark from '@assets/wally_1756523512970.jpg';
 import archimedesVideo1 from '@assets/1131_1757266999585.mp4';
-import archimedesVideo2 from '@assets/wally alive_1757271415623.mp4';
+import archimedesVideo2 from '@assets/wally talking_1757885507158.mp4';
 
 interface TalkingArchimedesProps {
   isTyping: boolean;
