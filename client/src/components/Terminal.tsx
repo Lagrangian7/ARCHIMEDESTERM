@@ -310,19 +310,6 @@ export function Terminal() {
         (isTyping || isSpeaking) ? 'terminal-glitch-active' : ''
       }`}>
         
-        {/* Background Watermark */}
-        <div className="absolute inset-0 z-0">
-          {/* Clean background without glitch effects */}
-          <div 
-            className="watermark-background absolute inset-0 opacity-15"
-            style={{
-              backgroundImage: `url(${skullWatermark})`,
-              backgroundSize: '60%',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-            }}
-          />
-        </div>
         
         {/* Header - Fixed at top */}
         <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-terminal-subtle bg-terminal-bg relative z-10">
