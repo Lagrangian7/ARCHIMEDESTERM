@@ -308,17 +308,17 @@ export function Terminal() {
     <div className="h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono">
       <div className="terminal-container flex flex-col h-full relative z-0">
         
-        {/* Background Watermark - Centered and Small */}
+        {/* Background Watermark - Centered and Large */}
         <div className="absolute inset-0 z-0 flex items-center justify-center">
           <div 
-            className="watermark-background opacity-10"
+            className="watermark-background watermark-glitch watermark-glitch-red watermark-glitch-cyan watermark-noise opacity-15"
             style={{
               backgroundImage: `url(${terminalWatermark})`,
               backgroundSize: 'contain',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              width: '200px',
-              height: '200px',
+              width: '400px',
+              height: '400px',
             }}
           />
         </div>
