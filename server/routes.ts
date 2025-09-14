@@ -119,7 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     await bbsService.initializeVirtualSystems();
     console.log("✅ BBS service initialized successfully");
   } catch (error) {
-    console.error("⚠️  BBS service initialization failed, continuing without initial data:", error.message);
+    console.error("⚠️  BBS service initialization failed, continuing without initial data:", error instanceof Error ? error.message : String(error));
   }
 
   // Auth routes
