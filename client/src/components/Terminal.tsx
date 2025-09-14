@@ -23,6 +23,7 @@ import { useChat } from '@/hooks/useChat';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
+import terminalWatermark from '@assets/wally new_1757883178780.jpeg';
 
 // Logo Component
 const LogoIcon = () => (
@@ -306,6 +307,22 @@ export function Terminal() {
   return (
     <div className="h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono">
       <div className="terminal-container flex flex-col h-full relative z-0">
+        
+        {/* Background Watermark - Centered and Small */}
+        <div className="absolute inset-0 z-0 flex items-center justify-center">
+          <div 
+            className="watermark-background opacity-10"
+            style={{
+              backgroundImage: `url(${terminalWatermark})`,
+              backgroundSize: 'contain',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              width: '200px',
+              height: '200px',
+            }}
+          />
+        </div>
+        
         {/* Header - Fixed at top */}
         <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-terminal-subtle bg-terminal-bg relative z-10">
           <div className="flex items-center space-x-4">
