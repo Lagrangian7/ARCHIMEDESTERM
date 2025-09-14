@@ -196,16 +196,13 @@
 
   .watermark-background {
     filter: brightness(0.7) contrast(1.2) hue-rotate(10deg);
-    animation: watermarkGlow 4s ease-in-out infinite alternate, glitchEffect 8s infinite;
+    animation: watermarkGlow 120s ease-in-out infinite alternate;
   }
 
   .watermark-glitch {
-    animation: watermarkGlow 300s ease-in-out infinite alternate, 
-               slowIntenseGlitch 400s infinite,
-               digitalBreakup 350s infinite,
-               colorShift 450s infinite,
-               distortionWave 600s infinite ease-in-out,
-               slowScanline 800s infinite linear;
+    animation: watermarkGlow 180s ease-in-out infinite alternate, 
+               slowIntenseGlitch 240s infinite,
+               distortionWave 300s infinite ease-in-out;
     filter: brightness(0.6) contrast(1.4) saturate(1.2);
   }
 
@@ -232,7 +229,7 @@
       radial-gradient(circle at 20% 80%, rgba(255, 0, 100, 0.15) 0%, transparent 50%),
       radial-gradient(circle at 80% 20%, rgba(0, 255, 255, 0.12) 0%, transparent 50%),
       url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='8' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.9'/%3E%3C/svg%3E");
-    animation: digitalStatic 0.12s infinite, noiseFlicker 0.6s infinite alternate;
+    animation: digitalStatic 200s infinite, noiseFlicker 300s infinite alternate;
   }
 
   .terminal-glitch {
