@@ -200,25 +200,29 @@
   }
 
   .watermark-glitch {
-    animation: watermarkGlow 3s ease-in-out infinite alternate, 
-               intenseGlitch 2.5s infinite,
-               digitalBreakup 1.8s infinite,
-               colorShift 3.2s infinite;
+    animation: watermarkGlow 6s ease-in-out infinite alternate, 
+               slowIntenseGlitch 8s infinite,
+               digitalBreakup 5s infinite,
+               colorShift 7s infinite,
+               distortionWave 10s infinite ease-in-out,
+               slowScanline 12s infinite linear;
     filter: brightness(0.6) contrast(1.4) saturate(1.2);
   }
 
   .watermark-glitch-red {
-    animation: watermarkGlow 2.5s ease-in-out infinite alternate-reverse, 
-               redChannelGlitch 1.6s infinite,
-               horizontalDistort 2.1s infinite;
+    animation: watermarkGlow 5s ease-in-out infinite alternate-reverse, 
+               redChannelGlitch 4s infinite,
+               horizontalDistort 6s infinite,
+               slowWave 15s infinite ease-in-out;
     filter: brightness(0.8) contrast(1.6) hue-rotate(180deg) saturate(2);
     transform: translateX(2px);
   }
 
   .watermark-glitch-cyan {
-    animation: watermarkGlow 3.8s ease-in-out infinite alternate, 
-               cyanChannelGlitch 1.4s infinite,
-               verticalDistort 2.3s infinite;
+    animation: watermarkGlow 7s ease-in-out infinite alternate, 
+               cyanChannelGlitch 5s infinite,
+               verticalDistort 8s infinite,
+               verticalWave 18s infinite ease-in-out;
     filter: brightness(0.9) contrast(1.8) hue-rotate(90deg) saturate(3);
     transform: translateX(-1px) translateY(1px);
   }
@@ -762,5 +766,122 @@
   100% {
     transform: scale(0.99) rotate(-0.1deg);
     filter: brightness(1.1) contrast(1.6);
+  }
+}
+
+/* Slow watermark effects */
+@keyframes slowIntenseGlitch {
+  0%, 85% {
+    transform: translateX(0) scaleX(1) skewX(0deg);
+    filter: brightness(0.6) contrast(1.4);
+  }
+  
+  5% {
+    transform: translateX(-3px) scaleX(1.02) skewX(0.4deg);
+    filter: brightness(0.9) contrast(1.8) hue-rotate(20deg);
+  }
+  
+  10% {
+    transform: translateX(2px) scaleX(0.98) skewX(-0.3deg);
+    filter: brightness(0.4) contrast(2.2) saturate(1.8);
+  }
+  
+  87% {
+    transform: translateX(1px) scaleX(1.01) skewX(-0.2deg);
+    filter: brightness(0.8) contrast(1.9) hue-rotate(10deg);
+  }
+  
+  92% {
+    transform: translateX(-2px) scaleX(0.99) skewX(0.3deg);
+    filter: brightness(0.3) contrast(2.5) saturate(2.2);
+  }
+}
+
+@keyframes distortionWave {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: hue-rotate(0deg);
+  }
+  
+  25% {
+    transform: translateY(-5px) rotate(0.5deg) scale(1.02);
+    filter: hue-rotate(90deg);
+  }
+  
+  50% {
+    transform: translateY(3px) rotate(-0.3deg) scale(0.98);
+    filter: hue-rotate(180deg);
+  }
+  
+  75% {
+    transform: translateY(-2px) rotate(0.2deg) scale(1.01);
+    filter: hue-rotate(270deg);
+  }
+  
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes slowScanline {
+  0% {
+    box-shadow: inset 0 -2px 0 rgba(0, 255, 65, 0.8);
+  }
+  
+  25% {
+    box-shadow: inset 0 25% 0 rgba(0, 255, 65, 0.3);
+  }
+  
+  50% {
+    box-shadow: inset 0 50% 0 rgba(0, 255, 65, 0.6);
+  }
+  
+  75% {
+    box-shadow: inset 0 75% 0 rgba(0, 255, 65, 0.2);
+  }
+  
+  100% {
+    box-shadow: inset 0 100% 0 rgba(0, 255, 65, 0.8);
+  }
+}
+
+@keyframes slowWave {
+  0%, 100% {
+    transform: translateX(2px) scaleX(1) skewX(0deg);
+  }
+  
+  25% {
+    transform: translateX(4px) scaleX(1.03) skewX(0.2deg);
+  }
+  
+  50% {
+    transform: translateX(-2px) scaleX(0.97) skewX(-0.1deg);
+  }
+  
+  75% {
+    transform: translateX(3px) scaleX(1.02) skewX(0.15deg);
+  }
+}
+
+@keyframes verticalWave {
+  0%, 100% {
+    transform: translateY(1px) scaleY(1) skewY(0deg);
+  }
+  
+  20% {
+    transform: translateY(-3px) scaleY(1.02) skewY(0.1deg);
+  }
+  
+  40% {
+    transform: translateY(2px) scaleY(0.98) skewY(-0.05deg);
+  }
+  
+  60% {
+    transform: translateY(-1px) scaleY(1.01) skewY(0.08deg);
+  }
+  
+  80% {
+    transform: translateY(3px) scaleY(0.99) skewY(-0.03deg);
   }
 }
