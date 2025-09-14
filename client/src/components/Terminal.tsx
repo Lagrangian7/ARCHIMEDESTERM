@@ -22,7 +22,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useChat } from '@/hooks/useChat';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare } from 'lucide-react';
-import terminalBg from '@assets/wally new_1757882408346.jpeg';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 
 // Logo Component
@@ -306,24 +305,7 @@ export function Terminal() {
 
   return (
     <div className="h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono">
-      <div className={`terminal-container flex flex-col h-full relative z-0 terminal-glitch ${
-        (isTyping || isSpeaking) ? 'terminal-glitch-active' : ''
-      }`}>
-        
-        {/* Background Watermark */}
-        <div className="absolute inset-0 z-0">
-          {/* Clean background without glitch effects */}
-          <div 
-            className="watermark-background absolute inset-0 opacity-15"
-            style={{
-              backgroundImage: `url(${terminalBg})`,
-              backgroundSize: '60%',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-            }}
-          />
-        </div>
-        
+      <div className="terminal-container flex flex-col h-full relative z-0">
         {/* Header - Fixed at top */}
         <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-terminal-subtle bg-terminal-bg relative z-10">
           <div className="flex items-center space-x-4">
