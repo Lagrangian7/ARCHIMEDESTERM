@@ -200,29 +200,29 @@
   }
 
   .watermark-glitch {
-    animation: watermarkGlow 6s ease-in-out infinite alternate, 
-               slowIntenseGlitch 8s infinite,
-               digitalBreakup 5s infinite,
-               colorShift 7s infinite,
-               distortionWave 10s infinite ease-in-out,
-               slowScanline 12s infinite linear;
+    animation: watermarkGlow 20s ease-in-out infinite alternate, 
+               slowIntenseGlitch 25s infinite,
+               digitalBreakup 18s infinite,
+               colorShift 22s infinite,
+               distortionWave 30s infinite ease-in-out,
+               slowScanline 35s infinite linear;
     filter: brightness(0.6) contrast(1.4) saturate(1.2);
   }
 
   .watermark-glitch-red {
-    animation: watermarkGlow 5s ease-in-out infinite alternate-reverse, 
-               redChannelGlitch 4s infinite,
-               horizontalDistort 6s infinite,
-               slowWave 15s infinite ease-in-out;
+    animation: watermarkGlow 18s ease-in-out infinite alternate-reverse, 
+               redChannelGlitch 15s infinite,
+               horizontalDistort 20s infinite,
+               slowWave 40s infinite ease-in-out;
     filter: brightness(0.8) contrast(1.6) hue-rotate(180deg) saturate(2);
     transform: translateX(2px);
   }
 
   .watermark-glitch-cyan {
-    animation: watermarkGlow 7s ease-in-out infinite alternate, 
-               cyanChannelGlitch 5s infinite,
-               verticalDistort 8s infinite,
-               verticalWave 18s infinite ease-in-out;
+    animation: watermarkGlow 25s ease-in-out infinite alternate, 
+               cyanChannelGlitch 20s infinite,
+               verticalDistort 28s infinite,
+               verticalWave 45s infinite ease-in-out;
     filter: brightness(0.9) contrast(1.8) hue-rotate(90deg) saturate(3);
     transform: translateX(-1px) translateY(1px);
   }
