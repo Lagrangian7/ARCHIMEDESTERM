@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import radioVideo from '@assets/grok-video-4d63bf97-c94a-49f2-8f8b-8d83bb50d876 (3)_1757280475428.mp4';
+import radioVideo from '@assets/radio_1757886813861.mp4';
 
 interface RadioCharacterProps {
   isRadioPlaying: boolean;
