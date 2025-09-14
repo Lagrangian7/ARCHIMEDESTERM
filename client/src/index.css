@@ -138,7 +138,11 @@
 @layer components {
   .terminal-container {
     position: relative;
-    background: var(--terminal-bg);
+    background-image: url('@/assets/terminal-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: var(--terminal-bg);
     border: 2px solid var(--terminal-subtle);
     box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
   }
