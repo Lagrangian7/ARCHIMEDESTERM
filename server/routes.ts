@@ -2820,18 +2820,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Chat WebSocket client disconnected');
       
       if (ws.userId) {
-        // Set user offline
-        await storage.updateUserPresence(ws.userId, false);
-        
-        // Broadcast user offline status
-        chatWss.clients.forEach((client: any) => {
-          if (client.readyState === WebSocket.OPEN && client !== ws) {
-            client.send(JSON.stringify({
-              type: 'user_offline',
-              data: { userId: ws.userId }
-            }));
-          }
-        });
+        try {
+          // Set user offline
+          await storage.updateUserPresence?.(ws.userId, false);
+          
+          // Broadcast user offline status
+          chatWss.clients.forEach((client: any) => {
+            if (client.readyState === WebSocket.OPEN && client !== ws) {
+              client.send(JSON.stringify({
+                type: 'user_offline',
+                data: { userId: ws.userId }
+              }));
+            }
+          });
+        } catch (error) {
+          console.error('Error updating user presence on disconnect:', error);
+        }
       }
     });
 
