@@ -10,6 +10,7 @@ import ZorkGame from './ZorkGame';
 import { DTMFDecoder } from './DTMFDecoder';
 import { HelpMenu } from './HelpMenu';
 import { TalkingArchimedes } from './TalkingArchimedes';
+import { ThinkingAnimation } from './ThinkingAnimation';
 import { RadioCharacter } from './RadioCharacter';
 import { ChatInterface } from './ChatInterface';
 import { PuzzleScreensaver } from './PuzzleScreensaver';
@@ -659,6 +660,9 @@ export function Terminal() {
         isSpeaking={isSpeaking}
         currentMessage={entries.length > 0 ? entries[entries.length - 1]?.content : undefined}
       />
+
+      {/* Thinking Animation - shows during AI processing, before typing starts */}
+      <ThinkingAnimation isThinking={isLoading && !isTyping && !isSpeaking} />
 
       {/* Radio Character - appears when radio is playing */}
       <RadioCharacter 
