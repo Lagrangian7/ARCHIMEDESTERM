@@ -9,7 +9,7 @@ export class KnowledgeService {
    * Process and store a text document, splitting it into searchable chunks
    */
   async processDocument(content: string, metadata: {
-    userId: string;
+    userId: string | null;
     fileName: string;
     originalName: string;
     fileSize: string;
