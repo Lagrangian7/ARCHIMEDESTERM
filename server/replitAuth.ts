@@ -26,9 +26,16 @@ const getOidcConfig = memoize(
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const PostgresStore = connectPg(session);
   
-  // Use memory store temporarily to avoid database connectivity issues
   return session({
+    store: new PostgresStore({
+      conObject: {
+        connectionString: process.env.DATABASE_URL,
+      },
+      tableName: 'user_sessions',
+      createTableIfMissing: true,
+    }),
     secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
