@@ -33,8 +33,8 @@ export function getSession() {
       conObject: {
         connectionString: process.env.DATABASE_URL,
       },
-      tableName: 'user_sessions',
-      createTableIfMissing: true,
+      tableName: 'sessions',
+      createTableIfMissing: false,
     }),
     secret: process.env.SESSION_SECRET!,
     resave: false,
