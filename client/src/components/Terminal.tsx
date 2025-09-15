@@ -348,16 +348,6 @@ export function Terminal() {
               {isAuthenticated ? (
                 <>
                   <Button
-                    onClick={() => setShowConversationHistory(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
-                    data-testid="button-conversation-history"
-                  >
-                    <History size={14} className="mr-1" />
-                    History
-                  </Button>
-                  <Button
                     onClick={() => setShowProfile(true)}
                     variant="outline"
                     size="sm"
