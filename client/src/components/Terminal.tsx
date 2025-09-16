@@ -11,6 +11,7 @@ import { DTMFDecoder } from './DTMFDecoder';
 import { HelpMenu } from './HelpMenu';
 import { TalkingArchimedes } from './TalkingArchimedes';
 import { ThinkingAnimation } from './ThinkingAnimation';
+import { MatrixRain } from './MatrixRain';
 import { RadioCharacter } from './RadioCharacter';
 import { ChatInterface } from './ChatInterface';
 import { PuzzleScreensaver } from './PuzzleScreensaver';
@@ -309,8 +310,11 @@ export function Terminal() {
     <div className="h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono">
       <div className="terminal-container flex flex-col h-full relative z-0">
         
+        {/* Matrix Rain Background Effect */}
+        <MatrixRain />
+
         {/* Background Watermark - Centered and Large */}
-        <div className="absolute inset-0 z-0 flex items-center justify-center">
+        <div className="absolute inset-0 z-[5] flex items-center justify-center">
           <div 
             className="watermark-background watermark-glitch watermark-glitch-red watermark-glitch-cyan watermark-noise opacity-15"
             style={{

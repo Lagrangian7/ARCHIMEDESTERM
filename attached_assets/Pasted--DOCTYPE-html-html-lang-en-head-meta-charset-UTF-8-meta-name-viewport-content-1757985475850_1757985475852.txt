@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Rain Droplet with Randomized Placement</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .grid-background {
+            background-image: 
+                linear-gradient(to right, rgba(0, 255, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="bg-black h-screen overflow-hidden flex items-center justify-center grid-background">
+    <div id="droplet-container" class="absolute">
+        <div id="droplet-0" class="absolute text-green-500 font-mono text-lg"></div>
+        <div id="droplet-1" class="absolute text-green-500 font-mono text-lg"></div>
+        <div id="droplet-2" class="absolute text-green-500 font-mono text-lg"></div>
+        <div id="droplet-3" class="absolute text-green-500 font-mono text-lg"></div>
+        <div id="droplet-4" class="absolute text-green-500 font-mono text-lg"></div>
+        <div id="droplet-5" class="absolute text-green-500 font-mono text-lg"></div>
+        <div id="droplet-6" class="absolute text-green-500 font-mono text-lg"></div>
+        <div id="droplet-7" class="absolute text-green-500 font-mono text-lg"></div>
+        <div id="droplet-8" class="absolute text-green-500 font-mono text-lg"></div>
+        <div id="droplet-9" class="absolute text-green-500 font-mono text-lg"></div>
+        <div id="droplet-10" class="absolute text-green-500 font-mono text-lg"></div>
+    </div>
+
+    <script>
+        const chars = '01';
+        const container = document.getElementById('droplet-container');
+        const droplets = [
+            document.getElementById('droplet-0'),
+            document.getElementById('droplet-1'),
+            document.getElementById('droplet-2'),
+            document.getElementById('droplet-3'),
+            document.getElementById('droplet-4'),
+            document.getElementById('droplet-5'),
+            document.getElementById('droplet-6'),
+            document.getElementById('droplet-7'),
+            document.getElementById('droplet-8'),
+            document.getElementById('droplet-9'),
+            document.getElementById('droplet-10')
+        ];
+        const trailLength = droplets.length;
+        
+        function createDroplet() {
+            const startX = Math.random() * 100; // Random horizontal position (0-100vw)
+            const startY = Math.random() * 30; // Random vertical start (0-30vh)
+            container.style.left = `${startX}vw`;
+            
+            droplets.forEach((droplet, index) => {
+                droplet.textContent = chars[Math.floor(Math.random() * chars.length)];
+                droplet.style.top = `${startY - (index * 3.5)}vh`; // Apply trail offset from startY
+                droplet.style.opacity = 1 - (index * 0.09);
+            });
+            
+            let posY = startY;
+            const speed = 0.5 + Math.random() * 1;
+            const fadeSpeed = 0.01;
+            const trailSpacing = 3.5;
+            let frameCount = 0;
+            
+            function fall() {
+                posY += speed;
+                frameCount++;
+                
+                if (frameCount % 5 === 0) {
+                    droplets.forEach(droplet => {
+                        droplet.textContent = chars[Math.floor(Math.random() * chars.length)];
+                    });
+                }
+                
+                droplets.forEach((droplet, index) => {
+                    const trailOffset = index * trailSpacing;
+                    droplet.style.top = `${posY - trailOffset}vh`;
+                    droplet.style.opacity = Math.max(0, 1 - (index * 0.09) - ((posY - startY) * fadeSpeed));
+                });
+                
+                if (posY < 100 && droplets[0].style.opacity > 0) {
+                    requestAnimationFrame(fall);
+                } else {
+                    droplets.forEach(droplet => droplet.style.opacity = 0);
+                    setTimeout(createDroplet, Math.random() * 2000);
+                }
+            }
+            
+            requestAnimationFrame(fall);
+        }
+        
+        createDroplet();
+    </script>
+</body>
+</html>
