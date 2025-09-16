@@ -7,86 +7,111 @@ export function MatrixRain() {
     // Respect user's motion preferences
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
-    const chars = '01';
+    const binaryChars = '01';
+    const highAsciiChars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ日月火水木金土年月日時分秒░▒▓█▄▌▐▀■□▪▫◆◇';
     const container = containerRef.current;
     if (!container) return;
 
-    // Create droplet elements
-    const droplets: HTMLDivElement[] = [];
-    for (let i = 0; i < 11; i++) {
-      const droplet = document.createElement('div');
-      droplet.className = 'absolute text-terminal-highlight font-mono text-lg';
-      droplet.id = `droplet-${i}`;
-      container.appendChild(droplet);
-      droplets.push(droplet);
-    }
-
-    const trailLength = droplets.length;
-    let animationId: number;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-    function createDroplet() {
-      const startX = Math.random() * 100; // Random horizontal position (0-100vw)
-      const startY = Math.random() * 30; // Random vertical start (0-30vh)
-      if (container) {
-        container.style.left = `${startX}vw`;
+    // Create multiple independent droplet trails
+    const allTrails: {
+      droplets: HTMLDivElement[];
+      position: { x: number; y: number };
+      speed: number;
+      chars: string;
+      active: boolean;
+      lastCharChange: number;
+    }[] = [];
+    
+    const numTrails = 15 + Math.floor(Math.random() * 10); // 15-24 trails
+    
+    for (let trail = 0; trail < numTrails; trail++) {
+      const trailDroplets: HTMLDivElement[] = [];
+      const trailLength = 8 + Math.floor(Math.random() * 7); // 8-14 droplets per trail
+      const useHighAscii = Math.random() > 0.7; // 30% chance for high ASCII
+      
+      for (let i = 0; i < trailLength; i++) {
+        const droplet = document.createElement('div');
+        droplet.className = 'absolute text-terminal-highlight font-mono text-lg';
+        droplet.style.opacity = '0';
+        droplet.style.pointerEvents = 'none';
+        container.appendChild(droplet);
+        trailDroplets.push(droplet);
       }
       
-      droplets.forEach((droplet, index) => {
-        droplet.textContent = chars[Math.floor(Math.random() * chars.length)];
-        droplet.style.top = `${startY - (index * 3.5)}vh`; // Apply trail offset from startY
-        droplet.style.opacity = String(1 - (index * 0.09));
+      allTrails.push({
+        droplets: trailDroplets,
+        position: { x: Math.random() * 95, y: -30 - Math.random() * 50 },
+        speed: 0.4 + Math.random() * 1.0,
+        chars: useHighAscii ? highAsciiChars : binaryChars,
+        active: Math.random() > 0.5, // Some start immediately
+        lastCharChange: 0
       });
+    }
+
+    let animationId: number;
+    let startTime = Date.now();
+
+    function animate() {
+      const currentTime = Date.now();
       
-      let posY = startY;
-      const speed = 0.5 + Math.random() * 1;
-      const fadeSpeed = 0.01;
-      const trailSpacing = 3.5;
-      let frameCount = 0;
-      
-      function fall() {
-        posY += speed;
-        frameCount++;
-        
-        if (frameCount % 5 === 0) {
-          droplets.forEach(droplet => {
-            droplet.textContent = chars[Math.floor(Math.random() * chars.length)];
-          });
+      allTrails.forEach((trail, trailIndex) => {
+        // Randomly activate inactive trails
+        if (!trail.active && Math.random() < 0.001) {
+          trail.active = true;
+          trail.position.y = -30 - Math.random() * 20;
+          trail.position.x = Math.random() * 95;
+          trail.lastCharChange = currentTime;
         }
         
-        droplets.forEach((droplet, index) => {
-          const trailOffset = index * trailSpacing;
-          droplet.style.top = `${posY - trailOffset}vh`;
-          droplet.style.opacity = String(Math.max(0, 1 - (index * 0.09) - ((posY - startY) * fadeSpeed)));
+        if (!trail.active) return;
+        
+        // Move trail down
+        trail.position.y += trail.speed;
+        
+        // Update each droplet in the trail
+        trail.droplets.forEach((droplet, index) => {
+          const dropletY = trail.position.y - (index * 3.5);
+          droplet.style.left = `${trail.position.x}vw`;
+          droplet.style.top = `${dropletY}vh`;
+          
+          // Calculate opacity based on position in trail and screen fade
+          const trailOpacity = 1 - (index * 0.08);
+          const screenFade = dropletY > 100 ? Math.max(0, 1 - (dropletY - 100) / 30) : 1;
+          const finalOpacity = Math.max(0, trailOpacity * screenFade * 0.8);
+          droplet.style.opacity = String(finalOpacity);
+          
+          // Randomly change character content
+          if (currentTime - trail.lastCharChange > 150 && Math.random() < 0.15) {
+            droplet.textContent = trail.chars[Math.floor(Math.random() * trail.chars.length)];
+            if (index === 0) trail.lastCharChange = currentTime;
+          }
         });
         
-        if (posY < 100 && parseFloat(droplets[0].style.opacity) > 0) {
-          animationId = requestAnimationFrame(fall);
-        } else {
-          droplets.forEach(droplet => droplet.style.opacity = '0');
-          timeoutId = setTimeout(createDroplet, Math.random() * 2000);
+        // Reset trail when it goes off screen
+        if (trail.position.y > 140) {
+          trail.active = false;
+          trail.droplets.forEach(droplet => droplet.style.opacity = '0');
         }
-      }
+      });
       
-      animationId = requestAnimationFrame(fall);
+      animationId = requestAnimationFrame(animate);
     }
 
-    // Start the effect
-    createDroplet();
+    // Start the animation
+    animationId = requestAnimationFrame(animate);
 
     // Cleanup function
     return () => {
       if (animationId) {
         cancelAnimationFrame(animationId);
       }
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      // Clean up droplet elements
-      droplets.forEach(droplet => {
-        if (droplet.parentNode) {
-          droplet.parentNode.removeChild(droplet);
-        }
+      // Clean up all droplet elements
+      allTrails.forEach(trail => {
+        trail.droplets.forEach(droplet => {
+          if (droplet.parentNode) {
+            droplet.parentNode.removeChild(droplet);
+          }
+        });
       });
     };
   }, []);
