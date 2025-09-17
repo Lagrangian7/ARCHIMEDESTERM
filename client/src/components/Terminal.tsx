@@ -273,8 +273,8 @@ export function Terminal() {
       setRadioStatus('Radio stopped');
     } else {
       // Use the working SomaFM stream directly
-      audio.src = 'https://ice1.somafm.com/thetrip-128-mp3';
-      audio.volume = 0.7; // Set volume to 70% (decreased by 30% from 100%)
+      audio.src = 'https://ice6.somafm.com/live-128-mp3';
+      audio.volume = 0.7; // Set volume to 30% (decreased by 30% from 100%)
       setRadioStatus('Connecting to radio...');
       
       try {
