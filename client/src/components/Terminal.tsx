@@ -337,7 +337,7 @@ export function Terminal() {
                 ARCHIMEDES v7
               </h1>
               <div className="text-xs text-terminal-highlight">
-                AI Terminal Interface
+            
                 {user && (
                   <span className="ml-2 text-green-300">
                     | {user.firstName || user.email?.split('@')[0] || 'User'}
