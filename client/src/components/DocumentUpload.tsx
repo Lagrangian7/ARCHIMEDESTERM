@@ -22,15 +22,17 @@ interface DocumentUploadProps {
 
 export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
   const [dragOver, setDragOver] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (files: File[]) => {
       const formData = new FormData();
-      formData.append('file', file);
+      files.forEach(file => {
+        formData.append('files', file);
+      });
       
       const response = await fetch('/api/documents/upload', {
         method: 'POST',
@@ -45,12 +47,29 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
       return response.json();
     },
     onSuccess: (data) => {
+      const successCount = data.totalUploaded || 0;
+      const errorCount = data.totalErrors || 0;
+      
       toast({
-        title: "Document Uploaded",
-        description: `${selectedFile?.name} has been successfully processed and added to your knowledge base.`,
+        title: successCount > 0 ? "Documents Uploaded" : "Upload Failed",
+        description: errorCount > 0 
+          ? `${successCount} documents uploaded successfully, ${errorCount} failed.`
+          : `${successCount} document${successCount !== 1 ? 's' : ''} successfully processed and added to your knowledge base.`,
+        variant: errorCount > 0 && successCount === 0 ? "destructive" : "default",
       });
       
-      setSelectedFile(null);
+      // Show specific errors if any
+      if (data.errors && data.errors.length > 0) {
+        data.errors.forEach((error: any) => {
+          toast({
+            title: `Error uploading ${error.file}`,
+            description: error.error,
+            variant: "destructive",
+          });
+        });
+      }
+      
+      setSelectedFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -59,72 +78,104 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
       queryClient.invalidateQueries({ queryKey: ['/api/knowledge/stats'] });
       
-      onUploadComplete?.(data.document);
+      // Call onUploadComplete for each successfully uploaded document
+      if (data.documents && data.documents.length > 0) {
+        data.documents.forEach((doc: DocumentInfo) => {
+          onUploadComplete?.(doc);
+        });
+      }
     },
     onError: (error: Error) => {
       toast({
         title: "Upload Failed",
-        description: error.message || "Failed to upload document. Please try again.",
+        description: error.message || "Failed to upload documents. Please try again.",
         variant: "destructive",
       });
     },
   });
 
-  const handleFileSelect = (file: File) => {
-    // Validate file type
+  const handleFilesSelect = (files: FileList | File[]) => {
     const allowedTypes = ['text/plain', 'text/markdown', 'text/csv', 'application/json', 'text/html', 'text/xml'];
     const allowedExtensions = /\.(txt|md|json|csv|html|xml)$/i;
-    
-    if (!allowedTypes.includes(file.type) && !allowedExtensions.test(file.name)) {
+    const validFiles: File[] = [];
+    const fileArray = Array.from(files);
+
+    // Check for max files limit
+    if (selectedFiles.length + fileArray.length > 10) {
       toast({
-        title: "Invalid File Type",
-        description: "Only text files are allowed (TXT, MD, JSON, CSV, HTML, XML).",
+        title: "Too Many Files",
+        description: "You can upload a maximum of 10 files at once.",
         variant: "destructive",
       });
       return;
     }
 
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "File must be smaller than 5MB.",
-        variant: "destructive",
-      });
-      return;
+    for (const file of fileArray) {
+      // Check for duplicates
+      if (selectedFiles.some(existing => existing.name === file.name && existing.size === file.size)) {
+        continue; // Skip duplicates
+      }
+
+      // Validate file type
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.test(file.name)) {
+        toast({
+          title: "Invalid File Type",
+          description: `${file.name}: Only text files are allowed (TXT, MD, JSON, CSV, HTML, XML).`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: `${file.name}: File must be smaller than 5MB.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      validFiles.push(file);
     }
 
-    setSelectedFile(file);
+    if (validFiles.length > 0) {
+      setSelectedFiles(prev => [...prev, ...validFiles]);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     
-    const files = Array.from(e.dataTransfer.files);
+    const files = e.dataTransfer.files;
     if (files.length > 0) {
-      handleFileSelect(files[0]);
+      handleFilesSelect(files);
     }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleFileSelect(files[0]);
+      handleFilesSelect(files);
     }
   };
 
   const handleUpload = () => {
-    if (selectedFile) {
-      uploadMutation.mutate(selectedFile);
+    if (selectedFiles.length > 0) {
+      uploadMutation.mutate(selectedFiles);
     }
   };
 
-  const clearSelection = () => {
-    setSelectedFile(null);
+  const clearAllFiles = () => {
+    setSelectedFiles([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const formatFileSize = (bytes: number) => {
@@ -150,39 +201,58 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
         onDragLeave={() => setDragOver(false)}
         data-testid="drop-zone"
       >
-        {selectedFile ? (
+        {selectedFiles.length > 0 ? (
           <div className="space-y-4">
-            <Card className="bg-background/50 border-[#00FF41]/20">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3">
-                    <FileText className="h-8 w-8 text-[#00FF41] mt-1" />
-                    <div className="flex-1 text-left">
-                      <h3 className="font-medium text-foreground" data-testid="selected-file-name">
-                        {selectedFile.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground" data-testid="selected-file-size">
-                        {formatFileSize(selectedFile.size)}
-                      </p>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        <Badge variant="outline" className="text-xs">
-                          {selectedFile.type || 'Unknown type'}
-                        </Badge>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-foreground">
+                Selected Files ({selectedFiles.length}/10)
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFiles}
+                className="text-muted-foreground hover:text-foreground"
+                data-testid="clear-all-files-button"
+              >
+                Clear All
+              </Button>
+            </div>
+            
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {selectedFiles.map((file, index) => (
+                <Card key={`${file.name}-${index}`} className="bg-background/50 border-[#00FF41]/20">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="h-6 w-6 text-[#00FF41]" />
+                        <div className="flex-1 text-left">
+                          <h4 className="font-medium text-foreground text-sm" data-testid={`selected-file-name-${index}`}>
+                            {file.name}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-xs text-muted-foreground" data-testid={`selected-file-size-${index}`}>
+                              {formatFileSize(file.size)}
+                            </p>
+                            <Badge variant="outline" className="text-xs">
+                              {file.type || 'Unknown type'}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(index)}
+                        className="text-muted-foreground hover:text-foreground"
+                        data-testid={`remove-file-button-${index}`}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearSelection}
-                    className="text-muted-foreground hover:text-foreground"
-                    data-testid="clear-selection-button"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
             <div className="flex gap-2 justify-center">
               <Button
@@ -194,12 +264,12 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
                 {uploadMutation.isPending ? (
                   <>
                     <div className="animate-spin h-4 w-4 border-2 border-black border-t-transparent rounded-full mr-2" />
-                    Processing...
+                    Processing {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''}...
                   </>
                 ) : (
                   <>
                     <Upload className="h-4 w-4 mr-2" />
-                    Upload & Process
+                    Upload & Process {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''}
                   </>
                 )}
               </Button>
@@ -212,13 +282,13 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
             </div>
             <div className="space-y-2">
               <h3 className="text-lg font-medium text-foreground">
-                Upload Knowledge Document
+                Upload Knowledge Documents
               </h3>
               <p className="text-muted-foreground">
-                Drag & drop a text file here, or click to browse
+                Drag & drop text files here, or click to browse
               </p>
               <p className="text-sm text-muted-foreground">
-                Supports: TXT, MD, JSON, CSV, HTML, XML (max 5MB)
+                Supports: TXT, MD, JSON, CSV, HTML, XML (max 5MB each, up to 10 files)
               </p>
             </div>
             <Button
@@ -236,6 +306,7 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
       <input
         ref={fileInputRef}
         type="file"
+        multiple
         className="hidden"
         accept=".txt,.md,.json,.csv,.html,.xml"
         onChange={handleFileInputChange}

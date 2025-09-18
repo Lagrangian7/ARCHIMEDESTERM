@@ -542,49 +542,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Multer error handling middleware
+  const handleMulterError = (req: any, res: any, next: any) => {
+    upload.array('files', 10)(req, res, (err: any) => {
+      if (err) {
+        console.error("Multer error:", err);
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ error: "One or more files exceed the 5MB size limit" });
+        } else if (err.code === 'LIMIT_FILE_COUNT') {
+          return res.status(400).json({ error: "Too many files. Maximum 10 files allowed" });
+        } else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+          return res.status(400).json({ error: "Unexpected file field" });
+        } else {
+          return res.status(400).json({ error: err.message || "File upload error" });
+        }
+      }
+      next();
+    });
+  };
+
   // Document upload endpoint
-  app.post("/api/documents/upload", isAuthenticated, upload.single('file'), async (req: any, res) => {
+  app.post("/api/documents/upload", isAuthenticated, handleMulterError, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       
-      if (!req.file) {
-        return res.status(400).json({ error: "No file provided" });
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: "No files provided" });
       }
 
-      // Convert buffer to string
-      const content = req.file.buffer.toString('utf8');
+      const results: any[] = [];
+      const errors: any[] = [];
+
+      // Process files in parallel for better performance
+      const fileProcessingPromises = req.files.map(async (file: any) => {
+        try {
+          // Convert buffer to string
+          const content = file.buffer.toString('utf8');
+          
+          if (content.length === 0) {
+            return { type: 'error', file: file.originalname, error: "File is empty" };
+          }
+
+          if (content.length > 5000000) { // 5MB text limit to match frontend
+            return { type: 'error', file: file.originalname, error: "File content is too large (max 5MB)" };
+          }
+
+          // Process the document
+          const document = await knowledgeService.processDocument(content, {
+            userId,
+            fileName: `${randomUUID()}-${file.originalname}`,
+            originalName: file.originalname,
+            fileSize: file.size.toString(),
+            mimeType: file.mimetype,
+          });
+
+          return {
+            type: 'success',
+            document: {
+              id: document.id,
+              originalName: document.originalName,
+              fileSize: document.fileSize,
+              summary: document.summary,
+              keywords: document.keywords,
+              uploadedAt: document.uploadedAt,
+            }
+          };
+        } catch (fileError) {
+          console.error(`Error processing file ${file.originalname}:`, fileError);
+          return { type: 'error', file: file.originalname, error: "Failed to process file" };
+        }
+      });
+
+      const processingResults = await Promise.allSettled(fileProcessingPromises);
       
-      if (content.length === 0) {
-        return res.status(400).json({ error: "File is empty" });
-      }
-
-      if (content.length > 1000000) { // 1MB text limit
-        return res.status(400).json({ error: "File content is too large (max 1MB)" });
-      }
-
-      // Process the document
-      const document = await knowledgeService.processDocument(content, {
-        userId,
-        fileName: `${randomUUID()}-${req.file.originalname}`,
-        originalName: req.file.originalname,
-        fileSize: req.file.size.toString(),
-        mimeType: req.file.mimetype,
+      processingResults.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          if (result.value.type === 'success') {
+            results.push(result.value.document);
+          } else {
+            errors.push({ file: result.value.file, error: result.value.error });
+          }
+        } else {
+          errors.push({ file: 'Unknown', error: "Processing failed" });
+        }
       });
 
       res.json({ 
-        message: "Document uploaded successfully",
-        document: {
-          id: document.id,
-          originalName: document.originalName,
-          fileSize: document.fileSize,
-          summary: document.summary,
-          keywords: document.keywords,
-          uploadedAt: document.uploadedAt,
-        }
+        message: `Successfully uploaded ${results.length} of ${req.files.length} documents`,
+        documents: results,
+        errors: errors,
+        totalUploaded: results.length,
+        totalErrors: errors.length
       });
     } catch (error) {
       console.error("Document upload error:", error);
-      res.status(500).json({ error: "Failed to upload document" });
+      res.status(500).json({ error: "Failed to upload documents" });
     }
   });
 
