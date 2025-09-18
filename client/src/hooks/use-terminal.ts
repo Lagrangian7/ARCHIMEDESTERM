@@ -713,6 +713,47 @@ You can also chat naturally or ask technical questions.`);
       return;
     }
 
+    if (cmd.startsWith('read ')) {
+      const filename = cmd.substring(5).trim();
+      if (!filename) {
+        addEntry('error', 'Usage: read <document.txt>');
+        return;
+      }
+      
+      addEntry('system', `📖 Reading document: ${filename}...`);
+      setIsTyping(true);
+      
+      fetch(`/api/documents/read/${encodeURIComponent(filename)}`, { credentials: 'include' })
+        .then(async (res) => {
+          setIsTyping(false);
+          if (res.status === 401) {
+            addEntry('error', 'Authentication required. Please log in to read documents.');
+            return;
+          }
+          if (res.status === 404) {
+            const errorData = await res.json();
+            addEntry('error', errorData.formatted || `❌ Document '${filename}' not found in knowledge base.\n\nUse 'docs' command to list available documents.`);
+            return;
+          }
+          if (!res.ok) {
+            addEntry('error', `Failed to read document: ${res.status} ${res.statusText}`);
+            return;
+          }
+          
+          const data = await res.json();
+          if (data.formatted) {
+            addEntry('response', data.formatted);
+          } else {
+            addEntry('response', `📖 Reading: ${filename}\n\n${data.document?.content || 'No content available'}`);
+          }
+        })
+        .catch((error) => {
+          setIsTyping(false);
+          addEntry('error', `Failed to read document: ${error.message || 'Network error'}`);
+        });
+      return;
+    }
+
     if (cmd.startsWith('search ')) {
       const query = command.substring(7).trim();
       if (!query) {

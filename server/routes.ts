@@ -630,6 +630,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get document by filename for read command
+  app.get("/api/documents/read/:filename", isAuthenticated, async (req: any, res) => {
+    try {
+      const filename = req.params.filename;
+      const userId = req.user.claims.sub;
+      
+      const document = await storage.getDocumentByFilename(userId, filename);
+      if (!document) {
+        return res.status(404).json({ 
+          error: `Document '${filename}' not found`,
+          formatted: `❌ Document '${filename}' not found in knowledge base.\n\nUse 'docs' command to list available documents.`
+        });
+      }
+
+      res.json({
+        document,
+        formatted: `📖 Reading: ${document.originalName}\n\n${document.content}\n\n📊 Summary: ${document.summary || 'No summary available'}\n🏷️  Keywords: ${document.keywords?.join(', ') || 'None'}`
+      });
+    } catch (error) {
+      console.error("Read document error:", error);
+      res.status(500).json({ 
+        error: "Failed to read document",
+        formatted: "❌ Failed to read document. Please try again."
+      });
+    }
+  });
+
   // Delete document
   app.delete("/api/documents/:id", isAuthenticated, async (req: any, res) => {
     try {

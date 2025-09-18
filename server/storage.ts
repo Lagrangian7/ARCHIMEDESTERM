@@ -58,6 +58,7 @@ export interface IStorage {
   createDocument(document: InsertDocument): Promise<Document>;
   getUserDocuments(userId: string): Promise<Document[]>;
   getDocument(id: string): Promise<Document | undefined>;
+  getDocumentByFilename(userId: string, filename: string): Promise<Document | undefined>;
   updateDocument(id: string, updates: Partial<InsertDocument>): Promise<Document>;
   deleteDocument(id: string): Promise<void>;
   searchDocuments(userId: string, query: string): Promise<Document[]>;
@@ -320,6 +321,17 @@ export class MemStorage implements IStorage {
       document.lastAccessedAt = new Date();
     }
     return document;
+  }
+
+  async getDocumentByFilename(userId: string, filename: string): Promise<Document | undefined> {
+    const documents = Array.from(this.documents.values());
+    for (const doc of documents) {
+      if (doc.userId === userId && doc.originalName.toLowerCase() === filename.toLowerCase()) {
+        doc.lastAccessedAt = new Date();
+        return doc;
+      }
+    }
+    return undefined;
   }
 
   async updateDocument(id: string, updates: Partial<InsertDocument>): Promise<Document> {
@@ -826,6 +838,28 @@ export class DatabaseStorage implements IStorage {
 
   async getDocument(id: string): Promise<Document | undefined> {
     const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+    return doc;
+  }
+
+  async getDocumentByFilename(userId: string, filename: string): Promise<Document | undefined> {
+    const [doc] = await db.select()
+      .from(documents)
+      .where(
+        and(
+          eq(documents.userId, userId),
+          sql`LOWER(${documents.originalName}) = LOWER(${filename})`
+        )
+      )
+      .limit(1);
+    
+    // Update last accessed time if document found
+    if (doc) {
+      await db.update(documents)
+        .set({ lastAccessedAt: new Date() })
+        .where(eq(documents.id, doc.id));
+      doc.lastAccessedAt = new Date();
+    }
+    
     return doc;
   }
 
