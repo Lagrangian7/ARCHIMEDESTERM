@@ -50,7 +50,7 @@
   --tracking-normal: 0em;
   --spacing: 0.25rem;
   
-  /* Terminal-specific colors */
+  /* Terminal-specific colors - Default Green Theme */
   --terminal-bg: hsl(210 50% 5%);
   --terminal-text: hsl(118 100% 63%);
   --terminal-highlight: hsl(118 100% 75%);
@@ -58,6 +58,37 @@
   --terminal-logo-green: hsl(118 100% 75%);
   --terminal-bright-green: hsl(118 100% 75%);
   --terminal-orange: hsl(30 100% 50%);
+}
+
+/* Terminal Theme Classes */
+.theme-green {
+  --terminal-bg: hsl(210 50% 5%);
+  --terminal-text: hsl(118 100% 63%);
+  --terminal-highlight: hsl(118 100% 75%);
+  --terminal-subtle: hsl(151 43% 24%);
+  --terminal-logo-green: hsl(118 100% 75%);
+  --terminal-bright-green: hsl(118 100% 75%);
+  --terminal-orange: hsl(30 100% 50%);
+}
+
+.theme-blue {
+  --terminal-bg: hsl(210 50% 5%);
+  --terminal-text: hsl(200 100% 70%);
+  --terminal-highlight: hsl(200 100% 80%);
+  --terminal-subtle: hsl(200 43% 24%);
+  --terminal-logo-green: hsl(200 100% 80%);
+  --terminal-bright-green: hsl(200 100% 80%);
+  --terminal-orange: hsl(45 100% 60%);
+}
+
+.theme-orange {
+  --terminal-bg: hsl(210 50% 5%);
+  --terminal-text: hsl(30 100% 70%);
+  --terminal-highlight: hsl(30 100% 80%);
+  --terminal-subtle: hsl(30 43% 24%);
+  --terminal-logo-green: hsl(30 100% 80%);
+  --terminal-bright-green: hsl(30 100% 80%);
+  --terminal-orange: hsl(200 100% 60%);
 }
 
 /* Logo pulsating glow animation */
