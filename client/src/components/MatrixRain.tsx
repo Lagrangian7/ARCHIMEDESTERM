@@ -22,7 +22,7 @@ export function MatrixRain() {
       lastCharChange: number;
     }[] = [];
     
-    const numTrails = 15 + Math.floor(Math.random() * 10); // 15-24 trails
+    const numTrails = 20 + Math.floor(Math.random() * 15); // 20-34 trails
     
     for (let trail = 0; trail < numTrails; trail++) {
       const trailDroplets: HTMLDivElement[] = [];
