@@ -56,6 +56,8 @@
   --terminal-highlight: hsl(118 100% 75%);
   --terminal-subtle: hsl(151 43% 24%);
   --terminal-logo-green: hsl(118 100% 75%);
+  --terminal-bright-green: hsl(118 100% 75%);
+  --terminal-orange: hsl(30 100% 50%);
 }
 
 /* Logo pulsating glow animation */
@@ -192,6 +194,15 @@
   .typing-indicator::after {
     content: '▋';
     animation: blink 0.5s infinite;
+  }
+
+  /* Typing Animation */
+  .typing {
+    display: inline-block;
+    overflow: hidden;
+    white-space: pre;
+    border-right: 2px solid var(--terminal-bright-green);
+    animation: typing var(--type-dur, 2s) steps(var(--steps, 40), end), blink-caret 0.75s step-end infinite;
   }
 
   .watermark-background {
@@ -357,6 +368,22 @@
 @keyframes blink {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  0%, 50% { 
+    border-color: var(--terminal-orange);
+    box-shadow: 0 0 5px var(--terminal-orange);
+  }
+  51%, 100% { 
+    border-color: var(--terminal-bright-green);
+    box-shadow: 0 0 5px var(--terminal-bright-green);
+  }
 }
 
 

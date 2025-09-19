@@ -88,6 +88,7 @@ export function Terminal() {
   const [showConversationHistory, setShowConversationHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [uploadTab, setUploadTab] = useState<'upload' | 'list'>('list');
+  const [typingEntries, setTypingEntries] = useState<Set<string>>(new Set());
   const [showZork, setShowZork] = useState(false);
   const [showDTMF, setShowDTMF] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
@@ -209,6 +210,32 @@ export function Terminal() {
       speak(lastEntry.content);
     }
   }, [entries, speak]);
+
+  // Handle typing animation for new response entries
+  useEffect(() => {
+    const lastEntry = entries[entries.length - 1];
+    
+    // If the last entry is a response and we're not currently typing (meaning it's a new response)
+    if (lastEntry && lastEntry.type === 'response' && !isTyping) {
+      // Add the entry to typing animations
+      setTypingEntries(prev => new Set(prev).add(lastEntry.id));
+      
+      // Calculate animation duration based on content length
+      const contentLength = lastEntry.content.length;
+      const typingDuration = Math.min(3000, Math.max(800, contentLength * 30)); // Min 800ms, max 3s
+      
+      // Remove the typing animation after the calculated duration + buffer
+      const timer = setTimeout(() => {
+        setTypingEntries(prev => {
+          const next = new Set(prev);
+          next.delete(lastEntry.id);
+          return next;
+        });
+      }, typingDuration + 500); // Animation duration + 500ms buffer
+      
+      return () => clearTimeout(timer);
+    }
+  }, [entries, isTyping]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // F1 key opens help menu
@@ -475,7 +502,17 @@ export function Terminal() {
                       <div className="text-terminal-highlight">
                         ARCHIMEDES v7 {entry.mode === 'technical' ? '(Technical Mode)' : '(Natural Chat Mode)'}:
                       </div>
-                      <div className="ml-4 mt-1 whitespace-pre-wrap">{entry.content}</div>
+                      <div 
+                        className={`ml-4 mt-1 ${
+                          typingEntries.has(entry.id) ? 'typing' : 'whitespace-pre-wrap'
+                        }`}
+                        style={typingEntries.has(entry.id) ? {
+                          '--steps': entry.content.length,
+                          '--type-dur': `${Math.min(3000, Math.max(800, entry.content.length * 30))}ms`
+                        } as React.CSSProperties : undefined}
+                      >
+                        {entry.content}
+                      </div>
                     </div>
                   )}
                   {(entry.type === 'system' || entry.type === 'error') && (
