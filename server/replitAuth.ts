@@ -14,10 +14,8 @@ if (!process.env.REPLIT_DOMAINS) {
 
 const getOidcConfig = memoize(
   async () => {
-    const issuerUrl = process.env.ISSUER_URL || "https://replit.com";
-    console.log('Using OIDC issuer URL:', issuerUrl);
     return await client.discovery(
-      new URL(`${issuerUrl}/oidc`),
+      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
       process.env.REPL_ID!
     );
   },
