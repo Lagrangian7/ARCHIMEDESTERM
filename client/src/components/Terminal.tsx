@@ -98,6 +98,20 @@ export function Terminal() {
   const [showMud, setShowMud] = useState(false);
   const [showTheHarvester, setShowTheHarvester] = useState(false);
   
+  // Theme management
+  const [currentTheme, setCurrentTheme] = useState(() => {
+    return localStorage.getItem('terminal-theme') || 'green';
+  });
+
+  // Switch theme function
+  const switchTheme = () => {
+    const themes = ['green', 'blue', 'orange'];
+    const currentIndex = themes.indexOf(currentTheme);
+    const nextTheme = themes[(currentIndex + 1) % themes.length];
+    setCurrentTheme(nextTheme);
+    localStorage.setItem('terminal-theme', nextTheme);
+  };
+  
   // Screensaver state
   const [screensaverActive, setScreensaverActive] = useState(false);
   
@@ -337,7 +351,7 @@ export function Terminal() {
 
   return (
     <div className="h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono">
-      <div className="terminal-container flex flex-col h-full relative z-0">
+      <div className={`terminal-container theme-${currentTheme} flex flex-col h-full relative z-0`}>
         
         {/* Matrix Rain Background Effect */}
         <MatrixRain />
@@ -466,6 +480,20 @@ export function Terminal() {
                 data-testid="button-mode-toggle"
               >
                 {currentMode === 'natural' ? 'NATURAL CHAT' : 'TECHNICAL MODE'}
+              </Button>
+            </div>
+            
+            {/* Theme Switcher */}
+            <div className="flex items-center space-x-2 px-3 py-1 border border-terminal-subtle rounded">
+              <span className="text-xs">THEME:</span>
+              <Button
+                onClick={switchTheme}
+                variant="ghost"
+                size="sm"
+                className="text-terminal-highlight hover:text-terminal-text transition-colors font-semibold h-auto p-0 text-xs"
+                data-testid="button-theme-toggle"
+              >
+                {currentTheme.toUpperCase()}
               </Button>
             </div>
           </div>
