@@ -6,6 +6,7 @@ import { CommandHistory } from './CommandHistory';
 import { UserProfile } from './UserProfile';
 import { ConversationHistory } from './ConversationHistory';
 import { DocumentUpload } from './DocumentUpload';
+import { DocumentsList } from './DocumentsList';
 import ZorkGame from './ZorkGame';
 import { DTMFDecoder } from './DTMFDecoder';
 import { HelpMenu } from './HelpMenu';
@@ -86,6 +87,7 @@ export function Terminal() {
   const [showProfile, setShowProfile] = useState(false);
   const [showConversationHistory, setShowConversationHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [uploadTab, setUploadTab] = useState<'upload' | 'list'>('list');
   const [showZork, setShowZork] = useState(false);
   const [showDTMF, setShowDTMF] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
@@ -586,10 +588,10 @@ export function Terminal() {
 
       {showUpload && isAuthenticated && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0D1117] border border-[#00FF41]/20 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#0D1117] border border-[#00FF41]/20 rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-[#00FF41] font-mono">
-                Knowledge Base Upload
+                Knowledge Base Manager
               </h2>
               <Button
                 onClick={() => setShowUpload(false)}
@@ -602,14 +604,47 @@ export function Terminal() {
               </Button>
             </div>
             
-            <DocumentUpload 
-              onUploadComplete={(document) => {
-                // Close modal after successful upload
-                setShowUpload(false);
-                // Add success entry to terminal
-                processCommand(`Echo: Document "${document.originalName}" uploaded successfully!`);
-              }}
-            />
+            {/* Tab Navigation */}
+            <div className="flex space-x-2 mb-6 border-b border-[#00FF41]/20">
+              <Button
+                onClick={() => setUploadTab('list')}
+                variant={uploadTab === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                className={uploadTab === 'list' 
+                  ? 'bg-[#00FF41] text-black border-b-2 border-[#00FF41] rounded-b-none' 
+                  : 'text-[#00FF41] hover:text-black hover:bg-[#00FF41]/20 border-b-2 border-transparent'
+                }
+                data-testid="tab-documents-list"
+              >
+                📂 My Documents
+              </Button>
+              <Button
+                onClick={() => setUploadTab('upload')}
+                variant={uploadTab === 'upload' ? 'default' : 'ghost'}
+                size="sm"
+                className={uploadTab === 'upload' 
+                  ? 'bg-[#00FF41] text-black border-b-2 border-[#00FF41] rounded-b-none' 
+                  : 'text-[#00FF41] hover:text-black hover:bg-[#00FF41]/20 border-b-2 border-transparent'
+                }
+                data-testid="tab-upload-documents"
+              >
+                ⬆️ Upload New
+              </Button>
+            </div>
+            
+            {/* Tab Content */}
+            {uploadTab === 'list' ? (
+              <DocumentsList onClose={() => setShowUpload(false)} />
+            ) : (
+              <DocumentUpload 
+                onUploadComplete={(document) => {
+                  // Switch to documents list to show the uploaded file
+                  setUploadTab('list');
+                  // Add success entry to terminal
+                  processCommand(`Echo: Document "${document.originalName}" uploaded successfully! Switching to documents view.`);
+                }}
+              />
+            )}
           </div>
         </div>
       )}
