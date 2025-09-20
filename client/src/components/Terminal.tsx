@@ -19,12 +19,13 @@ import { PuzzleScreensaver } from './PuzzleScreensaver';
 import { SshwiftyInterface } from './SshwiftyInterface';
 import { MudClient } from './MudClient';
 import { TheHarvester } from './TheHarvester';
+import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
 import { useChat } from '@/hooks/useChat';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
-import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare } from 'lucide-react';
+import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import terminalWatermark from '@assets/wally new_1757883178780.jpeg';
 
@@ -77,6 +78,7 @@ export function Terminal() {
     (window as any).openSshwiftyInterface = () => setShowSshwifty(true);
     (window as any).openMudClient = () => setShowMud(true);
     (window as any).openTheHarvester = () => setShowTheHarvester(true);
+    (window as any).openPrivacyEncoder = () => setShowPrivacyEncoder(true);
   }, []);
   
   const { speak, isSpeaking } = useSpeechSynthesis();
@@ -97,6 +99,7 @@ export function Terminal() {
   const [showSshwifty, setShowSshwifty] = useState(false);
   const [showMud, setShowMud] = useState(false);
   const [showTheHarvester, setShowTheHarvester] = useState(false);
+  const [showPrivacyEncoder, setShowPrivacyEncoder] = useState(false);
   
   // Theme management
   const [currentTheme, setCurrentTheme] = useState(() => {
@@ -454,6 +457,16 @@ export function Terminal() {
                     <TerminalIcon size={14} className="mr-1" />
                     SSH/Telnet
                   </Button>
+                  <Button
+                    onClick={() => setShowPrivacyEncoder(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
+                    data-testid="button-privacy"
+                  >
+                    <Shield size={14} className="mr-1" />
+                    Privacy
+                  </Button>
                 </>
               ) : (
                 <Button
@@ -800,6 +813,12 @@ export function Terminal() {
       {showTheHarvester && (
         <TheHarvester onClose={() => setShowTheHarvester(false)} />
       )}
+
+      {/* Privacy Encoder */}
+      <EncodeDecodeOverlay 
+        isOpen={showPrivacyEncoder}
+        onClose={() => setShowPrivacyEncoder(false)}
+      />
 
       {/* Puzzle Screensaver */}
       <PuzzleScreensaver 
