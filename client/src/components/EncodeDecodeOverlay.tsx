@@ -8,6 +8,11 @@ interface EncodeDecodeOverlayProps {
 export function EncodeDecodeOverlay({ isOpen, onClose }: EncodeDecodeOverlayProps) {
   const [keyBuffer, setKeyBuffer] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Get current theme from localStorage
+  const getCurrentTheme = () => {
+    return localStorage.getItem('terminal-theme') || 'green';
+  };
 
   // Listen for "QWERTY" to be typed to unlock
   useEffect(() => {
@@ -67,10 +72,30 @@ export function EncodeDecodeOverlay({ isOpen, onClose }: EncodeDecodeOverlayProp
       
       for (let i = 0; i < trailLength; i++) {
         const droplet = document.createElement('div');
-        droplet.className = 'absolute text-terminal-highlight text-lg';
+        droplet.className = 'absolute text-lg';
         droplet.style.fontFamily = "'Hamburg Symbols', 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace";
         droplet.style.opacity = '0';
         droplet.style.pointerEvents = 'none';
+        
+        // Set color based on current theme
+        const currentTheme = getCurrentTheme();
+        switch (currentTheme) {
+          case 'green':
+            droplet.style.color = 'hsl(118 100% 75%)';
+            break;
+          case 'blue':
+            droplet.style.color = 'hsl(200 100% 80%)';
+            break;
+          case 'orange':
+            droplet.style.color = 'hsl(30 100% 80%)';
+            break;
+          case 'greyscale':
+            droplet.style.color = 'hsl(0 0% 75%)';
+            break;
+          default:
+            droplet.style.color = 'hsl(118 100% 75%)';
+        }
+        
         container.appendChild(droplet);
         trailDroplets.push(droplet);
       }
