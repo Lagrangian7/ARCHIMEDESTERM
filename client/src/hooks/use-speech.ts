@@ -156,6 +156,15 @@ export function useSpeechSynthesis() {
       // Get available system voices
       const systemVoices = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en'));
       
+      // Debug logging
+      console.log('Voice Selection Debug:', {
+        selectedVoice,
+        totalVoices: voices.length,
+        systemVoicesCount: systemVoices.length,
+        voicesLoaded,
+        voiceNames: voices.map(v => v.name)
+      });
+      
       // Voice selection logic
       if (selectedVoice === 0) {
         // System Default - use browser default (no voice set)
@@ -169,12 +178,15 @@ export function useSpeechSynthesis() {
       } else if (selectedVoice >= 2 && selectedVoice < voices.length) {
         // System voice selection - map to actual system voice
         const systemVoiceIndex = selectedVoice - 2; // Subtract 2 for our custom voices
+        console.log(`Attempting to use system voice at index ${systemVoiceIndex}`);
         if (systemVoices[systemVoiceIndex]) {
           utterance.voice = systemVoices[systemVoiceIndex];
-          console.log(`Using system voice: ${systemVoices[systemVoiceIndex].name}`);
+          console.log(`Successfully set system voice: ${systemVoices[systemVoiceIndex].name}`);
         } else {
-          console.warn(`System voice index ${systemVoiceIndex} not available, falling back to default`);
+          console.warn(`System voice index ${systemVoiceIndex} not available (only ${systemVoices.length} voices), falling back to default`);
         }
+      } else {
+        console.warn(`Invalid voice selection: ${selectedVoice}, falling back to default`);
       }
 
       // Event handlers with error handling

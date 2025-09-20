@@ -59,7 +59,11 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
           <span className="text-terminal-highlight">VOICE:</span>
           <Select 
             value={selectedVoice.toString()} 
-            onValueChange={(value) => setSelectedVoice(parseInt(value))}
+            onValueChange={(value) => {
+              const newVoice = parseInt(value);
+              console.log('Voice selector changed:', { from: selectedVoice, to: newVoice, voiceName: voices[newVoice]?.name });
+              setSelectedVoice(newVoice);
+            }}
             disabled={!voicesLoaded}
           >
             <SelectTrigger 
