@@ -18,120 +18,197 @@ interface Voice {
 export function useSpeechSynthesis() {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isEnabled, setIsEnabled] = useState(true);
-  const [selectedVoice, setSelectedVoice] = useState<number>(1); // Default to HAL 9000 voice
+  const [selectedVoice, setSelectedVoice] = useState<number>(0); // Start with System Default
   const [speechRate, setSpeechRate] = useState(1.0); // Normal speaking speed
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voicesLoaded, setVoicesLoaded] = useState(false);
 
   useEffect(() => {
-    if ('speechSynthesis' in window) {
-      const loadVoices = () => {
+    if (!('speechSynthesis' in window)) {
+      console.warn('Speech synthesis not supported in this browser');
+      return;
+    }
+
+    const loadVoices = () => {
+      try {
         const availableVoices = window.speechSynthesis.getVoices();
         
-        // Create a custom HAL voice option
+        // Create a custom voice options
         const customVoices: Voice[] = [
           { name: 'System Default', lang: 'en-US', voiceURI: 'default', localService: true },
           { name: 'HAL 9000 (2001 AI)', lang: 'en-US', voiceURI: 'hal', localService: true },
         ];
         
-        // Add available system voices
-        availableVoices.forEach((voice, index) => {
-          customVoices.push({
-            name: voice.name,
-            lang: voice.lang,
-            voiceURI: voice.voiceURI,
-            localService: voice.localService,
-          });
+        // Add available system voices with better filtering
+        availableVoices.forEach((voice) => {
+          // Filter for English voices only for better compatibility
+          if (voice.lang.startsWith('en')) {
+            customVoices.push({
+              name: `${voice.name} (${voice.lang})`,
+              lang: voice.lang,
+              voiceURI: voice.voiceURI,
+              localService: voice.localService,
+            });
+          }
         });
         
         setVoices(customVoices);
-      };
+        setVoicesLoaded(true);
+        
+        // If no voices loaded yet and this is our first load, wait a bit for browser to initialize
+        if (availableVoices.length === 0 && !voicesLoaded) {
+          setTimeout(loadVoices, 100);
+        }
+      } catch (error) {
+        console.error('Error loading voices:', error);
+      }
+    };
 
+    // Try immediate load first
+    loadVoices();
+    
+    // Also listen for the voiceschanged event for browsers that load voices asynchronously
+    const handleVoicesChanged = () => {
       loadVoices();
-      window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
-      
-      return () => {
-        window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
-      };
-    }
-  }, []);
+    };
+    
+    window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+    
+    // Fallback: Force voice reload after a delay for some browsers
+    const fallbackTimer = setTimeout(() => {
+      if (!voicesLoaded) {
+        loadVoices();
+      }
+    }, 1000);
+    
+    return () => {
+      window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+      clearTimeout(fallbackTimer);
+    };
+  }, [voicesLoaded]);
 
   const speak = useCallback((text: string) => {
-    if (!isEnabled || !('speechSynthesis' in window)) return;
-
-    window.speechSynthesis.cancel();
-    
-    // Clean text for speech synthesis
-    let cleanText = text
-      .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .replace(/\*/g, '') // Remove asterisks
-      .replace(/(?<!\d\s?)>\s*(?!\d)/g, '') // Remove > unless it's between numbers (like "5 > 3")
-      // Remove high ASCII/Unicode box-drawing and visual formatting characters
-      .replace(/[╭╮╯╰├┤┬┴┼│─┌┐└┘]/g, '') // Remove box-drawing characters
-      .replace(/[◆◇▲△▼▽●○■□▪▫]/g, '') // Remove geometric symbols
-      .replace(/[░▒▓█]/g, '') // Remove block characters
-      .replace(/[€£¥¢§¶†‡•…‰′″‴]/g, '') // Remove currency and special symbols
-      // Preserve mathematical operators in formulas - check if surrounded by alphanumeric
-      .replace(/([a-zA-Z0-9]\s*)([\+\-×÷=<>≤≥≠∞∑∏∫])(\s*[a-zA-Z0-9])/g, (match, before, op, after) => {
-        const operatorWords: { [key: string]: string } = {
-          '+': ' plus ',
-          '-': ' minus ',
-          '×': ' times ',
-          '÷': ' divided by ',
-          '=': ' equals ',
-          '<': ' less than ',
-          '>': ' greater than ',
-          '≤': ' less than or equal to ',
-          '≥': ' greater than or equal to ',
-          '≠': ' not equal to ',
-          '∞': ' infinity ',
-          '∑': ' sum ',
-          '∏': ' product ',
-          '∫': ' integral '
-        };
-        return before + (operatorWords[op] || op) + after;
-      })
-      // Replace punctuation that creates natural pauses
-      .replace(/[.!?]+/g, '.') // Normalize sentence endings to single period for pause
-      .replace(/[,;:]/g, ',') // Normalize pause punctuation to comma
-      // Remove punctuation that would be pronounced
-      .replace(/['""`''""]/g, '') // Remove all quotation marks
-      .replace(/[\[\](){}]/g, '') // Remove brackets and parentheses
-      .replace(/[#$%&@]/g, '') // Remove symbols
-      .replace(/[*_~`]/g, '') // Remove formatting characters
-      .replace(/-{2,}/g, ' ') // Replace multiple dashes with space
-      .replace(/\|/g, ' ') // Replace pipes with space
-      .replace(/\+/g, ' plus ') // Replace remaining + with word
-      .replace(/=/g, ' equals ') // Replace remaining = with word
-      .replace(/\s+/g, ' ') // Normalize whitespace
-      .trim();
-    if (!cleanText) return;
-
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.rate = speechRate;
-    
-    // Handle HAL 9000 voice simulation (2001 AI)
-    if (selectedVoice === 1) {
-      utterance.pitch = 0.8; // Higher pitch than JOSHUA, more human-like but still artificial
-      utterance.rate = speechRate; // Normal speed for HAL voice
-      utterance.volume = 0.95; // Clear, confident volume
-    }
-    
-    // Use selected system voice if available
-    const systemVoices = window.speechSynthesis.getVoices();
-    if (selectedVoice >= 2 && systemVoices[selectedVoice - 2]) {
-      utterance.voice = systemVoices[selectedVoice - 2];
+    if (!isEnabled || !('speechSynthesis' in window)) {
+      console.warn('Speech synthesis disabled or not supported');
+      return;
     }
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    try {
+      window.speechSynthesis.cancel();
+      
+      // Clean text for speech synthesis
+      let cleanText = text
+        .replace(/<[^>]*>/g, '') // Remove HTML tags
+        .replace(/\*/g, '') // Remove asterisks
+        .replace(/(?<!\d\s?)>\s*(?!\d)/g, '') // Remove > unless it's between numbers (like "5 > 3")
+        // Remove high ASCII/Unicode box-drawing and visual formatting characters
+        .replace(/[╭╮╯╰├┤┬┴┼│─┌┐└┘]/g, '') // Remove box-drawing characters
+        .replace(/[◆◇▲△▼▽●○■□▪▫]/g, '') // Remove geometric symbols
+        .replace(/[░▒▓█]/g, '') // Remove block characters
+        .replace(/[€£¥¢§¶†‡•…‰′″‴]/g, '') // Remove currency and special symbols
+        // Preserve mathematical operators in formulas - check if surrounded by alphanumeric
+        .replace(/([a-zA-Z0-9]\s*)([\+\-×÷=<>≤≥≠∞∑∏∫])(\s*[a-zA-Z0-9])/g, (match, before, op, after) => {
+          const operatorWords: { [key: string]: string } = {
+            '+': ' plus ',
+            '-': ' minus ',
+            '×': ' times ',
+            '÷': ' divided by ',
+            '=': ' equals ',
+            '<': ' less than ',
+            '>': ' greater than ',
+            '≤': ' less than or equal to ',
+            '≥': ' greater than or equal to ',
+            '≠': ' not equal to ',
+            '∞': ' infinity ',
+            '∑': ' sum ',
+            '∏': ' product ',
+            '∫': ' integral '
+          };
+          return before + (operatorWords[op] || op) + after;
+        })
+        // Replace punctuation that creates natural pauses
+        .replace(/[.!?]+/g, '.') // Normalize sentence endings to single period for pause
+        .replace(/[,;:]/g, ',') // Normalize pause punctuation to comma
+        // Remove punctuation that would be pronounced
+        .replace(/['""`''""]/g, '') // Remove all quotation marks
+        .replace(/[\[\](){}]/g, '') // Remove brackets and parentheses
+        .replace(/[#$%&@]/g, '') // Remove symbols
+        .replace(/[*_~`]/g, '') // Remove formatting characters
+        .replace(/-{2,}/g, ' ') // Replace multiple dashes with space
+        .replace(/\|/g, ' ') // Replace pipes with space
+        .replace(/\+/g, ' plus ') // Replace remaining + with word
+        .replace(/=/g, ' equals ') // Replace remaining = with word
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .trim();
+      
+      if (!cleanText) {
+        console.warn('No text to speak after cleaning');
+        return;
+      }
 
-    window.speechSynthesis.speak(utterance);
-  }, [isEnabled, selectedVoice, speechRate]);
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      
+      // Set base properties
+      utterance.rate = speechRate;
+      utterance.volume = 0.9;
+      utterance.pitch = 1.0;
+      
+      // Get available system voices
+      const systemVoices = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en'));
+      
+      // Voice selection logic
+      if (selectedVoice === 0) {
+        // System Default - use browser default (no voice set)
+        console.log('Using system default voice');
+      } else if (selectedVoice === 1) {
+        // HAL 9000 voice simulation
+        utterance.pitch = 0.8;
+        utterance.rate = speechRate * 0.9; // Slightly slower for HAL
+        utterance.volume = 0.95;
+        console.log('Using HAL 9000 voice simulation');
+      } else if (selectedVoice >= 2 && selectedVoice < voices.length) {
+        // System voice selection - map to actual system voice
+        const systemVoiceIndex = selectedVoice - 2; // Subtract 2 for our custom voices
+        if (systemVoices[systemVoiceIndex]) {
+          utterance.voice = systemVoices[systemVoiceIndex];
+          console.log(`Using system voice: ${systemVoices[systemVoiceIndex].name}`);
+        } else {
+          console.warn(`System voice index ${systemVoiceIndex} not available, falling back to default`);
+        }
+      }
+
+      // Event handlers with error handling
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+        console.log('Speech started');
+      };
+      
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        console.log('Speech ended');
+      };
+      
+      utterance.onerror = (event) => {
+        setIsSpeaking(false);
+        console.error('Speech synthesis error:', event.error);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error('Error in speak function:', error);
+      setIsSpeaking(false);
+    }
+  }, [isEnabled, selectedVoice, speechRate, voices]);
 
   const stop = useCallback(() => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    try {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+        console.log('Speech stopped');
+      }
+    } catch (error) {
+      console.error('Error stopping speech:', error);
       setIsSpeaking(false);
     }
   }, []);
@@ -145,6 +222,7 @@ export function useSpeechSynthesis() {
     speechRate,
     setSpeechRate,
     isSpeaking,
+    voicesLoaded,
     speak,
     stop,
   };

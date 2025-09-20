@@ -18,6 +18,7 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
     speechRate,
     setSpeechRate,
     isSpeaking,
+    voicesLoaded,
     stop,
   } = useSpeechSynthesis();
   
@@ -40,6 +41,17 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
     setSpeechRate(value[0]);
   };
 
+  const handleVoiceTest = () => {
+    const testPhrases = [
+      "Testing voice selection.",
+      "Hello from ARCHIMEDES terminal.",
+      "Voice test successful.",
+      "All systems operational.",
+    ];
+    const randomPhrase = testPhrases[Math.floor(Math.random() * testPhrases.length)];
+    onVoiceInput(`voice-test: ${randomPhrase}`);
+  };
+
   return (
     <div className="voice-controls p-3 border-b border-terminal-subtle flex items-center justify-between text-sm relative z-10">
       <div className="flex items-center space-x-4">
@@ -48,12 +60,13 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
           <Select 
             value={selectedVoice.toString()} 
             onValueChange={(value) => setSelectedVoice(parseInt(value))}
+            disabled={!voicesLoaded}
           >
             <SelectTrigger 
-              className="w-40 bg-terminal-bg border-terminal-subtle text-terminal-text text-xs h-7"
+              className="w-40 bg-terminal-bg border-terminal-subtle text-terminal-text text-xs h-7 disabled:opacity-50"
               data-testid="voice-select"
             >
-              <SelectValue />
+              <SelectValue placeholder={voicesLoaded ? "Select voice..." : "Loading voices..."} />
             </SelectTrigger>
             <SelectContent className="bg-terminal-bg border-terminal-subtle">
               {voices.map((voice, index) => (
@@ -67,6 +80,19 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
               ))}
             </SelectContent>
           </Select>
+          {!voicesLoaded && (
+            <span className="text-xs text-terminal-subtle">Loading...</span>
+          )}
+          <Button
+            onClick={handleVoiceTest}
+            variant="outline"
+            size="sm"
+            disabled={!voicesLoaded || !isEnabled}
+            className="px-2 py-1 border-terminal-subtle hover:bg-terminal-subtle text-xs h-7 bg-transparent text-terminal-text disabled:opacity-50"
+            data-testid="button-voice-test"
+          >
+            TEST
+          </Button>
         </div>
         
         <div className="flex items-center space-x-2">
