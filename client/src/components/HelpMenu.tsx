@@ -245,6 +245,14 @@ const helpMenuItems: HelpMenuItem[] = [
     command: 'stop',
     icon: <Mic size={16} />
   },
+  {
+    id: 'privacy',
+    category: 'Basic Commands',
+    title: 'Privacy Encoder',
+    description: 'Open privacy encoder to protect your screen content from prying eyes',
+    command: 'privacy',
+    icon: <TerminalIcon size={16} />
+  },
 
   // OSINT Commands
   {

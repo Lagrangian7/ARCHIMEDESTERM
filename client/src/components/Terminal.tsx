@@ -262,6 +262,13 @@ export function Terminal() {
       return;
     }
     
+    // Ctrl+Shift+P opens privacy encoder
+    if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+      e.preventDefault();
+      setShowPrivacyEncoder(true);
+      return;
+    }
+    
     // Handle continue prompt with Space or Enter
     if (showContinuePrompt && (e.key === ' ' || e.key === 'Enter')) {
       e.preventDefault();
