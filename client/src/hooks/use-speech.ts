@@ -94,6 +94,10 @@ export function useSpeechSynthesis() {
     }
 
     try {
+      // Force a fresh read of the current selectedVoice state
+      const currentVoice = selectedVoice;
+      console.log('speak() called with selectedVoice:', currentVoice);
+      
       window.speechSynthesis.cancel();
       
       // Clean text for speech synthesis
@@ -158,7 +162,7 @@ export function useSpeechSynthesis() {
       
       // Debug logging
       console.log('Voice Selection Debug:', {
-        selectedVoice,
+        selectedVoice: currentVoice,
         totalVoices: voices.length,
         systemVoicesCount: systemVoices.length,
         voicesLoaded,
@@ -166,18 +170,18 @@ export function useSpeechSynthesis() {
       });
       
       // Voice selection logic
-      if (selectedVoice === 0) {
+      if (currentVoice === 0) {
         // System Default - use browser default (no voice set)
         console.log('Using system default voice');
-      } else if (selectedVoice === 1) {
+      } else if (currentVoice === 1) {
         // HAL 9000 voice simulation
         utterance.pitch = 0.8;
         utterance.rate = speechRate * 0.9; // Slightly slower for HAL
         utterance.volume = 0.95;
         console.log('Using HAL 9000 voice simulation');
-      } else if (selectedVoice >= 2 && selectedVoice < voices.length) {
+      } else if (currentVoice >= 2 && currentVoice < voices.length) {
         // System voice selection - map to actual system voice
-        const systemVoiceIndex = selectedVoice - 2; // Subtract 2 for our custom voices
+        const systemVoiceIndex = currentVoice - 2; // Subtract 2 for our custom voices
         console.log(`Attempting to use system voice at index ${systemVoiceIndex}`);
         if (systemVoices[systemVoiceIndex]) {
           utterance.voice = systemVoices[systemVoiceIndex];
@@ -186,7 +190,7 @@ export function useSpeechSynthesis() {
           console.warn(`System voice index ${systemVoiceIndex} not available (only ${systemVoices.length} voices), falling back to default`);
         }
       } else {
-        console.warn(`Invalid voice selection: ${selectedVoice}, falling back to default`);
+        console.warn(`Invalid voice selection: ${currentVoice}, falling back to default`);
       }
 
       // Event handlers with error handling
@@ -210,7 +214,7 @@ export function useSpeechSynthesis() {
       console.error('Error in speak function:', error);
       setIsSpeaking(false);
     }
-  }, [isEnabled, selectedVoice, speechRate, voices]);
+  }, [isEnabled, selectedVoice, speechRate, voices, voicesLoaded]);
 
   const stop = useCallback(() => {
     try {
