@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 // Type declarations for Speech Recognition API
 declare global {
@@ -22,6 +22,11 @@ export function useSpeechSynthesis() {
   const [speechRate, setSpeechRate] = useState(1.0); // Normal speaking speed
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
+  
+  // Use refs to store current values for the speech callback
+  const selectedVoiceRef = useRef<number>(0);
+  const speechRateRef = useRef<number>(1.0);
+  const voicesRef = useRef<Voice[]>([]);
 
   useEffect(() => {
     if (!('speechSynthesis' in window)) {
@@ -53,6 +58,7 @@ export function useSpeechSynthesis() {
         });
         
         setVoices(customVoices);
+        voicesRef.current = customVoices;
         setVoicesLoaded(true);
         
         // If no voices loaded yet and this is our first load, wait a bit for browser to initialize
@@ -87,6 +93,15 @@ export function useSpeechSynthesis() {
     };
   }, [voicesLoaded]);
 
+  // Update refs when state changes
+  useEffect(() => {
+    selectedVoiceRef.current = selectedVoice;
+  }, [selectedVoice]);
+
+  useEffect(() => {
+    speechRateRef.current = speechRate;
+  }, [speechRate]);
+
   const speak = useCallback((text: string) => {
     if (!isEnabled || !('speechSynthesis' in window)) {
       console.warn('Speech synthesis disabled or not supported');
@@ -94,8 +109,11 @@ export function useSpeechSynthesis() {
     }
 
     try {
-      // Force a fresh read of the current selectedVoice state
-      const currentVoice = selectedVoice;
+      // Use ref values to get the current state
+      const currentVoice = selectedVoiceRef.current;
+      const currentRate = speechRateRef.current;
+      const currentVoices = voicesRef.current;
+      
       console.log('speak() called with selectedVoice:', currentVoice);
       
       window.speechSynthesis.cancel();
@@ -153,7 +171,7 @@ export function useSpeechSynthesis() {
       const utterance = new SpeechSynthesisUtterance(cleanText);
       
       // Set base properties
-      utterance.rate = speechRate;
+      utterance.rate = currentRate;
       utterance.volume = 0.9;
       utterance.pitch = 1.0;
       
@@ -163,10 +181,10 @@ export function useSpeechSynthesis() {
       // Debug logging
       console.log('Voice Selection Debug:', {
         selectedVoice: currentVoice,
-        totalVoices: voices.length,
+        totalVoices: currentVoices.length,
         systemVoicesCount: systemVoices.length,
         voicesLoaded,
-        voiceNames: voices.map(v => v.name)
+        voiceNames: currentVoices.map(v => v.name)
       });
       
       // Voice selection logic
@@ -176,10 +194,10 @@ export function useSpeechSynthesis() {
       } else if (currentVoice === 1) {
         // HAL 9000 voice simulation
         utterance.pitch = 0.8;
-        utterance.rate = speechRate * 0.9; // Slightly slower for HAL
+        utterance.rate = currentRate * 0.9; // Slightly slower for HAL
         utterance.volume = 0.95;
         console.log('Using HAL 9000 voice simulation');
-      } else if (currentVoice >= 2 && currentVoice < voices.length) {
+      } else if (currentVoice >= 2 && currentVoice < currentVoices.length) {
         // System voice selection - map to actual system voice
         const systemVoiceIndex = currentVoice - 2; // Subtract 2 for our custom voices
         console.log(`Attempting to use system voice at index ${systemVoiceIndex}`);
@@ -214,7 +232,7 @@ export function useSpeechSynthesis() {
       console.error('Error in speak function:', error);
       setIsSpeaking(false);
     }
-  }, [isEnabled, selectedVoice, speechRate, voices, voicesLoaded]);
+  }, [isEnabled]);
 
   const stop = useCallback(() => {
     try {
