@@ -248,8 +248,8 @@ const helpMenuItems: HelpMenuItem[] = [
   {
     id: 'privacy',
     category: 'Basic Commands',
-    title: 'Privacy Encoder',
-    description: 'Open privacy encoder to protect your screen content from prying eyes',
+    title: 'Privacy Mode',
+    description: 'Instantly encode screen content for privacy (type "qwerty" to decode)',
     command: 'privacy',
     icon: <TerminalIcon size={16} />
   },
