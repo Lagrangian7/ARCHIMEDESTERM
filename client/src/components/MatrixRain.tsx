@@ -7,9 +7,13 @@ export function MatrixRain() {
     // Respect user's motion preferences
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
+    // Mix all character sets, excluding any that might have color
     const binaryChars = '01';
     const highAsciiChars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ日月火水木金土年月日時分秒░▒▓█▄▌▐▀■□▪▫◆◇';
-    const hamburgSymbols = '☉☽☿♀♁♂♃♄♅♆♇☆★☾♠♣♥♦※‡†‰←→↑↓↔↕⇐⇒⇑⇓⇔⇕∑∏∫∆∇∞±≤≥≠≈♪♫☯☮⚡⚛☢☣⚠◊●○◉◎▲△▼▽◄►▶◀♦♠♣♥';
+    const hamburgSymbols = '☉☽☿♀♁♂♃♄♅♆♇☆★☾※‡†‰←→↑↓↔↕⇐⇒⇑⇓⇔⇕∑∏∫∆∇∞±≤≥≠≈♪♫◊●○◉◎▲△▼▽◄►▶◀';
+    
+    // Combine all character sets for mixed drops
+    const mixedChars = binaryChars + highAsciiChars + hamburgSymbols;
     const container = containerRef.current;
     if (!container) return;
 
@@ -28,17 +32,11 @@ export function MatrixRain() {
     for (let trail = 0; trail < numTrails; trail++) {
       const trailDroplets: HTMLDivElement[] = [];
       const trailLength = 8 + Math.floor(Math.random() * 7); // 8-14 droplets per trail
-      const charTypeRandom = Math.random();
-      const useHighAscii = charTypeRandom > 0.7; // 30% chance for high ASCII
-      const useHamburgSymbols = charTypeRandom > 0.85; // 15% chance for Hamburg symbols
       
       for (let i = 0; i < trailLength; i++) {
         const droplet = document.createElement('div');
-        const fontClass = useHamburgSymbols ? 'absolute text-terminal-highlight text-lg' : 'absolute text-terminal-highlight font-mono text-lg';
-        droplet.className = fontClass;
-        if (useHamburgSymbols) {
-          droplet.style.fontFamily = "'Hamburg Symbols', sans-serif";
-        }
+        droplet.className = 'absolute text-terminal-highlight text-lg';
+        droplet.style.fontFamily = "'Hamburg Symbols', 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace";
         droplet.style.opacity = '0';
         droplet.style.pointerEvents = 'none';
         container.appendChild(droplet);
@@ -49,7 +47,7 @@ export function MatrixRain() {
         droplets: trailDroplets,
         position: { x: Math.random() * 95, y: -30 - Math.random() * 50 },
         speed: 0.4 + Math.random() * 1.0,
-        chars: useHamburgSymbols ? hamburgSymbols : (useHighAscii ? highAsciiChars : binaryChars),
+        chars: mixedChars,
         active: Math.random() > 0.5, // Some start immediately
         lastCharChange: 0
       });
