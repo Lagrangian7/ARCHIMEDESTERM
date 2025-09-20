@@ -552,7 +552,7 @@ Games:
   zork - Play ZORK: The Great Underground Empire
   
 System Commands:
-  privacy - Instantly encode screen content (type "qwerty" to decode)
+  privacy - Activate matrix rain privacy screen (type "QWERTY" to unlock)
   xx - Activate screensaver manually
   
 Knowledge Base Commands:
@@ -571,15 +571,15 @@ You can also chat naturally or ask technical questions.`);
     }
     
     if (cmd === 'privacy') {
-      addEntry('system', 'Privacy mode activated! Screen content is now encoded. Type "qwerty" to decode and return to normal view.');
+      addEntry('system', 'Privacy screen activated! Matrix rain overlay is now protecting your screen. Type "QWERTY" to unlock and return to normal view.');
       
-      // Trigger the privacy encoder overlay
+      // Trigger the privacy screen overlay
       setTimeout(() => {
         const openPrivacyEncoder = (window as any).openPrivacyEncoder;
         if (openPrivacyEncoder) {
           openPrivacyEncoder();
         } else {
-          addEntry('error', 'Privacy encoder not available. Please try using the Privacy button in the header.');
+          addEntry('error', 'Privacy screen not available. Please try using the Privacy button in the header.');
         }
       }, 50);
       return;

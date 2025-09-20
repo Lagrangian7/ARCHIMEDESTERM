@@ -248,8 +248,8 @@ const helpMenuItems: HelpMenuItem[] = [
   {
     id: 'privacy',
     category: 'Basic Commands',
-    title: 'Privacy Mode',
-    description: 'Instantly encode screen content for privacy (type "qwerty" to decode)',
+    title: 'Privacy Screen',
+    description: 'Activate matrix rain privacy screen (type "QWERTY" to unlock)',
     command: 'privacy',
     icon: <TerminalIcon size={16} />
   },
