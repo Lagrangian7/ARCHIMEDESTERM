@@ -172,7 +172,7 @@ export function useSpeechSynthesis() {
       
       // Set base properties
       utterance.rate = currentRate;
-      utterance.volume = 0.9;
+      utterance.volume = 0.63;
       utterance.pitch = 1.0;
       
       // Get available system voices
@@ -195,7 +195,7 @@ export function useSpeechSynthesis() {
         // HAL 9000 voice simulation
         utterance.pitch = 0.8;
         utterance.rate = currentRate * 0.9; // Slightly slower for HAL
-        utterance.volume = 0.95;
+        utterance.volume = 0.665;
         console.log('Using HAL 9000 voice simulation');
       } else if (currentVoice >= 2 && currentVoice < currentVoices.length) {
         // System voice selection - map to actual system voice
