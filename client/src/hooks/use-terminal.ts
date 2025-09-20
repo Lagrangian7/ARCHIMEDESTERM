@@ -552,6 +552,7 @@ Games:
   zork - Play ZORK: The Great Underground Empire
   
 System Commands:
+  privacy - Open privacy encoder to protect screen content
   xx - Activate screensaver manually
   
 Knowledge Base Commands:
@@ -566,6 +567,21 @@ You can also chat naturally or ask technical questions.`);
     
     if (cmd === 'clear') {
       setEntries([]);
+      return;
+    }
+    
+    if (cmd === 'privacy') {
+      addEntry('system', 'Opening privacy encoder... Protect your screen content from prying eyes!');
+      
+      // Trigger the privacy encoder overlay
+      setTimeout(() => {
+        const openPrivacyEncoder = (window as any).openPrivacyEncoder;
+        if (openPrivacyEncoder) {
+          openPrivacyEncoder();
+        } else {
+          addEntry('error', 'Privacy encoder not available. Please try using the Privacy button in the header.');
+        }
+      }, 50);
       return;
     }
     
