@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hamburg Symbols Font */
+@font-face {
+  font-family: 'Hamburg Symbols';
+  src: url('@assets/HamburgSymbols_1758334154539.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: hsl(0 0% 100%);
   --foreground: hsl(210 25% 7.8431%);

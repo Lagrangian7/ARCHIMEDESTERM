@@ -9,6 +9,7 @@ export function MatrixRain() {
     if (prefersReducedMotion) return;
     const binaryChars = '01';
     const highAsciiChars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ日月火水木金土年月日時分秒░▒▓█▄▌▐▀■□▪▫◆◇';
+    const hamburgSymbols = '☉☽☿♀♁♂♃♄♅♆♇☆★☾♠♣♥♦※‡†‰←→↑↓↔↕⇐⇒⇑⇓⇔⇕∑∏∫∆∇∞±≤≥≠≈♪♫☯☮⚡⚛☢☣⚠◊●○◉◎▲△▼▽◄►▶◀♦♠♣♥';
     const container = containerRef.current;
     if (!container) return;
 
@@ -27,11 +28,17 @@ export function MatrixRain() {
     for (let trail = 0; trail < numTrails; trail++) {
       const trailDroplets: HTMLDivElement[] = [];
       const trailLength = 8 + Math.floor(Math.random() * 7); // 8-14 droplets per trail
-      const useHighAscii = Math.random() > 0.7; // 30% chance for high ASCII
+      const charTypeRandom = Math.random();
+      const useHighAscii = charTypeRandom > 0.7; // 30% chance for high ASCII
+      const useHamburgSymbols = charTypeRandom > 0.85; // 15% chance for Hamburg symbols
       
       for (let i = 0; i < trailLength; i++) {
         const droplet = document.createElement('div');
-        droplet.className = 'absolute text-terminal-highlight font-mono text-lg';
+        const fontClass = useHamburgSymbols ? 'absolute text-terminal-highlight text-lg' : 'absolute text-terminal-highlight font-mono text-lg';
+        droplet.className = fontClass;
+        if (useHamburgSymbols) {
+          droplet.style.fontFamily = "'Hamburg Symbols', sans-serif";
+        }
         droplet.style.opacity = '0';
         droplet.style.pointerEvents = 'none';
         container.appendChild(droplet);
@@ -42,7 +49,7 @@ export function MatrixRain() {
         droplets: trailDroplets,
         position: { x: Math.random() * 95, y: -30 - Math.random() * 50 },
         speed: 0.4 + Math.random() * 1.0,
-        chars: useHighAscii ? highAsciiChars : binaryChars,
+        chars: useHamburgSymbols ? hamburgSymbols : (useHighAscii ? highAsciiChars : binaryChars),
         active: Math.random() > 0.5, // Some start immediately
         lastCharChange: 0
       });
