@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encode/Decode Button</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.15/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    function EncodeDecodeButton() {
+      const [isEncoded, setIsEncoded] = React.useState(false);
+      const [inputKey, setInputKey] = React.useState('');
+
+      // Function to encode text by shifting to high ASCII (offset by 128)
+      const encodeText = (text) => {
+        return text
+          .split('')
+          .map(char => {
+            const code = char.charCodeAt(0);
+            return String.fromCharCode((code + 128) % 256);
+          })
+          .join('');
+      };
+
+      // Function to decode text by reversing the shift
+      const decodeText = (text) => {
+        return text
+          .split('')
+          .map(char => {
+            const code = char.charCodeAt(0);
+            return String.fromCharCode((code - 128 + 256) % 256);
+          })
+          .join('');
+      };
+
+      // Handle encoding all text in the document
+      const handleEncode = () => {
+        if (!isEncoded) {
+          const elements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, div:not(#root)');
+          elements.forEach(el => {
+            if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+              el.textContent = encodeText(el.textContent);
+            }
+          });
+          setIsEncoded(true);
+        }
+      };
+
+      // Handle input change and decode if key matches "QWERTY"
+      const handleInputChange = (e) => {
+        const value = e.target.value;
+        setInputKey(value);
+        if (value.toUpperCase() === 'QWERTY' && isEncoded) {
+          const elements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, div:not(#root)');
+          elements.forEach(el => {
+            if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+              el.textContent = decodeText(el.textContent);
+            }
+          });
+          setIsEncoded(false);
+          setInputKey('');
+        }
+      };
+
+      return (
+        <div className="p-4">
+          <button
+            onClick={handleEncode}
+            disabled={isEncoded}
+            className={`px-4 py-2 rounded text-white font-semibold ${
+              isEncoded ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+            }`}
+          >
+            Encode Text
+          </button>
+          <div className="mt-4">
+            <input
+              type="text"
+              value={inputKey}
+              onChange={handleInputChange}
+              placeholder="Enter decode key"
+              className="border border-gray-300 rounded px-3 py-2 w-64"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Sample content removed
+    function App() {
+      return (
+        <div className="p-8">
+          <EncodeDecodeButton />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
