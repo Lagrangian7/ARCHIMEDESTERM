@@ -166,10 +166,6 @@ export function EncodeDecodeOverlay({ isOpen, onClose }: EncodeDecodeOverlayProp
       className="fixed inset-0 bg-black z-50 overflow-hidden"
       style={{ cursor: 'none' }}
     >
-      {/* Unlock hint - fade in after a few seconds */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-terminal-highlight/50 text-center font-mono text-sm animate-pulse">
-        Type QWERTY to unlock
-      </div>
     </div>
   );
 }
