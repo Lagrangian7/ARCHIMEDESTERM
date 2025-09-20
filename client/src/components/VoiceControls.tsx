@@ -25,10 +25,13 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
   const { isSupported, isListening, startListening } = useSpeechRecognition();
 
   const handleVoiceToggle = () => {
+    console.log('Voice toggle clicked - current state:', isEnabled);
     if (isEnabled && isSpeaking) {
       stop();
     }
-    setIsEnabled(!isEnabled);
+    const newState = !isEnabled;
+    setIsEnabled(newState);
+    console.log('Voice toggle updated to:', newState);
   };
 
   const handleVoiceInput = () => {
