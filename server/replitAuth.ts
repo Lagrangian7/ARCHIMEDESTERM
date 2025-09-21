@@ -26,14 +26,20 @@ export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const PostgresStore = connectPg(session);
   
+  const store = new PostgresStore({
+    conObject: {
+      connectionString: process.env.DATABASE_URL,
+    },
+    tableName: 'sessions',
+    createTableIfMissing: true,
+  });
+  
+  store.on('error', (err) => {
+    console.error('Session store error:', err);
+  });
+  
   return session({
-    store: new PostgresStore({
-      conObject: {
-        connectionString: process.env.DATABASE_URL,
-      },
-      tableName: 'sessions',
-      createTableIfMissing: false,
-    }),
+    store,
     secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
