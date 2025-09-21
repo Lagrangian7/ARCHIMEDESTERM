@@ -33,10 +33,21 @@ export function MatrixRain() {
       const trailDroplets: HTMLDivElement[] = [];
       const trailLength = 8 + Math.floor(Math.random() * 7); // 8-14 droplets per trail
       
+      // Randomly decide if this trail should use only space invaders font (30% chance)
+      const useSpaceInvadersOnly = Math.random() < 0.3;
+      
       for (let i = 0; i < trailLength; i++) {
         const droplet = document.createElement('div');
         droplet.className = 'absolute text-terminal-highlight text-lg';
-        droplet.style.fontFamily = "'Invaders from Space', 'Hamburg Symbols', 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace";
+        
+        if (useSpaceInvadersOnly) {
+          // Use only the space invaders font
+          droplet.style.fontFamily = "'Invaders from Space', monospace";
+        } else {
+          // Use the mixed font fallback
+          droplet.style.fontFamily = "'Invaders from Space', 'Hamburg Symbols', 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace";
+        }
+        
         droplet.style.opacity = '0';
         droplet.style.pointerEvents = 'none';
         container.appendChild(droplet);
