@@ -36,7 +36,7 @@ export function MatrixRain() {
       for (let i = 0; i < trailLength; i++) {
         const droplet = document.createElement('div');
         droplet.className = 'absolute text-terminal-highlight text-lg';
-        droplet.style.fontFamily = "'Hamburg Symbols', 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace";
+        droplet.style.fontFamily = "'Invaders from Space', 'Hamburg Symbols', 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace";
         droplet.style.opacity = '0';
         droplet.style.pointerEvents = 'none';
         container.appendChild(droplet);

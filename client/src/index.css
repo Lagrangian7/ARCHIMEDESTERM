@@ -11,6 +11,15 @@
   font-display: swap;
 }
 
+/* Invaders from Space Font for Matrix Rain */
+@font-face {
+  font-family: 'Invaders from Space';
+  src: url('@assets/invaders.from.space.[fontvir.us]_1758493182728.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: hsl(0 0% 100%);
   --foreground: hsl(210 25% 7.8431%);
