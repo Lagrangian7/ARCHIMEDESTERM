@@ -386,7 +386,7 @@ export function Terminal() {
           <div className="flex items-center space-x-4">
             <LogoIcon />
             <div>
-              <h1 className="text-xl font-bold terminal-text terminal-glow" data-testid="text-title">
+              <h1 className="font-bold terminal-text terminal-glow text-[15px]" data-testid="text-title">
                 ARCHIMEDES v7
               </h1>
               <div className="text-xs text-terminal-highlight">
