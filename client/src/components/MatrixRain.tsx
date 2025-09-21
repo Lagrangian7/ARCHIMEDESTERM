@@ -12,6 +12,9 @@ export function MatrixRain() {
     const highAsciiChars = 'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ日月火水木金土年月日時分秒░▒▓█▄▌▐▀■□▪▫◆◇';
     const hamburgSymbols = '☉☽☿♀♁♂♃♄♅♆♇☆★☾※‡†‰←→↑↓↔↕⇐⇒⇑⇓⇔⇕∑∏∫∆∇∞±≤≥≠≈♪♫◊●○◉◎▲△▼▽◄►▶◀';
     
+    // Space Invaders font characters - use basic ASCII and symbols that should be in the font
+    const spaceInvaderChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()+-=[]{}|;:,.<>?/~`';
+    
     // Combine all character sets for mixed drops
     const mixedChars = binaryChars + highAsciiChars + hamburgSymbols;
     const container = containerRef.current;
@@ -58,7 +61,7 @@ export function MatrixRain() {
         droplets: trailDroplets,
         position: { x: Math.random() * 95, y: -30 - Math.random() * 50 },
         speed: 0.4 + Math.random() * 1.0,
-        chars: mixedChars,
+        chars: useSpaceInvadersOnly ? spaceInvaderChars : mixedChars,
         active: Math.random() > 0.5, // Some start immediately
         lastCharChange: 0
       });
