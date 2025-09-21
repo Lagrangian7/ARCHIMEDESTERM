@@ -37,6 +37,9 @@ export function PuzzleScreensaver({ isActive, onExit }: PuzzleScreensaverProps) 
     if (!containerRef.current || !screenshotRef.current) return;
 
     try {
+      // TEMPORARILY FORCE FALLBACK TO TEST SPACE INVADERS FONT
+      throw new Error('Force fallback for testing');
+
       // Find the terminal container
       const terminalElement = document.querySelector('.terminal-container') || 
                             document.querySelector('[data-testid="terminal-output"]') ||
