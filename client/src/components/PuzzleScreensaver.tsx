@@ -132,15 +132,29 @@ export function PuzzleScreensaver({ isActive, onExit }: PuzzleScreensaverProps) 
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.fillStyle = '#00FF41';
-      ctx.font = '16px "SF Mono", Consolas, monospace';
       
-      // Add matrix-like pattern
+      // Space Invaders font characters - use basic ASCII and symbols that should be in the font
+      const spaceInvaderChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()+-=[]{}|;:,.<>?/~`';
+      const regularChars = String.fromCharCode(...Array.from({length: 93}, (_, i) => i + 33)); // ASCII 33-125
+      
+      // Add matrix-like pattern with 50/50 font distribution
       for (let y = 0; y < canvas.height; y += 25) {
         for (let x = 0; x < canvas.width; x += 15) {
           if (Math.random() > 0.7) {
-            const char = String.fromCharCode(33 + Math.floor(Math.random() * 93));
-            ctx.globalAlpha = Math.random() * 0.8 + 0.2;
-            ctx.fillText(char, x, y);
+            // 50% chance to use space invaders font
+            const useSpaceInvaders = Math.random() < 0.5;
+            
+            if (useSpaceInvaders) {
+              ctx.font = '16px "Invaders from Space", monospace';
+              const char = spaceInvaderChars[Math.floor(Math.random() * spaceInvaderChars.length)];
+              ctx.globalAlpha = Math.random() * 0.8 + 0.2;
+              ctx.fillText(char, x, y);
+            } else {
+              ctx.font = '16px "Invaders from Space", "Hamburg Symbols", "SF Mono", Consolas, monospace';
+              const char = regularChars[Math.floor(Math.random() * regularChars.length)];
+              ctx.globalAlpha = Math.random() * 0.8 + 0.2;
+              ctx.fillText(char, x, y);
+            }
           }
         }
       }
