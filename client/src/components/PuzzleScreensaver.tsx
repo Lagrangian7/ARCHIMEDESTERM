@@ -75,7 +75,7 @@ export function PuzzleScreensaver({ isActive, onExit }: PuzzleScreensaverProps) 
 
           // Add terminal text content
           const textElements = element.querySelectorAll('*');
-          tempCtx.font = '14px "SF Mono", Consolas, monospace';
+          tempCtx.font = '14px "Invaders from Space", "Hamburg Symbols", "SF Mono", Consolas, monospace';
           tempCtx.fillStyle = '#00FF41';
 
           let yOffset = 20;
