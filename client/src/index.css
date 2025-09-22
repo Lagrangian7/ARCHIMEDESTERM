@@ -229,12 +229,12 @@
   }
 
   .rgb-theme-icon {
-    filter: brightness(1.4) contrast(1.3) hue-rotate(80deg) drop-shadow(0 0 8px #00FF41);
+    filter: brightness(1.4) contrast(1.3) drop-shadow(0 0 8px var(--terminal-highlight));
     animation: rgbGlow 2s ease-in-out infinite alternate;
   }
 
   .rgb-theme-icon:hover {
-    filter: brightness(1.6) contrast(1.5) hue-rotate(80deg) drop-shadow(0 0 12px #00FF41);
+    filter: brightness(1.6) contrast(1.5) drop-shadow(0 0 12px var(--terminal-highlight));
     animation: rgbGlow 1s ease-in-out infinite alternate;
   }
 
@@ -489,12 +489,10 @@
 
 @keyframes rgbGlow {
   from {
-    filter: brightness(1.4) contrast(1.3) hue-rotate(80deg) drop-shadow(0 0 8px #00FF41);
-    box-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
+    filter: brightness(1.4) contrast(1.3) drop-shadow(0 0 8px var(--terminal-highlight));
   }
   to {
-    filter: brightness(1.6) contrast(1.5) hue-rotate(80deg) drop-shadow(0 0 16px #00FF41);
-    box-shadow: 0 0 16px rgba(0, 255, 65, 0.6);
+    filter: brightness(1.6) contrast(1.5) drop-shadow(0 0 16px var(--terminal-highlight));
   }
 }
 
