@@ -34,7 +34,7 @@ export function MatrixRain() {
     
     for (let trail = 0; trail < numTrails; trail++) {
       const trailDroplets: HTMLDivElement[] = [];
-      const trailLength = 8 + Math.floor(Math.random() * 7); // 8-14 droplets per trail
+      const trailLength = 15 + Math.floor(Math.random() * 15); // 15-29 droplets per trail
       
       // Randomly decide if this trail should use only space invaders font (50% chance)
       const useSpaceInvadersOnly = Math.random() < 0.5;
