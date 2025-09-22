@@ -803,25 +803,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Brave API key not configured" });
       }
 
-      // Call Brave Search API with proper parameters
+      // Call Brave Search API with minimal parameters to avoid 422 error
       const searchParams = new URLSearchParams({
         q: query.trim(),
-        count: '10',
-        country: 'us',
-        search_lang: 'en'
+        count: '10'
       });
 
       const response = await fetch(`https://api.search.brave.com/res/v1/web/search?${searchParams.toString()}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'Accept-Encoding': 'gzip',
-          'X-Subscription-Token': braveApiKey
+          'X-Subscription-Token': braveApiKey,
+          'User-Agent': 'Archimedes/1.0'
         }
       });
 
       if (!response.ok) {
-        throw new Error(`Brave API error: ${response.status} ${response.statusText}`);
+        // Capture the actual error response from Brave API
+        const errorText = await response.text();
+        console.error(`Brave API detailed error: ${response.status} ${response.statusText} | ${errorText}`);
+        
+        // Return 400 for client errors (422) instead of 500
+        const statusCode = response.status === 422 ? 400 : 500;
+        return res.status(statusCode).json({ 
+          error: `Brave API error: ${response.status} ${response.statusText}`,
+          details: errorText 
+        });
       }
 
       const data = await response.json();
