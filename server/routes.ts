@@ -789,6 +789,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Research API endpoint using Brave Search
+  app.get("/api/research", isAuthenticated, async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      
+      if (!query || query.trim().length === 0) {
+        return res.status(400).json({ error: "Search query is required" });
+      }
+
+      const braveApiKey = process.env.BRAVE_API_KEY;
+      if (!braveApiKey) {
+        return res.status(500).json({ error: "Brave API key not configured" });
+      }
+
+      // Call Brave Search API
+      const response = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query.trim())}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip',
+          'X-Subscription-Token': braveApiKey
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Brave API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Format results for terminal display
+      const formattedResults = {
+        query: query.trim(),
+        total_results: data.web?.results?.length || 0,
+        results: data.web?.results?.slice(0, 10).map((result: any, index: number) => ({
+          rank: index + 1,
+          title: result.title || 'No title',
+          url: result.url || '',
+          description: result.description || 'No description available',
+          age: result.age || null,
+          published: result.published || null
+        })) || [],
+        search_time: new Date().toISOString()
+      };
+
+      res.json(formattedResults);
+    } catch (error) {
+      console.error("Research API error:", error);
+      const message = error instanceof Error ? error.message : "Failed to perform web search";
+      res.status(500).json({ error: message });
+    }
+  });
+
   // Gutendx (Project Gutenberg) API endpoints
   app.get("/api/books/search", async (req, res) => {
     try {

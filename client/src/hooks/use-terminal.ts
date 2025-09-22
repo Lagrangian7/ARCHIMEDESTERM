@@ -245,6 +245,34 @@ export function useTerminal(onUploadCommand?: () => void) {
     },
   });
 
+  const researchMutation = useMutation({
+    mutationFn: async (query: string) => {
+      const response = await apiRequest('GET', `/api/research?q=${encodeURIComponent(query)}`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsTyping(false);
+      // Format research results for terminal display
+      const formattedResults = `🔍 Web Search Results for "${data.query}"
+Total Results: ${data.total_results}
+Search Time: ${new Date(data.search_time).toLocaleTimeString()}
+
+${data.results.map((result: any) => 
+  `${result.rank}. ${result.title}
+   🔗 ${result.url}
+   📄 ${result.description}
+   ${result.published ? `📅 ${new Date(result.published).toLocaleDateString()}` : ''}
+`).join('\n')}
+
+Use the URLs above to access the full articles and information.`;
+      
+      addEntry('response', formattedResults);
+    },
+    onError: (error) => {
+      setIsTyping(false);
+      addEntry('error', `Research Error: ${error.message}`);
+    },
+  });
 
   const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical') => {
     const entry: TerminalEntry = {
@@ -494,6 +522,7 @@ export function useTerminal(onUploadCommand?: () => void) {
   history - Show command history
   status - Show system status
   weather - Get current weather (uses location if available)
+  research <query> - Search the web using Brave API
   chat - Open user-to-user chat interface
   
 Network & BBS Commands:
@@ -682,6 +711,20 @@ You can also chat naturally or ask technical questions.`);
           weatherMutation.mutate({});
         }
       }
+      return;
+    }
+
+    // Handle research command
+    if (cmd.startsWith('research ')) {
+      const query = command.trim().substring(9); // Remove "research "
+      if (!query) {
+        addEntry('error', 'Usage: research <search query>');
+        return;
+      }
+      
+      setIsTyping(true);
+      addEntry('system', `🔍 Searching the web for "${query}"...`);
+      researchMutation.mutate(query);
       return;
     }
 
