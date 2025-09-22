@@ -449,6 +449,66 @@
     pointer-events: none;
     z-index: 5;
   }
+
+  /* Grid wave effects */
+  .grid-wave-container {
+    will-change: transform;
+  }
+
+  .grid-wave-base {
+    animation: gridWaveBase 8s ease-in-out infinite;
+  }
+
+  .grid-wave-layer-1 {
+    animation: gridWaveLayer1 6s ease-in-out infinite;
+  }
+
+  .grid-wave-layer-2 {
+    animation: gridWaveLayer2 10s ease-in-out infinite reverse;
+  }
+
+  /* Shimmer light effects */
+  .shimmer-light {
+    background: linear-gradient(
+      45deg,
+      transparent 0%,
+      transparent 40%,
+      var(--terminal-highlight) 50%,
+      transparent 60%,
+      transparent 100%
+    );
+    background-size: 200% 200%;
+    mix-blend-mode: screen;
+    opacity: 0.1;
+  }
+
+  .shimmer-light-1 {
+    animation: shimmerMove1 4s ease-in-out infinite;
+  }
+
+  .shimmer-light-2 {
+    animation: shimmerMove2 6s ease-in-out infinite reverse;
+    background: linear-gradient(
+      135deg,
+      transparent 0%,
+      transparent 45%,
+      var(--terminal-highlight) 50%,
+      transparent 55%,
+      transparent 100%
+    );
+    background-size: 300% 300%;
+  }
+
+  .shimmer-light-3 {
+    animation: shimmerMove3 8s ease-in-out infinite;
+    background: radial-gradient(
+      circle at center,
+      var(--terminal-highlight) 0%,
+      transparent 70%
+    );
+    background-size: 400% 400%;
+    opacity: 0.05;
+  }
 }
 
 @keyframes blink {
@@ -962,6 +1022,149 @@
   
   100% {
     box-shadow: inset 0 100% 0 rgba(0, 255, 65, 0.8);
+  }
+}
+
+/* Grid wave animations */
+@keyframes gridWaveBase {
+  0% {
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 0.03;
+  }
+  25% {
+    transform: translateX(5px) translateY(-3px) scale(1.01);
+    opacity: 0.05;
+  }
+  50% {
+    transform: translateX(-2px) translateY(4px) scale(0.99);
+    opacity: 0.04;
+  }
+  75% {
+    transform: translateX(3px) translateY(-2px) scale(1.01);
+    opacity: 0.06;
+  }
+  100% {
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 0.03;
+  }
+}
+
+@keyframes gridWaveLayer1 {
+  0% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 0.08;
+    background-position: 0% 0%;
+  }
+  33% {
+    transform: translateX(-4px) translateY(2px) rotate(0.5deg);
+    opacity: 0.12;
+    background-position: 20% 10%;
+  }
+  66% {
+    transform: translateX(3px) translateY(-4px) rotate(-0.3deg);
+    opacity: 0.06;
+    background-position: -10% 30%;
+  }
+  100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 0.08;
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes gridWaveLayer2 {
+  0% {
+    transform: translateX(0) translateY(0) skewX(0deg);
+    opacity: 0.06;
+    background-position: 0% 0%;
+  }
+  40% {
+    transform: translateX(6px) translateY(-1px) skewX(0.2deg);
+    opacity: 0.10;
+    background-position: 15% -5%;
+  }
+  70% {
+    transform: translateX(-3px) translateY(5px) skewX(-0.4deg);
+    opacity: 0.04;
+    background-position: -20% 25%;
+  }
+  100% {
+    transform: translateX(0) translateY(0) skewX(0deg);
+    opacity: 0.06;
+    background-position: 0% 0%;
+  }
+}
+
+/* Shimmer light animations */
+@keyframes shimmerMove1 {
+  0% {
+    background-position: -200% -200%;
+    opacity: 0.05;
+  }
+  50% {
+    background-position: 200% 200%;
+    opacity: 0.15;
+  }
+  100% {
+    background-position: -200% -200%;
+    opacity: 0.05;
+  }
+}
+
+@keyframes shimmerMove2 {
+  0% {
+    background-position: 300% -100%;
+    opacity: 0.03;
+    transform: rotate(0deg);
+  }
+  25% {
+    opacity: 0.08;
+    transform: rotate(1deg);
+  }
+  50% {
+    background-position: -100% 300%;
+    opacity: 0.12;
+    transform: rotate(0deg);
+  }
+  75% {
+    opacity: 0.06;
+    transform: rotate(-0.5deg);
+  }
+  100% {
+    background-position: 300% -100%;
+    opacity: 0.03;
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes shimmerMove3 {
+  0% {
+    background-position: 0% 0%;
+    opacity: 0.02;
+    transform: scale(0.8);
+  }
+  20% {
+    opacity: 0.08;
+    transform: scale(1.2);
+  }
+  40% {
+    background-position: 100% 50%;
+    opacity: 0.05;
+    transform: scale(1.0);
+  }
+  60% {
+    opacity: 0.10;
+    transform: scale(1.3);
+  }
+  80% {
+    background-position: 50% 100%;
+    opacity: 0.03;
+    transform: scale(0.9);
+  }
+  100% {
+    background-position: 0% 0%;
+    opacity: 0.02;
+    transform: scale(0.8);
   }
 }
 
