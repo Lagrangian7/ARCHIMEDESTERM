@@ -124,6 +124,17 @@
   --terminal-orange: hsl(0 0% 60%);
 }
 
+.theme-red {
+  --terminal-bg: hsl(210 50% 5%);
+  --terminal-text: hsl(0 100% 70%);
+  --terminal-highlight: hsl(0 100% 80%);
+  --terminal-subtle: hsl(0 43% 24%);
+  --terminal-subtle-rgb: 87, 35, 35;
+  --terminal-logo-green: hsl(0 100% 80%);
+  --terminal-bright-green: hsl(0 100% 80%);
+  --terminal-orange: hsl(45 100% 60%);
+}
+
 /* Logo pulsating glow animation */
 @keyframes logoGlow {
   0%, 100% { 

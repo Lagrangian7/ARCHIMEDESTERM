@@ -110,7 +110,7 @@ export function Terminal() {
 
   // Switch theme function
   const switchTheme = () => {
-    const themes = ['green', 'blue', 'orange', 'greyscale'];
+    const themes = ['green', 'blue', 'orange', 'red', 'greyscale'];
     const currentIndex = themes.indexOf(currentTheme);
     const nextTheme = themes[(currentIndex + 1) % themes.length];
     setCurrentTheme(nextTheme);
