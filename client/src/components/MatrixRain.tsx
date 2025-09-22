@@ -137,51 +137,17 @@ export function MatrixRain() {
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[0] overflow-hidden">
-      {/* Animated Grid background with wave effect */}
-      <div className="absolute inset-0 grid-wave-container">
-        {/* Base grid layer */}
-        <div 
-          className="absolute inset-0 grid-wave-base"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, var(--terminal-highlight) 1px, transparent 1px),
-              linear-gradient(to bottom, var(--terminal-highlight) 1px, transparent 1px)
-            `,
-            backgroundSize: '20px 20px',
-            opacity: '0.03'
-          }}
-        />
-        
-        {/* Wave effect layers */}
-        <div 
-          className="absolute inset-0 grid-wave-layer-1"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, var(--terminal-highlight) 1px, transparent 1px),
-              linear-gradient(to bottom, var(--terminal-highlight) 1px, transparent 1px)
-            `,
-            backgroundSize: '20px 20px',
-            opacity: '0.08'
-          }}
-        />
-        
-        <div 
-          className="absolute inset-0 grid-wave-layer-2"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, var(--terminal-highlight) 1px, transparent 1px),
-              linear-gradient(to bottom, var(--terminal-highlight) 1px, transparent 1px)
-            `,
-            backgroundSize: '20px 20px',
-            opacity: '0.06'
-          }}
-        />
-        
-        {/* Shimmer light effects */}
-        <div className="absolute inset-0 shimmer-light shimmer-light-1"></div>
-        <div className="absolute inset-0 shimmer-light shimmer-light-2"></div>
-        <div className="absolute inset-0 shimmer-light shimmer-light-3"></div>
-      </div>
+      {/* Grid background */}
+      <div 
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(0, 255, 65, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 255, 65, 0.05) 1px, transparent 1px)
+          `,
+          backgroundSize: '20px 20px'
+        }}
+      />
       
       {/* Droplet container */}
       <div ref={containerRef} className="absolute" />
