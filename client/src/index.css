@@ -73,6 +73,7 @@
   --terminal-text: hsl(118 100% 63%);
   --terminal-highlight: hsl(118 100% 75%);
   --terminal-subtle: hsl(151 43% 24%);
+  --terminal-subtle-rgb: 27, 67, 50;
   --terminal-logo-green: hsl(118 100% 75%);
   --terminal-bright-green: hsl(118 100% 75%);
   --terminal-orange: hsl(30 100% 50%);
@@ -84,6 +85,7 @@
   --terminal-text: hsl(118 100% 63%);
   --terminal-highlight: hsl(118 100% 75%);
   --terminal-subtle: hsl(151 43% 24%);
+  --terminal-subtle-rgb: 27, 67, 50;
   --terminal-logo-green: hsl(118 100% 75%);
   --terminal-bright-green: hsl(118 100% 75%);
   --terminal-orange: hsl(30 100% 50%);
@@ -94,6 +96,7 @@
   --terminal-text: hsl(200 100% 70%);
   --terminal-highlight: hsl(200 100% 80%);
   --terminal-subtle: hsl(200 43% 24%);
+  --terminal-subtle-rgb: 35, 55, 87;
   --terminal-logo-green: hsl(200 100% 80%);
   --terminal-bright-green: hsl(200 100% 80%);
   --terminal-orange: hsl(45 100% 60%);
@@ -104,6 +107,7 @@
   --terminal-text: hsl(30 100% 70%);
   --terminal-highlight: hsl(30 100% 80%);
   --terminal-subtle: hsl(30 43% 24%);
+  --terminal-subtle-rgb: 87, 52, 35;
   --terminal-logo-green: hsl(30 100% 80%);
   --terminal-bright-green: hsl(30 100% 80%);
   --terminal-orange: hsl(200 100% 60%);
@@ -114,6 +118,7 @@
   --terminal-text: hsl(0 0% 75%);
   --terminal-highlight: hsl(0 0% 90%);
   --terminal-subtle: hsl(0 0% 25%);
+  --terminal-subtle-rgb: 64, 64, 64;
   --terminal-logo-green: hsl(0 0% 90%);
   --terminal-bright-green: hsl(0 0% 90%);
   --terminal-orange: hsl(0 0% 60%);
@@ -214,7 +219,8 @@
 
   .voice-controls {
     backdrop-filter: blur(10px);
-    background: rgba(27, 67, 50, 0.8);
+    background: rgba(var(--terminal-subtle-rgb), 0.8);
+    border-color: var(--terminal-subtle);
   }
 
   .logo-icon {
@@ -223,7 +229,7 @@
   }
 
   .command-history {
-    background: rgba(27, 67, 50, 0.9);
+    background: rgba(var(--terminal-subtle-rgb), 0.9);
     border: 1px solid var(--terminal-subtle);
     backdrop-filter: blur(5px);
   }
