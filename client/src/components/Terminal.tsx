@@ -29,6 +29,7 @@ import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import terminalWatermark from '@assets/wally new_1757883178780.jpeg';
+import rgbIcon from '@assets/rgb_1758504499788.png';
 
 // Logo Component
 const LogoIcon = () => (
@@ -504,18 +505,19 @@ export function Terminal() {
               </Button>
             </div>
             
-            {/* Theme Switcher */}
-            <div className="flex items-center space-x-2 px-3 py-1 border border-terminal-subtle rounded">
-              <span className="text-xs">THEME:</span>
-              <Button
-                onClick={switchTheme}
-                variant="ghost"
-                size="sm"
-                className="text-terminal-highlight hover:text-terminal-text transition-colors font-semibold h-auto p-0 text-xs"
-                data-testid="button-theme-toggle"
-              >
-                {currentTheme.toUpperCase()}
-              </Button>
+            {/* RGB Theme Switcher */}
+            <div 
+              onClick={switchTheme}
+              className="cursor-pointer p-2 rounded transition-all duration-300 hover:scale-110"
+              data-testid="button-theme-toggle"
+            >
+              <img 
+                src={rgbIcon}
+                alt="RGB Theme Switcher"
+                width="24"
+                height="24"
+                className="rgb-theme-icon"
+              />
             </div>
           </div>
         </header>
