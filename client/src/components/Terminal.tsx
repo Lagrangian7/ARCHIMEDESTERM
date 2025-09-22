@@ -14,7 +14,6 @@ import { TalkingArchimedes } from './TalkingArchimedes';
 import { ThinkingAnimation } from './ThinkingAnimation';
 import { MatrixRain } from './MatrixRain';
 import { RadioCharacter } from './RadioCharacter';
-import { DraggableResponse } from './DraggableResponse';
 import { ChatInterface } from './ChatInterface';
 import { PuzzleScreensaver } from './PuzzleScreensaver';
 import { SshwiftyInterface } from './SshwiftyInterface';
@@ -551,22 +550,17 @@ export function Terminal() {
                       <div className="text-terminal-highlight">
                         ARCHIMEDES v7 {entry.mode === 'technical' ? '(Technical Mode)' : '(Natural Chat Mode)'}:
                       </div>
-                      <DraggableResponse 
-                        isTyping={typingEntries.has(entry.id)} 
-                        entryId={entry.id}
+                      <div 
+                        className={`ml-4 mt-1 ${
+                          typingEntries.has(entry.id) ? 'typing' : 'whitespace-pre-wrap'
+                        }`}
+                        style={typingEntries.has(entry.id) ? {
+                          '--steps': entry.content.length,
+                          '--type-dur': `${Math.min(3000, Math.max(800, entry.content.length * 30))}ms`
+                        } as React.CSSProperties : undefined}
                       >
-                        <div 
-                          className={`ml-4 mt-1 ${
-                            typingEntries.has(entry.id) ? 'typing' : 'whitespace-pre-wrap'
-                          }`}
-                          style={typingEntries.has(entry.id) ? {
-                            '--steps': entry.content.length,
-                            '--type-dur': `${Math.min(3000, Math.max(800, entry.content.length * 30))}ms`
-                          } as React.CSSProperties : undefined}
-                        >
-                          {entry.content}
-                        </div>
-                      </DraggableResponse>
+                        {entry.content}
+                      </div>
                     </div>
                   )}
                   {(entry.type === 'system' || entry.type === 'error') && (
