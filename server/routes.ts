@@ -803,8 +803,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Brave API key not configured" });
       }
 
-      // Call Brave Search API
-      const response = await fetch(`https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(query.trim())}`, {
+      // Call Brave Search API with proper parameters
+      const searchParams = new URLSearchParams({
+        q: query.trim(),
+        count: '10',
+        country: 'us',
+        search_lang: 'en'
+      });
+
+      const response = await fetch(`https://api.search.brave.com/res/v1/web/search?${searchParams.toString()}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
