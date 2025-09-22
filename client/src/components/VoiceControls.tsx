@@ -75,7 +75,7 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
             >
               <SelectValue placeholder={voicesLoaded ? "Select voice..." : "Loading voices..."} />
             </SelectTrigger>
-            <SelectContent className="bg-terminal-bg border-terminal-subtle">
+            <SelectContent className="bg-terminal-bg border-terminal-subtle text-terminal-text">
               {voices.map((voice, index) => (
                 <SelectItem 
                   key={index} 
