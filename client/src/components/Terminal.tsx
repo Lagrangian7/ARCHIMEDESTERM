@@ -29,7 +29,7 @@ import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import terminalWatermark from '@assets/wally new_1757883178780.jpeg';
-import cubesIcon from '@assets/cubes_1758504853239.png';
+import cubesIcon from '@assets/cubes_1758505065526.png';
 
 // Logo Component
 const LogoIcon = () => (
