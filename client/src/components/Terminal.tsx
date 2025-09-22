@@ -29,7 +29,7 @@ import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import terminalWatermark from '@assets/wally new_1757883178780.jpeg';
-import rgbIcon from '@assets/rgb_1758504499788.png';
+import cubesIcon from '@assets/cubes_1758504853239.png';
 
 // Logo Component
 const LogoIcon = () => (
@@ -512,8 +512,8 @@ export function Terminal() {
               data-testid="button-theme-toggle"
             >
               <img 
-                src={rgbIcon}
-                alt="RGB Theme Switcher"
+                src={cubesIcon}
+                alt="Theme Switcher"
                 width="24"
                 height="24"
                 className="rgb-theme-icon"
