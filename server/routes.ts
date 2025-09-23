@@ -64,6 +64,7 @@ let playerLasers = [];
 let nyanCat = null;
 let rainbowTrails = [];
 let nyanCatBombs = [];
+let cityBlocks = [];
 let planetAngle = 0;
 let glowPulseAngle = 0;
 let level = 1;
@@ -101,11 +102,15 @@ const nyanCatBombProbability = 0.1;
 const pointsPerHit = 10;
 const blinkInterval = 30;
 const ufoHaloSize = 60;
+const cityBlockWidth = 40;
+const cityBlockHeight = 25;
+const numCityBlocks = 20;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   limbAnimationSpeed = TWO_PI / 20;
   spawnInvaders();
+  initializeCitySkyline();
   for (let i = 0; i < numStars; i++) {
     stars.push({
       x: random(-width, width),
@@ -124,6 +129,29 @@ function setup() {
         noiseSeedY: random(10000),
         noiseT: 0
       });
+    }
+  }
+}
+
+function initializeCitySkyline() {
+  cityBlocks = [];
+  let totalWidth = numCityBlocks * cityBlockWidth;
+  let startX = -totalWidth / 2;
+  let groundY = height / 2 - 80; // Position skyline above bottom of screen
+  
+  for (let i = 0; i < numCityBlocks; i++) {
+    for (let j = 0; j < 3; j++) { // 3 rows of buildings
+      let height = random(2, 6); // Random building heights
+      for (let k = 0; k < height; k++) {
+        cityBlocks.push({
+          x: startX + i * cityBlockWidth,
+          y: groundY - k * cityBlockHeight,
+          width: cityBlockWidth,
+          height: cityBlockHeight,
+          destroyed: false,
+          buildingId: i * 3 + j // Track which building this belongs to
+        });
+      }
     }
   }
 }
@@ -858,6 +886,18 @@ function draw() {
   text("Level: " + level, -width / 2 + 20, -height / 2 + 70);
   text("Invaders: " + invaders.length, -width / 2 + 20, -height / 2 + 100);
   
+  // Render city skyline
+  renderCitySkyline();
+  
+  // Check collision between enemy projectiles and skyline
+  checkSkylineCollisions();
+  
+  // Check if skyline is completely destroyed
+  if (isSkylineDestroyed()) {
+    gameOver();
+    return;
+  }
+
   fill(0, 255, 255);
   textSize(16);
   text("Click to shoot!", -width / 2 + 20, height / 2 - 20);
@@ -875,6 +915,120 @@ function draw() {
     }
     spawnInvaders();
   }
+}
+
+function renderCitySkyline() {
+  for (let block of cityBlocks) {
+    if (!block.destroyed) {
+      fill(100, 100, 200); // Blue-gray city color
+      stroke(150, 150, 255);
+      strokeWeight(1);
+      rect(block.x, block.y, block.width, block.height);
+      
+      // Add some building details
+      fill(255, 255, 100, 150); // Window lights
+      noStroke();
+      if (random() > 0.7) { // Random windows lit up
+        rect(block.x + 5, block.y + 5, 8, 6);
+      }
+      if (random() > 0.7) {
+        rect(block.x + 20, block.y + 5, 8, 6);
+      }
+    }
+  }
+}
+
+function checkSkylineCollisions() {
+  // Check UFO lasers hitting skyline
+  for (let i = ufoLasers.length - 1; i >= 0; i--) {
+    let laser = ufoLasers[i];
+    for (let j = cityBlocks.length - 1; j >= 0; j--) {
+      let block = cityBlocks[j];
+      if (!block.destroyed && 
+          laser.x > block.x && laser.x < block.x + block.width &&
+          laser.y > block.y && laser.y < block.y + block.height) {
+        destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
+        ufoLasers.splice(i, 1);
+        break;
+      }
+    }
+  }
+  
+  // Check invader lasers hitting skyline
+  for (let i = invaderLasers.length - 1; i >= 0; i--) {
+    let laser = invaderLasers[i];
+    for (let j = cityBlocks.length - 1; j >= 0; j--) {
+      let block = cityBlocks[j];
+      if (!block.destroyed && 
+          laser.x > block.x && laser.x < block.x + block.width &&
+          laser.y > block.y && laser.y < block.y + block.height) {
+        destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
+        invaderLasers.splice(i, 1);
+        break;
+      }
+    }
+  }
+  
+  // Check nyan cat bombs hitting skyline
+  for (let i = nyanCatBombs.length - 1; i >= 0; i--) {
+    let bomb = nyanCatBombs[i];
+    for (let j = cityBlocks.length - 1; j >= 0; j--) {
+      let block = cityBlocks[j];
+      if (!block.destroyed && 
+          bomb.x > block.x && bomb.x < block.x + block.width &&
+          bomb.y > block.y && bomb.y < block.y + block.height) {
+        destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
+        nyanCatBombs.splice(i, 1);
+        break;
+      }
+    }
+  }
+}
+
+function destroySkylineBlock(blockIndex, explosionX, explosionY) {
+  cityBlocks[blockIndex].destroyed = true;
+  
+  // Create explosion particles
+  for (let i = 0; i < 20; i++) {
+    particles.push({
+      x: explosionX,
+      y: explosionY,
+      vx: random(-4, 4),
+      vy: random(-4, 4),
+      lifetime: 40
+    });
+  }
+}
+
+function isSkylineDestroyed() {
+  return cityBlocks.every(block => block.destroyed);
+}
+
+function gameOver() {
+  fill(255, 0, 0);
+  textSize(32);
+  textAlign(CENTER);
+  text("CITY DESTROYED!", 0, -50);
+  text("GAME OVER", 0, 0);
+  text("Restarting...", 0, 50);
+  
+  // Reset game after 3 seconds
+  setTimeout(() => {
+    level = 1;
+    score = 0;
+    pattern = 'wheel';
+    invaders = [];
+    particles = [];
+    ufoLasers = [];
+    invaderLasers = [];
+    playerLasers = [];
+    nyanCatBombs = [];
+    ufo = null;
+    nyanCat = null;
+    rainbowTrails = [];
+    initializeCitySkyline();
+    spawnInvaders();
+  }, 3000);
 }
 
 function mousePressed() {
