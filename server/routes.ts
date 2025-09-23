@@ -1401,6 +1401,38 @@ function playExplosionSound() {
   rumbleOsc.stop(audioContext.currentTime + 0.3);
 }
 
+// Soundtrack playlist for the game
+let soundtrackPlaylist = [
+  '/attached_assets/Great Boss_1758644959042.ogg',
+  '/attached_assets/n-Dimensions (Main Theme)_1758647261911.mp3'
+];
+let currentTrackIndex = 0;
+
+function playNextTrack() {
+  // Add some randomization - 70% chance to cycle to next track, 30% chance to pick random
+  if (Math.random() < 0.7) {
+    // Cycle to next track in playlist
+    currentTrackIndex = (currentTrackIndex + 1) % soundtrackPlaylist.length;
+  } else {
+    // Pick a random track (but different from current)
+    let newIndex = currentTrackIndex;
+    while (newIndex === currentTrackIndex && soundtrackPlaylist.length > 1) {
+      newIndex = Math.floor(Math.random() * soundtrackPlaylist.length);
+    }
+    currentTrackIndex = newIndex;
+  }
+  
+  console.log('Playing next track:', soundtrackPlaylist[currentTrackIndex]);
+  
+  // Load and play the next track
+  if (backgroundMusic) {
+    backgroundMusic.pause();
+    backgroundMusic = null;
+  }
+  
+  startBackgroundMusic();
+}
+
 function startBackgroundMusic() {
   if (backgroundMusic) {
     // If music already exists but is paused, restart it
@@ -1414,9 +1446,13 @@ function startBackgroundMusic() {
   }
   
   try {
-    backgroundMusic = new Audio('/attached_assets/Great Boss_1758644959042.ogg');
+    // Load current track from playlist
+    backgroundMusic = new Audio(soundtrackPlaylist[currentTrackIndex]);
     backgroundMusic.volume = 0.4; // Set volume to 40%
-    backgroundMusic.loop = true; // Loop the music
+    backgroundMusic.loop = false; // Don't loop individual tracks
+    
+    // Set up event listener to play next track when current one ends
+    backgroundMusic.addEventListener('ended', playNextTrack);
     
     // Try to play immediately, but handle autoplay restrictions
     const playPromise = backgroundMusic.play();
@@ -1436,6 +1472,7 @@ function stopBackgroundMusic() {
   if (backgroundMusic) {
     backgroundMusic.pause();
     backgroundMusic.currentTime = 0;
+    backgroundMusic.removeEventListener('ended', playNextTrack);
     backgroundMusic = null;
   }
 }
@@ -1575,6 +1612,13 @@ function gameOver() {
     rainbowTrails = [];
     initializeCitySkyline();
     spawnInvaders();
+    
+    // Occasionally start with a different track on game restart (30% chance)
+    if (Math.random() < 0.3) {
+      currentTrackIndex = Math.floor(Math.random() * soundtrackPlaylist.length);
+      console.log('Game restart: Starting with track', currentTrackIndex);
+    }
+    
     // Restart background music
     startBackgroundMusic();
   }, 3000);
