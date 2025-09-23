@@ -70,6 +70,8 @@ let glowPulseAngle = 0;
 let level = 1;
 let pattern = 'wheel';
 let score = 0;
+let audioContext;
+let ufoOscillator = null;
 let limbAnimationSpeed;
 let limbAnimationAmplitude = 2;
 const baseNumInvaders = 5;
@@ -112,6 +114,9 @@ function setup() {
   limbAnimationSpeed = TWO_PI / 20;
   spawnInvaders();
   initializeCitySkyline();
+  
+  // Initialize Web Audio API
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
   for (let i = 0; i < numStars; i++) {
     stars.push({
       x: random(-width, width),
@@ -229,6 +234,9 @@ function spawnUfo() {
     speed: startLeft ? ufoSpeed : -ufoSpeed,
     active: true
   };
+  
+  // Start UFO humming sound
+  startUfoHum();
 }
 
 function spawnNyanCat() {
@@ -240,6 +248,9 @@ function spawnNyanCat() {
     speed: startLeft ? nyanCatSpeed : -nyanCatSpeed,
     active: true
   };
+  
+  // Play Nyan Cat sound
+  playNyanCatSound();
 }
 
 function getLevelModifiers() {
@@ -606,6 +617,7 @@ function draw() {
   if (ufo && ufo.active) {
     ufo.x += ufo.speed;
     if (ufo.x < -width / 2 - 50 || ufo.x > width / 2 + 50) {
+      stopUfoHum();
       ufo = null;
     } else {
       if (random() < ufoFireProbability) {
@@ -616,6 +628,7 @@ function draw() {
           vx: cos(angle) * ufoLaserSpeed,
           vy: sin(angle) * ufoLaserSpeed
         });
+        playEnemyLaserSound();
       }
       push();
       translate(ufo.x, ufo.y);
@@ -704,6 +717,7 @@ function draw() {
         y: y + 10,
         vy: 3
       });
+      playEnemyLaserSound();
     }
     
     push();
@@ -999,6 +1013,104 @@ function renderTurrets() {
   noStroke();
 }
 
+function playLaserSound() {
+  if (!audioContext) return;
+  
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  // Laser sound: high-pitched zap that drops in frequency
+  oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.15);
+  
+  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+  
+  oscillator.type = 'sawtooth';
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.15);
+}
+
+function startUfoHum() {
+  if (!audioContext || ufoOscillator) return;
+  
+  ufoOscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  ufoOscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  // UFO hum: low-frequency oscillating drone
+  ufoOscillator.frequency.setValueAtTime(60, audioContext.currentTime);
+  gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+  
+  ufoOscillator.type = 'sine';
+  ufoOscillator.start(audioContext.currentTime);
+  
+  // Modulate the frequency for that classic UFO wobble
+  const lfo = audioContext.createOscillator();
+  const lfoGain = audioContext.createGain();
+  lfo.connect(lfoGain);
+  lfoGain.connect(ufoOscillator.frequency);
+  lfo.frequency.value = 3; // 3Hz wobble
+  lfoGain.gain.value = 10; // Frequency modulation depth
+  lfo.start();
+}
+
+function stopUfoHum() {
+  if (ufoOscillator) {
+    ufoOscillator.stop();
+    ufoOscillator = null;
+  }
+}
+
+function playNyanCatSound() {
+  if (!audioContext) return;
+  
+  // Play a cute cat-like meow sound
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  // Cat meow: starts high, dips down, then back up
+  oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+  oscillator.frequency.exponentialRampToValueAtTime(350, audioContext.currentTime + 0.3);
+  
+  gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+  
+  oscillator.type = 'triangle';
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.3);
+}
+
+function playEnemyLaserSound() {
+  if (!audioContext) return;
+  
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  // Enemy laser: deeper, more menacing sound
+  oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.2);
+  
+  gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+  
+  oscillator.type = 'square';
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.2);
+}
+
 function createMuzzleBlast(x, y) {
   // Create bright muzzle flash particles
   for (let i = 0; i < 15; i++) {
@@ -1151,6 +1263,9 @@ function mousePressed() {
   // Create muzzle blast effects at turret positions
   createMuzzleBlast(leftTurretX, cannonY);
   createMuzzleBlast(rightTurretX, cannonY);
+  
+  // Play laser firing sound
+  playLaserSound();
   
   // Create two high-visibility lasers from turret cannons
   playerLasers.push({
