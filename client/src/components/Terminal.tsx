@@ -30,6 +30,7 @@ import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageS
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import terminalWatermark from '@assets/wally new_1757883178780.jpeg';
 import cubesIcon from '@assets/cubes_1758505065526.png';
+import invadersIcon from '@assets/invaders_1758659503566.png';
 
 // Logo Component
 const LogoIcon = () => (
@@ -497,7 +498,7 @@ export function Terminal() {
                     data-testid="button-spacewars"
                     title="Launch SPACEWAR Game"
                   >
-                    <Gamepad2 size={14} className="mr-1" />
+                    <img src={invadersIcon} alt="Space Invaders" className="w-3.5 h-3.5 mr-1" />
                     SPACEWAR
                   </Button>
                 </>
