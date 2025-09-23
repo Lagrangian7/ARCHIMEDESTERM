@@ -735,10 +735,10 @@ function draw() {
       continue;
     }
     
-    // Draw the laser
+    // Draw the laser bolt
     fill(laser.color);
     noStroke();
-    ellipse(laser.x, laser.y, 6, 6);
+    ellipse(laser.x, laser.y, 4, 12); // Elongated laser bolt shape
     
     // Check collision with invaders
     const { spread } = getLevelModifiers();
@@ -865,26 +865,42 @@ function mousePressed() {
   let worldX = mouseX - width / 2;
   let worldY = mouseY - height / 2;
   
-  // Create a laser projectile from center of screen (first-person view) toward mouse position
-  let startX = 0;
-  let startY = 0;
+  // X-wing style firing: two lasers from left and right sides converging at target
+  let leftStartX = -width / 2 + 50;
+  let rightStartX = width / 2 - 50;
+  let startY = height / 2 - 100; // Slightly up from bottom like wing cannons
   
-  // Calculate direction vector
-  let dx = worldX - startX;
-  let dy = worldY - startY;
-  let distance = sqrt(dx * dx + dy * dy);
+  // Calculate direction vectors for both cannons to converge at mouse position
+  let leftDx = worldX - leftStartX;
+  let leftDy = worldY - startY;
+  let leftDistance = sqrt(leftDx * leftDx + leftDy * leftDy);
+  
+  let rightDx = worldX - rightStartX;
+  let rightDy = worldY - startY;
+  let rightDistance = sqrt(rightDx * rightDx + rightDy * rightDy);
   
   // Normalize and set speed
-  let speed = 10;
-  let vx = (dx / distance) * speed;
-  let vy = (dy / distance) * speed;
+  let speed = 12;
+  let leftVx = (leftDx / leftDistance) * speed;
+  let leftVy = (leftDy / leftDistance) * speed;
+  let rightVx = (rightDx / rightDistance) * speed;
+  let rightVy = (rightDy / rightDistance) * speed;
+  
+  // Create two lasers - left and right cannons
+  playerLasers.push({
+    x: leftStartX,
+    y: startY,
+    vx: leftVx,
+    vy: leftVy,
+    color: color(0, 255, 100)
+  });
   
   playerLasers.push({
-    x: startX,
+    x: rightStartX,
     y: startY,
-    vx: vx,
-    vy: vy,
-    color: color(0, 255, 255)
+    vx: rightVx,
+    vy: rightVy,
+    color: color(0, 255, 100)
   });
 }
 
