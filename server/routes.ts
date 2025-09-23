@@ -718,9 +718,18 @@ function draw() {
       ufoLasers.splice(i, 1);
       continue;
     }
-    fill(0, 255, 0);
-    noStroke();
-    rect(laser.x, laser.y, 5, 5);
+    // Subtle UFO laser: thin, semi-transparent cyan beam
+    stroke(0, 200, 200, 150); // Cyan with transparency
+    strokeWeight(1.5); // Thin laser beam
+    noFill();
+    
+    // Draw a thin laser line with slight glow
+    line(laser.x - 3, laser.y, laser.x + 3, laser.y);
+    
+    // Add subtle center core
+    stroke(100, 255, 255, 100); // Brighter cyan core, very subtle
+    strokeWeight(0.5);
+    point(laser.x, laser.y);
   }
 
   const { speed, spread } = getLevelModifiers();
