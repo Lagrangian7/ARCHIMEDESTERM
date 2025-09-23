@@ -403,8 +403,8 @@ const helpMenuItems: HelpMenuItem[] = [
   {
     id: 'invaders',
     category: 'Games',
-    title: 'Space Invaders',
-    description: 'Play Space Invaders with retro terminal graphics and dynamic movement patterns',
+    title: 'SPACEWAR',
+    description: 'Launch enhanced SPACEWAR game in new browser window featuring Nyan Cat, UFOs, and multiple invasion patterns',
     command: 'invaders',
     icon: <Gamepad2 size={16} />
   }

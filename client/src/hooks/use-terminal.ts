@@ -579,7 +579,7 @@ Audio & Signal Processing:
 Games:
   snake - Play the classic Snake game
   zork - Play ZORK: The Great Underground Empire
-  invaders - Play Space Invaders with retro terminal graphics
+  invaders - Launch SPACEWAR game in new browser window
   
 System Commands:
   privacy - Activate matrix rain privacy screen (type "QWERTY" to unlock)
