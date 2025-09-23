@@ -70,27 +70,15 @@ const blinkInterval = 30;
 const ufoHaloSize = 60;
 
 function getRandomInvaderColor() {
-  // Random bright colors for each individual invader
+  // Four primary colors: Red, Green, Blue, Yellow with highlights
   let colors = [
-    color(0, 255, 0),      // Bright Green
-    color(0, 100, 255),    // Blue
-    color(255, 50, 50),    // Red
-    color(255, 0, 255),    // Magenta
-    color(255, 165, 0),    // Orange
-    color(0, 255, 255),    // Cyan
-    color(255, 255, 0),    // Yellow
-    color(255, 105, 180),  // Hot Pink
-    color(128, 0, 255),    // Purple
-    color(150, 255, 0),    // Lime Green
-    color(255, 20, 147),   // Deep Pink
-    color(30, 144, 255),   // Dodger Blue
-    color(255, 69, 0),     // Red Orange
-    color(0, 255, 127),    // Spring Green
-    color(148, 0, 211),    // Dark Violet
-    color(255, 215, 0)     // Gold
+    color(255, 0, 0),      // Red
+    color(0, 255, 0),      // Green  
+    color(0, 0, 255),      // Blue
+    color(255, 255, 0)     // Yellow
   ];
   
-  // Return a random color from the palette
+  // Return a random color from the four primary colors
   return colors[floor(random(colors.length))];
 }
 
@@ -675,6 +663,12 @@ function draw() {
       rect(10, -10 + limbOffset, 5, 5);
       rect(-5, 10 + limbOffset, 5, 5);
       rect(5, 10 + limbOffset, 5, 5);
+      // Add bright highlights
+      fill(255, 255, 255, 180);
+      rect(-10, -12 + limbOffset, 2, 1);
+      rect(10, -12 + limbOffset, 2, 1);
+      rect(-5, 8 + limbOffset, 2, 1);
+      rect(5, 8 + limbOffset, 2, 1);
       if (frameCount % (2 * blinkInterval) < blinkInterval) {
         fill(0, 255, 0);
         rect(-5, -2, 3, 3);
@@ -687,6 +681,12 @@ function draw() {
       rect(15 - limbOffset, 0, 5, 5);
       rect(-10, 10 + limbOffset, 5, 5);
       rect(10, 10 + limbOffset, 5, 5);
+      // Add bright highlights
+      fill(255, 255, 255, 180);
+      rect(-15 + limbOffset, -2, 2, 1);
+      rect(15 - limbOffset, -2, 2, 1);
+      rect(-10, 8 + limbOffset, 2, 1);
+      rect(10, 8 + limbOffset, 2, 1);
       if (frameCount % (2 * blinkInterval) < blinkInterval) {
         fill(0, 255, 0);
         rect(-5, 0, 3, 3);
@@ -697,6 +697,10 @@ function draw() {
       rect(0, 0, 20, 20);
       rect(-10, 10 + limbOffset, 5, 5);
       rect(10, 10 + limbOffset, 5, 5);
+      // Add bright highlights
+      fill(255, 255, 255, 180);
+      rect(-10, 8 + limbOffset, 2, 1);
+      rect(10, 8 + limbOffset, 2, 1);
       fill(0);
       rect(-5, -2, 4, 4);
       rect(5, -2, 4, 4);
@@ -715,7 +719,12 @@ function draw() {
       invaderLasers.splice(i, 1);
       continue;
     }
-    fill(255, 0, 0);
+    // Turret lasers transition from blue to green based on position
+    let blueToGreen = map(laser.y, -height/2, height/2, 1, 0);
+    let red = 0;
+    let green = 255 * (1 - blueToGreen);
+    let blue = 255 * blueToGreen;
+    fill(red, green, blue);
     noStroke();
     rect(laser.x, laser.y, 3, 8);
   }
