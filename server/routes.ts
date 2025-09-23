@@ -1410,11 +1410,11 @@ function playEnemyLaserSound() {
   oscillator.connect(gainNode);
   gainNode.connect(audioContext.destination);
   
-  // Enemy laser: deeper, more menacing sound
+  // Enemy laser: deeper, more menacing sound, but quieter
   oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
   oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.2);
   
-  gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+  gainNode.gain.setValueAtTime(0.12, audioContext.currentTime); // Reduced from 0.25 to 0.12
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
   
   oscillator.type = 'square';
