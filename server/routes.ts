@@ -102,9 +102,9 @@ const nyanCatBombProbability = 0.1;
 const pointsPerHit = 10;
 const blinkInterval = 30;
 const ufoHaloSize = 60;
-const cityBlockWidth = 40;
-const cityBlockHeight = 25;
-const numCityBlocks = 20;
+const cityBlockWidth = 30;
+const cityBlockHeight = 20;
+const numCityBlocks = 35;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -140,18 +140,16 @@ function initializeCitySkyline() {
   let groundY = height / 2 - 80; // Position skyline above bottom of screen
   
   for (let i = 0; i < numCityBlocks; i++) {
-    for (let j = 0; j < 3; j++) { // 3 rows of buildings
-      let height = random(2, 6); // Random building heights
-      for (let k = 0; k < height; k++) {
-        cityBlocks.push({
-          x: startX + i * cityBlockWidth,
-          y: groundY - k * cityBlockHeight,
-          width: cityBlockWidth,
-          height: cityBlockHeight,
-          destroyed: false,
-          buildingId: i * 3 + j // Track which building this belongs to
-        });
-      }
+    let buildingHeight = random(3, 8); // Random building heights
+    for (let k = 0; k < buildingHeight; k++) {
+      cityBlocks.push({
+        x: startX + i * cityBlockWidth,
+        y: groundY - k * cityBlockHeight,
+        width: cityBlockWidth,
+        height: cityBlockHeight,
+        destroyed: false,
+        buildingId: i // Track which building this belongs to
+      });
     }
   }
 }
@@ -924,18 +922,41 @@ function renderCitySkyline() {
       stroke(150, 150, 255);
       strokeWeight(1);
       rect(block.x, block.y, block.width, block.height);
-      
-      // Add some building details
-      fill(255, 255, 100, 150); // Window lights
-      noStroke();
-      if (random() > 0.7) { // Random windows lit up
-        rect(block.x + 5, block.y + 5, 8, 6);
-      }
-      if (random() > 0.7) {
-        rect(block.x + 20, block.y + 5, 8, 6);
-      }
     }
   }
+  
+  // Render turrets on the sides
+  renderTurrets();
+}
+
+function renderTurrets() {
+  let groundY = height / 2 - 80;
+  let leftTurretX = -width / 2 + 30;
+  let rightTurretX = width / 2 - 70;
+  
+  // Left turret
+  fill(80, 80, 120);
+  stroke(120, 120, 180);
+  strokeWeight(2);
+  rect(leftTurretX, groundY - 40, 40, 40); // Base
+  fill(60, 60, 100);
+  rect(leftTurretX + 10, groundY - 50, 20, 15); // Cannon mount
+  stroke(255, 100, 100);
+  strokeWeight(4);
+  line(leftTurretX + 20, groundY - 42, leftTurretX + 35, groundY - 47); // Cannon barrel
+  
+  // Right turret
+  fill(80, 80, 120);
+  stroke(120, 120, 180);
+  strokeWeight(2);
+  rect(rightTurretX, groundY - 40, 40, 40); // Base
+  fill(60, 60, 100);
+  rect(rightTurretX + 10, groundY - 50, 20, 15); // Cannon mount
+  stroke(255, 100, 100);
+  strokeWeight(4);
+  line(rightTurretX + 20, groundY - 42, rightTurretX + 5, groundY - 47); // Cannon barrel
+  
+  noStroke();
 }
 
 function checkSkylineCollisions() {
