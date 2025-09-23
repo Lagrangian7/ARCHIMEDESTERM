@@ -1,52 +1,21 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Retro Terminal Space Invaders with Nyan Cat</title>
+  <title>SPACEWAR - Retro Terminal Game</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
   <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      overflow: hidden;
+      cursor: crosshair;
+    }
     canvas {
-      cursor: crosshair; /* Set cursor to crosshair for shooting */
+      display: block;
+      cursor: crosshair;
     }
   </style>
 </head>
@@ -307,10 +276,10 @@ function draw() {
     let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude - jitterAmplitude / 2;
     let sx = ((invader.x + jitterX) / invader.z) * 200;
     let sy = ((invader.y + jitterY) / invader.z) * 200;
-    let scaleFactor = 200 / invader.z; // Renamed to avoid shadowing p5.js scale()
+    let scaleFactor = 200 / invader.z;
     push();
     translate(sx, sy);
-    scale(scaleFactor); // Use p5.js scale() with scaleFactor
+    scale(scaleFactor);
     let glowAlpha = map(sin(glowPulseAngle), -1, 1, 50, 100);
     fill(0, 255, 0, glowAlpha);
     noStroke();
@@ -600,78 +569,6 @@ function draw() {
     fill(0, 255, 0);
     noStroke();
     rect(laser.x, laser.y, 5, 5);
-    const { spread } = getLevelModifiers();
-    for (let j = invaders.length - 1; j >= 0; j--) {
-      let invader = invaders[j];
-      let x, y;
-      if (invader.pattern === 'wheel') {
-        let baseX = cos(invader.angle) * (baseWheelRadius * spread);
-        let baseY = sin(invader.angle) * (baseWheelRadius * spread);
-        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        x = baseX + jitterX;
-        y = baseY + jitterY;
-      } else if (invader.pattern === 'rectangle') {
-        let pos = getRectangularPosition(invader.t, spread);
-        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        x = pos.x + jitterX;
-        y = pos.y + jitterY;
-      } else if (invader.pattern === 'figure8') {
-        let pos = getFigure8Position(invader.t, spread);
-        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        x = pos.x + jitterX;
-        y = pos.y + jitterY;
-      } else {
-        let pos = getCombinedPosition(invader.t, spread);
-        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        x = pos.x + jitterX;
-        y = pos.y + jitterY;
-      }
-      let mouseXWorld = mouseX - width / 2;
-      let mouseYWorld = mouseY - height / 2;
-      let dx = x - mouseXWorld;
-      let dy = y - mouseYWorld;
-      let distance = sqrt(dx * dx + dy * dy);
-      if (distance < avoidanceRadius && distance > 0) {
-        let avoidX = (dx / distance) * avoidanceStrength;
-        let avoidY = (dy / distance) * avoidanceStrength;
-        let avoidMag = sqrt(avoidX * avoidX + avoidY * avoidY);
-        if (avoidMag > maxAvoidanceSpeed) {
-          avoidX = (avoidX / avoidMag) * maxAvoidanceSpeed;
-          avoidY = (avoidY / avoidMag) * maxAvoidanceSpeed;
-        }
-        x += avoidX;
-        y += avoidY;
-      }
-      if (laser.x > x - 15 && laser.x < x + 15 && laser.y > y - 15 && laser.y < y + 15) {
-        if (random() < 0.3) {
-          let newInvader = {...invader};
-          newInvader.angle = invader.angle + random(-0.1, 0.1);
-          newInvader.t = invader.t + random(-0.05, 0.05);
-          newInvader.noiseSeedX = random(10000);
-          newInvader.noiseSeedY = random(10000);
-          newInvader.noiseT = 0;
-          invaders.push(newInvader);
-        } else {
-          for (let k = 0; k < 20; k++) {
-            particles.push({
-              x: x,
-              y: y,
-              vx: random(-2, 2),
-              vy: random(-2, 2),
-              lifetime: 25
-            });
-          }
-          invaders.splice(j, 1);
-        }
-        ufoLasers.splice(i, 1);
-        score += pointsPerHit;
-        break;
-      }
-    }
   }
 
   const { speed, spread } = getLevelModifiers();
