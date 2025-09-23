@@ -1,4 +1,6 @@
 import type { Express } from "express";
+import express from "express";
+import path from "path";
 import { createServer, type Server } from "http";
 import https from "https";
 import { storage } from "./storage";
@@ -27,6 +29,9 @@ import signature from 'cookie-signature';
 import { getSession } from './replitAuth';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Serve attached assets (for soundtrack and other user files)
+  app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
   
   // SPACEWAR game endpoint (must be BEFORE Vite middleware to avoid processing)
   app.get('/spacewar.html', (req, res) => {
@@ -72,6 +77,7 @@ let pattern = 'wheel';
 let score = 0;
 let audioContext;
 let ufoOscillator = null;
+let backgroundMusic = null;
 let limbAnimationSpeed;
 let limbAnimationAmplitude = 2;
 const baseNumInvaders = 5;
@@ -117,6 +123,9 @@ function setup() {
   
   // Initialize Web Audio API
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+  // Start background music
+  startBackgroundMusic();
   for (let i = 0; i < numStars; i++) {
     stars.push({
       x: random(-width, width),
@@ -1225,6 +1234,29 @@ function playExplosionSound() {
   rumbleOsc.stop(audioContext.currentTime + 0.3);
 }
 
+function startBackgroundMusic() {
+  if (backgroundMusic) return; // Already playing
+  
+  try {
+    backgroundMusic = new Audio('/attached_assets/Great Boss_1758644959042.ogg');
+    backgroundMusic.volume = 0.4; // Set volume to 40%
+    backgroundMusic.loop = true; // Loop the music
+    backgroundMusic.play().catch(error => {
+      console.log('Background music failed to play:', error);
+    });
+  } catch (error) {
+    console.log('Failed to load background music:', error);
+  }
+}
+
+function stopBackgroundMusic() {
+  if (backgroundMusic) {
+    backgroundMusic.pause();
+    backgroundMusic.currentTime = 0;
+    backgroundMusic = null;
+  }
+}
+
 function createMuzzleBlast(x, y) {
   // Create bright muzzle flash particles
   for (let i = 0; i < 15; i++) {
@@ -1323,6 +1355,9 @@ function isSkylineDestroyed() {
 }
 
 function gameOver() {
+  // Stop background music
+  stopBackgroundMusic();
+  
   fill(255, 0, 0);
   textSize(32);
   textAlign(CENTER);
