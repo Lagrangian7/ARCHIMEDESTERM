@@ -1235,15 +1235,31 @@ function playExplosionSound() {
 }
 
 function startBackgroundMusic() {
-  if (backgroundMusic) return; // Already playing
+  if (backgroundMusic) {
+    // If music already exists but is paused, restart it
+    if (backgroundMusic.paused) {
+      backgroundMusic.currentTime = 0;
+      backgroundMusic.play().catch(error => {
+        console.log('Background music failed to restart:', error);
+      });
+    }
+    return; // Already playing
+  }
   
   try {
     backgroundMusic = new Audio('/attached_assets/Great Boss_1758644959042.ogg');
     backgroundMusic.volume = 0.4; // Set volume to 40%
     backgroundMusic.loop = true; // Loop the music
-    backgroundMusic.play().catch(error => {
-      console.log('Background music failed to play:', error);
-    });
+    
+    // Try to play immediately, but handle autoplay restrictions
+    const playPromise = backgroundMusic.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
+        console.log('Background music failed to play (autoplay restriction):', error);
+        // Store music object so it can play on first user interaction
+      });
+    }
   } catch (error) {
     console.log('Failed to load background music:', error);
   }
@@ -1381,10 +1397,17 @@ function gameOver() {
     rainbowTrails = [];
     initializeCitySkyline();
     spawnInvaders();
+    // Restart background music
+    startBackgroundMusic();
   }, 3000);
 }
 
 function mousePressed() {
+  // Start background music on first user interaction (for autoplay policy)
+  if (backgroundMusic && backgroundMusic.paused) {
+    startBackgroundMusic();
+  }
+  
   // Convert screen coordinates to world coordinates
   let worldX = mouseX - width / 2;
   let worldY = mouseY - height / 2;
