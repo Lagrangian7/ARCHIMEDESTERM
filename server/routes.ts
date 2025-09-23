@@ -380,6 +380,12 @@ function getCombinedPosition(t, spread) {
 function draw() {
   background(0);
   
+  // Draw title at the top in big bold letters
+  fill(0, 255, 0); // Terminal green
+  textAlign(CENTER, TOP);
+  textSize(48); // Big title
+  text('SPACEWAR', width / 2, 20);
+  
   if (frameCount % ufoSpawnInterval === 0) {
     spawnUfo();
   }
