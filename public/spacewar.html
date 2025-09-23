@@ -73,22 +73,30 @@ const ufoHaloSize = 60;
 function generateRandomColorScheme() {
   // Generate a random color scheme for the current level
   let schemes = [
-    // Green variations
-    () => color(0, random(100, 255), random(0, 100)),
-    // Blue variations
-    () => color(random(0, 100), random(100, 255), random(150, 255)),
-    // Red variations
-    () => color(random(150, 255), random(0, 100), random(0, 100)),
-    // Purple variations
-    () => color(random(100, 255), random(0, 100), random(150, 255)),
-    // Orange variations
-    () => color(random(200, 255), random(100, 200), random(0, 50)),
-    // Cyan variations
-    () => color(random(0, 100), random(150, 255), random(150, 255)),
-    // Yellow variations
-    () => color(random(200, 255), random(200, 255), random(0, 100)),
-    // Pink variations
-    () => color(random(200, 255), random(100, 200), random(150, 255))
+    // Bright Green (classic) with variations
+    () => color(random(0, 50), random(200, 255), random(30, 80)),
+    // Electric Blue with variations
+    () => color(random(0, 50), random(80, 150), random(200, 255)),
+    // Hot Red with variations
+    () => color(random(200, 255), random(30, 80), random(30, 80)),
+    // Neon Purple with variations
+    () => color(random(150, 255), random(30, 80), random(200, 255)),
+    // Orange Fire with variations
+    () => color(random(200, 255), random(100, 180), random(0, 50)),
+    // Cyan Electric with variations
+    () => color(random(0, 50), random(200, 255), random(150, 220)),
+    // Bright Yellow with variations
+    () => color(random(200, 255), random(200, 255), random(30, 80)),
+    // Hot Pink with variations
+    () => color(random(200, 255), random(30, 80), random(100, 180)),
+    // Lime Green with variations
+    () => color(random(100, 180), random(200, 255), random(0, 50)),
+    // Deep Purple with variations
+    () => color(random(100, 180), random(0, 50), random(200, 255)),
+    // Turquoise with variations
+    () => color(random(30, 80), random(200, 255), random(200, 255)),
+    // Magenta with variations
+    () => color(random(200, 255), random(0, 50), random(100, 180))
   ];
   
   // Pick a random scheme and return the generator function
