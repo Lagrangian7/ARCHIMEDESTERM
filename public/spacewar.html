@@ -36,6 +36,7 @@ let glowPulseAngle = 0;
 let level = 1;
 let pattern = 'wheel';
 let score = 0;
+let levelColorScheme = null;
 let limbAnimationSpeed;
 let limbAnimationAmplitude = 2;
 const baseNumInvaders = 5;
@@ -69,9 +70,35 @@ const pointsPerHit = 10;
 const blinkInterval = 30;
 const ufoHaloSize = 60;
 
+function generateRandomColorScheme() {
+  // Generate a random color scheme for the current level
+  let schemes = [
+    // Green variations
+    () => color(0, random(100, 255), random(0, 100)),
+    // Blue variations
+    () => color(random(0, 100), random(100, 255), random(150, 255)),
+    // Red variations
+    () => color(random(150, 255), random(0, 100), random(0, 100)),
+    // Purple variations
+    () => color(random(100, 255), random(0, 100), random(150, 255)),
+    // Orange variations
+    () => color(random(200, 255), random(100, 200), random(0, 50)),
+    // Cyan variations
+    () => color(random(0, 100), random(150, 255), random(150, 255)),
+    // Yellow variations
+    () => color(random(200, 255), random(200, 255), random(0, 100)),
+    // Pink variations
+    () => color(random(200, 255), random(100, 200), random(150, 255))
+  ];
+  
+  // Pick a random scheme and return the generator function
+  return schemes[floor(random(schemes.length))];
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   limbAnimationSpeed = TWO_PI / 20;
+  levelColorScheme = generateRandomColorScheme();
   spawnInvaders();
   for (let i = 0; i < numStars; i++) {
     stars.push({
@@ -110,7 +137,7 @@ function spawnInvaders() {
       let angle = (TWO_PI / numInvaders) * i;
       invaders.push({
         angle: angle,
-        color: color(0, random(100, 200), 0),
+        color: levelColorScheme(),
         type: i % 3,
         pattern: 'wheel',
         noiseSeedX: random(10000),
@@ -123,7 +150,7 @@ function spawnInvaders() {
       let t = (1 / numInvaders) * i;
       invaders.push({
         t: t,
-        color: color(0, random(100, 200), 0),
+        color: levelColorScheme(),
         type: i % 3,
         pattern: 'rectangle',
         noiseSeedX: random(10000),
@@ -136,7 +163,7 @@ function spawnInvaders() {
       let t = (1 / numInvaders) * i;
       invaders.push({
         t: t,
-        color: color(0, random(100, 200), 0),
+        color: levelColorScheme(),
         type: i % 3,
         pattern: 'figure8',
         noiseSeedX: random(10000),
@@ -149,7 +176,7 @@ function spawnInvaders() {
       let t = (1 / numInvaders) * i;
       invaders.push({
         t: t,
-        color: color(0, random(100, 200), 0),
+        color: levelColorScheme(),
         type: i % 3,
         pattern: 'combined',
         noiseSeedX: random(10000),
@@ -710,6 +737,24 @@ function draw() {
   
   if (invaders.length === 0) {
     level++;
+    
+    // Game ends at level 42
+    if (level > 42) {
+      fill(0, 255, 0);
+      textSize(48);
+      textAlign(CENTER, CENTER);
+      text("GAME COMPLETE!", 0, -50);
+      text("THE ANSWER TO EVERYTHING!", 0, 0);
+      text(`Final Score: ${score}`, 0, 50);
+      textSize(24);
+      text("Refresh to play again", 0, 100);
+      noLoop(); // Stop the game
+      return;
+    }
+    
+    // Generate new color scheme for each level
+    levelColorScheme = generateRandomColorScheme();
+    
     if (level <= 4) {
       pattern = 'wheel';
     } else if (level <= 8) {
