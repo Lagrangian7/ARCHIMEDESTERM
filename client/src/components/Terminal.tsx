@@ -498,8 +498,7 @@ export function Terminal() {
                     data-testid="button-spacewars"
                     title="Launch SPACEWAR Game"
                   >
-                    <img src={invadersIcon} alt="Space Invaders" className="w-3.5 h-3.5 mr-1" />
-                    SPACEWAR
+                    <img src={invadersIcon} alt="SPACEWAR" className="h-4" />
                   </Button>
                 </>
               ) : (
