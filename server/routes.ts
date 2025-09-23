@@ -1044,8 +1044,8 @@ function draw() {
 function renderCitySkyline() {
   for (let block of cityBlocks) {
     if (!block.destroyed) {
-      fill(100, 100, 200); // Blue-gray city color
-      stroke(150, 150, 255);
+      fill(60, 60, 60); // Dark grey city color
+      stroke(80, 80, 80);
       strokeWeight(1);
       rect(block.x, block.y, block.width, block.height);
     }
