@@ -579,7 +579,7 @@ Audio & Signal Processing:
 Games:
   snake - Play the classic Snake game
   zork - Play ZORK: The Great Underground Empire
-  invaders - Launch SPACEWAR game in new browser window
+  spacewars - Launch SPACEWAR game in new browser window
   
 System Commands:
   privacy - Activate matrix rain privacy screen (type "QWERTY" to unlock)
@@ -1389,7 +1389,7 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       return;
     }
 
-    if (cmd === 'invaders') {
+    if (cmd === 'spacewars') {
       addEntry('system', 'Launching SPACEWAR in new window...');
       try {
         const gameWindow = window.open('/spacewar.html', '_blank', 'width=1200,height=800,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no');
