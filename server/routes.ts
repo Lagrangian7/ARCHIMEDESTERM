@@ -606,6 +606,10 @@ function draw() {
             lifetime: 25
           });
         }
+        
+        // Play explosion sound
+        playExplosionSound();
+        
         invaders.splice(j, 1);
         nyanCatBombs.splice(i, 1);
         score += pointsPerHit;
@@ -888,6 +892,9 @@ function draw() {
           });
         }
         
+        // Play explosion sound
+        playExplosionSound();
+        
         // Remove invader and laser
         invaders.splice(j, 1);
         playerLasers.splice(i, 1);
@@ -1111,6 +1118,57 @@ function playEnemyLaserSound() {
   oscillator.stop(audioContext.currentTime + 0.2);
 }
 
+function playExplosionSound() {
+  if (!audioContext) return;
+  
+  // Create white noise for explosion base
+  const bufferSize = audioContext.sampleRate * 0.4; // 0.4 seconds
+  const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+  const data = buffer.getChannelData(0);
+  
+  // Generate white noise
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  
+  const noiseSource = audioContext.createBufferSource();
+  noiseSource.buffer = buffer;
+  
+  // Create filter for shaping the explosion
+  const filter = audioContext.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(800, audioContext.currentTime);
+  filter.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.4);
+  
+  // Create gain envelope for explosion
+  const gainNode = audioContext.createGain();
+  gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+  
+  // Connect the nodes
+  noiseSource.connect(filter);
+  filter.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  // Add low-frequency rumble
+  const rumbleOsc = audioContext.createOscillator();
+  const rumbleGain = audioContext.createGain();
+  
+  rumbleOsc.frequency.setValueAtTime(60, audioContext.currentTime);
+  rumbleOsc.frequency.exponentialRampToValueAtTime(20, audioContext.currentTime + 0.3);
+  rumbleGain.gain.setValueAtTime(0.3, audioContext.currentTime);
+  rumbleGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+  
+  rumbleOsc.connect(rumbleGain);
+  rumbleGain.connect(audioContext.destination);
+  
+  // Start the explosion
+  noiseSource.start(audioContext.currentTime);
+  noiseSource.stop(audioContext.currentTime + 0.4);
+  rumbleOsc.start(audioContext.currentTime);
+  rumbleOsc.stop(audioContext.currentTime + 0.3);
+}
+
 function createMuzzleBlast(x, y) {
   // Create bright muzzle flash particles
   for (let i = 0; i < 15; i++) {
@@ -1199,6 +1257,9 @@ function destroySkylineBlock(blockIndex, explosionX, explosionY) {
       lifetime: 40
     });
   }
+  
+  // Play explosion sound
+  playExplosionSound();
 }
 
 function isSkylineDestroyed() {
