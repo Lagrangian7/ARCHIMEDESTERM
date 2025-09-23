@@ -1390,12 +1390,16 @@ Free plan includes 100 monthly requests with end-of-day data.`);
     }
 
     if (cmd === 'invaders') {
-      addEntry('system', 'Launching Space Invaders...');
-      const openSpaceInvaders = (window as any).openSpaceInvaders;
-      if (openSpaceInvaders) {
-        openSpaceInvaders();
-      } else {
-        addEntry('error', 'Space Invaders game not available. Please ensure the game component is loaded.');
+      addEntry('system', 'Launching SPACEWAR in new window...');
+      try {
+        const gameWindow = window.open('/spacewar.html', '_blank', 'width=1200,height=800,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no');
+        if (gameWindow) {
+          addEntry('system', 'SPACEWAR game launched successfully! Defend against the alien invasion!');
+        } else {
+          addEntry('error', 'Failed to open game window. Please check your browser popup settings.');
+        }
+      } catch (error) {
+        addEntry('error', 'Error launching SPACEWAR: Browser security restrictions may be blocking the popup.');
       }
       return;
     }
