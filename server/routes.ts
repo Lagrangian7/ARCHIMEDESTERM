@@ -77,6 +77,7 @@ let pattern = 'wheel';
 let score = 0;
 let audioContext;
 let ufoOscillator = null;
+let ufoAudio = null;
 let backgroundMusic = null;
 let limbAnimationSpeed;
 let limbAnimationAmplitude = 2;
@@ -290,6 +291,9 @@ function spawnUfo() {
   
   // Start UFO humming sound
   startUfoHum();
+  
+  // Start UFO sound effect (new WAV file)
+  startUfoSound();
 }
 
 function spawnNyanCat() {
@@ -675,6 +679,7 @@ function draw() {
     ufo.x += ufo.speed;
     if (ufo.x < -width / 2 - 50 || ufo.x > width / 2 + 50) {
       stopUfoHum();
+      stopUfoSound();
       ufo = null;
     } else {
       if (random() < ufoFireProbability) {
@@ -976,6 +981,9 @@ function draw() {
         
         // Stop UFO humming sound
         stopUfoHum();
+        
+        // Stop UFO sound effect
+        stopUfoSound();
         
         // Remove UFO and laser, award bonus points
         ufo = null;
@@ -1299,6 +1307,38 @@ function startUfoHum() {
   lfo.start();
 }
 
+function startUfoSound() {
+  if (ufoAudio) {
+    ufoAudio.pause();
+    ufoAudio = null;
+  }
+  
+  try {
+    ufoAudio = new Audio('/attached_assets/ufo_4_1758648473127.wav');
+    ufoAudio.volume = 0.3; // Set volume to 30%
+    ufoAudio.loop = true; // Loop continuously while UFO is active
+    
+    // Try to play immediately
+    const playPromise = ufoAudio.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
+        console.log('UFO sound failed to play:', error);
+      });
+    }
+  } catch (error) {
+    console.log('Failed to load UFO sound:', error);
+  }
+}
+
+function stopUfoSound() {
+  if (ufoAudio) {
+    ufoAudio.pause();
+    ufoAudio.currentTime = 0;
+    ufoAudio = null;
+  }
+}
+
 function stopUfoHum() {
   if (ufoOscillator) {
     ufoOscillator.stop();
@@ -1588,6 +1628,10 @@ function isSkylineDestroyed() {
 function gameOver() {
   // Stop background music
   stopBackgroundMusic();
+  
+  // Stop UFO sounds if active
+  stopUfoHum();
+  stopUfoSound();
   
   fill(255, 0, 0);
   textSize(32);
