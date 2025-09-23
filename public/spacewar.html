@@ -1,0 +1,834 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retro Terminal Space Invaders with Nyan Cat</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <style>
+    canvas {
+      cursor: crosshair; /* Set cursor to crosshair for shooting */
+    }
+  </style>
+</head>
+<body>
+<script>
+let invaders = [];
+let particles = [];
+let stars = [];
+let backgroundInvaders = [];
+let ufo = null;
+let ufoLasers = [];
+let invaderLasers = [];
+let nyanCat = null;
+let rainbowTrails = [];
+let nyanCatBombs = [];
+let planetAngle = 0;
+let glowPulseAngle = 0;
+let level = 1;
+let pattern = 'wheel';
+let score = 0;
+let limbAnimationSpeed;
+let limbAnimationAmplitude = 2;
+const baseNumInvaders = 5;
+const numStars = 100;
+const baseWheelRadius = 150;
+const baseRectWidth = 200;
+const baseRectHeight = 100;
+const baseFigure8Width = 150;
+const baseFigure8Height = 100;
+const combinedScale = 0.5;
+const baseSpeed = 0.02;
+const jitterAmplitude = 20;
+const avoidanceRadius = 150;
+const avoidanceStrength = 0.1;
+const maxAvoidanceSpeed = 2;
+const planetRadius = 50;
+const planetRotationSpeed = 0.01;
+const planetZ = 800;
+const glowRadius = 60;
+const glowPulseSpeed = 0.05;
+const ufoSpawnInterval = 20 * 60;
+const ufoSpeed = 5;
+const ufoPoints = 50;
+const ufoLaserSpeed = 5;
+const ufoFireProbability = 1.0;
+const invaderFireProbability = 0.01;
+const nyanCatSpawnInterval = 5 * 60;
+const nyanCatSpeed = 6;
+const nyanCatBombProbability = 0.1;
+const pointsPerHit = 10;
+const blinkInterval = 30;
+const ufoHaloSize = 60;
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  limbAnimationSpeed = TWO_PI / 20;
+  spawnInvaders();
+  for (let i = 0; i < numStars; i++) {
+    stars.push({
+      x: random(-width, width),
+      y: random(-height, height),
+      z: random(100, 1000)
+    });
+  }
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 5; col++) {
+      backgroundInvaders.push({
+        x: (col - 2) * 100,
+        y: (row - 1) * 100,
+        z: 1000,
+        type: floor(random(3)),
+        noiseSeedX: random(10000),
+        noiseSeedY: random(10000),
+        noiseT: 0
+      });
+    }
+  }
+}
+
+function spawnInvaders() {
+  invaders = [];
+  const { spread } = getLevelModifiers();
+  const wheelRadius = baseWheelRadius * spread;
+  const rectWidth = baseRectWidth * spread;
+  const rectHeight = baseRectHeight * spread;
+  const figure8Width = baseFigure8Width * spread;
+  const figure8Height = baseFigure8Height * spread;
+  const numInvaders = Math.ceil(baseNumInvaders * Math.pow(1.05, level - 1));
+
+  if (pattern === 'wheel') {
+    for (let i = 0; i < numInvaders; i++) {
+      let angle = (TWO_PI / numInvaders) * i;
+      invaders.push({
+        angle: angle,
+        color: color(0, random(100, 200), 0),
+        type: i % 3,
+        pattern: 'wheel',
+        noiseSeedX: random(10000),
+        noiseSeedY: random(10000),
+        noiseT: 0
+      });
+    }
+  } else if (pattern === 'rectangle') {
+    for (let i = 0; i < numInvaders; i++) {
+      let t = (1 / numInvaders) * i;
+      invaders.push({
+        t: t,
+        color: color(0, random(100, 200), 0),
+        type: i % 3,
+        pattern: 'rectangle',
+        noiseSeedX: random(10000),
+        noiseSeedY: random(10000),
+        noiseT: 0
+      });
+    }
+  } else if (pattern === 'figure8') {
+    for (let i = 0; i < numInvaders; i++) {
+      let t = (1 / numInvaders) * i;
+      invaders.push({
+        t: t,
+        color: color(0, random(100, 200), 0),
+        type: i % 3,
+        pattern: 'figure8',
+        noiseSeedX: random(10000),
+        noiseSeedY: random(10000),
+        noiseT: 0
+      });
+    }
+  } else {
+    for (let i = 0; i < numInvaders; i++) {
+      let t = (1 / numInvaders) * i;
+      invaders.push({
+        t: t,
+        color: color(0, random(100, 200), 0),
+        type: i % 3,
+        pattern: 'combined',
+        noiseSeedX: random(10000),
+        noiseSeedY: random(10000),
+        noiseT: 0
+      });
+    }
+  }
+}
+
+function spawnUfo() {
+  let startLeft = random() > 0.5;
+  let y = random(-height / 4, height / 4);
+  ufo = {
+    x: startLeft ? -width / 2 : width / 2,
+    y: y,
+    speed: startLeft ? ufoSpeed : -ufoSpeed,
+    active: true
+  };
+}
+
+function spawnNyanCat() {
+  let startLeft = random() > 0.5;
+  let y = random(-height / 4, height / 4);
+  nyanCat = {
+    x: startLeft ? -width / 2 : width / 2,
+    y: y,
+    speed: startLeft ? nyanCatSpeed : -nyanCatSpeed,
+    active: true
+  };
+}
+
+function getLevelModifiers() {
+  if (level <= 4) return { speed: baseSpeed, spread: 1 };
+  else if (level <= 8) return { speed: baseSpeed * 1.2, spread: 1.2 };
+  else if (level <= 12) return { speed: baseSpeed * 1.44, spread: 1.44 };
+  else return { speed: baseSpeed * 1.728, spread: 1.728 };
+}
+
+function getWheelPosition(t, spread) {
+  let x = cos(t * TWO_PI) * (baseWheelRadius * spread);
+  let y = sin(t * TWO_PI) * (baseWheelRadius * spread);
+  return { x, y };
+}
+
+function getRectangularPosition(t, spread) {
+  let perimeter = 2 * (baseRectWidth * spread + baseRectHeight * spread);
+  let dist = t * perimeter;
+  let x, y;
+  
+  if (dist < baseRectWidth * spread) {
+    x = -(baseRectWidth * spread) / 2 + dist;
+    y = -(baseRectHeight * spread) / 2;
+  } else if (dist < (baseRectWidth * spread + baseRectHeight * spread)) {
+    x = (baseRectWidth * spread) / 2;
+    y = -(baseRectHeight * spread) / 2 + (dist - baseRectWidth * spread);
+  } else if (dist < 2 * baseRectWidth * spread + baseRectHeight * spread) {
+    x = (baseRectWidth * spread) / 2 - (dist - (baseRectWidth * spread + baseRectHeight * spread));
+    y = (baseRectHeight * spread) / 2;
+  } else {
+    x = -(baseRectWidth * spread) / 2;
+    y = (baseRectHeight * spread) / 2 - (dist - (2 * baseRectWidth * spread + baseRectHeight * spread));
+  }
+  return { x, y };
+}
+
+function getFigure8Position(t, spread) {
+  let angle = t * TWO_PI;
+  let x = (baseFigure8Width * spread * cos(angle)) / (1 + pow(sin(angle), 2));
+  let y = (baseFigure8Height * spread * sin(angle) * cos(angle)) / (1 + pow(sin(angle), 2));
+  return { x, y };
+}
+
+function getCombinedPosition(t, spread) {
+  let wheelPos = getWheelPosition(t, spread);
+  let rectPos = getRectangularPosition(t, spread);
+  let fig8Pos = getFigure8Position(t, spread);
+  let x = (wheelPos.x + rectPos.x + fig8Pos.x) * combinedScale;
+  let y = (wheelPos.y + rectPos.y + fig8Pos.y) * combinedScale;
+  return { x, y };
+}
+
+function draw() {
+  background(0);
+  
+  if (frameCount % ufoSpawnInterval === 0) {
+    spawnUfo();
+  }
+
+  if (frameCount % nyanCatSpawnInterval === 0) {
+    spawnNyanCat();
+  }
+
+  translate(width / 2, height / 2);
+
+  for (let star of stars) {
+    star.z -= 5;
+    if (star.z <= 0) {
+      star.x = random(-width, width);
+      star.y = random(-height, height);
+      star.z = 1000;
+    }
+    let sx = (star.x / star.z) * 200;
+    let sy = (star.y / star.z) * 200;
+    let size = map(star.z, 1000, 0, 1, 4);
+    fill(255, 255, 255, 100);
+    noStroke();
+    rect(sx, sy, size, size);
+  }
+
+  const limbOffsetBg = sin(frameCount * limbAnimationSpeed) * 1;
+  for (let invader of backgroundInvaders) {
+    invader.z -= 1;
+    if (invader.z < 600) {
+      invader.z = 1200;
+      invader.x = (floor(random(-2, 3))) * 100;
+      invader.y = (floor(random(-1, 2))) * 100;
+      invader.noiseSeedX = random(10000);
+      invader.noiseSeedY = random(10000);
+      invader.noiseT = 0;
+    }
+    invader.noiseT += 0.005;
+    let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude - jitterAmplitude / 2;
+    let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude - jitterAmplitude / 2;
+    let sx = ((invader.x + jitterX) / invader.z) * 200;
+    let sy = ((invader.y + jitterY) / invader.z) * 200;
+    let scaleFactor = 200 / invader.z; // Renamed to avoid shadowing p5.js scale()
+    push();
+    translate(sx, sy);
+    scale(scaleFactor); // Use p5.js scale() with scaleFactor
+    let glowAlpha = map(sin(glowPulseAngle), -1, 1, 50, 100);
+    fill(0, 255, 0, glowAlpha);
+    noStroke();
+    let glowSize = invader.type === 0 ? 15 : invader.type === 1 ? 18.75 : 15;
+    ellipse(0, 0, glowSize);
+    fill(0, 150, 0);
+    noStroke();
+    if (invader.type === 0) {
+      rectMode(CENTER);
+      rect(0, 0, 10, 7.5);
+      rect(-5, -5 + limbOffsetBg, 2.5, 2.5);
+      rect(5, -5 + limbOffsetBg, 2.5, 2.5);
+      rect(-2.5, 5 + limbOffsetBg, 2.5, 2.5);
+      rect(2.5, 5 + limbOffsetBg, 2.5, 2.5);
+      if (frameCount % (2 * blinkInterval) < blinkInterval) {
+        fill(0, 255, 0);
+        rect(-2.5, -1, 1.5, 1.5);
+        rect(2.5, -1, 1.5, 1.5);
+      }
+    } else if (invader.type === 1) {
+      rectMode(CENTER);
+      rect(0, 0, 12.5, 7.5);
+      rect(-7.5 + limbOffsetBg, 0, 2.5, 2.5);
+      rect(7.5 - limbOffsetBg, 0, 2.5, 2.5);
+      rect(-5, 5 + limbOffsetBg, 2.5, 2.5);
+      rect(5, 5 + limbOffsetBg, 2.5, 2.5);
+      if (frameCount % (2 * blinkInterval) < blinkInterval) {
+        fill(0, 255, 0);
+        rect(-2.5, 0, 1.5, 1.5);
+        rect(2.5, 0, 1.5, 1.5);
+      }
+    } else {
+      rectMode(CENTER);
+      rect(0, 0, 10, 10);
+      rect(-5, 5 + limbOffsetBg, 2.5, 2.5);
+      rect(5, 5 + limbOffsetBg, 2.5, 2.5);
+      fill(0);
+      rect(-2.5, -1, 2, 2);
+      rect(2.5, -1, 2, 2);
+      if (frameCount % (2 * blinkInterval) < blinkInterval) {
+        fill(0, 255, 0);
+        rect(0, 2.5, 1.5, 1.5);
+      }
+    }
+    pop();
+  }
+
+  push();
+  let planetX = width / 4;
+  let planetY = -height / 4;
+  let planetScreenX = (planetX / planetZ) * 200;
+  let planetScreenY = (planetY / planetZ) * 200;
+  let planetScreenRadius = (planetRadius / planetZ) * 200;
+  let glowScreenRadius = (glowRadius / planetZ) * 200;
+  translate(planetScreenX, planetScreenY);
+  rotate(planetAngle);
+  let glowAlpha = map(sin(glowPulseAngle), -1, 1, 50, 100);
+  fill(0, 255, 0, glowAlpha);
+  noStroke();
+  ellipse(0, 0, glowScreenRadius * 2);
+  fill(0, 100, 0, 150);
+  ellipse(0, 0, planetScreenRadius * 2);
+  fill(0, 50, 0, 150);
+  ellipse(-planetScreenRadius * 0.5, -planetScreenRadius * 0.3, planetScreenRadius * 0.4);
+  ellipse(planetScreenRadius * 0.3, planetScreenRadius * 0.4, planetScreenRadius * 0.3);
+  ellipse(0, -planetScreenRadius * 0.6, planetScreenRadius * 0.2);
+  pop();
+  planetAngle += planetRotationSpeed;
+  glowPulseAngle += glowPulseSpeed;
+
+  for (let i = rainbowTrails.length - 1; i >= 0; i--) {
+    let trail = rainbowTrails[i];
+    trail.lifetime -= 1;
+    let trailAlpha = map(trail.lifetime, 30, 0, 255, 0);
+    fill(trail.color.levels[0], trail.color.levels[1], trail.color.levels[2], trailAlpha);
+    noStroke();
+    rect(trail.x, trail.y, 5, 5);
+    if (trail.lifetime <= 0) {
+      rainbowTrails.splice(i, 1);
+    }
+  }
+
+  if (nyanCat && nyanCat.active) {
+    nyanCat.x += nyanCat.speed;
+    if (nyanCat.x < -width / 2 - 50 || nyanCat.x > width / 2 + 50) {
+      nyanCat = null;
+    } else {
+      rainbowTrails.push({
+        x: nyanCat.x - 30,
+        y: nyanCat.y,
+        color: color(255, 0, 0),
+        lifetime: 30
+      });
+      rainbowTrails.push({
+        x: nyanCat.x - 35,
+        y: nyanCat.y - 5,
+        color: color(255, 165, 0),
+        lifetime: 30
+      });
+      rainbowTrails.push({
+        x: nyanCat.x - 40,
+        y: nyanCat.y - 10,
+        color: color(255, 255, 0),
+        lifetime: 30
+      });
+      rainbowTrails.push({
+        x: nyanCat.x - 45,
+        y: nyanCat.y - 5,
+        color: color(0, 255, 0),
+        lifetime: 30
+      });
+      rainbowTrails.push({
+        x: nyanCat.x - 50,
+        y: nyanCat.y,
+        color: color(0, 0, 255),
+        lifetime: 30
+      });
+      rainbowTrails.push({
+        x: nyanCat.x - 55,
+        y: nyanCat.y + 5,
+        color: color(75, 0, 130),
+        lifetime: 30
+      });
+      rainbowTrails.push({
+        x: nyanCat.x - 60,
+        y: nyanCat.y + 10,
+        color: color(148, 0, 211),
+        lifetime: 30
+      });
+
+      if (random() < nyanCatBombProbability) {
+        nyanCatBombs.push({
+          x: nyanCat.x,
+          y: nyanCat.y + 10,
+          vy: random(3, 7),
+          color: color(random(100, 255), random(100, 255), random(100, 255))
+        });
+      }
+
+      push();
+      translate(nyanCat.x, nyanCat.y);
+      fill(255, 255, 255);
+      noStroke();
+      rect(-15, -10, 30, 20);
+      fill(255, 192, 203);
+      rect(-12, -7, 8, 14);
+      rect(4, -7, 8, 14);
+      rect(-4, -10, 8, 8);
+      fill(255, 0, 255);
+      rect(-4, -2, 8, 4);
+      fill(0);
+      rect(-8, -6, 2, 2);
+      rect(6, -6, 2, 2);
+      fill(255, 0, 0);
+      rect(-1, -4, 2, 2);
+      fill(255, 192, 203);
+      rect(-14, 10, 4, 8);
+      rect(-6, 10, 4, 8);
+      rect(2, 10, 4, 8);
+      rect(10, 10, 4, 8);
+      fill(0);
+      rect(-13, 12, 2, 4);
+      rect(-5, 12, 2, 4);
+      rect(3, 12, 2, 4);
+      rect(11, 12, 2, 4);
+      fill(0);
+      rect(-10, -15, 4, 5);
+      rect(6, -15, 4, 5);
+      pop();
+    }
+  }
+
+  for (let i = nyanCatBombs.length - 1; i >= 0; i--) {
+    let bomb = nyanCatBombs[i];
+    bomb.y += bomb.vy;
+    if (bomb.y > height / 2 + 50) {
+      nyanCatBombs.splice(i, 1);
+      continue;
+    }
+    fill(bomb.color);
+    noStroke();
+    rect(bomb.x, bomb.y, 8, 8);
+    const { spread } = getLevelModifiers();
+    for (let j = invaders.length - 1; j >= 0; j--) {
+      let invader = invaders[j];
+      let x, y;
+      if (invader.pattern === 'wheel') {
+        let baseX = cos(invader.angle) * (baseWheelRadius * spread);
+        let baseY = sin(invader.angle) * (baseWheelRadius * spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = baseX + jitterX;
+        y = baseY + jitterY;
+      } else if (invader.pattern === 'rectangle') {
+        let pos = getRectangularPosition(invader.t, spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = pos.x + jitterX;
+        y = pos.y + jitterY;
+      } else if (invader.pattern === 'figure8') {
+        let pos = getFigure8Position(invader.t, spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = pos.x + jitterX;
+        y = pos.y + jitterY;
+      } else {
+        let pos = getCombinedPosition(invader.t, spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = pos.x + jitterX;
+        y = pos.y + jitterY;
+      }
+      let mouseXWorld = mouseX - width / 2;
+      let mouseYWorld = mouseY - height / 2;
+      let dx = x - mouseXWorld;
+      let dy = y - mouseYWorld;
+      let distance = sqrt(dx * dx + dy * dy);
+      if (distance < avoidanceRadius && distance > 0) {
+        let avoidX = (dx / distance) * avoidanceStrength;
+        let avoidY = (dy / distance) * avoidanceStrength;
+        let avoidMag = sqrt(avoidX * avoidX + avoidY * avoidY);
+        if (avoidMag > maxAvoidanceSpeed) {
+          avoidX = (avoidX / avoidMag) * maxAvoidanceSpeed;
+          avoidY = (avoidY / avoidMag) * maxAvoidanceSpeed;
+        }
+        x += avoidX;
+        y += avoidY;
+      }
+      if (bomb.x > x - 15 && bomb.x < x + 15 && bomb.y > y - 15 && bomb.y < y + 15) {
+        for (let k = 0; k < 20; k++) {
+          particles.push({
+            x: x,
+            y: y,
+            vx: random(-2, 2),
+            vy: random(-2, 2),
+            lifetime: 25
+          });
+        }
+        invaders.splice(j, 1);
+        nyanCatBombs.splice(i, 1);
+        score += pointsPerHit;
+        break;
+      }
+    }
+  }
+
+  if (ufo && ufo.active) {
+    ufo.x += ufo.speed;
+    if (ufo.x < -width / 2 - 50 || ufo.x > width / 2 + 50) {
+      ufo = null;
+    } else {
+      if (random() < ufoFireProbability) {
+        let angle = random(TWO_PI);
+        ufoLasers.push({
+          x: ufo.x,
+          y: ufo.y + 10,
+          vx: cos(angle) * ufoLaserSpeed,
+          vy: sin(angle) * ufoLaserSpeed
+        });
+      }
+      push();
+      translate(ufo.x, ufo.y);
+      fill(255, 0, 0, glowAlpha);
+      noStroke();
+      ellipse(0, 0, ufoHaloSize);
+      fill(0, 150, 0);
+      ellipse(0, 0, 40, 15);
+      fill(0, 100, 0);
+      arc(0, 0, 20, 20, PI, TWO_PI);
+      fill(0, 255, 0);
+      ellipse(-15, 5, 5, 5);
+      ellipse(0, 5, 5, 5);
+      ellipse(15, 5, 5, 5);
+      pop();
+    }
+  }
+
+  for (let i = ufoLasers.length - 1; i >= 0; i--) {
+    let laser = ufoLasers[i];
+    laser.x += laser.vx;
+    laser.y += laser.vy;
+    if (laser.x < -width / 2 - 50 || laser.x > width / 2 + 50 || 
+        laser.y < -height / 2 - 50 || laser.y > height / 2 + 50) {
+      ufoLasers.splice(i, 1);
+      continue;
+    }
+    fill(0, 255, 0);
+    noStroke();
+    rect(laser.x, laser.y, 5, 5);
+    const { spread } = getLevelModifiers();
+    for (let j = invaders.length - 1; j >= 0; j--) {
+      let invader = invaders[j];
+      let x, y;
+      if (invader.pattern === 'wheel') {
+        let baseX = cos(invader.angle) * (baseWheelRadius * spread);
+        let baseY = sin(invader.angle) * (baseWheelRadius * spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = baseX + jitterX;
+        y = baseY + jitterY;
+      } else if (invader.pattern === 'rectangle') {
+        let pos = getRectangularPosition(invader.t, spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = pos.x + jitterX;
+        y = pos.y + jitterY;
+      } else if (invader.pattern === 'figure8') {
+        let pos = getFigure8Position(invader.t, spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = pos.x + jitterX;
+        y = pos.y + jitterY;
+      } else {
+        let pos = getCombinedPosition(invader.t, spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = pos.x + jitterX;
+        y = pos.y + jitterY;
+      }
+      let mouseXWorld = mouseX - width / 2;
+      let mouseYWorld = mouseY - height / 2;
+      let dx = x - mouseXWorld;
+      let dy = y - mouseYWorld;
+      let distance = sqrt(dx * dx + dy * dy);
+      if (distance < avoidanceRadius && distance > 0) {
+        let avoidX = (dx / distance) * avoidanceStrength;
+        let avoidY = (dy / distance) * avoidanceStrength;
+        let avoidMag = sqrt(avoidX * avoidX + avoidY * avoidY);
+        if (avoidMag > maxAvoidanceSpeed) {
+          avoidX = (avoidX / avoidMag) * maxAvoidanceSpeed;
+          avoidY = (avoidY / avoidMag) * maxAvoidanceSpeed;
+        }
+        x += avoidX;
+        y += avoidY;
+      }
+      if (laser.x > x - 15 && laser.x < x + 15 && laser.y > y - 15 && laser.y < y + 15) {
+        if (random() < 0.3) {
+          let newInvader = {...invader};
+          newInvader.angle = invader.angle + random(-0.1, 0.1);
+          newInvader.t = invader.t + random(-0.05, 0.05);
+          newInvader.noiseSeedX = random(10000);
+          newInvader.noiseSeedY = random(10000);
+          newInvader.noiseT = 0;
+          invaders.push(newInvader);
+        } else {
+          for (let k = 0; k < 20; k++) {
+            particles.push({
+              x: x,
+              y: y,
+              vx: random(-2, 2),
+              vy: random(-2, 2),
+              lifetime: 25
+            });
+          }
+          invaders.splice(j, 1);
+        }
+        ufoLasers.splice(i, 1);
+        score += pointsPerHit;
+        break;
+      }
+    }
+  }
+
+  const { speed, spread } = getLevelModifiers();
+  const limbOffset = sin(frameCount * limbAnimationSpeed) * limbAnimationAmplitude;
+  for (let i = invaders.length - 1; i >= 0; i--) {
+    let invader = invaders[i];
+    let x, y;
+    
+    if (invader.pattern === 'wheel') {
+      x = cos(invader.angle) * (baseWheelRadius * spread);
+      y = sin(invader.angle) * (baseWheelRadius * spread);
+      invader.angle += speed;
+    } else if (invader.pattern === 'rectangle') {
+      let pos = getRectangularPosition(invader.t, spread);
+      x = pos.x;
+      y = pos.y;
+      invader.t = (invader.t + speed / 10) % 1;
+    } else if (invader.pattern === 'figure8') {
+      let pos = getFigure8Position(invader.t, spread);
+      x = pos.x;
+      y = pos.y;
+      invader.t = (invader.t + speed / 10) % 1;
+    } else {
+      let pos = getCombinedPosition(invader.t, spread);
+      x = pos.x;
+      y = pos.y;
+      invader.t = (invader.t + speed / 10) % 1;
+    }
+    
+    invader.noiseT += 0.01;
+    let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+    let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+    x += jitterX;
+    y += jitterY;
+
+    let mouseXWorld = mouseX - width / 2;
+    let mouseYWorld = mouseY - height / 2;
+    let dx = x - mouseXWorld;
+    let dy = y - mouseYWorld;
+    let distance = sqrt(dx * dx + dy * dy);
+    if (distance < avoidanceRadius && distance > 0) {
+      let avoidX = (dx / distance) * avoidanceStrength;
+      let avoidY = (dy / distance) * avoidanceStrength;
+      let avoidMag = sqrt(avoidX * avoidX + avoidY * avoidY);
+      if (avoidMag > maxAvoidanceSpeed) {
+        avoidX = (avoidX / avoidMag) * maxAvoidanceSpeed;
+        avoidY = (avoidY / avoidMag) * maxAvoidanceSpeed;
+      }
+      x += avoidX;
+      y += avoidY;
+    }
+    
+    if (random() < invaderFireProbability) {
+      invaderLasers.push({
+        x: x,
+        y: y + 10,
+        vy: 3
+      });
+    }
+    
+    push();
+    translate(x, y);
+    fill(0, 255, 0, glowAlpha);
+    noStroke();
+    let glowSize = invader.type === 0 ? 30 : invader.type === 1 ? 37.5 : 30;
+    ellipse(0, 0, glowSize);
+    fill(invader.color);
+    noStroke();
+    if (invader.type === 0) {
+      rectMode(CENTER);
+      rect(0, 0, 20, 15);
+      rect(-10, -10 + limbOffset, 5, 5);
+      rect(10, -10 + limbOffset, 5, 5);
+      rect(-5, 10 + limbOffset, 5, 5);
+      rect(5, 10 + limbOffset, 5, 5);
+      if (frameCount % (2 * blinkInterval) < blinkInterval) {
+        fill(0, 255, 0);
+        rect(-5, -2, 3, 3);
+        rect(5, -2, 3, 3);
+      }
+    } else if (invader.type === 1) {
+      rectMode(CENTER);
+      rect(0, 0, 25, 15);
+      rect(-15 + limbOffset, 0, 5, 5);
+      rect(15 - limbOffset, 0, 5, 5);
+      rect(-10, 10 + limbOffset, 5, 5);
+      rect(10, 10 + limbOffset, 5, 5);
+      if (frameCount % (2 * blinkInterval) < blinkInterval) {
+        fill(0, 255, 0);
+        rect(-5, 0, 3, 3);
+        rect(5, 0, 3, 3);
+      }
+    } else {
+      rectMode(CENTER);
+      rect(0, 0, 20, 20);
+      rect(-10, 10 + limbOffset, 5, 5);
+      rect(10, 10 + limbOffset, 5, 5);
+      fill(0);
+      rect(-5, -2, 4, 4);
+      rect(5, -2, 4, 4);
+      if (frameCount % (2 * blinkInterval) < blinkInterval) {
+        fill(0, 255, 0);
+        rect(0, 5, 3, 3);
+      }
+    }
+    pop();
+  }
+
+  for (let i = invaderLasers.length - 1; i >= 0; i--) {
+    let laser = invaderLasers[i];
+    laser.y += laser.vy;
+    if (laser.y > height / 2 + 50) {
+      invaderLasers.splice(i, 1);
+      continue;
+    }
+    fill(255, 0, 0);
+    noStroke();
+    rect(laser.x, laser.y, 3, 8);
+  }
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    let p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.lifetime--;
+    fill(0, 255, 0, p.lifetime * 10);
+    noStroke();
+    rect(p.x, p.y, 3, 3);
+    if (p.lifetime <= 0) {
+      particles.splice(i, 1);
+    }
+  }
+
+  fill(0, 255, 0);
+  textSize(20);
+  text(`Score: ${score}`, -width / 2 + 20, -height / 2 + 40);
+  text(`Level: ${level}`, -width / 2 + 20, -height / 2 + 70);
+  text(`Invaders: ${invaders.length}`, -width / 2 + 20, -height / 2 + 100);
+  
+  if (invaders.length === 0) {
+    level++;
+    if (level <= 4) {
+      pattern = 'wheel';
+    } else if (level <= 8) {
+      pattern = 'rectangle';
+    } else if (level <= 12) {
+      pattern = 'figure8';
+    } else {
+      pattern = 'combined';
+    }
+    spawnInvaders();
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+</script>
+</body>
+</html>
