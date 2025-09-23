@@ -94,6 +94,24 @@ function getRandomInvaderColor() {
   return colors[floor(random(colors.length))];
 }
 
+function generateRandomCity() {
+  backgroundInvaders = [];
+  // Random number of buildings/structures (between 8-20)
+  let numBuildings = floor(random(8, 21));
+  
+  for (let i = 0; i < numBuildings; i++) {
+    backgroundInvaders.push({
+      x: random(-400, 400),           // Random X position
+      y: random(-200, 200),           // Random Y position  
+      z: random(800, 1200),           // Random depth
+      type: floor(random(3)),         // Random building type
+      noiseSeedX: random(10000),
+      noiseSeedY: random(10000),
+      noiseT: 0
+    });
+  }
+}
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   limbAnimationSpeed = TWO_PI / 20;
@@ -105,19 +123,7 @@ function setup() {
       z: random(100, 1000)
     });
   }
-  for (let row = 0; row < 3; row++) {
-    for (let col = 0; col < 5; col++) {
-      backgroundInvaders.push({
-        x: (col - 2) * 100,
-        y: (row - 1) * 100,
-        z: 1000,
-        type: floor(random(3)),
-        noiseSeedX: random(10000),
-        noiseSeedY: random(10000),
-        noiseT: 0
-      });
-    }
-  }
+  generateRandomCity();
 }
 
 function spawnInvaders() {
@@ -750,7 +756,8 @@ function draw() {
       return;
     }
     
-    // Each invader will get its own random color when spawned
+    // Generate new random city layout for each level
+    generateRandomCity();
     
     if (level <= 4) {
       pattern = 'wheel';
