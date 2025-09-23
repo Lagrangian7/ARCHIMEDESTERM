@@ -1387,16 +1387,18 @@ function playUfoLaserSound() {
   oscillator.connect(gainNode);
   gainNode.connect(audioContext.destination);
   
-  // UFO laser: subtle, quiet, alien-like sound
-  oscillator.frequency.setValueAtTime(450, audioContext.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(220, audioContext.currentTime + 0.1);
+  // UFO laser: extremely subtle, whisper-quiet alien sound
+  oscillator.frequency.setValueAtTime(380, audioContext.currentTime); // Lower starting frequency
+  oscillator.frequency.linearRampToValueAtTime(240, audioContext.currentTime + 0.06); // Gentler frequency change
   
-  gainNode.gain.setValueAtTime(0.12, audioContext.currentTime); // Much quieter
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+  // Ultra-quiet volume with soft attack and decay
+  gainNode.gain.setValueAtTime(0.0, audioContext.currentTime); // Start silent
+  gainNode.gain.linearRampToValueAtTime(0.06, audioContext.currentTime + 0.01); // Soft attack
+  gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.06); // Soft decay
   
-  oscillator.type = 'sine'; // Smoother, more subtle than square wave
+  oscillator.type = 'sine'; // Smoothest wave type
   oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.1); // Shorter duration
+  oscillator.stop(audioContext.currentTime + 0.06); // Very brief duration
 }
 
 function playEnemyLaserSound() {
