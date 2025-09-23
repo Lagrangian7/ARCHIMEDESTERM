@@ -110,9 +110,8 @@ const nyanCatBombProbability = 0.1;
 const pointsPerHit = 10;
 const blinkInterval = 30;
 const ufoHaloSize = 60;
-const cityBlockWidth = 30;
+const cityBlockWidth = 25;
 const cityBlockHeight = 20;
-const numCityBlocks = 35;
 const skylineLevel = -80; // Y level where skyline starts (relative to center)
 
 function setup() {
@@ -150,6 +149,9 @@ function setup() {
 
 function initializeCitySkyline() {
   cityBlocks = [];
+  
+  // Calculate number of blocks to fill entire screen width
+  let numCityBlocks = Math.floor(width / cityBlockWidth);
   let totalWidth = numCityBlocks * cityBlockWidth;
   let startX = -totalWidth / 2;
   let groundY = height / 2 - 80; // Position skyline above bottom of screen
@@ -883,9 +885,10 @@ function draw() {
         y += avoidY;
       }
       
-      // Prevent invaders from flying below skyline level
-      if (y > height / 2 + skylineLevel - 30) {
-        y = height / 2 + skylineLevel - 30;
+      // Prevent invaders from flying below turret tops
+      let turretTopY = height / 2 - 80 - 180 - 20; // Ground - turret height - clearance
+      if (y > turretTopY) {
+        y = turretTopY;
       }
       
       // Check collision
