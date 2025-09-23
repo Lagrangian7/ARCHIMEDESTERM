@@ -165,7 +165,8 @@ function initializeCitySkyline() {
         width: cityBlockWidth,
         height: cityBlockHeight,
         destroyed: false,
-        buildingId: i // Track which building this belongs to
+        buildingId: i, // Track which building this belongs to
+        flashTimer: 0 // Flash timer for hit effect
       });
     }
   }
@@ -1044,8 +1045,20 @@ function draw() {
 function renderCitySkyline() {
   for (let block of cityBlocks) {
     if (!block.destroyed) {
-      fill(60, 60, 60); // Dark grey city color
-      stroke(80, 80, 80);
+      // Flash white when hit, otherwise dark grey
+      if (block.flashTimer > 0) {
+        fill(255, 255, 255); // Bright white flash
+        stroke(255, 255, 255);
+        block.flashTimer--; // Decrement flash timer
+        
+        // Destroy block when flash is done
+        if (block.flashTimer <= 0) {
+          block.destroyed = true;
+        }
+      } else {
+        fill(60, 60, 60); // Dark grey city color
+        stroke(80, 80, 80);
+      }
       strokeWeight(1);
       rect(block.x, block.y, block.width, block.height);
     }
@@ -1377,7 +1390,8 @@ function checkSkylineCollisions() {
 }
 
 function destroySkylineBlock(blockIndex, explosionX, explosionY) {
-  cityBlocks[blockIndex].destroyed = true;
+  // Set flash timer instead of immediately destroying
+  cityBlocks[blockIndex].flashTimer = 15; // Flash for 15 frames
   
   // Create explosion particles
   for (let i = 0; i < 20; i++) {
