@@ -930,6 +930,34 @@ function draw() {
         break;
       }
     }
+    
+    // Check collision with Nyan Cat
+    if (nyanCat && nyanCat.active) {
+      if (laser.x > nyanCat.x - 20 && laser.x < nyanCat.x + 20 && laser.y > nyanCat.y - 15 && laser.y < nyanCat.y + 15) {
+        // Create colorful explosion for Nyan Cat
+        for (let k = 0; k < 30; k++) {
+          let colors = [color(255, 0, 0), color(255, 165, 0), color(255, 255, 0), color(0, 255, 0), color(0, 0, 255), color(75, 0, 130), color(148, 0, 211)];
+          particles.push({
+            x: nyanCat.x,
+            y: nyanCat.y,
+            vx: random(-4, 4),
+            vy: random(-4, 4),
+            lifetime: 35,
+            color: colors[floor(random(colors.length))],
+            size: random(4, 8)
+          });
+        }
+        
+        // Play explosion sound
+        playExplosionSound();
+        
+        // Remove Nyan Cat and laser, award mega bonus points
+        nyanCat = null;
+        playerLasers.splice(i, 1);
+        score += 100; // Mega bonus for hitting Nyan Cat
+        break;
+      }
+    }
   }
 
   for (let i = particles.length - 1; i >= 0; i--) {
