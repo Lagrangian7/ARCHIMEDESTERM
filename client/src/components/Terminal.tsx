@@ -8,6 +8,7 @@ import { ConversationHistory } from './ConversationHistory';
 import { DocumentUpload } from './DocumentUpload';
 import { DocumentsList } from './DocumentsList';
 import ZorkGame from './ZorkGame';
+import { SpaceInvaders } from './SpaceInvaders';
 import { DTMFDecoder } from './DTMFDecoder';
 import { HelpMenu } from './HelpMenu';
 import { TalkingArchimedes } from './TalkingArchimedes';
@@ -73,6 +74,7 @@ export function Terminal() {
   // Expose modal openers globally
   useEffect(() => {
     (window as any).openZorkGame = () => setShowZork(true);
+    (window as any).openSpaceInvaders = () => setShowSpaceInvaders(true);
     (window as any).openDTMFDecoder = () => setShowDTMF(true);
     (window as any).openHelpMenu = () => setShowHelpMenu(true);
     (window as any).openChatInterface = () => setShowChat(true);
@@ -94,6 +96,7 @@ export function Terminal() {
   const [uploadTab, setUploadTab] = useState<'upload' | 'list'>('list');
   const [typingEntries, setTypingEntries] = useState<Set<string>>(new Set());
   const [showZork, setShowZork] = useState(false);
+  const [showSpaceInvaders, setShowSpaceInvaders] = useState(false);
   const [showDTMF, setShowDTMF] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
   const [showChat, setShowChat] = useState(false);
@@ -752,6 +755,13 @@ export function Terminal() {
             />
           </div>
         </div>
+      )}
+
+      {/* Space Invaders Game */}
+      {showSpaceInvaders && (
+        <SpaceInvaders 
+          onClose={() => setShowSpaceInvaders(false)}
+        />
       )}
 
       {showDTMF && (

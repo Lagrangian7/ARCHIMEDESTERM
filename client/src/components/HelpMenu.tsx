@@ -389,6 +389,24 @@ const helpMenuItems: HelpMenuItem[] = [
     command: 'theharvester',
     example: 'theharvester  or  harvester',
     icon: <TerminalIcon size={16} />
+  },
+
+  // Games
+  {
+    id: 'zork',
+    category: 'Games',
+    title: 'ZORK Adventure',
+    description: 'Play the classic text adventure game: ZORK - The Great Underground Empire',
+    command: 'zork',
+    icon: <Gamepad2 size={16} />
+  },
+  {
+    id: 'invaders',
+    category: 'Games',
+    title: 'Space Invaders',
+    description: 'Play Space Invaders with retro terminal graphics and dynamic movement patterns',
+    command: 'invaders',
+    icon: <Gamepad2 size={16} />
   }
 ];
 

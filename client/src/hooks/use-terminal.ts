@@ -579,6 +579,7 @@ Audio & Signal Processing:
 Games:
   snake - Play the classic Snake game
   zork - Play ZORK: The Great Underground Empire
+  invaders - Play Space Invaders with retro terminal graphics
   
 System Commands:
   privacy - Activate matrix rain privacy screen (type "QWERTY" to unlock)
@@ -1384,6 +1385,17 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         openZorkGame();
       } else {
         addEntry('error', 'ZORK game not available. Please ensure the game component is loaded.');
+      }
+      return;
+    }
+
+    if (cmd === 'invaders') {
+      addEntry('system', 'Launching Space Invaders...');
+      const openSpaceInvaders = (window as any).openSpaceInvaders;
+      if (openSpaceInvaders) {
+        openSpaceInvaders();
+      } else {
+        addEntry('error', 'Space Invaders game not available. Please ensure the game component is loaded.');
       }
       return;
     }
