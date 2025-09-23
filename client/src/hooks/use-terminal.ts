@@ -1396,10 +1396,14 @@ Free plan includes 100 monthly requests with end-of-day data.`);
         if (gameWindow) {
           addEntry('system', 'SPACEWAR game launched successfully! Defend against the alien invasion!');
         } else {
-          addEntry('error', 'Failed to open game window. Please check your browser popup settings.');
+          addEntry('error', 'Popup blocked! Please:');
+          addEntry('system', '1. Allow popups for this site (check address bar for popup blocker icon)');
+          addEntry('system', '2. Or manually open: ' + window.location.origin + '/spacewar.html');
+          addEntry('system', '3. Try holding Ctrl while running the command');
         }
       } catch (error) {
-        addEntry('error', 'Error launching SPACEWAR: Browser security restrictions may be blocking the popup.');
+        addEntry('error', 'Error launching SPACEWAR: ' + (error as Error).message);
+        addEntry('system', 'Manual link: ' + window.location.origin + '/spacewar.html');
       }
       return;
     }
