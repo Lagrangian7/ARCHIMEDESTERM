@@ -81,6 +81,7 @@ let ufoAudio = null;
 let backgroundMusic = null;
 let pixelFont;
 let limbAnimationSpeed;
+let gamePaused = false;
 let limbAnimationAmplitude = 2;
 const baseNumInvaders = 5;
 const numStars = 100;
@@ -392,6 +393,17 @@ function draw() {
   if (pixelFont) textFont(pixelFont); // Use the loaded CGA font
   textSize(48); // Big title
   text('SPACEWAR', width / 2, 20);
+  
+  // Show pause message and return early if game is paused
+  if (gamePaused) {
+    fill(255, 255, 0); // Yellow pause text
+    textAlign(CENTER, CENTER);
+    textSize(36);
+    text('PAUSED', width / 2, height / 2);
+    textSize(18);
+    text('Press SPACEBAR or ENTER to resume', width / 2, height / 2 + 50);
+    return;
+  }
   
   if (frameCount % ufoSpawnInterval === 0) {
     spawnUfo();
@@ -1642,6 +1654,26 @@ function checkSkylineCollisions() {
         }
         nyanCatBombs.splice(i, 1);
         break;
+      }
+    }
+  }
+}
+
+function keyPressed() {
+  // Handle spacebar (32) and Enter key (13) for pause/unpause
+  if (keyCode === 32 || keyCode === 13) {
+    gamePaused = !gamePaused;
+    
+    // Also pause/unpause background music
+    if (gamePaused) {
+      if (backgroundMusic && !backgroundMusic.paused) {
+        backgroundMusic.pause();
+      }
+    } else {
+      if (backgroundMusic && backgroundMusic.paused) {
+        backgroundMusic.play().catch(error => {
+          console.log('Background music failed to resume:', error);
+        });
       }
     }
   }
