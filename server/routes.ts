@@ -73,12 +73,12 @@ let limbAnimationSpeed;
 let limbAnimationAmplitude = 2;
 const baseNumInvaders = 5;
 const numStars = 100;
-const baseWheelRadius = 150;
-const baseRectWidth = 200;
-const baseRectHeight = 100;
-const baseFigure8Width = 150;
-const baseFigure8Height = 100;
-const combinedScale = 0.5;
+const baseWheelRadius = 300;
+const baseRectWidth = 600;
+const baseRectHeight = 400;
+const baseFigure8Width = 400;
+const baseFigure8Height = 300;
+const combinedScale = 0.3;
 const baseSpeed = 0.02;
 const jitterAmplitude = 20;
 const avoidanceRadius = 150;
@@ -223,37 +223,51 @@ function getLevelModifiers() {
 }
 
 function getWheelPosition(t, spread) {
-  let x = cos(t * TWO_PI) * (baseWheelRadius * spread);
-  let y = sin(t * TWO_PI) * (baseWheelRadius * spread);
-  return { x, y };
+  let radius = (baseWheelRadius * spread) + (width * 0.15); // Use screen width for scaling
+  let x = cos(t * TWO_PI) * radius;
+  let y = sin(t * TWO_PI) * radius;
+  // Add screen-wide offset based on level
+  let offsetX = sin(level * 0.5) * (width * 0.2);
+  let offsetY = cos(level * 0.3) * (height * 0.15);
+  return { x: x + offsetX, y: y + offsetY };
 }
 
 function getRectangularPosition(t, spread) {
-  let perimeter = 2 * (baseRectWidth * spread + baseRectHeight * spread);
+  let rectWidth = (baseRectWidth * spread) + (width * 0.2); // Scale with screen
+  let rectHeight = (baseRectHeight * spread) + (height * 0.15);
+  let perimeter = 2 * (rectWidth + rectHeight);
   let dist = t * perimeter;
   let x, y;
   
-  if (dist < baseRectWidth * spread) {
-    x = -(baseRectWidth * spread) / 2 + dist;
-    y = -(baseRectHeight * spread) / 2;
-  } else if (dist < (baseRectWidth * spread + baseRectHeight * spread)) {
-    x = (baseRectWidth * spread) / 2;
-    y = -(baseRectHeight * spread) / 2 + (dist - baseRectWidth * spread);
-  } else if (dist < 2 * baseRectWidth * spread + baseRectHeight * spread) {
-    x = (baseRectWidth * spread) / 2 - (dist - (baseRectWidth * spread + baseRectHeight * spread));
-    y = (baseRectHeight * spread) / 2;
+  if (dist < rectWidth) {
+    x = -rectWidth / 2 + dist;
+    y = -rectHeight / 2;
+  } else if (dist < (rectWidth + rectHeight)) {
+    x = rectWidth / 2;
+    y = -rectHeight / 2 + (dist - rectWidth);
+  } else if (dist < 2 * rectWidth + rectHeight) {
+    x = rectWidth / 2 - (dist - (rectWidth + rectHeight));
+    y = rectHeight / 2;
   } else {
-    x = -(baseRectWidth * spread) / 2;
-    y = (baseRectHeight * spread) / 2 - (dist - (2 * baseRectWidth * spread + baseRectHeight * spread));
+    x = -rectWidth / 2;
+    y = rectHeight / 2 - (dist - (2 * rectWidth + rectHeight));
   }
-  return { x, y };
+  // Add screen-wide wandering based on level
+  let offsetX = cos(level * 0.7) * (width * 0.25);
+  let offsetY = sin(level * 0.4) * (height * 0.2);
+  return { x: x + offsetX, y: y + offsetY };
 }
 
 function getFigure8Position(t, spread) {
   let angle = t * TWO_PI;
-  let x = (baseFigure8Width * spread * cos(angle)) / (1 + pow(sin(angle), 2));
-  let y = (baseFigure8Height * spread * sin(angle) * cos(angle)) / (1 + pow(sin(angle), 2));
-  return { x, y };
+  let figWidth = (baseFigure8Width * spread) + (width * 0.25); // Scale with screen
+  let figHeight = (baseFigure8Height * spread) + (height * 0.2);
+  let x = (figWidth * cos(angle)) / (1 + pow(sin(angle), 2));
+  let y = (figHeight * sin(angle) * cos(angle)) / (1 + pow(sin(angle), 2));
+  // Add level-based screen wandering
+  let offsetX = sin(level * 0.9) * (width * 0.3);
+  let offsetY = cos(level * 0.6) * (height * 0.25);
+  return { x: x + offsetX, y: y + offsetY };
 }
 
 function getCombinedPosition(t, spread) {
@@ -262,7 +276,10 @@ function getCombinedPosition(t, spread) {
   let fig8Pos = getFigure8Position(t, spread);
   let x = (wheelPos.x + rectPos.x + fig8Pos.x) * combinedScale;
   let y = (wheelPos.y + rectPos.y + fig8Pos.y) * combinedScale;
-  return { x, y };
+  // Add extra screen-wide movement for combined pattern
+  let globalOffsetX = sin(level * 1.2 + frameCount * 0.01) * (width * 0.35);
+  let globalOffsetY = cos(level * 0.8 + frameCount * 0.008) * (height * 0.3);
+  return { x: x + globalOffsetX, y: y + globalOffsetY };
 }
 
 function draw() {
