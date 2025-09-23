@@ -157,7 +157,9 @@ function initializeCitySkyline() {
   let groundY = height / 2 - 80; // Position skyline above bottom of screen
   
   for (let i = 0; i < numCityBlocks; i++) {
-    let buildingHeight = random(3, 8); // Random building heights
+    let buildingHeight = random(3, 8); // Random building heights for upper city
+    
+    // Create the upper city buildings (destructible)
     for (let k = 0; k < buildingHeight; k++) {
       cityBlocks.push({
         x: startX + i * cityBlockWidth,
@@ -166,7 +168,23 @@ function initializeCitySkyline() {
         height: cityBlockHeight,
         destroyed: false,
         buildingId: i, // Track which building this belongs to
-        flashTimer: 0 // Flash timer for hit effect
+        flashTimer: 0, // Flash timer for hit effect
+        isFoundation: false // This is a building, not foundation
+      });
+    }
+    
+    // Create foundation blocks extending to bottom of screen (indestructible)
+    let foundationBlocks = Math.floor((height / 2 + 80) / cityBlockHeight);
+    for (let k = 0; k < foundationBlocks; k++) {
+      cityBlocks.push({
+        x: startX + i * cityBlockWidth,
+        y: groundY + k * cityBlockHeight,
+        width: cityBlockWidth,
+        height: cityBlockHeight,
+        destroyed: false,
+        buildingId: i,
+        flashTimer: 0,
+        isFoundation: true // This is foundation, indestructible
       });
     }
   }
@@ -1046,18 +1064,23 @@ function renderCitySkyline() {
   for (let block of cityBlocks) {
     if (!block.destroyed) {
       // Flash white when hit, otherwise dark grey
-      if (block.flashTimer > 0) {
+      if (block.flashTimer > 0 && !block.isFoundation) {
         fill(255, 255, 255); // Bright white flash
         stroke(255, 255, 255);
         block.flashTimer--; // Decrement flash timer
         
-        // Destroy block when flash is done
+        // Destroy block when flash is done (only non-foundation blocks)
         if (block.flashTimer <= 0) {
           block.destroyed = true;
         }
       } else {
-        fill(60, 60, 60); // Dark grey city color
-        stroke(80, 80, 80);
+        if (block.isFoundation) {
+          fill(40, 40, 40); // Darker grey for foundation
+          stroke(60, 60, 60);
+        } else {
+          fill(60, 60, 60); // Dark grey city color
+          stroke(80, 80, 80);
+        }
       }
       strokeWeight(1);
       rect(block.x, block.y, block.width, block.height);
@@ -1351,7 +1374,10 @@ function checkSkylineCollisions() {
       if (!block.destroyed && 
           laser.x > block.x && laser.x < block.x + block.width &&
           laser.y > block.y && laser.y < block.y + block.height) {
-        destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
+        // Only destroy non-foundation blocks
+        if (!block.isFoundation) {
+          destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
+        }
         ufoLasers.splice(i, 1);
         break;
       }
@@ -1366,7 +1392,10 @@ function checkSkylineCollisions() {
       if (!block.destroyed && 
           laser.x > block.x && laser.x < block.x + block.width &&
           laser.y > block.y && laser.y < block.y + block.height) {
-        destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
+        // Only destroy non-foundation blocks
+        if (!block.isFoundation) {
+          destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
+        }
         invaderLasers.splice(i, 1);
         break;
       }
@@ -1381,7 +1410,10 @@ function checkSkylineCollisions() {
       if (!block.destroyed && 
           bomb.x > block.x && bomb.x < block.x + block.width &&
           bomb.y > block.y && bomb.y < block.y + block.height) {
-        destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
+        // Only destroy non-foundation blocks
+        if (!block.isFoundation) {
+          destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
+        }
         nyanCatBombs.splice(i, 1);
         break;
       }
@@ -1409,7 +1441,8 @@ function destroySkylineBlock(blockIndex, explosionX, explosionY) {
 }
 
 function isSkylineDestroyed() {
-  return cityBlocks.every(block => block.destroyed);
+  // Only check non-foundation blocks for game over condition
+  return cityBlocks.filter(block => !block.isFoundation).every(block => block.destroyed);
 }
 
 function gameOver() {
