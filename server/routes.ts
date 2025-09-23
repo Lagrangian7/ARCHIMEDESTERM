@@ -1061,6 +1061,10 @@ function renderTurrets() {
   let rightTurretX = width / 2 - 70;
   let turretHeight = 180; // Make turrets much taller than skyline
   
+  // Convert mouse position to world coordinates
+  let mouseWorldX = mouseX - width / 2;
+  let mouseWorldY = mouseY - height / 2;
+  
   // Left turret
   fill(80, 80, 120);
   stroke(120, 120, 180);
@@ -1069,9 +1073,20 @@ function renderTurrets() {
   fill(60, 60, 100);
   rect(leftTurretX + 5, groundY - turretHeight - 20, 30, 25); // Top section
   rect(leftTurretX + 10, groundY - turretHeight - 35, 20, 20); // Cannon mount
+  
+  // Left cannon barrel pointing at mouse
+  let leftCannonBaseX = leftTurretX + 20;
+  let leftCannonBaseY = groundY - turretHeight - 25;
+  let leftDx = mouseWorldX - leftCannonBaseX;
+  let leftDy = mouseWorldY - leftCannonBaseY;
+  let leftAngle = atan2(leftDy, leftDx);
+  let cannonLength = 30;
+  let leftCannonEndX = leftCannonBaseX + cos(leftAngle) * cannonLength;
+  let leftCannonEndY = leftCannonBaseY + sin(leftAngle) * cannonLength;
+  
   stroke(255, 100, 100);
   strokeWeight(6);
-  line(leftTurretX + 20, groundY - turretHeight - 25, leftTurretX + 40, groundY - turretHeight - 30); // Cannon barrel
+  line(leftCannonBaseX, leftCannonBaseY, leftCannonEndX, leftCannonEndY);
   
   // Right turret
   fill(80, 80, 120);
@@ -1081,9 +1096,19 @@ function renderTurrets() {
   fill(60, 60, 100);
   rect(rightTurretX + 5, groundY - turretHeight - 20, 30, 25); // Top section
   rect(rightTurretX + 10, groundY - turretHeight - 35, 20, 20); // Cannon mount
+  
+  // Right cannon barrel pointing at mouse
+  let rightCannonBaseX = rightTurretX + 20;
+  let rightCannonBaseY = groundY - turretHeight - 25;
+  let rightDx = mouseWorldX - rightCannonBaseX;
+  let rightDy = mouseWorldY - rightCannonBaseY;
+  let rightAngle = atan2(rightDy, rightDx);
+  let rightCannonEndX = rightCannonBaseX + cos(rightAngle) * cannonLength;
+  let rightCannonEndY = rightCannonBaseY + sin(rightAngle) * cannonLength;
+  
   stroke(255, 100, 100);
   strokeWeight(6);
-  line(rightTurretX + 20, groundY - turretHeight - 25, rightTurretX, groundY - turretHeight - 30); // Cannon barrel
+  line(rightCannonBaseX, rightCannonBaseY, rightCannonEndX, rightCannonEndY);
   
   noStroke();
 }
