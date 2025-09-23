@@ -26,7 +26,7 @@ import { useSpeechSynthesis } from '@/hooks/use-speech';
 import { useAuth } from '@/hooks/useAuth';
 import { useChat } from '@/hooks/useChat';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
-import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield } from 'lucide-react';
+import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2 } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import terminalWatermark from '@assets/wally new_1757883178780.jpeg';
 import cubesIcon from '@assets/cubes_1758505065526.png';
@@ -342,6 +342,19 @@ export function Terminal() {
     }
   };
 
+  // Launch SPACEWAR game
+  const launchSpacewars = () => {
+    try {
+      const gameWindow = window.open('/spacewar.html', '_blank', 'width=1200,height=800,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no');
+      if (!gameWindow) {
+        // If popup was blocked, show a message
+        console.warn('Popup blocked - SPACEWAR game could not open');
+      }
+    } catch (error) {
+      console.error('Error launching SPACEWAR:', error);
+    }
+  };
+
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
   };
@@ -475,6 +488,17 @@ export function Terminal() {
                   >
                     <Shield size={14} className="mr-1" />
                     Privacy
+                  </Button>
+                  <Button
+                    onClick={launchSpacewars}
+                    variant="outline"
+                    size="sm"
+                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
+                    data-testid="button-spacewars"
+                    title="Launch SPACEWAR Game"
+                  >
+                    <Gamepad2 size={14} className="mr-1" />
+                    SPACEWAR
                   </Button>
                 </>
               ) : (
