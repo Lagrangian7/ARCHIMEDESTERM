@@ -779,10 +779,31 @@ function draw() {
       continue;
     }
     
-    // Draw the laser bolt
+    // Add position to trail
+    laser.trail.push({x: laser.x, y: laser.y});
+    if (laser.trail.length > 8) {
+      laser.trail.shift(); // Keep trail length manageable
+    }
+    
+    // Draw high-visibility laser trail
+    for (let t = 0; t < laser.trail.length; t++) {
+      let alpha = map(t, 0, laser.trail.length - 1, 50, 255);
+      let size = map(t, 0, laser.trail.length - 1, 2, 8);
+      fill(red(laser.color), green(laser.color), blue(laser.color), alpha);
+      noStroke();
+      ellipse(laser.trail[t].x, laser.trail[t].y, size, size);
+    }
+    
+    // Draw bright main laser bolt with glow effect
+    // Outer glow
+    fill(red(laser.color), green(laser.color), blue(laser.color), 100);
+    ellipse(laser.x, laser.y, 12, 12);
+    // Main bolt
     fill(laser.color);
-    noStroke();
-    ellipse(laser.x, laser.y, 4, 12); // Elongated laser bolt shape
+    ellipse(laser.x, laser.y, 6, 12);
+    // Inner bright core
+    fill(255, 255, 255, 200);
+    ellipse(laser.x, laser.y, 3, 8);
     
     // Check collision with invaders
     const { spread } = getLevelModifiers();
@@ -867,9 +888,19 @@ function draw() {
     p.x += p.vx;
     p.y += p.vy;
     p.lifetime--;
-    fill(0, 255, 0, p.lifetime * 10);
-    noStroke();
-    rect(p.x, p.y, 3, 3);
+    
+    if (p.color && p.size) {
+      // Muzzle blast particles with custom colors and sizes
+      fill(red(p.color), green(p.color), blue(p.color), p.lifetime * 15);
+      noStroke();
+      ellipse(p.x, p.y, p.size, p.size);
+    } else {
+      // Regular explosion particles
+      fill(0, 255, 0, p.lifetime * 10);
+      noStroke();
+      rect(p.x, p.y, 3, 3);
+    }
+    
     if (p.lifetime <= 0) {
       particles.splice(i, 1);
     }
@@ -966,6 +997,34 @@ function renderTurrets() {
   line(rightTurretX + 20, groundY - turretHeight - 25, rightTurretX, groundY - turretHeight - 30); // Cannon barrel
   
   noStroke();
+}
+
+function createMuzzleBlast(x, y) {
+  // Create bright muzzle flash particles
+  for (let i = 0; i < 15; i++) {
+    particles.push({
+      x: x + random(-5, 5),
+      y: y + random(-5, 5),
+      vx: random(-2, 2),
+      vy: random(-2, 2),
+      lifetime: 15,
+      color: color(255, 255, 100), // Bright yellow flash
+      size: random(3, 8)
+    });
+  }
+  
+  // Create bright blast ring
+  for (let i = 0; i < 10; i++) {
+    particles.push({
+      x: x,
+      y: y,
+      vx: random(-4, 4),
+      vy: random(-4, 4),
+      lifetime: 10,
+      color: color(255, 150, 0), // Orange blast
+      size: random(2, 5)
+    });
+  }
 }
 
 function checkSkylineCollisions() {
@@ -1066,42 +1125,50 @@ function mousePressed() {
   let worldX = mouseX - width / 2;
   let worldY = mouseY - height / 2;
   
-  // X-wing style firing: two lasers from left and right sides converging at target
-  let leftStartX = -width / 2 + 50;
-  let rightStartX = width / 2 - 50;
-  let startY = height / 2 - 100; // Slightly up from bottom like wing cannons
+  // Fire from exact turret positions
+  let groundY = height / 2 - 80;
+  let turretHeight = 180;
+  let leftTurretX = -width / 2 + 50; // Center of left turret
+  let rightTurretX = width / 2 - 50; // Center of right turret
+  let cannonY = groundY - turretHeight - 25; // From cannon barrels
   
   // Calculate direction vectors for both cannons to converge at mouse position
-  let leftDx = worldX - leftStartX;
-  let leftDy = worldY - startY;
+  let leftDx = worldX - leftTurretX;
+  let leftDy = worldY - cannonY;
   let leftDistance = sqrt(leftDx * leftDx + leftDy * leftDy);
   
-  let rightDx = worldX - rightStartX;
-  let rightDy = worldY - startY;
+  let rightDx = worldX - rightTurretX;
+  let rightDy = worldY - cannonY;
   let rightDistance = sqrt(rightDx * rightDx + rightDy * rightDy);
   
   // Normalize and set speed
-  let speed = 12;
+  let speed = 15;
   let leftVx = (leftDx / leftDistance) * speed;
   let leftVy = (leftDy / leftDistance) * speed;
   let rightVx = (rightDx / rightDistance) * speed;
   let rightVy = (rightDy / rightDistance) * speed;
   
-  // Create two lasers - left and right cannons
+  // Create muzzle blast effects at turret positions
+  createMuzzleBlast(leftTurretX, cannonY);
+  createMuzzleBlast(rightTurretX, cannonY);
+  
+  // Create two high-visibility lasers from turret cannons
   playerLasers.push({
-    x: leftStartX,
-    y: startY,
+    x: leftTurretX,
+    y: cannonY,
     vx: leftVx,
     vy: leftVy,
-    color: color(0, 255, 100)
+    color: color(0, 255, 255), // Bright cyan
+    trail: []
   });
   
   playerLasers.push({
-    x: rightStartX,
-    y: startY,
+    x: rightTurretX,
+    y: cannonY,
     vx: rightVx,
     vy: rightVy,
-    color: color(0, 255, 100)
+    color: color(0, 255, 255), // Bright cyan
+    trail: []
   });
 }
 
