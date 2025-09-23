@@ -20,6 +20,15 @@
   font-display: swap;
 }
 
+/* Pixel CGA Font for SPACEWAR title */
+@font-face {
+  font-family: 'Pixel CGA';
+  src: url('@assets/Px437_EagleSpCGA_Alt2-2y_1758652577435.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: hsl(0 0% 100%);
   --foreground: hsl(210 25% 7.8431%);

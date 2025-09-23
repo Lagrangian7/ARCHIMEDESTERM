@@ -380,9 +380,10 @@ function getCombinedPosition(t, spread) {
 function draw() {
   background(0);
   
-  // Draw title at the top in big bold letters
+  // Draw title at the top in big bold letters using custom pixel font
   fill(0, 255, 0); // Terminal green
   textAlign(CENTER, TOP);
+  textFont('Pixel CGA'); // Use the custom CGA font
   textSize(48); // Big title
   text('SPACEWAR', width / 2, 20);
   
