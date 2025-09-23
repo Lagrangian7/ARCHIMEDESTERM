@@ -105,6 +105,7 @@ const ufoHaloSize = 60;
 const cityBlockWidth = 30;
 const cityBlockHeight = 20;
 const numCityBlocks = 35;
+const skylineLevel = -80; // Y level where skyline starts (relative to center)
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -834,6 +835,11 @@ function draw() {
         y += avoidY;
       }
       
+      // Prevent invaders from flying below skyline level
+      if (y > height / 2 + skylineLevel - 30) {
+        y = height / 2 + skylineLevel - 30;
+      }
+      
       // Check collision
       if (laser.x > x - 15 && laser.x < x + 15 && laser.y > y - 15 && laser.y < y + 15) {
         // Create explosion particles
@@ -933,28 +939,31 @@ function renderTurrets() {
   let groundY = height / 2 - 80;
   let leftTurretX = -width / 2 + 30;
   let rightTurretX = width / 2 - 70;
+  let turretHeight = 180; // Make turrets much taller than skyline
   
   // Left turret
   fill(80, 80, 120);
   stroke(120, 120, 180);
   strokeWeight(2);
-  rect(leftTurretX, groundY - 40, 40, 40); // Base
+  rect(leftTurretX, groundY - turretHeight, 40, turretHeight); // Tall base
   fill(60, 60, 100);
-  rect(leftTurretX + 10, groundY - 50, 20, 15); // Cannon mount
+  rect(leftTurretX + 5, groundY - turretHeight - 20, 30, 25); // Top section
+  rect(leftTurretX + 10, groundY - turretHeight - 35, 20, 20); // Cannon mount
   stroke(255, 100, 100);
-  strokeWeight(4);
-  line(leftTurretX + 20, groundY - 42, leftTurretX + 35, groundY - 47); // Cannon barrel
+  strokeWeight(6);
+  line(leftTurretX + 20, groundY - turretHeight - 25, leftTurretX + 40, groundY - turretHeight - 30); // Cannon barrel
   
   // Right turret
   fill(80, 80, 120);
   stroke(120, 120, 180);
   strokeWeight(2);
-  rect(rightTurretX, groundY - 40, 40, 40); // Base
+  rect(rightTurretX, groundY - turretHeight, 40, turretHeight); // Tall base
   fill(60, 60, 100);
-  rect(rightTurretX + 10, groundY - 50, 20, 15); // Cannon mount
+  rect(rightTurretX + 5, groundY - turretHeight - 20, 30, 25); // Top section
+  rect(rightTurretX + 10, groundY - turretHeight - 35, 20, 20); // Cannon mount
   stroke(255, 100, 100);
-  strokeWeight(4);
-  line(rightTurretX + 20, groundY - 42, rightTurretX + 5, groundY - 47); // Cannon barrel
+  strokeWeight(6);
+  line(rightTurretX + 20, groundY - turretHeight - 25, rightTurretX, groundY - turretHeight - 30); // Cannon barrel
   
   noStroke();
 }
