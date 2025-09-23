@@ -1088,11 +1088,13 @@ function draw() {
   line(crosshairX, crosshairY - 10, crosshairX, crosshairY + 10);
   noStroke();
 
+  // Center game stats under the title
   fill(0, 255, 0);
+  textAlign(CENTER, TOP);
   textSize(20);
-  text("Score: " + score, -width / 2 + 20, -height / 2 + 40);
-  text("Level: " + level, -width / 2 + 20, -height / 2 + 70);
-  text("Invaders: " + invaders.length, -width / 2 + 20, -height / 2 + 100);
+  text("Score: " + score, 0, -height / 2 + 90);
+  text("Level: " + level, 0, -height / 2 + 120);
+  text("Invaders: " + invaders.length, 0, -height / 2 + 150);
   
   // Render city skyline
   renderCitySkyline();
