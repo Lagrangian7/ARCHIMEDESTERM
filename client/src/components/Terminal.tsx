@@ -490,16 +490,6 @@ export function Terminal() {
                     <Shield size={14} className="mr-1" />
                     Privacy
                   </Button>
-                  <Button
-                    onClick={launchSpacewars}
-                    variant="outline"
-                    size="sm"
-                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
-                    data-testid="button-spacewars"
-                    title="Launch SPACEWAR Game"
-                  >
-                    <img src={invadersIcon} alt="SPACEWAR" className="h-4" />
-                  </Button>
                 </>
               ) : (
                 <Button
@@ -513,6 +503,18 @@ export function Terminal() {
                   Log In
                 </Button>
               )}
+              
+              {/* SPACEWAR Game - Available to all users */}
+              <Button
+                onClick={launchSpacewars}
+                variant="outline"
+                size="sm"
+                className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
+                data-testid="button-spacewars"
+                title="Launch SPACEWAR Game"
+              >
+                <img src={invadersIcon} alt="SPACEWAR" className="h-4" />
+              </Button>
             </div>
             
             {/* Mode Switcher */}
