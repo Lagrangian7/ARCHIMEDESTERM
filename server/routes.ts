@@ -690,7 +690,7 @@ function draw() {
           vx: cos(angle) * ufoLaserSpeed,
           vy: sin(angle) * ufoLaserSpeed
         });
-        playEnemyLaserSound();
+        playUfoLaserSound();
       }
       push();
       translate(ufo.x, ufo.y);
@@ -1367,6 +1367,27 @@ function playNyanCatSound() {
   oscillator.type = 'triangle';
   oscillator.start(audioContext.currentTime);
   oscillator.stop(audioContext.currentTime + 0.3);
+}
+
+function playUfoLaserSound() {
+  if (!audioContext) return;
+  
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  // UFO laser: subtle, quiet, alien-like sound
+  oscillator.frequency.setValueAtTime(450, audioContext.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(220, audioContext.currentTime + 0.1);
+  
+  gainNode.gain.setValueAtTime(0.12, audioContext.currentTime); // Much quieter
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+  
+  oscillator.type = 'sine'; // Smoother, more subtle than square wave
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.1); // Shorter duration
 }
 
 function playEnemyLaserSound() {
