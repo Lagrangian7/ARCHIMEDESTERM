@@ -60,6 +60,7 @@ let backgroundInvaders = [];
 let ufo = null;
 let ufoLasers = [];
 let invaderLasers = [];
+let playerLasers = [];
 let nyanCat = null;
 let rainbowTrails = [];
 let nyanCatBombs = [];
@@ -721,6 +722,97 @@ function draw() {
     rect(laser.x, laser.y, 3, 8);
   }
 
+  // Update and render player lasers
+  for (let i = playerLasers.length - 1; i >= 0; i--) {
+    let laser = playerLasers[i];
+    laser.x += laser.vx;
+    laser.y += laser.vy;
+    
+    // Remove lasers that go off screen
+    if (laser.x < -width / 2 - 50 || laser.x > width / 2 + 50 || 
+        laser.y < -height / 2 - 50 || laser.y > height / 2 + 50) {
+      playerLasers.splice(i, 1);
+      continue;
+    }
+    
+    // Draw the laser
+    fill(laser.color);
+    noStroke();
+    ellipse(laser.x, laser.y, 6, 6);
+    
+    // Check collision with invaders
+    const { spread } = getLevelModifiers();
+    for (let j = invaders.length - 1; j >= 0; j--) {
+      let invader = invaders[j];
+      let x, y;
+      
+      if (invader.pattern === 'wheel') {
+        let baseX = cos(invader.angle) * (baseWheelRadius * spread);
+        let baseY = sin(invader.angle) * (baseWheelRadius * spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = baseX + jitterX;
+        y = baseY + jitterY;
+      } else if (invader.pattern === 'rectangle') {
+        let pos = getRectangularPosition(invader.t, spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = pos.x + jitterX;
+        y = pos.y + jitterY;
+      } else if (invader.pattern === 'figure8') {
+        let pos = getFigure8Position(invader.t, spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = pos.x + jitterX;
+        y = pos.y + jitterY;
+      } else {
+        let pos = getCombinedPosition(invader.t, spread);
+        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+        x = pos.x + jitterX;
+        y = pos.y + jitterY;
+      }
+      
+      // Apply mouse avoidance to get final position
+      let mouseXWorld = mouseX - width / 2;
+      let mouseYWorld = mouseY - height / 2;
+      let dx = x - mouseXWorld;
+      let dy = y - mouseYWorld;
+      let distance = sqrt(dx * dx + dy * dy);
+      if (distance < avoidanceRadius && distance > 0) {
+        let avoidX = (dx / distance) * avoidanceStrength;
+        let avoidY = (dy / distance) * avoidanceStrength;
+        let avoidMag = sqrt(avoidX * avoidX + avoidY * avoidY);
+        if (avoidMag > maxAvoidanceSpeed) {
+          avoidX = (avoidX / avoidMag) * maxAvoidanceSpeed;
+          avoidY = (avoidY / avoidMag) * maxAvoidanceSpeed;
+        }
+        x += avoidX;
+        y += avoidY;
+      }
+      
+      // Check collision
+      if (laser.x > x - 15 && laser.x < x + 15 && laser.y > y - 15 && laser.y < y + 15) {
+        // Create explosion particles
+        for (let k = 0; k < 25; k++) {
+          particles.push({
+            x: x,
+            y: y,
+            vx: random(-3, 3),
+            vy: random(-3, 3),
+            lifetime: 30
+          });
+        }
+        
+        // Remove invader and laser
+        invaders.splice(j, 1);
+        playerLasers.splice(i, 1);
+        score += pointsPerHit;
+        break;
+      }
+    }
+  }
+
   for (let i = particles.length - 1; i >= 0; i--) {
     let p = particles[i];
     p.x += p.vx;
@@ -734,11 +826,24 @@ function draw() {
     }
   }
 
+  // Draw crosshair at mouse position
+  let crosshairX = mouseX - width / 2;
+  let crosshairY = mouseY - height / 2;
+  stroke(0, 255, 255);
+  strokeWeight(2);
+  line(crosshairX - 10, crosshairY, crosshairX + 10, crosshairY);
+  line(crosshairX, crosshairY - 10, crosshairX, crosshairY + 10);
+  noStroke();
+
   fill(0, 255, 0);
   textSize(20);
   text("Score: " + score, -width / 2 + 20, -height / 2 + 40);
   text("Level: " + level, -width / 2 + 20, -height / 2 + 70);
   text("Invaders: " + invaders.length, -width / 2 + 20, -height / 2 + 100);
+  
+  fill(0, 255, 255);
+  textSize(16);
+  text("Click to shoot!", -width / 2 + 20, height / 2 - 20);
   
   if (invaders.length === 0) {
     level++;
@@ -753,6 +858,34 @@ function draw() {
     }
     spawnInvaders();
   }
+}
+
+function mousePressed() {
+  // Convert screen coordinates to world coordinates
+  let worldX = mouseX - width / 2;
+  let worldY = mouseY - height / 2;
+  
+  // Create a laser projectile from bottom center of screen toward mouse position
+  let startX = 0;
+  let startY = height / 2 - 50;
+  
+  // Calculate direction vector
+  let dx = worldX - startX;
+  let dy = worldY - startY;
+  let distance = sqrt(dx * dx + dy * dy);
+  
+  // Normalize and set speed
+  let speed = 8;
+  let vx = (dx / distance) * speed;
+  let vy = (dy / distance) * speed;
+  
+  playerLasers.push({
+    x: startX,
+    y: startY,
+    vx: vx,
+    vy: vy,
+    color: color(0, 255, 255)
+  });
 }
 
 function windowResized() {
