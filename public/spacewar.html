@@ -71,35 +71,23 @@ const blinkInterval = 30;
 const ufoHaloSize = 60;
 
 function generateRandomColorScheme() {
-  // Generate a random color scheme for the current level
+  // Fixed color schemes for dramatic differences between levels
   let schemes = [
-    // Bright Green (classic) with variations
-    () => color(random(0, 50), random(200, 255), random(30, 80)),
-    // Electric Blue with variations
-    () => color(random(0, 50), random(80, 150), random(200, 255)),
-    // Hot Red with variations
-    () => color(random(200, 255), random(30, 80), random(30, 80)),
-    // Neon Purple with variations
-    () => color(random(150, 255), random(30, 80), random(200, 255)),
-    // Orange Fire with variations
-    () => color(random(200, 255), random(100, 180), random(0, 50)),
-    // Cyan Electric with variations
-    () => color(random(0, 50), random(200, 255), random(150, 220)),
-    // Bright Yellow with variations
-    () => color(random(200, 255), random(200, 255), random(30, 80)),
-    // Hot Pink with variations
-    () => color(random(200, 255), random(30, 80), random(100, 180)),
-    // Lime Green with variations
-    () => color(random(100, 180), random(200, 255), random(0, 50)),
-    // Deep Purple with variations
-    () => color(random(100, 180), random(0, 50), random(200, 255)),
-    // Turquoise with variations
-    () => color(random(30, 80), random(200, 255), random(200, 255)),
-    // Magenta with variations
-    () => color(random(200, 255), random(0, 50), random(100, 180))
+    color(0, 255, 0),      // Bright Green
+    color(0, 0, 255),      // Blue
+    color(255, 0, 0),      // Red
+    color(255, 0, 255),    // Magenta
+    color(255, 165, 0),    // Orange
+    color(0, 255, 255),    // Cyan
+    color(255, 255, 0),    // Yellow
+    color(255, 105, 180),  // Hot Pink
+    color(128, 0, 128),    // Purple
+    color(0, 128, 0),      // Dark Green
+    color(255, 20, 147),   // Deep Pink
+    color(30, 144, 255)    // Dodger Blue
   ];
   
-  // Pick a random scheme and return the generator function
+  // Pick a random scheme and return the actual color
   return schemes[floor(random(schemes.length))];
 }
 
@@ -145,7 +133,7 @@ function spawnInvaders() {
       let angle = (TWO_PI / numInvaders) * i;
       invaders.push({
         angle: angle,
-        color: levelColorScheme(),
+        color: levelColorScheme,
         type: i % 3,
         pattern: 'wheel',
         noiseSeedX: random(10000),
@@ -158,7 +146,7 @@ function spawnInvaders() {
       let t = (1 / numInvaders) * i;
       invaders.push({
         t: t,
-        color: levelColorScheme(),
+        color: levelColorScheme,
         type: i % 3,
         pattern: 'rectangle',
         noiseSeedX: random(10000),
@@ -171,7 +159,7 @@ function spawnInvaders() {
       let t = (1 / numInvaders) * i;
       invaders.push({
         t: t,
-        color: levelColorScheme(),
+        color: levelColorScheme,
         type: i % 3,
         pattern: 'figure8',
         noiseSeedX: random(10000),
@@ -184,7 +172,7 @@ function spawnInvaders() {
       let t = (1 / numInvaders) * i;
       invaders.push({
         t: t,
-        color: levelColorScheme(),
+        color: levelColorScheme,
         type: i % 3,
         pattern: 'combined',
         noiseSeedX: random(10000),
