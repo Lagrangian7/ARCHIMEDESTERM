@@ -79,6 +79,7 @@ let audioContext;
 let ufoOscillator = null;
 let ufoAudio = null;
 let backgroundMusic = null;
+let pixelFont;
 let limbAnimationSpeed;
 let limbAnimationAmplitude = 2;
 const baseNumInvaders = 5;
@@ -114,6 +115,11 @@ const ufoHaloSize = 60;
 const cityBlockWidth = 25;
 const cityBlockHeight = 20;
 const skylineLevel = -80; // Y level where skyline starts (relative to center)
+
+function preload() {
+  // Load the custom pixel font for the SPACEWAR title
+  pixelFont = loadFont('/attached_assets/Px437_EagleSpCGA_Alt2-2y_1758652577435.ttf');
+}
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -383,7 +389,7 @@ function draw() {
   // Draw title at the top in big bold letters using custom pixel font
   fill(0, 255, 0); // Terminal green
   textAlign(CENTER, TOP);
-  textFont('Pixel CGA'); // Use the custom CGA font
+  if (pixelFont) textFont(pixelFont); // Use the loaded CGA font
   textSize(48); // Big title
   text('SPACEWAR', width / 2, 20);
   
