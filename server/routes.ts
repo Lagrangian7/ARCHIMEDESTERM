@@ -865,9 +865,9 @@ function mousePressed() {
   let worldX = mouseX - width / 2;
   let worldY = mouseY - height / 2;
   
-  // Create a laser projectile from bottom center of screen toward mouse position
+  // Create a laser projectile from center of screen (first-person view) toward mouse position
   let startX = 0;
-  let startY = height / 2 - 50;
+  let startY = 0;
   
   // Calculate direction vector
   let dx = worldX - startX;
@@ -875,7 +875,7 @@ function mousePressed() {
   let distance = sqrt(dx * dx + dy * dy);
   
   // Normalize and set speed
-  let speed = 8;
+  let speed = 10;
   let vx = (dx / distance) * speed;
   let vy = (dy / distance) * speed;
   
