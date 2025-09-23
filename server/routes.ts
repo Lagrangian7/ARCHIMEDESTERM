@@ -902,6 +902,34 @@ function draw() {
         break;
       }
     }
+    
+    // Check collision with UFO
+    if (ufo && ufo.active) {
+      if (laser.x > ufo.x - 25 && laser.x < ufo.x + 25 && laser.y > ufo.y - 15 && laser.y < ufo.y + 15) {
+        // Create bigger explosion for UFO
+        for (let k = 0; k < 35; k++) {
+          particles.push({
+            x: ufo.x,
+            y: ufo.y,
+            vx: random(-5, 5),
+            vy: random(-5, 5),
+            lifetime: 40
+          });
+        }
+        
+        // Play explosion sound
+        playExplosionSound();
+        
+        // Stop UFO humming sound
+        stopUfoHum();
+        
+        // Remove UFO and laser, award bonus points
+        ufo = null;
+        playerLasers.splice(i, 1);
+        score += ufoPoints; // Bonus points for hitting UFO
+        break;
+      }
+    }
   }
 
   for (let i = particles.length - 1; i >= 0; i--) {
