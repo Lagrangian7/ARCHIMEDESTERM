@@ -147,6 +147,21 @@ function setup() {
   }
 }
 
+function getBuildingColor(buildingType) {
+  switch (buildingType) {
+    case 'honeycomb':
+      return { fill: [80, 60, 40], stroke: [120, 90, 60] }; // Brown/amber
+    case 'neon':
+      return { fill: [20, 80, 120], stroke: [40, 160, 240] }; // Bright blue
+    case 'industrial':
+      return { fill: [70, 50, 50], stroke: [100, 80, 80] }; // Rusty red
+    case 'glass':
+      return { fill: [40, 80, 80], stroke: [80, 160, 160] }; // Teal glass
+    default: // normal
+      return { fill: [60, 60, 60], stroke: [80, 80, 80] }; // Original grey
+  }
+}
+
 function initializeCitySkyline() {
   cityBlocks = [];
   
@@ -159,6 +174,10 @@ function initializeCitySkyline() {
   for (let i = 0; i < numCityBlocks; i++) {
     let buildingHeight = random(3, 8); // Random building heights for upper city
     
+    // Randomly select building type for this column
+    let buildingType = random(['normal', 'honeycomb', 'neon', 'industrial', 'glass']);
+    let buildingColor = getBuildingColor(buildingType);
+    
     // Create the upper city buildings (destructible)
     for (let k = 0; k < buildingHeight; k++) {
       cityBlocks.push({
@@ -169,7 +188,9 @@ function initializeCitySkyline() {
         destroyed: false,
         buildingId: i, // Track which building this belongs to
         flashTimer: 0, // Flash timer for hit effect
-        isFoundation: false // This is a building, not foundation
+        isFoundation: false, // This is a building, not foundation
+        buildingType: buildingType, // Type of building design
+        buildingColor: buildingColor // Color scheme for this building
       });
     }
     
@@ -184,7 +205,9 @@ function initializeCitySkyline() {
         destroyed: false,
         buildingId: i,
         flashTimer: 0,
-        isFoundation: true // This is foundation, indestructible
+        isFoundation: true, // This is foundation, indestructible
+        buildingType: 'foundation',
+        buildingColor: { fill: [40, 40, 40], stroke: [60, 60, 60] }
       });
     }
   }
@@ -1060,31 +1083,111 @@ function draw() {
   }
 }
 
-function renderCitySkyline() {
-  for (let block of cityBlocks) {
-    if (!block.destroyed) {
-      // Flash white when hit, otherwise dark grey
-      if (block.flashTimer > 0 && !block.isFoundation) {
-        fill(255, 255, 255); // Bright white flash
-        stroke(255, 255, 255);
-        block.flashTimer--; // Decrement flash timer
-        
-        // Destroy block when flash is done (only non-foundation blocks)
-        if (block.flashTimer <= 0) {
-          block.destroyed = true;
-        }
-      } else {
-        if (block.isFoundation) {
-          fill(40, 40, 40); // Darker grey for foundation
-          stroke(60, 60, 60);
-        } else {
-          fill(60, 60, 60); // Dark grey city color
-          stroke(80, 80, 80);
+function drawHoneycombPattern(x, y, w, h, cellSize) {
+  // Draw hexagonal honeycomb pattern
+  let rows = Math.floor(h / (cellSize * 0.75));
+  let cols = Math.floor(w / cellSize);
+  
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      let hexX = x + col * cellSize + (row % 2) * (cellSize / 2);
+      let hexY = y + row * cellSize * 0.75;
+      
+      if (hexX + cellSize <= x + w && hexY + cellSize <= y + h) {
+        drawHexagon(hexX + cellSize/2, hexY + cellSize/2, cellSize/3);
+      }
+    }
+  }
+}
+
+function drawHexagon(centerX, centerY, radius) {
+  beginShape();
+  for (let i = 0; i < 6; i++) {
+    let angle = TWO_PI / 6 * i;
+    let x = centerX + cos(angle) * radius;
+    let y = centerY + sin(angle) * radius;
+    vertex(x, y);
+  }
+  endShape(CLOSE);
+}
+
+function renderBuildingBlock(block) {
+  if (block.destroyed) return;
+  
+  // Handle flashing effect
+  if (block.flashTimer > 0 && !block.isFoundation) {
+    fill(255, 255, 255); // Bright white flash
+    stroke(255, 255, 255);
+    block.flashTimer--; // Decrement flash timer
+    
+    // Destroy block when flash is done (only non-foundation blocks)
+    if (block.flashTimer <= 0) {
+      block.destroyed = true;
+    }
+  } else {
+    // Set colors based on building type
+    fill(block.buildingColor.fill[0], block.buildingColor.fill[1], block.buildingColor.fill[2]);
+    stroke(block.buildingColor.stroke[0], block.buildingColor.stroke[1], block.buildingColor.stroke[2]);
+  }
+  
+  strokeWeight(1);
+  
+  // Render based on building type
+  switch (block.buildingType) {
+    case 'honeycomb':
+      // Draw base rectangle first
+      rect(block.x, block.y, block.width, block.height);
+      // Add honeycomb pattern on top
+      stroke(block.buildingColor.stroke[0] + 40, block.buildingColor.stroke[1] + 40, block.buildingColor.stroke[2] + 40);
+      strokeWeight(0.5);
+      drawHoneycombPattern(block.x + 2, block.y + 2, block.width - 4, block.height - 4, 8);
+      break;
+      
+    case 'neon':
+      // Draw with glowing effect
+      rect(block.x, block.y, block.width, block.height);
+      // Add inner glow lines
+      stroke(block.buildingColor.stroke[0] + 80, block.buildingColor.stroke[1] + 80, block.buildingColor.stroke[2] + 80);
+      strokeWeight(0.5);
+      line(block.x + 3, block.y + 3, block.x + block.width - 3, block.y + 3);
+      line(block.x + 3, block.y + block.height - 3, block.x + block.width - 3, block.y + block.height - 3);
+      break;
+      
+    case 'industrial':
+      // Draw with rivets/bolts pattern
+      rect(block.x, block.y, block.width, block.height);
+      fill(block.buildingColor.stroke[0], block.buildingColor.stroke[1], block.buildingColor.stroke[2]);
+      noStroke();
+      // Add rivet dots
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 2; j++) {
+          ellipse(block.x + 4 + i * 6, block.y + 4 + j * 8, 2, 2);
         }
       }
-      strokeWeight(1);
+      break;
+      
+    case 'glass':
+      // Draw with reflective pattern
       rect(block.x, block.y, block.width, block.height);
-    }
+      // Add window grid
+      stroke(block.buildingColor.stroke[0] + 60, block.buildingColor.stroke[1] + 60, block.buildingColor.stroke[2] + 60);
+      strokeWeight(0.5);
+      // Vertical lines
+      line(block.x + block.width/3, block.y, block.x + block.width/3, block.y + block.height);
+      line(block.x + 2*block.width/3, block.y, block.x + 2*block.width/3, block.y + block.height);
+      // Horizontal line
+      line(block.x, block.y + block.height/2, block.x + block.width, block.y + block.height/2);
+      break;
+      
+    default: // normal and foundation
+      rect(block.x, block.y, block.width, block.height);
+      break;
+  }
+}
+
+function renderCitySkyline() {
+  for (let block of cityBlocks) {
+    renderBuildingBlock(block);
   }
   
   // Render turrets on the sides
