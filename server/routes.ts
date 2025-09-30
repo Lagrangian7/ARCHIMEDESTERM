@@ -221,6 +221,18 @@ function initializeCitySkyline() {
   }
 }
 
+function getRandomHighlightColor() {
+  let highlightColors = [
+    color(255, 0, 0),      // Red
+    color(0, 255, 0),      // Green
+    color(0, 0, 255),      // Blue
+    color(255, 255, 0),    // Yellow
+    color(255, 0, 255),    // Magenta
+    color(0, 255, 255)     // Cyan
+  ];
+  return highlightColors[floor(random(highlightColors.length))];
+}
+
 function spawnInvaders() {
   invaders = [];
   const { spread } = getLevelModifiers();
@@ -237,6 +249,7 @@ function spawnInvaders() {
       invaders.push({
         angle: angle,
         color: color(255, 0, 0),  // Red for wheel pattern
+        highlightColor: getRandomHighlightColor(),
         type: i % 3,
         pattern: 'wheel',
         noiseSeedX: random(10000),
@@ -250,6 +263,7 @@ function spawnInvaders() {
       invaders.push({
         t: t,
         color: color(0, 255, 0),  // Green for rectangle pattern
+        highlightColor: getRandomHighlightColor(),
         type: i % 3,
         pattern: 'rectangle',
         noiseSeedX: random(10000),
@@ -263,6 +277,7 @@ function spawnInvaders() {
       invaders.push({
         t: t,
         color: color(0, 0, 255),  // Blue for figure8 pattern
+        highlightColor: getRandomHighlightColor(),
         type: i % 3,
         pattern: 'figure8',
         noiseSeedX: random(10000),
@@ -276,6 +291,7 @@ function spawnInvaders() {
       invaders.push({
         t: t,
         color: color(255, 255, 0),  // Yellow for combined pattern
+        highlightColor: getRandomHighlightColor(),
         type: i % 3,
         pattern: 'combined',
         noiseSeedX: random(10000),
@@ -833,6 +849,11 @@ function draw() {
       rect(10, -10 + limbOffset, 5, 5);
       rect(-5, 10 + limbOffset, 5, 5);
       rect(5, 10 + limbOffset, 5, 5);
+      // Random colored highlights
+      fill(invader.highlightColor);
+      rect(-2, -5, 3, 2);
+      rect(-10, -12 + limbOffset, 2, 1);
+      rect(10, -12 + limbOffset, 2, 1);
       if (frameCount % (2 * blinkInterval) < blinkInterval) {
         fill(0, 255, 0);
         rect(-5, -2, 3, 3);
@@ -845,6 +866,11 @@ function draw() {
       rect(15 - limbOffset, 0, 5, 5);
       rect(-10, 10 + limbOffset, 5, 5);
       rect(10, 10 + limbOffset, 5, 5);
+      // Random colored highlights
+      fill(invader.highlightColor);
+      rect(-3, -4, 4, 2);
+      rect(-15 + limbOffset, -2, 2, 1);
+      rect(15 - limbOffset, -2, 2, 1);
       if (frameCount % (2 * blinkInterval) < blinkInterval) {
         fill(0, 255, 0);
         rect(-5, 0, 3, 3);
@@ -855,6 +881,11 @@ function draw() {
       rect(0, 0, 20, 20);
       rect(-10, 10 + limbOffset, 5, 5);
       rect(10, 10 + limbOffset, 5, 5);
+      // Random colored highlights
+      fill(invader.highlightColor);
+      rect(-2, -6, 4, 2);
+      rect(-10, 8 + limbOffset, 2, 1);
+      rect(10, 8 + limbOffset, 2, 1);
       fill(0);
       rect(-5, -2, 4, 4);
       rect(5, -2, 4, 4);
