@@ -849,11 +849,11 @@ function draw() {
       rect(10, -10 + limbOffset, 5, 5);
       rect(-5, 10 + limbOffset, 5, 5);
       rect(5, 10 + limbOffset, 5, 5);
-      // Random colored highlights
+      // Random colored highlights - larger and more visible
       fill(invader.highlightColor);
-      rect(-2, -5, 3, 2);
-      rect(-10, -12 + limbOffset, 2, 1);
-      rect(10, -12 + limbOffset, 2, 1);
+      rect(0, -3, 8, 3);
+      rect(-10, -10 + limbOffset, 4, 4);
+      rect(10, -10 + limbOffset, 4, 4);
       if (frameCount % (2 * blinkInterval) < blinkInterval) {
         fill(0, 255, 0);
         rect(-5, -2, 3, 3);
@@ -866,11 +866,11 @@ function draw() {
       rect(15 - limbOffset, 0, 5, 5);
       rect(-10, 10 + limbOffset, 5, 5);
       rect(10, 10 + limbOffset, 5, 5);
-      // Random colored highlights
+      // Random colored highlights - larger and more visible
       fill(invader.highlightColor);
-      rect(-3, -4, 4, 2);
-      rect(-15 + limbOffset, -2, 2, 1);
-      rect(15 - limbOffset, -2, 2, 1);
+      rect(0, -2, 10, 3);
+      rect(-15 + limbOffset, 0, 4, 4);
+      rect(15 - limbOffset, 0, 4, 4);
       if (frameCount % (2 * blinkInterval) < blinkInterval) {
         fill(0, 255, 0);
         rect(-5, 0, 3, 3);
@@ -881,11 +881,11 @@ function draw() {
       rect(0, 0, 20, 20);
       rect(-10, 10 + limbOffset, 5, 5);
       rect(10, 10 + limbOffset, 5, 5);
-      // Random colored highlights
+      // Random colored highlights - larger and more visible
       fill(invader.highlightColor);
-      rect(-2, -6, 4, 2);
-      rect(-10, 8 + limbOffset, 2, 1);
-      rect(10, 8 + limbOffset, 2, 1);
+      rect(0, -4, 10, 3);
+      rect(-10, 10 + limbOffset, 4, 4);
+      rect(10, 10 + limbOffset, 4, 4);
       fill(0);
       rect(-5, -2, 4, 4);
       rect(5, -2, 4, 4);
