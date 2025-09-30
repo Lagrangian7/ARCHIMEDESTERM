@@ -658,7 +658,9 @@ function draw() {
     
     push();
     translate(x, y);
-    fill(0, 255, 0, glowAlpha);
+    // Use invader's pattern color for glow with transparency
+    let glowColor = invader.color;
+    fill(glowColor.levels[0], glowColor.levels[1], glowColor.levels[2], glowAlpha);
     noStroke();
     let glowSize = invader.type === 0 ? 30 : invader.type === 1 ? 37.5 : 30;
     ellipse(0, 0, glowSize);
