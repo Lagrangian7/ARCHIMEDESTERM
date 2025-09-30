@@ -103,7 +103,10 @@ function generateRandomCity() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   limbAnimationSpeed = TWO_PI / 20;
+  console.log('SPACEWAR LOADED - Version 2.0 - Pattern Colors Active');
+  console.log('Current pattern:', pattern);
   spawnInvaders();
+  console.log('First invader color:', invaders[0]?.color);
   for (let i = 0; i < numStars; i++) {
     stars.push({
       x: random(-width, width),
