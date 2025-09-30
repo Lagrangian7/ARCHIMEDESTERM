@@ -346,7 +346,7 @@ export function Terminal() {
   // Launch SPACEWAR game
   const launchSpacewars = () => {
     try {
-      const gameWindow = window.open('/spacewar.html', '_blank', 'width=1200,height=800,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no');
+      const gameWindow = window.open('/spacewar.html?v=' + Date.now(), '_blank', 'width=1200,height=800,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no');
       if (!gameWindow) {
         // If popup was blocked, show a message
         console.warn('Popup blocked - SPACEWAR game could not open');
