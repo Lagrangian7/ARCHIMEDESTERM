@@ -392,7 +392,7 @@ function draw() {
   textAlign(CENTER, TOP);
   if (pixelFont) textFont(pixelFont); // Use the loaded CGA font
   textSize(48); // Big title
-  text('SPACEWAR', width / 2, 20);
+  text('SP4CEW4RZ', width / 2, 20);
   
   // Show pause message and return early if game is paused
   if (gamePaused) {
