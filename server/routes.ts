@@ -236,7 +236,7 @@ function spawnInvaders() {
       let angle = (TWO_PI / numInvaders) * i;
       invaders.push({
         angle: angle,
-        color: color(0, random(100, 200), 0),
+        color: color(255, 0, 0),  // Red for wheel pattern
         type: i % 3,
         pattern: 'wheel',
         noiseSeedX: random(10000),
@@ -249,7 +249,7 @@ function spawnInvaders() {
       let t = (1 / numInvaders) * i;
       invaders.push({
         t: t,
-        color: color(0, random(100, 200), 0),
+        color: color(0, 255, 0),  // Green for rectangle pattern
         type: i % 3,
         pattern: 'rectangle',
         noiseSeedX: random(10000),
@@ -262,7 +262,7 @@ function spawnInvaders() {
       let t = (1 / numInvaders) * i;
       invaders.push({
         t: t,
-        color: color(0, random(100, 200), 0),
+        color: color(0, 0, 255),  // Blue for figure8 pattern
         type: i % 3,
         pattern: 'figure8',
         noiseSeedX: random(10000),
@@ -275,7 +275,7 @@ function spawnInvaders() {
       let t = (1 / numInvaders) * i;
       invaders.push({
         t: t,
-        color: color(0, random(100, 200), 0),
+        color: color(255, 255, 0),  // Yellow for combined pattern
         type: i % 3,
         pattern: 'combined',
         noiseSeedX: random(10000),
@@ -818,7 +818,9 @@ function draw() {
     
     push();
     translate(x, y);
-    fill(0, 255, 0, glowAlpha);
+    // Use invader's pattern color for glow with transparency
+    let glowColor = invader.color;
+    fill(glowColor.levels[0], glowColor.levels[1], glowColor.levels[2], glowAlpha);
     noStroke();
     let glowSize = invader.type === 0 ? 30 : invader.type === 1 ? 37.5 : 30;
     ellipse(0, 0, glowSize);
