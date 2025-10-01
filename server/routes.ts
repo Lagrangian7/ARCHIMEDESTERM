@@ -75,6 +75,7 @@ let glowPulseAngle = 0;
 let level = 1;
 let pattern = 'wheel';
 let score = 0;
+let gameEnded = false;
 let audioContext;
 let ufoOscillator = null;
 let ufoAudio = null;
@@ -432,6 +433,11 @@ function getCombinedPosition(t, spread) {
 
 function draw() {
   background(0);
+  
+  // If game has ended, stop all game logic
+  if (gameEnded) {
+    return;
+  }
   
   // Draw title at the top in big bold letters using custom pixel font
   fill(0, 255, 0); // Terminal green
@@ -1801,6 +1807,9 @@ function checkSkylineCollisions() {
 }
 
 function keyPressed() {
+  // Don't allow pausing if game has ended
+  if (gameEnded) return;
+  
   // Handle spacebar (32) and Enter key (13) for pause/unpause
   if (keyCode === 32 || keyCode === 13) {
     gamePaused = !gamePaused;
@@ -1845,12 +1854,20 @@ function isSkylineDestroyed() {
 }
 
 function gameOver() {
+  // Only execute once
+  if (gameEnded) return;
+  
+  gameEnded = true;
+  
   // Stop background music
   stopBackgroundMusic();
   
   // Stop UFO sounds if active
   stopUfoHum();
   stopUfoSound();
+  
+  // Stop the draw loop
+  noLoop();
   
   fill(255, 0, 0);
   textSize(32);
@@ -1873,6 +1890,7 @@ function gameOver() {
     ufo = null;
     nyanCat = null;
     rainbowTrails = [];
+    gameEnded = false;
     initializeCitySkyline();
     spawnInvaders();
     
@@ -1882,8 +1900,9 @@ function gameOver() {
       console.log('Game restart: Starting with track', currentTrackIndex);
     }
     
-    // Restart background music
+    // Restart background music and resume game loop
     startBackgroundMusic();
+    loop();
   }, 3000);
 }
 
@@ -1892,6 +1911,9 @@ function mousePressed() {
   if (backgroundMusic && backgroundMusic.paused) {
     startBackgroundMusic();
   }
+  
+  // Don't allow shooting if game has ended
+  if (gameEnded) return;
   
   // Convert screen coordinates to world coordinates
   let worldX = mouseX - width / 2;
