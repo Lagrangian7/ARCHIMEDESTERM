@@ -29,7 +29,7 @@ export function useTerminal(onUploadCommand?: () => void) {
     {
       id: '3',
       type: 'system',
-      content: "Welcome to ARCHIMEDES v7. Type 'help' for available commands or start chatting naturally.",
+      content: "Archimedes v7 Online",
       timestamp: new Date().toISOString(),
     },
   ]);
