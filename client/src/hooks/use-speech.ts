@@ -27,6 +27,7 @@ export function useSpeechSynthesis() {
   const selectedVoiceRef = useRef<number>(0);
   const speechRateRef = useRef<number>(1.0);
   const voicesRef = useRef<Voice[]>([]);
+  const isEnabledRef = useRef<boolean>(true);
 
   useEffect(() => {
     if (!('speechSynthesis' in window)) {
@@ -102,8 +103,28 @@ export function useSpeechSynthesis() {
     speechRateRef.current = speechRate;
   }, [speechRate]);
 
+  useEffect(() => {
+    isEnabledRef.current = isEnabled;
+  }, [isEnabled]);
+  
+  // Wrapped setters that update both state and ref immediately
+  const setSelectedVoiceWithRef = useCallback((value: number) => {
+    selectedVoiceRef.current = value;
+    setSelectedVoice(value);
+  }, []);
+  
+  const setSpeechRateWithRef = useCallback((value: number) => {
+    speechRateRef.current = value;
+    setSpeechRate(value);
+  }, []);
+  
+  const setIsEnabledWithRef = useCallback((value: boolean) => {
+    isEnabledRef.current = value;
+    setIsEnabled(value);
+  }, []);
+
   const speak = useCallback((text: string) => {
-    if (!isEnabled || !('speechSynthesis' in window)) {
+    if (!isEnabledRef.current || !('speechSynthesis' in window)) {
       console.warn('Speech synthesis disabled or not supported');
       return;
     }
@@ -181,6 +202,7 @@ export function useSpeechSynthesis() {
       // Debug logging
       console.log('Voice Selection Debug:', {
         selectedVoice: currentVoice,
+        selectedVoiceName: currentVoices[currentVoice]?.name || 'Unknown',
         totalVoices: currentVoices.length,
         systemVoicesCount: systemVoices.length,
         voicesLoaded,
@@ -250,11 +272,11 @@ export function useSpeechSynthesis() {
   return {
     voices,
     isEnabled,
-    setIsEnabled,
+    setIsEnabled: setIsEnabledWithRef,
     selectedVoice,
-    setSelectedVoice,
+    setSelectedVoice: setSelectedVoiceWithRef,
     speechRate,
-    setSpeechRate,
+    setSpeechRate: setSpeechRateWithRef,
     isSpeaking,
     voicesLoaded,
     speak,

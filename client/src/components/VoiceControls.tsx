@@ -19,6 +19,7 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
     setSpeechRate,
     isSpeaking,
     voicesLoaded,
+    speak,
     stop,
   } = useSpeechSynthesis();
   
@@ -46,13 +47,14 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
 
   const handleVoiceTest = () => {
     const testPhrases = [
-      "Testing voice selection.",
-      "Hello from ARCHIMEDES terminal.",
-      "Voice test successful.",
-      "All systems operational.",
+      "Testing voice selection. This is voice number " + (selectedVoice + 1) + ".",
+      "Hello from ARCHIMEDES terminal. This voice is " + voices[selectedVoice]?.name + ".",
+      "Voice test successful. Speaking at rate " + speechRate.toFixed(1) + ".",
+      "All systems operational. Voice synthesis working correctly.",
     ];
     const randomPhrase = testPhrases[Math.floor(Math.random() * testPhrases.length)];
-    onVoiceInput(`voice-test: ${randomPhrase}`);
+    console.log('Voice test - speaking with voice:', selectedVoice, voices[selectedVoice]?.name);
+    speak(randomPhrase);
   };
 
   return (
