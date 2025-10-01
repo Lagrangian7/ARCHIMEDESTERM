@@ -13,19 +13,20 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [showFloating, setShowFloating] = useState(false);
 
-  // Show floating version when typing starts
+  // Show floating version when typing starts, keep visible until double-clicked
   useEffect(() => {
     if (isTyping) {
       setShowFloating(true);
-    } else {
-      // Hide floating version when typing ends
-      const hideTimer = setTimeout(() => {
-        setShowFloating(false);
-      }, 500); // Short delay to allow animation completion
-      
-      return () => clearTimeout(hideTimer);
     }
+    // No auto-hide - bubbles stay until double-clicked
   }, [isTyping]);
+
+  // Double-click handler to dismiss the bubble
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowFloating(false);
+  }, []);
 
   // Drag functionality - similar to RadioCharacter
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -93,6 +94,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
             transition: isDragging ? 'none' : 'all 0.2s ease-out'
           }}
           onMouseDown={handleMouseDown}
+          onDoubleClick={handleDoubleClick}
           data-testid={`draggable-response-${entryId}`}
         >
           <div className={`relative transition-all duration-300 ease-out ${
@@ -112,8 +114,8 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
                 {children}
               </div>
               
-              {/* Drag indicator */}
-              <div className="absolute top-2 right-2 text-terminal-subtle text-xs opacity-50">
+              {/* Drag indicator and dismiss hint */}
+              <div className="absolute top-2 right-2 text-terminal-subtle text-xs opacity-50" title="Double-click to dismiss">
                 ⋮⋮
               </div>
               
