@@ -94,23 +94,12 @@ export function useSpeechSynthesis() {
     };
   }, [voicesLoaded]);
 
-  // Update refs when state changes
-  useEffect(() => {
-    selectedVoiceRef.current = selectedVoice;
-  }, [selectedVoice]);
-
-  useEffect(() => {
-    speechRateRef.current = speechRate;
-  }, [speechRate]);
-
-  useEffect(() => {
-    isEnabledRef.current = isEnabled;
-  }, [isEnabled]);
-  
   // Wrapped setters that update both state and ref immediately
   const setSelectedVoiceWithRef = useCallback((value: number) => {
+    console.log('setSelectedVoiceWithRef called with:', value);
     selectedVoiceRef.current = value;
     setSelectedVoice(value);
+    console.log('selectedVoiceRef.current is now:', selectedVoiceRef.current);
   }, []);
   
   const setSpeechRateWithRef = useCallback((value: number) => {
@@ -122,6 +111,19 @@ export function useSpeechSynthesis() {
     isEnabledRef.current = value;
     setIsEnabled(value);
   }, []);
+  
+  // Keep refs in sync with state as backup
+  useEffect(() => {
+    selectedVoiceRef.current = selectedVoice;
+  }, [selectedVoice]);
+
+  useEffect(() => {
+    speechRateRef.current = speechRate;
+  }, [speechRate]);
+
+  useEffect(() => {
+    isEnabledRef.current = isEnabled;
+  }, [isEnabled]);
 
   const speak = useCallback((text: string) => {
     if (!isEnabledRef.current || !('speechSynthesis' in window)) {
