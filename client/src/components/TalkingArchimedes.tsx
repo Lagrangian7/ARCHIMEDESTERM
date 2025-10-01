@@ -9,12 +9,10 @@ interface TalkingArchimedesProps {
 
 export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: TalkingArchimedesProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [hasBeenShown, setHasBeenShown] = useState(false);
 
   useEffect(() => {
     if (isTyping || isSpeaking) {
       setIsVisible(true);
-      setHasBeenShown(true);
     }
   }, [isTyping, isSpeaking]);
 
@@ -22,13 +20,11 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
     setIsVisible(false);
   };
 
-  if (!hasBeenShown) return null;
+  if (!isVisible) return null;
 
   return (
     <div 
-      className={`fixed top-4 right-4 z-40 transition-all duration-300 cursor-pointer ${
-        isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
-      }`}
+      className="fixed top-4 right-4 z-40 transition-all duration-300 cursor-pointer opacity-100 scale-100"
       onDoubleClick={handleDoubleClick}
       data-testid="narration-bubble"
     >
