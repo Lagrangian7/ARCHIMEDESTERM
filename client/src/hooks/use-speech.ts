@@ -210,7 +210,7 @@ export function useSpeechSynthesis() {
       // Set base properties
       utterance.rate = currentRate;
       utterance.volume = 0.63;
-      utterance.pitch = 1.0;
+      utterance.pitch = 0.6;
       
       // Get available system voices
       const systemVoices = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en'));
