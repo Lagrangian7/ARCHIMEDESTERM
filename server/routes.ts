@@ -2710,6 +2710,89 @@ function windowResized() {
     }
   });
 
+  // Object Storage endpoints for knowledge base files
+  // Reference: blueprint:javascript_object_storage
+  
+  // Get upload URL for object storage
+  app.post("/api/objects/upload", isAuthenticated, async (req: any, res) => {
+    try {
+      const { ObjectStorageService } = await import("./objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  // Serve private objects with ACL checks
+  app.get("/objects/:objectPath(*)", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { ObjectStorageService, ObjectNotFoundError } = await import("./objectStorage");
+      const { ObjectPermission } = await import("./objectAcl");
+      
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+        requestedPermission: ObjectPermission.READ,
+      });
+      
+      if (!canAccess) {
+        return res.sendStatus(401);
+      }
+      
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error: any) {
+      console.error("Error accessing object:", error);
+      const { ObjectNotFoundError } = await import("./objectStorage");
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Update document with object storage path and ACL
+  app.put("/api/documents/:id/object", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const documentId = req.params.id;
+      const { objectURL } = req.body;
+
+      if (!objectURL) {
+        return res.status(400).json({ error: "objectURL is required" });
+      }
+
+      const { ObjectStorageService } = await import("./objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      
+      // Set ACL policy for the uploaded file
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        objectURL,
+        {
+          owner: userId,
+          visibility: "private",
+        }
+      );
+
+      // Update document with object storage path
+      await storage.updateDocument(documentId, { objectPath });
+
+      res.status(200).json({
+        objectPath: objectPath,
+        message: "Document object storage updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating document object:", error);
+      res.status(500).json({ error: "Failed to update document object storage" });
+    }
+  });
+
   // Weather API endpoint
   app.get("/api/weather", async (req, res) => {
     try {

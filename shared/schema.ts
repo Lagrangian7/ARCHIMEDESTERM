@@ -121,6 +121,7 @@ export const documents = pgTable("documents", {
   fileSize: varchar("file_size").notNull(),
   mimeType: varchar("mime_type").notNull(),
   content: text("content").notNull(),
+  objectPath: varchar("object_path"), // Object storage path for uploaded files
   summary: text("summary"),
   keywords: text("keywords").array(),
   uploadedAt: timestamp("uploaded_at").defaultNow(),
