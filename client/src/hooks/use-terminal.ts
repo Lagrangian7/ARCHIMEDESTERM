@@ -596,7 +596,26 @@ You can also chat naturally or ask technical questions.`);
     }
     
     if (cmd === 'clear') {
-      setEntries([]);
+      setEntries([
+        {
+          id: crypto.randomUUID(),
+          type: 'system',
+          content: 'ARCHIMEDES AI Terminal v7.0 - Initialized',
+          timestamp: new Date().toISOString(),
+        },
+        {
+          id: crypto.randomUUID(),
+          type: 'system',
+          content: 'System Status: ONLINE | Voice Synthesis: READY | Mode: NATURAL CHAT',
+          timestamp: new Date().toISOString(),
+        },
+        {
+          id: crypto.randomUUID(),
+          type: 'system',
+          content: "Welcome to ARCHIMEDES v7.",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
       return;
     }
     

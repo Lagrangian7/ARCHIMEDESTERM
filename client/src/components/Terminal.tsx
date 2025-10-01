@@ -223,10 +223,10 @@ export function Terminal() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
-  // Auto-speak responses
+  // Auto-speak responses and system messages
   useEffect(() => {
     const lastEntry = entries[entries.length - 1];
-    if (lastEntry && lastEntry.type === 'response') {
+    if (lastEntry && (lastEntry.type === 'response' || lastEntry.type === 'system')) {
       speak(lastEntry.content);
     }
   }, [entries, speak]);
