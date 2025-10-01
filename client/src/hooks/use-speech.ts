@@ -18,13 +18,13 @@ interface Voice {
 export function useSpeechSynthesis() {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isEnabled, setIsEnabled] = useState(true);
-  const [selectedVoice, setSelectedVoice] = useState<number>(0); // Start with System Default
+  const [selectedVoice, setSelectedVoice] = useState<number>(1); // Start with HAL 9000
   const [speechRate, setSpeechRate] = useState(1.0); // Normal speaking speed
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
   
   // Use refs to store current values for the speech callback
-  const selectedVoiceRef = useRef<number>(0);
+  const selectedVoiceRef = useRef<number>(1); // Start with HAL 9000
   const speechRateRef = useRef<number>(1.0);
   const voicesRef = useRef<Voice[]>([]);
   const isEnabledRef = useRef<boolean>(true);
@@ -230,10 +230,10 @@ export function useSpeechSynthesis() {
         // System Default - use browser default (no voice set)
         console.log('Using system default voice');
       } else if (currentVoice === 1) {
-        // HAL 9000 voice simulation
-        utterance.pitch = 0.8;
-        utterance.rate = currentRate * 0.9; // Slightly slower for HAL
-        utterance.volume = 0.665;
+        // HAL 9000 voice simulation - deep, calm voice
+        utterance.pitch = 0.6; // Lower pitch for deeper voice
+        utterance.rate = currentRate * 0.85; // Slower, more deliberate
+        utterance.volume = 0.7;
         console.log('Using HAL 9000 voice simulation');
       } else if (currentVoice >= 2 && currentVoice < currentVoices.length) {
         // System voice selection - map to actual system voice
