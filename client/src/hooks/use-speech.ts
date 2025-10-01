@@ -45,16 +45,30 @@ export function useSpeechSynthesis() {
           { name: 'HAL 9000 (2001 AI)', lang: 'en-US', voiceURI: 'hal', localService: true },
         ];
         
-        // Add available system voices with better filtering
+        // Known female voice names to filter out
+        const femaleVoiceNames = [
+          'fiona', 'karen', 'moira', 'samantha', 'tessa', 'veena', 'victoria',
+          'zira', 'hazel', 'susan', 'allison', 'ava', 'catherine', 'joanna',
+          'kendra', 'kimberly', 'salli', 'nicole', 'emma', 'amelie', 'anna',
+          'alice', 'ellen', 'melina', 'nora', 'paulina', 'sara', 'serena',
+          'vicki', 'zosia'
+        ];
+        
+        // Add available system voices with better filtering (male voices only)
         availableVoices.forEach((voice) => {
-          // Filter for English voices only for better compatibility
+          // Filter for English voices only and exclude female voices
           if (voice.lang.startsWith('en')) {
-            customVoices.push({
-              name: `${voice.name} (${voice.lang})`,
-              lang: voice.lang,
-              voiceURI: voice.voiceURI,
-              localService: voice.localService,
-            });
+            const voiceName = voice.name.toLowerCase();
+            const isFemale = femaleVoiceNames.some(female => voiceName.includes(female));
+            
+            if (!isFemale) {
+              customVoices.push({
+                name: `${voice.name} (${voice.lang})`,
+                lang: voice.lang,
+                voiceURI: voice.voiceURI,
+                localService: voice.localService,
+              });
+            }
           }
         });
         
