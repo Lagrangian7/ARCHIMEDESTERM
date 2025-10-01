@@ -17,6 +17,7 @@ import { RadioCharacter } from './RadioCharacter';
 import { DraggableResponse } from './DraggableResponse';
 import { ChatInterface } from './ChatInterface';
 import { PuzzleScreensaver } from './PuzzleScreensaver';
+import { LinkifiedText } from '@/lib/linkify';
 import { SshwiftyInterface } from './SshwiftyInterface';
 import { MudClient } from './MudClient';
 import { TheHarvester } from './TheHarvester';
@@ -592,7 +593,7 @@ export function Terminal() {
                             '--type-dur': `${Math.min(3000, Math.max(800, entry.content.length * 30))}ms`
                           } as React.CSSProperties : undefined}
                         >
-                          {entry.content}
+                          <LinkifiedText>{entry.content}</LinkifiedText>
                         </div>
                       </DraggableResponse>
                     </div>
