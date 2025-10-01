@@ -1,5 +1,6 @@
 import { Volume2, VolumeX, Mic, MicOff } from 'lucide-react';
-import { useSpeechSynthesis, useSpeechRecognition } from '@/hooks/use-speech';
+import { useSpeech } from '@/contexts/SpeechContext';
+import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
@@ -21,7 +22,7 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
     voicesLoaded,
     speak,
     stop,
-  } = useSpeechSynthesis();
+  } = useSpeech();
   
   const { isSupported, isListening, startListening } = useSpeechRecognition();
 

@@ -22,7 +22,7 @@ import { MudClient } from './MudClient';
 import { TheHarvester } from './TheHarvester';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { useTerminal } from '@/hooks/use-terminal';
-import { useSpeechSynthesis } from '@/hooks/use-speech';
+import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useChat } from '@/hooks/useChat';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
@@ -84,7 +84,7 @@ export function Terminal() {
     (window as any).openPrivacyEncoder = () => setShowPrivacyEncoder(true);
   }, []);
   
-  const { speak, isSpeaking } = useSpeechSynthesis();
+  const { speak, isSpeaking } = useSpeech();
   const { user, isAuthenticated, preferences } = useAuth();
   const { unreadCount } = useChat();
   const [input, setInput] = useState('');
