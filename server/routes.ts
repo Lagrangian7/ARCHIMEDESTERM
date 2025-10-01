@@ -233,6 +233,15 @@ function getRandomHighlightColor() {
   return highlightColors[floor(random(highlightColors.length))];
 }
 
+function getIndividualPattern() {
+  if (random() < 0.5) {
+    return 'random';
+  } else {
+    let patterns = ['individual-circle', 'individual-square', 'individual-hexagon', 'individual-octagon', 'individual-figure8'];
+    return patterns[floor(random(patterns.length))];
+  }
+}
+
 function spawnInvaders() {
   invaders = [];
   const { spread } = getLevelModifiers();
@@ -243,7 +252,28 @@ function spawnInvaders() {
   const figure8Height = baseFigure8Height * spread;
   const numInvaders = Math.ceil(baseNumInvaders * Math.pow(1.05, level - 1));
 
-  if (pattern === 'wheel') {
+  // Level 20+: Individual movement patterns
+  if (level >= 20) {
+    for (let i = 0; i < numInvaders; i++) {
+      let individualPattern = getIndividualPattern();
+      invaders.push({
+        t: random(1),
+        angle: random(TWO_PI),
+        color: color(255, 255, 0),  // Yellow for advanced levels
+        highlightColor: getRandomHighlightColor(),
+        type: i % 3,
+        pattern: individualPattern,
+        individualX: random(-width/3, width/3),
+        individualY: random(-height/3, height/3),
+        individualRadius: random(40, 80),
+        noiseSeedX: random(10000),
+        noiseSeedY: random(10000),
+        noiseT: 0,
+        randomVx: random(-2, 2),
+        randomVy: random(-2, 2)
+      });
+    }
+  } else if (pattern === 'wheel') {
     for (let i = 0; i < numInvaders; i++) {
       let angle = (TWO_PI / numInvaders) * i;
       invaders.push({
@@ -779,7 +809,83 @@ function draw() {
     let invader = invaders[i];
     let x, y;
     
-    if (invader.pattern === 'wheel') {
+    if (invader.pattern === 'random') {
+      // Random movement pattern
+      invader.individualX += invader.randomVx;
+      invader.individualY += invader.randomVy;
+      
+      // Bounce off boundaries
+      if (invader.individualX > width/3 || invader.individualX < -width/3) {
+        invader.randomVx *= -1;
+      }
+      if (invader.individualY > height/3 || invader.individualY < -height/3) {
+        invader.randomVy *= -1;
+      }
+      
+      x = invader.individualX;
+      y = invader.individualY;
+    } else if (invader.pattern === 'individual-circle') {
+      // Individual circular pattern
+      x = invader.individualX + cos(invader.angle) * invader.individualRadius;
+      y = invader.individualY + sin(invader.angle) * invader.individualRadius;
+      invader.angle += speed * 0.02;
+    } else if (invader.pattern === 'individual-square') {
+      // Individual square pattern
+      let t = invader.t;
+      let side = floor(t * 4);
+      let progress = (t * 4) % 1;
+      let size = invader.individualRadius;
+      
+      if (side === 0) {
+        x = invader.individualX - size + progress * size * 2;
+        y = invader.individualY - size;
+      } else if (side === 1) {
+        x = invader.individualX + size;
+        y = invader.individualY - size + progress * size * 2;
+      } else if (side === 2) {
+        x = invader.individualX + size - progress * size * 2;
+        y = invader.individualY + size;
+      } else {
+        x = invader.individualX - size;
+        y = invader.individualY + size - progress * size * 2;
+      }
+      invader.t = (invader.t + speed * 0.01) % 1;
+    } else if (invader.pattern === 'individual-hexagon') {
+      // Individual hexagon pattern
+      let angle = invader.t * TWO_PI;
+      let side = floor(invader.t * 6);
+      let nextAngle = ((side + 1) / 6) * TWO_PI;
+      let progress = (invader.t * 6) % 1;
+      
+      let x1 = cos(side * TWO_PI / 6) * invader.individualRadius;
+      let y1 = sin(side * TWO_PI / 6) * invader.individualRadius;
+      let x2 = cos(nextAngle) * invader.individualRadius;
+      let y2 = sin(nextAngle) * invader.individualRadius;
+      
+      x = invader.individualX + x1 + (x2 - x1) * progress;
+      y = invader.individualY + y1 + (y2 - y1) * progress;
+      invader.t = (invader.t + speed * 0.01) % 1;
+    } else if (invader.pattern === 'individual-octagon') {
+      // Individual octagon pattern
+      let side = floor(invader.t * 8);
+      let nextAngle = ((side + 1) / 8) * TWO_PI;
+      let progress = (invader.t * 8) % 1;
+      
+      let x1 = cos(side * TWO_PI / 8) * invader.individualRadius;
+      let y1 = sin(side * TWO_PI / 8) * invader.individualRadius;
+      let x2 = cos(nextAngle) * invader.individualRadius;
+      let y2 = sin(nextAngle) * invader.individualRadius;
+      
+      x = invader.individualX + x1 + (x2 - x1) * progress;
+      y = invader.individualY + y1 + (y2 - y1) * progress;
+      invader.t = (invader.t + speed * 0.01) % 1;
+    } else if (invader.pattern === 'individual-figure8') {
+      // Individual figure-8 pattern
+      let angle = invader.t * TWO_PI;
+      x = invader.individualX + sin(angle) * invader.individualRadius;
+      y = invader.individualY + sin(angle * 2) * invader.individualRadius * 0.5;
+      invader.t = (invader.t + speed * 0.01) % 1;
+    } else if (invader.pattern === 'wheel') {
       x = cos(invader.angle) * (baseWheelRadius * spread);
       y = sin(invader.angle) * (baseWheelRadius * spread);
       invader.angle += speed;
