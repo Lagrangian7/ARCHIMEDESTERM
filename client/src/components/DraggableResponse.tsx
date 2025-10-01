@@ -4,9 +4,10 @@ interface DraggableResponseProps {
   children: ReactNode;
   isTyping: boolean;
   entryId: string;
+  onDismiss?: () => void;
 }
 
-export function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
+export function DraggableResponse({ children, isTyping, entryId, onDismiss }: DraggableResponseProps) {
   // Drag state management
   const [position, setPosition] = useState({ x: 100, y: 100 }); // Default position
   const [isDragging, setIsDragging] = useState(false);
@@ -26,7 +27,11 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     e.preventDefault();
     e.stopPropagation();
     setShowFloating(false);
-  }, []);
+    // Call the onDismiss callback if provided (for persistent bubbles)
+    if (onDismiss) {
+      onDismiss();
+    }
+  }, [onDismiss]);
 
   // Drag functionality - similar to RadioCharacter
   const handleMouseDown = useCallback((e: React.MouseEvent) => {

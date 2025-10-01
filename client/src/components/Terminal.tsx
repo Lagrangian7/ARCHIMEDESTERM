@@ -104,6 +104,9 @@ export function Terminal() {
   const [showTheHarvester, setShowTheHarvester] = useState(false);
   const [showPrivacyEncoder, setShowPrivacyEncoder] = useState(false);
   
+  // Persistent draggable bubbles that survive clear command
+  const [persistentBubbles, setPersistentBubbles] = useState<Map<string, { content: string, mode?: string }>>(new Map());
+  
   // Theme management
   const [currentTheme, setCurrentTheme] = useState(() => {
     return localStorage.getItem('terminal-theme') || 'green';
@@ -240,6 +243,13 @@ export function Terminal() {
       // Add the entry to typing animations
       setTypingEntries(prev => new Set(prev).add(lastEntry.id));
       
+      // Add to persistent bubbles so it survives clear command
+      setPersistentBubbles(prev => {
+        const next = new Map(prev);
+        next.set(lastEntry.id, { content: lastEntry.content, mode: lastEntry.mode });
+        return next;
+      });
+      
       // Calculate animation duration based on content length
       const contentLength = lastEntry.content.length;
       const typingDuration = Math.min(3000, Math.max(800, contentLength * 30)); // Min 800ms, max 3s
@@ -318,6 +328,15 @@ export function Terminal() {
       }
     }, 100);
   };
+
+  // Handler to dismiss persistent bubbles
+  const handleDismissBubble = useCallback((bubbleId: string) => {
+    setPersistentBubbles(prev => {
+      const next = new Map(prev);
+      next.delete(bubbleId);
+      return next;
+    });
+  }, []);
 
   // Direct radio toggle function
   const toggleRadio = async () => {
@@ -579,22 +598,17 @@ export function Terminal() {
                       <div className="text-terminal-highlight">
                         ARCHIMEDES v7 {entry.mode === 'technical' ? '(Technical Mode)' : '(Natural Chat Mode)'}:
                       </div>
-                      <DraggableResponse 
-                        isTyping={typingEntries.has(entry.id)} 
-                        entryId={entry.id}
+                      <div 
+                        className={`ml-4 mt-1 ${
+                          typingEntries.has(entry.id) ? 'typing' : 'whitespace-pre-wrap'
+                        }`}
+                        style={typingEntries.has(entry.id) ? {
+                          '--steps': entry.content.length,
+                          '--type-dur': `${Math.min(3000, Math.max(800, entry.content.length * 30))}ms`
+                        } as React.CSSProperties : undefined}
                       >
-                        <div 
-                          className={`ml-4 mt-1 ${
-                            typingEntries.has(entry.id) ? 'typing' : 'whitespace-pre-wrap'
-                          }`}
-                          style={typingEntries.has(entry.id) ? {
-                            '--steps': entry.content.length,
-                            '--type-dur': `${Math.min(3000, Math.max(800, entry.content.length * 30))}ms`
-                          } as React.CSSProperties : undefined}
-                        >
-                          {entry.content}
-                        </div>
-                      </DraggableResponse>
+                        {entry.content}
+                      </div>
                     </div>
                   )}
                   {(entry.type === 'system' || entry.type === 'error') && (
@@ -870,6 +884,20 @@ export function Terminal() {
           forceActive();
         }}
       />
+
+      {/* Persistent Draggable Bubbles - survive clear command */}
+      {Array.from(persistentBubbles.entries()).map(([bubbleId, bubble]) => (
+        <DraggableResponse
+          key={bubbleId}
+          isTyping={typingEntries.has(bubbleId)}
+          entryId={bubbleId}
+          onDismiss={() => handleDismissBubble(bubbleId)}
+        >
+          <div className="text-terminal-text font-mono text-sm leading-relaxed">
+            {bubble.content}
+          </div>
+        </DraggableResponse>
+      ))}
     </div>
   );
 }
