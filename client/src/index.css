@@ -318,30 +318,27 @@
 
   .watermark-glitch {
     animation: watermarkGlow 60s ease-in-out infinite alternate, 
-               slowIntenseGlitch 80s infinite,
-               distortionWave 100s infinite ease-in-out,
-               pixelShift 45s infinite;
+               glitchPulse 80s infinite,
+               colorGlitch 100s infinite ease-in-out;
     filter: brightness(0.5) contrast(2.0) saturate(1.5) drop-shadow(0 0 20px rgba(0, 255, 65, 0.3));
+    transform-origin: center center;
   }
 
   .watermark-glitch-red {
     animation: watermarkGlow 120s ease-in-out infinite alternate-reverse, 
-               redChannelGlitch 90s infinite,
-               horizontalDistort 150s infinite,
-               slowWave 200s infinite ease-in-out,
-               intenseGlitch 75s infinite;
+               redChannelShift 90s infinite,
+               scaleGlitch 150s infinite;
     filter: brightness(0.7) contrast(2.2) hue-rotate(180deg) saturate(2.5) drop-shadow(4px 0 8px rgba(255, 0, 100, 0.6));
-    transform: translateX(3px);
+    transform-origin: center center;
   }
 
   .watermark-glitch-cyan {
     animation: watermarkGlow 140s ease-in-out infinite alternate, 
-               cyanChannelGlitch 110s infinite,
-               verticalDistort 180s infinite,
-               verticalWave 250s infinite ease-in-out,
+               cyanChannelShift 110s infinite,
+               rotateGlitch 180s infinite,
                digitalBreakup 95s infinite;
     filter: brightness(0.8) contrast(2.4) hue-rotate(90deg) saturate(3.5) drop-shadow(-3px 2px 10px rgba(0, 255, 255, 0.7));
-    transform: translateX(-2px) translateY(2px);
+    transform-origin: center center;
   }
 
   .watermark-noise {
@@ -1057,6 +1054,119 @@
   
   75% {
     transform: translateX(3px) scaleX(1.02) skewX(0.15deg);
+  }
+}
+
+@keyframes glitchPulse {
+  0%, 100% {
+    transform: scale(1) skewX(0deg);
+    filter: brightness(0.5) contrast(2.0);
+  }
+  
+  10% {
+    transform: scale(1.02) skewX(0.5deg);
+    filter: brightness(0.7) contrast(2.3);
+  }
+  
+  20% {
+    transform: scale(0.98) skewX(-0.3deg);
+    filter: brightness(0.4) contrast(2.5);
+  }
+  
+  50% {
+    transform: scale(1.01) skewX(0.2deg);
+    filter: brightness(0.6) contrast(2.2);
+  }
+  
+  80% {
+    transform: scale(0.99) skewX(-0.4deg);
+    filter: brightness(0.5) contrast(2.4);
+  }
+}
+
+@keyframes colorGlitch {
+  0%, 100% {
+    filter: hue-rotate(0deg) saturate(1.5);
+  }
+  
+  25% {
+    filter: hue-rotate(30deg) saturate(2.0);
+  }
+  
+  50% {
+    filter: hue-rotate(-20deg) saturate(1.8);
+  }
+  
+  75% {
+    filter: hue-rotate(15deg) saturate(2.2);
+  }
+}
+
+@keyframes redChannelShift {
+  0%, 100% {
+    filter: brightness(0.7) contrast(2.2) hue-rotate(180deg);
+  }
+  
+  33% {
+    filter: brightness(0.8) contrast(2.5) hue-rotate(200deg);
+  }
+  
+  66% {
+    filter: brightness(0.6) contrast(2.0) hue-rotate(160deg);
+  }
+}
+
+@keyframes cyanChannelShift {
+  0%, 100% {
+    filter: brightness(0.8) contrast(2.4) hue-rotate(90deg);
+  }
+  
+  33% {
+    filter: brightness(0.9) contrast(2.6) hue-rotate(110deg);
+  }
+  
+  66% {
+    filter: brightness(0.7) contrast(2.2) hue-rotate(70deg);
+  }
+}
+
+@keyframes scaleGlitch {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  
+  20% {
+    transform: scale(1.03) rotate(0.3deg);
+  }
+  
+  40% {
+    transform: scale(0.97) rotate(-0.2deg);
+  }
+  
+  60% {
+    transform: scale(1.02) rotate(0.15deg);
+  }
+  
+  80% {
+    transform: scale(0.98) rotate(-0.25deg);
+  }
+}
+
+@keyframes rotateGlitch {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  
+  25% {
+    transform: rotate(0.4deg) scale(1.01);
+  }
+  
+  50% {
+    transform: rotate(-0.3deg) scale(0.99);
+  }
+  
+  75% {
+    transform: rotate(0.2deg) scale(1.02);
   }
 }
 
