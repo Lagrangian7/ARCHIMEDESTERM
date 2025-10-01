@@ -4,35 +4,29 @@ interface DraggableResponseProps {
   children: ReactNode;
   isTyping: boolean;
   entryId: string;
-  onDismiss?: () => void;
-  alwaysFloating?: boolean; // Force floating display even when not typing
 }
 
-export function DraggableResponse({ children, isTyping, entryId, onDismiss, alwaysFloating = false }: DraggableResponseProps) {
+export function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
   // Drag state management
   const [position, setPosition] = useState({ x: 100, y: 100 }); // Default position
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [showFloating, setShowFloating] = useState(alwaysFloating);
+  const [showFloating, setShowFloating] = useState(false);
 
   // Show floating version when typing starts, keep visible until double-clicked
   useEffect(() => {
-    if (isTyping || alwaysFloating) {
+    if (isTyping) {
       setShowFloating(true);
     }
     // No auto-hide - bubbles stay until double-clicked
-  }, [isTyping, alwaysFloating]);
+  }, [isTyping]);
 
   // Double-click handler to dismiss the bubble
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setShowFloating(false);
-    // Call the onDismiss callback if provided (for persistent bubbles)
-    if (onDismiss) {
-      onDismiss();
-    }
-  }, [onDismiss]);
+  }, []);
 
   // Drag functionality - similar to RadioCharacter
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
