@@ -892,6 +892,7 @@ export function Terminal() {
           isTyping={typingEntries.has(bubbleId)}
           entryId={bubbleId}
           onDismiss={() => handleDismissBubble(bubbleId)}
+          alwaysFloating={true}
         >
           <div className="text-terminal-text font-mono text-sm leading-relaxed">
             {bubble.content}

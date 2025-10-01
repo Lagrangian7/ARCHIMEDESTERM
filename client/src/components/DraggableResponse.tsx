@@ -5,22 +5,23 @@ interface DraggableResponseProps {
   isTyping: boolean;
   entryId: string;
   onDismiss?: () => void;
+  alwaysFloating?: boolean; // Force floating display even when not typing
 }
 
-export function DraggableResponse({ children, isTyping, entryId, onDismiss }: DraggableResponseProps) {
+export function DraggableResponse({ children, isTyping, entryId, onDismiss, alwaysFloating = false }: DraggableResponseProps) {
   // Drag state management
   const [position, setPosition] = useState({ x: 100, y: 100 }); // Default position
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [showFloating, setShowFloating] = useState(false);
+  const [showFloating, setShowFloating] = useState(alwaysFloating);
 
   // Show floating version when typing starts, keep visible until double-clicked
   useEffect(() => {
-    if (isTyping) {
+    if (isTyping || alwaysFloating) {
       setShowFloating(true);
     }
     // No auto-hide - bubbles stay until double-clicked
-  }, [isTyping]);
+  }, [isTyping, alwaysFloating]);
 
   // Double-click handler to dismiss the bubble
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
