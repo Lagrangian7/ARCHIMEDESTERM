@@ -1648,8 +1648,7 @@ function playExplosionSound() {
 // Soundtrack playlist for the game
 let soundtrackPlaylist = [
   '/attached_assets/Great Boss_1758644959042.ogg',
-  '/attached_assets/n-Dimensions (Main Theme)_1758647261911.mp3',
-  '/attached_assets/OA-Viva Vibra_1758651140395.mp3'
+  '/attached_assets/n-Dimensions (Main Theme)_1758647261911.mp3'
 ];
 let currentTrackIndex = 0;
 
