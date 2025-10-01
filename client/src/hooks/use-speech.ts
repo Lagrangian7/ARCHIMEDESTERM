@@ -254,7 +254,7 @@ export function useSpeechSynthesis() {
       console.error('Error in speak function:', error);
       setIsSpeaking(false);
     }
-  }, [isEnabled]);
+  }, []); // Empty deps since we use refs for all dynamic values
 
   const stop = useCallback(() => {
     try {
