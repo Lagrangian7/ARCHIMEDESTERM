@@ -204,14 +204,14 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
         {selectedFiles.length > 0 ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-foreground">
+              <h3 className="text-lg font-medium text-cyan-400">
                 Selected Files ({selectedFiles.length}/10)
               </h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFiles}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-cyan-400/70 hover:text-cyan-400"
                 data-testid="clear-all-files-button"
               >
                 Clear All
@@ -226,14 +226,14 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
                       <div className="flex items-center space-x-3">
                         <FileText className="h-6 w-6 text-[#00FF41]" />
                         <div className="flex-1 text-left">
-                          <h4 className="font-medium text-foreground text-sm" data-testid={`selected-file-name-${index}`}>
+                          <h4 className="font-medium text-cyan-400 text-sm" data-testid={`selected-file-name-${index}`}>
                             {file.name}
                           </h4>
                           <div className="flex items-center gap-2 mt-1">
-                            <p className="text-xs text-muted-foreground" data-testid={`selected-file-size-${index}`}>
+                            <p className="text-xs text-cyan-400/70" data-testid={`selected-file-size-${index}`}>
                               {formatFileSize(file.size)}
                             </p>
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs text-cyan-400/70">
                               {file.type || 'Unknown type'}
                             </Badge>
                           </div>
@@ -243,7 +243,7 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile(index)}
-                        className="text-muted-foreground hover:text-foreground"
+                        className="text-cyan-400/70 hover:text-cyan-400"
                         data-testid={`remove-file-button-${index}`}
                       >
                         <X className="h-4 w-4" />
@@ -277,17 +277,17 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="mx-auto h-12 w-12 text-muted-foreground">
+            <div className="mx-auto h-12 w-12 text-cyan-400">
               <Upload className="h-full w-full" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-medium text-foreground">
+              <h3 className="text-lg font-medium text-cyan-400">
                 Upload Knowledge Documents
               </h3>
-              <p className="text-muted-foreground">
+              <p className="text-cyan-400/70">
                 Drag & drop text files here, or click to browse
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-cyan-400/70">
                 Supports: TXT, MD, JSON, CSV, HTML, XML (max 5MB each, up to 10 files)
               </p>
             </div>
