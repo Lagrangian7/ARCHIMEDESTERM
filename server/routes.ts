@@ -1850,9 +1850,15 @@ function keyPressed() {
 function destroySkylineBlock(blockIndex, explosionX, explosionY) {
   let block = cityBlocks[blockIndex];
   
+  // Debug: log initial state
+  console.log('Block hit! Health before:', block.health, 'maxHealth:', block.maxHealth, 'isFoundation:', block.isFoundation);
+  
   // Decrement health instead of immediate destruction
-  if (block.health) {
+  if (block.health !== undefined) {
     block.health--;
+    console.log('Health after hit:', block.health);
+  } else {
+    console.log('WARNING: Block has no health property!');
   }
   
   // Set flash timer for hit effect
@@ -1861,6 +1867,7 @@ function destroySkylineBlock(blockIndex, explosionX, explosionY) {
   // Only mark as destroyed when health reaches 0
   if (block.health <= 0) {
     block.destroyed = true;
+    console.log('Block destroyed! Health reached 0');
     
     // Create explosion particles only on final destruction
     for (let i = 0; i < 20; i++) {
@@ -1877,6 +1884,7 @@ function destroySkylineBlock(blockIndex, explosionX, explosionY) {
     playExplosionSound();
   } else {
     // Just play a hit sound for damage
+    console.log('Block damaged but not destroyed');
     playLaserSound();
   }
 }
