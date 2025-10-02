@@ -136,10 +136,11 @@ export class MemStorage implements IStorage {
     );
 
     if (existingUser) {
-      // Update existing user
+      // Update existing user - preserve createdAt, only update updatedAt
+      const { createdAt, ...updateFields } = userData;
       const updatedUser: User = { 
         ...existingUser, 
-        ...userData, 
+        ...updateFields, 
         updatedAt: new Date() 
       };
       this.users.set(existingUser.id, updatedUser);
@@ -300,6 +301,7 @@ export class MemStorage implements IStorage {
       fileSize: insertDocument.fileSize,
       mimeType: insertDocument.mimeType,
       content: insertDocument.content,
+      objectPath: insertDocument.objectPath || null,
       summary: insertDocument.summary || null,
       keywords: insertDocument.keywords || null,
       uploadedAt: now,
@@ -721,11 +723,12 @@ export class DatabaseStorage implements IStorage {
     const existingUser = await this.getUser(userData.id!);
     
     if (existingUser) {
-      // Update existing user
+      // Update existing user - preserve createdAt, only update updatedAt
+      const { createdAt, ...updateFields } = userData;
       const [user] = await db
         .update(users)
         .set({
-          ...userData,
+          ...updateFields,
           updatedAt: new Date(),
         })
         .where(eq(users.id, userData.id!))
