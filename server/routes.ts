@@ -446,6 +446,11 @@ function draw() {
   textSize(48); // Big title
   text('SP4CEW4RZ', width / 2, 20);
   
+  // Draw credit line
+  textSize(16); // Small font for credit
+  fill(0, 200, 0); // Slightly dimmer green
+  text('by B.Hutchy', width / 2, 75);
+  
   // Show pause message and return early if game is paused
   if (gamePaused) {
     fill(255, 255, 0); // Yellow pause text
