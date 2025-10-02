@@ -186,7 +186,7 @@ function initializeCitySkyline() {
   let groundY = height / 2 - 80; // Position skyline above bottom of screen
   
   for (let i = 0; i < numCityBlocks; i++) {
-    let buildingHeight = random(3, 8); // Random building heights for upper city
+    let buildingHeight = random(5, 12); // Random building heights for upper city - increased for more gameplay layers
     
     // Randomly select building type for this column
     let buildingType = random(['normal', 'honeycomb', 'neon', 'industrial', 'glass']);
