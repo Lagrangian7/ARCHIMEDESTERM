@@ -1647,10 +1647,10 @@ function playExplosionSound() {
 
 // Soundtrack playlist for the game
 let soundtrackPlaylist = [
-  '/attached_assets/Great Boss_1758644959042.ogg',
-  '/attached_assets/n-Dimensions (Main Theme)_1758647261911.mp3',
   '/attached_assets/mode_1759293195149.mp3',
-  '/attached_assets/fortress_1759293202674.mp3'
+  '/attached_assets/serpent_1759431415420.mp3',
+  '/attached_assets/fortress_1759293202674.mp3',
+  '/attached_assets/mode_1759293195149.mp3'
 ];
 let currentTrackIndex = 0;
 
