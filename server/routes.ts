@@ -200,6 +200,8 @@ function initializeCitySkyline() {
         width: cityBlockWidth,
         height: cityBlockHeight,
         destroyed: false,
+        health: 10, // Takes 10 hits to destroy
+        maxHealth: 10, // For health display
         buildingId: i, // Track which building this belongs to
         flashTimer: 0, // Flash timer for hit effect
         isFoundation: false, // This is a building, not foundation
@@ -1846,22 +1848,37 @@ function keyPressed() {
 }
 
 function destroySkylineBlock(blockIndex, explosionX, explosionY) {
-  // Set flash timer instead of immediately destroying
-  cityBlocks[blockIndex].flashTimer = 15; // Flash for 15 frames
+  let block = cityBlocks[blockIndex];
   
-  // Create explosion particles
-  for (let i = 0; i < 20; i++) {
-    particles.push({
-      x: explosionX,
-      y: explosionY,
-      vx: random(-4, 4),
-      vy: random(-4, 4),
-      lifetime: 40
-    });
+  // Decrement health instead of immediate destruction
+  if (block.health) {
+    block.health--;
   }
   
-  // Play explosion sound
-  playExplosionSound();
+  // Set flash timer for hit effect
+  block.flashTimer = 15; // Flash for 15 frames
+  
+  // Only mark as destroyed when health reaches 0
+  if (block.health <= 0) {
+    block.destroyed = true;
+    
+    // Create explosion particles only on final destruction
+    for (let i = 0; i < 20; i++) {
+      particles.push({
+        x: explosionX,
+        y: explosionY,
+        vx: random(-4, 4),
+        vy: random(-4, 4),
+        lifetime: 40
+      });
+    }
+    
+    // Play explosion sound
+    playExplosionSound();
+  } else {
+    // Just play a hit sound for damage
+    playLaserSound();
+  }
 }
 
 function isSkylineDestroyed() {
