@@ -35,6 +35,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // SPACEWAR game endpoint (must be BEFORE Vite middleware to avoid processing)
   app.get('/spacewar.html', (req, res) => {
+    // Add cache-busting headers to force reload
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
     const gameHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
