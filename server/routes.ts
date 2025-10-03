@@ -14,6 +14,7 @@ import { BbsService } from "./bbs-service";
 import { gutendxService } from "./gutendx-service";
 import { marketstackService } from "./marketstack-service";
 import { radioGardenService } from "./radio-garden-service";
+import { scholarService } from "./scholar-service";
 import multer from "multer";
 import { z } from "zod";
 import WebSocket, { WebSocketServer } from 'ws';
@@ -1850,15 +1851,9 @@ function keyPressed() {
 function destroySkylineBlock(blockIndex, explosionX, explosionY) {
   let block = cityBlocks[blockIndex];
   
-  // Debug: log initial state
-  console.log('Block hit! Health before:', block.health, 'maxHealth:', block.maxHealth, 'isFoundation:', block.isFoundation);
-  
   // Decrement health instead of immediate destruction
   if (block.health !== undefined) {
     block.health--;
-    console.log('Health after hit:', block.health);
-  } else {
-    console.log('WARNING: Block has no health property!');
   }
   
   // Set flash timer for hit effect
@@ -1867,7 +1862,6 @@ function destroySkylineBlock(blockIndex, explosionX, explosionY) {
   // Only mark as destroyed when health reaches 0
   if (block.health <= 0) {
     block.destroyed = true;
-    console.log('Block destroyed! Health reached 0');
     
     // Create explosion particles only on final destruction
     for (let i = 0; i < 20; i++) {
@@ -1884,7 +1878,6 @@ function destroySkylineBlock(blockIndex, explosionX, explosionY) {
     playExplosionSound();
   } else {
     // Just play a hit sound for damage
-    console.log('Block damaged but not destroyed');
     playLaserSound();
   }
 }
@@ -3146,6 +3139,44 @@ function windowResized() {
     } catch (error) {
       console.error("Stock search error:", error);
       const message = error instanceof Error ? error.message : "Failed to search stocks";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  // Semantic Scholar API endpoints
+  app.get("/api/scholar/search/:query", async (req, res) => {
+    try {
+      const query = req.params.query;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      const results = await scholarService.searchPapers(query, limit, offset);
+      const formatted = scholarService.formatSearchResultsForTerminal(results, query);
+      
+      res.json({
+        results,
+        formatted
+      });
+    } catch (error) {
+      console.error("Scholar search error:", error);
+      const message = error instanceof Error ? error.message : "Failed to search academic papers";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  app.get("/api/scholar/paper/:paperId", async (req, res) => {
+    try {
+      const paperId = req.params.paperId;
+      const paper = await scholarService.getPaperDetails(paperId);
+      const formatted = scholarService.formatPaperDetailsForTerminal(paper);
+      
+      res.json({
+        paper,
+        formatted
+      });
+    } catch (error) {
+      console.error("Scholar paper details error:", error);
+      const message = error instanceof Error ? error.message : "Failed to get paper details";
       res.status(500).json({ error: message });
     }
   });

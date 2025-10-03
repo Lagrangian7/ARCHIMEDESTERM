@@ -23,6 +23,7 @@ Preferred communication style: Simple, everyday language.
 - **API Design**: RESTful API with chat endpoint (`/api/chat`) and comprehensive BBS directory endpoints
 - **WebSocket Server**: Real-time telnet proxy server on `/ws/telnet` for live BBS connections
 - **Network Services**: Telnet proxy, BBS service, and network connectivity testing
+- **Academic Search**: Semantic Scholar API integration for academic paper search (FREE, no API key required)
 - **Development Setup**: Vite development server with hot module replacement
 - **Error Handling**: Centralized error middleware with structured error responses
 - **Request Logging**: Custom middleware for API request/response logging
@@ -43,6 +44,7 @@ Preferred communication style: Simple, everyday language.
 - **Database Driver**: Neon Database serverless PostgreSQL client
 - **UI Framework**: Comprehensive Radix UI component suite for accessible, unstyled components
 - **Voice Integration**: Web Speech API for speech synthesis and speech recognition
+- **Academic APIs**: Semantic Scholar API (FREE - 100 requests per 5 minutes, no authentication required)
 - **Development Tools**: 
   - Replit-specific plugins for development environment
   - ESBuild for production bundling
