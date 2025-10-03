@@ -542,6 +542,11 @@ Stock Market Data:
   stock search <query> - Search for stocks by name or symbol
   stock help - Show detailed stock command help
 
+Academic Research:
+  scholar search <query> - Search 200M+ academic papers
+  scholar details <paperId> - Get full paper details
+  scholar help - Show detailed scholar command help
+
 Project Gutenberg Books:
   books popular - Show most popular free ebooks
   books search <query> - Search books by title or author
@@ -1136,6 +1141,91 @@ Free plan includes 100 monthly requests with end-of-day data.`);
       
       // If no valid subcommand, show help
       addEntry('error', 'Unknown stock command. Type "stock help" for available commands.');
+      return;
+    }
+
+    // Scholar (Academic Paper Search) Commands
+    if (cmd.startsWith('scholar ')) {
+      const subCmd = cmd.substring(8).trim();
+      
+      if (subCmd === 'help') {
+        addEntry('system', `Semantic Scholar Commands:
+
+Academic Paper Search:
+  scholar search <query> - Search for academic papers
+  scholar details <paperId> - Get full paper details with abstract
+  
+Examples:
+  scholar search quantum computing
+  scholar search machine learning neural networks
+  scholar details abc123xyz
+  
+Features:
+  • Search 200M+ academic papers
+  • View citations, authors, and publication info
+  • Find open access PDFs
+  • Completely FREE - no API key needed!
+  
+Data powered by Semantic Scholar API`);
+        return;
+      }
+      
+      if (subCmd.startsWith('search ')) {
+        const query = subCmd.substring(7).trim();
+        if (!query) {
+          addEntry('error', 'Usage: scholar search <query>');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `🔍 Searching Semantic Scholar for: "${query}"...`);
+        
+        fetch(`/api/scholar/search/${encodeURIComponent(query)}?limit=10`)
+          .then(res => res.json())
+          .then(data => {
+            setIsTyping(false);
+            if (data.error) {
+              addEntry('error', `Search failed: ${data.error}`);
+            } else {
+              addEntry('response', data.formatted);
+            }
+          })
+          .catch(error => {
+            setIsTyping(false);
+            addEntry('error', `Error searching papers: ${error.message}`);
+          });
+        return;
+      }
+      
+      if (subCmd.startsWith('details ')) {
+        const paperId = subCmd.substring(8).trim();
+        if (!paperId) {
+          addEntry('error', 'Usage: scholar details <paperId>');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `📄 Fetching paper details...`);
+        
+        fetch(`/api/scholar/paper/${encodeURIComponent(paperId)}`)
+          .then(res => res.json())
+          .then(data => {
+            setIsTyping(false);
+            if (data.error) {
+              addEntry('error', `Failed to get details: ${data.error}`);
+            } else {
+              addEntry('response', data.formatted);
+            }
+          })
+          .catch(error => {
+            setIsTyping(false);
+            addEntry('error', `Error fetching paper: ${error.message}`);
+          });
+        return;
+      }
+      
+      // If no valid subcommand, show help
+      addEntry('error', 'Unknown scholar command. Type "scholar help" for available commands.');
       return;
     }
 
