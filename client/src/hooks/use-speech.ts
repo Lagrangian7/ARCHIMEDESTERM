@@ -160,11 +160,18 @@ export function useSpeechSynthesis() {
         .replace(/<[^>]*>/g, '') // Remove HTML tags
         .replace(/\*/g, '') // Remove asterisks
         .replace(/(?<!\d\s?)>\s*(?!\d)/g, '') // Remove > unless it's between numbers (like "5 > 3")
-        // Remove high ASCII/Unicode box-drawing and visual formatting characters
-        .replace(/[╭╮╯╰├┤┬┴┼│─┌┐└┘]/g, '') // Remove box-drawing characters
+        // Remove ALL Unicode box-drawing characters (U+2500-U+257F)
+        .replace(/[\u2500-\u257F]/g, '') // Complete box-drawing block
+        // Remove additional visual/decorative characters
+        .replace(/[╔╗╚╝╠╣╦╩╬═║]/g, '') // Double-line box drawing
+        .replace(/[┏┓┗┛┣┫┳┻╋━┃]/g, '') // Heavy box drawing  
         .replace(/[◆◇▲△▼▽●○■□▪▫]/g, '') // Remove geometric symbols
-        .replace(/[░▒▓█]/g, '') // Remove block characters
+        .replace(/[░▒▓█▀▄▌▐]/g, '') // Remove block characters
+        .replace(/[─━│┃┄┅┆┇┈┉┊┋]/g, '') // All line styles
+        .replace(/[└┘┌┐├┤┬┴┼]/g, '') // Light box corners/intersections
         .replace(/[€£¥¢§¶†‡•…‰′″‴]/g, '') // Remove currency and special symbols
+        .replace(/[⌐⌠⌡°∙·√ⁿ²]/g, '') // Remove mathematical drawing chars
+        .replace(/[▬▭▮▯▰▱]/g, '') // Remove horizontal bars
         // Preserve mathematical operators in formulas - check if surrounded by alphanumeric
         .replace(/([a-zA-Z0-9]\s*)([\+\-×÷=<>≤≥≠∞∑∏∫])(\s*[a-zA-Z0-9])/g, (match, before, op, after) => {
           const operatorWords: { [key: string]: string } = {
