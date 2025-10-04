@@ -414,6 +414,9 @@ export function Terminal() {
                   </span>
                 )}
               </div>
+              <div className="mt-2">
+                <rssapp-ticker id="t9uVnyL3p3sHN0Id"></rssapp-ticker>
+              </div>
             </div>
           </div>
           
