@@ -238,8 +238,38 @@
   body {
     @apply font-mono antialiased;
     background: var(--terminal-bg);
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--terminal-text) 75%, transparent),
+      var(--terminal-bg) 120%
+    );
     color: var(--terminal-text);
     overflow: hidden;
+    text-shadow: 0 0 5px currentColor;
+  }
+
+  /* CRT Scanline Effect */
+  body::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.15),
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Retro text selection */
+  ::selection {
+    background: #0080FF;
+    text-shadow: none;
   }
 }
 
