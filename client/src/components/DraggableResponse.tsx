@@ -1,4 +1,8 @@
 import { useState, useEffect, useCallback, ReactNode } from 'react';
+import { Save } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface DraggableResponseProps {
   children: ReactNode;
@@ -7,11 +11,57 @@ interface DraggableResponseProps {
 }
 
 export function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
+  const { toast } = useToast();
+  
   // Drag state management
   const [position, setPosition] = useState({ x: 100, y: 100 }); // Default position
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [showFloating, setShowFloating] = useState(false);
+
+  // Extract text content from ReactNode
+  const extractTextContent = (node: ReactNode): string => {
+    if (typeof node === 'string') return node;
+    if (typeof node === 'number') return String(node);
+    if (Array.isArray(node)) return node.map(extractTextContent).join('');
+    if (node && typeof node === 'object' && 'props' in node) {
+      return extractTextContent(node.props.children);
+    }
+    return '';
+  };
+
+  // Save to knowledge base mutation
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const textContent = extractTextContent(children);
+      if (!textContent.trim()) {
+        throw new Error('No content to save');
+      }
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const filename = `archimedes-response-${timestamp}.txt`;
+
+      const response = await apiRequest('POST', '/api/documents/save-text', {
+        content: textContent,
+        filename: filename,
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: 'Saved to Knowledge Base',
+        description: `Response saved as ${data.document.originalName}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Save Failed',
+        description: error.message || 'Failed to save to knowledge base',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Show floating version when typing starts, keep visible until double-clicked
   useEffect(() => {
@@ -114,9 +164,26 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
                 {children}
               </div>
               
-              {/* Drag indicator and dismiss hint */}
-              <div className="absolute top-2 right-2 text-terminal-subtle text-xs opacity-50" title="Double-click to dismiss">
-                ⋮⋮
+              {/* Action buttons */}
+              <div className="absolute top-2 right-2 flex items-center gap-2">
+                {/* Save button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    saveMutation.mutate();
+                  }}
+                  disabled={saveMutation.isPending}
+                  className="text-terminal-highlight hover:text-terminal-bright-green transition-colors disabled:opacity-50"
+                  title="Save to knowledge base"
+                  data-testid={`save-response-${entryId}`}
+                >
+                  <Save className="w-4 h-4" />
+                </button>
+                
+                {/* Drag indicator */}
+                <div className="text-terminal-subtle text-xs opacity-50" title="Double-click to dismiss">
+                  ⋮⋮
+                </div>
               </div>
               
               {/* Glowing border effect */}

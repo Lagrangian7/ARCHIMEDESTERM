@@ -2626,6 +2626,57 @@ function windowResized() {
     }
   });
 
+  // Save text content as document
+  app.post("/api/documents/save-text", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { content, filename } = req.body;
+
+      if (!content || typeof content !== 'string') {
+        return res.status(400).json({ error: "Content is required" });
+      }
+
+      if (!filename || typeof filename !== 'string') {
+        return res.status(400).json({ error: "Filename is required" });
+      }
+
+      if (content.length === 0) {
+        return res.status(400).json({ error: "Content cannot be empty" });
+      }
+
+      if (content.length > 5000000) {
+        return res.status(400).json({ error: "Content is too large (max 5MB)" });
+      }
+
+      // Generate a unique filename
+      const uniqueFilename = `${randomUUID()}-${filename}`;
+
+      // Process the document
+      const document = await knowledgeService.processDocument(content, {
+        userId,
+        fileName: uniqueFilename,
+        originalName: filename,
+        fileSize: Buffer.byteLength(content, 'utf8').toString(),
+        mimeType: 'text/plain',
+      });
+
+      res.json({
+        success: true,
+        document: {
+          id: document.id,
+          originalName: document.originalName,
+          fileSize: document.fileSize,
+          summary: document.summary,
+          keywords: document.keywords,
+          uploadedAt: document.uploadedAt,
+        }
+      });
+    } catch (error) {
+      console.error("Save text error:", error);
+      res.status(500).json({ error: "Failed to save text to knowledge base" });
+    }
+  });
+
   // Get user documents
   app.get("/api/documents", isAuthenticated, async (req: any, res) => {
     try {
