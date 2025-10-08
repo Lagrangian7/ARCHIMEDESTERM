@@ -437,7 +437,7 @@ export function Terminal() {
                           <User size={16} />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                         <p>Profile</p>
                       </TooltipContent>
                     </Tooltip>
@@ -455,7 +455,7 @@ export function Terminal() {
                           <Upload size={16} />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                         <p>Upload</p>
                       </TooltipContent>
                     </Tooltip>
@@ -478,7 +478,7 @@ export function Terminal() {
                           )}
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                         <p>Chat</p>
                       </TooltipContent>
                     </Tooltip>
@@ -500,7 +500,7 @@ export function Terminal() {
                           <Radio size={16} />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                         <p>{isRadioPlaying ? 'Stop Radio' : 'Radio'}</p>
                       </TooltipContent>
                     </Tooltip>
@@ -518,7 +518,7 @@ export function Terminal() {
                           <TerminalIcon size={16} />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                         <p>SSH/Telnet</p>
                       </TooltipContent>
                     </Tooltip>
@@ -536,7 +536,7 @@ export function Terminal() {
                           <Shield size={16} />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                         <p>Privacy</p>
                       </TooltipContent>
                     </Tooltip>
@@ -555,7 +555,7 @@ export function Terminal() {
                         <LogIn size={16} />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                    <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                       <p>Log In</p>
                     </TooltipContent>
                   </Tooltip>
@@ -575,7 +575,7 @@ export function Terminal() {
                       <img src={invadersIcon} alt="SPACEWAR" className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                     <p>Launch SPACEWAR Game</p>
                   </TooltipContent>
                 </Tooltip>
