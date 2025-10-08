@@ -108,7 +108,7 @@ export function Terminal() {
   
   // Theme management
   const [currentTheme, setCurrentTheme] = useState(() => {
-    return localStorage.getItem('terminal-theme') || 'green';
+    return localStorage.getItem('terminal-theme') || 'blue';
   });
 
   // Switch theme function
