@@ -594,6 +594,7 @@ Knowledge Base Commands:
   docs - List your uploaded documents
   upload - Open document upload interface
   search [query] - Search your knowledge base
+  save - Save last AI response to knowledge base
   knowledge stats - Show knowledge base statistics
   
 You can also chat naturally or ask technical questions.`);
@@ -834,6 +835,51 @@ You can also chat naturally or ask technical questions.`);
         .catch((error) => {
           setIsTyping(false);
           addEntry('error', `Failed to read document: ${error.message || 'Network error'}`);
+        });
+      return;
+    }
+
+    if (cmd === 'save' || cmd === 'save-response') {
+      // Find the last response entry
+      const lastResponse = [...entries].reverse().find(entry => entry.type === 'response');
+      
+      if (!lastResponse) {
+        addEntry('error', 'No response to save. Please ask a question first.');
+        return;
+      }
+
+      setIsTyping(true);
+      addEntry('system', '💾 Saving response to knowledge base...');
+      
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const filename = `archimedes-response-${timestamp}.txt`;
+
+      fetch('/api/documents/save-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          content: lastResponse.content,
+          filename: filename
+        })
+      })
+        .then(async (res) => {
+          setIsTyping(false);
+          if (res.status === 401) {
+            addEntry('error', 'Authentication required. Please log in to save responses.');
+            return;
+          }
+          if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || 'Failed to save');
+          }
+          
+          const data = await res.json();
+          addEntry('system', `✅ Response saved successfully!\nFilename: ${data.document.originalName}\nSize: ${data.document.fileSize} bytes\n\nUse "docs" to view all saved documents.`);
+        })
+        .catch((error) => {
+          setIsTyping(false);
+          addEntry('error', `Failed to save response: ${error.message}`);
         });
       return;
     }
