@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { VoiceControls } from './VoiceControls';
 import { CommandHistory } from './CommandHistory';
 import { UserProfile } from './UserProfile';
@@ -419,104 +420,167 @@ export function Terminal() {
           
           <div className="flex items-center space-x-3">
             {/* User Controls */}
-            <div className="flex items-center space-x-2">
-              {isAuthenticated ? (
-                <>
-                  <Button
-                    onClick={() => setShowProfile(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
-                    data-testid="button-user-profile"
-                  >
-                    <User size={14} className="mr-1" />
-                    Profile
-                  </Button>
-                  <Button
-                    onClick={() => setShowUpload(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
-                    data-testid="button-upload"
-                  >
-                    <Upload size={14} className="mr-1" />
-                    Upload
-                  </Button>
-                  <Button
-                    onClick={() => setShowChat(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs relative"
-                    data-testid="button-chat"
-                  >
-                    <MessageSquare size={14} className="mr-1" />
-                    Chat
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </span>
-                    )}
-                  </Button>
-                  <Button
-                    onClick={toggleRadio}
-                    variant="outline"
-                    size="sm"
-                    className={`transition-colors h-auto px-2 py-1 text-xs ${
-                      isRadioPlaying 
-                        ? 'bg-[#00FF41] border-[#00FF41] text-black' 
-                        : 'bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black'
-                    }`}
-                    data-testid="button-radio"
-                  >
-                    <Radio size={14} className="mr-1" />
-                    {isRadioPlaying ? 'Stop' : 'Radio'}
-                  </Button>
-                  <Button
-                    onClick={() => setShowSshwifty(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
-                    data-testid="button-sshwifty"
-                  >
-                    <TerminalIcon size={14} className="mr-1" />
-                    SSH/Telnet
-                  </Button>
-                  <Button
-                    onClick={() => setShowPrivacyEncoder(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
-                    data-testid="button-privacy"
-                  >
-                    <Shield size={14} className="mr-1" />
-                    Privacy
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  onClick={() => window.location.href = '/api/login'}
-                  variant="outline"
-                  size="sm"
-                  className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
-                  data-testid="button-login"
-                >
-                  <LogIn size={14} className="mr-1" />
-                  Log In
-                </Button>
-              )}
-              
-              {/* SPACEWAR Game - Available to all users */}
-              <Button
-                onClick={launchSpacewars}
-                variant="outline"
-                size="sm"
-                className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors h-auto px-2 py-1 text-xs"
-                data-testid="button-spacewars"
-                title="Launch SPACEWAR Game"
-              >
-                <img src={invadersIcon} alt="SPACEWAR" className="h-4" />
-              </Button>
-            </div>
+            <TooltipProvider>
+              <div className="flex items-center space-x-2">
+                {isAuthenticated ? (
+                  <>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => setShowProfile(true)}
+                          variant="outline"
+                          size="sm"
+                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+                          data-testid="button-user-profile"
+                          aria-label="Profile"
+                        >
+                          <User size={16} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                        <p>Profile</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => setShowUpload(true)}
+                          variant="outline"
+                          size="sm"
+                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+                          data-testid="button-upload"
+                          aria-label="Upload"
+                        >
+                          <Upload size={16} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                        <p>Upload</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => setShowChat(true)}
+                          variant="outline"
+                          size="sm"
+                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2 relative"
+                          data-testid="button-chat"
+                          aria-label="Chat"
+                        >
+                          <MessageSquare size={16} />
+                          {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                              {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                        <p>Chat</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={toggleRadio}
+                          variant="outline"
+                          size="sm"
+                          className={`transition-colors h-auto p-2 ${
+                            isRadioPlaying 
+                              ? 'bg-terminal-highlight border-terminal-highlight text-terminal-bg' 
+                              : 'bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg'
+                          }`}
+                          data-testid="button-radio"
+                          aria-label={isRadioPlaying ? 'Stop Radio' : 'Radio'}
+                        >
+                          <Radio size={16} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                        <p>{isRadioPlaying ? 'Stop Radio' : 'Radio'}</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => setShowSshwifty(true)}
+                          variant="outline"
+                          size="sm"
+                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+                          data-testid="button-sshwifty"
+                          aria-label="SSH/Telnet"
+                        >
+                          <TerminalIcon size={16} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                        <p>SSH/Telnet</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => setShowPrivacyEncoder(true)}
+                          variant="outline"
+                          size="sm"
+                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+                          data-testid="button-privacy"
+                          aria-label="Privacy"
+                        >
+                          <Shield size={16} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                        <p>Privacy</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </>
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={() => window.location.href = '/api/login'}
+                        variant="outline"
+                        size="sm"
+                        className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+                        data-testid="button-login"
+                        aria-label="Log In"
+                      >
+                        <LogIn size={16} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                      <p>Log In</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                
+                {/* SPACEWAR Game - Available to all users */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={launchSpacewars}
+                      variant="outline"
+                      size="sm"
+                      className="bg-terminal-bg border-terminal-highlight hover:bg-terminal-highlight transition-colors h-auto p-2"
+                      data-testid="button-spacewars"
+                      aria-label="Launch SPACEWAR Game"
+                    >
+                      <img src={invadersIcon} alt="SPACEWAR" className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                    <p>Launch SPACEWAR Game</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
             
             {/* Mode Switcher */}
             <div className="flex items-center space-x-2 px-3 py-1 border border-terminal-subtle rounded">
