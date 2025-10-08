@@ -30,7 +30,7 @@ import { useChat } from '@/hooks/useChat';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2 } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
-import terminalWatermark from '@assets/wally transp_1759942302884.jpeg';
+import terminalWatermark from '@assets/wally transp_1759942701435.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
 
