@@ -15,6 +15,7 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [sessionId] = useState(() => crypto.randomUUID());
   const [sessionStartTime] = useState(() => new Date());
   const [totalWords, setTotalWords] = useState(0);
+  const [previewCode, setPreviewCode] = useState<string | null>(null);
   
   const [entries, setEntries] = useState<TerminalEntry[]>([
     {
@@ -612,6 +613,9 @@ Session & Productivity:
   bookmark <command> - Save a command as bookmark
   bookmarks - View all bookmarked commands
   bookmark-delete <number> - Remove a bookmark
+
+Code Execution:
+  preview / run - Execute and preview code from last AI response
   
 You can also chat naturally or ask technical questions.`);
       return;
@@ -890,13 +894,50 @@ You can also chat naturally or ask technical questions.`);
         return;
       }
 
-      navigator.clipboard.writeText(lastResponse.content)
-        .then(() => {
-          addEntry('system', '📋 Response copied to clipboard!');
-        })
-        .catch((error) => {
-          addEntry('error', `Failed to copy to clipboard: ${error.message}`);
-        });
+      if (!navigator.clipboard?.writeText) {
+        addEntry('error', 'Clipboard API not available. Please use a secure context (HTTPS) or a supported browser.');
+        return;
+      }
+
+      try {
+        navigator.clipboard.writeText(lastResponse.content)
+          .then(() => {
+            addEntry('system', '📋 Response copied to clipboard!');
+          })
+          .catch((error) => {
+            addEntry('error', `Failed to copy to clipboard: ${error.message}`);
+          });
+      } catch (error) {
+        addEntry('error', `Clipboard error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+      return;
+    }
+
+    if (cmd === 'preview' || cmd === 'run') {
+      const lastResponse = [...entries].reverse().find(entry => entry.type === 'response');
+      
+      if (!lastResponse) {
+        addEntry('error', 'No AI response found. Please ask the AI to generate some code first.');
+        return;
+      }
+
+      // Extract code blocks from the response (markdown code blocks or HTML)
+      const codeBlockRegex = /```(?:html|css|javascript|js)?\n([\s\S]*?)```/;
+      const match = lastResponse.content.match(codeBlockRegex);
+      
+      if (match && match[1]) {
+        setPreviewCode(match[1].trim());
+        addEntry('system', '🚀 Opening code preview...');
+      } else {
+        // Try to find HTML tags directly in the response
+        const htmlRegex = /<(?:html|!DOCTYPE|body|div|script|style)/i;
+        if (htmlRegex.test(lastResponse.content)) {
+          setPreviewCode(lastResponse.content);
+          addEntry('system', '🚀 Opening code preview...');
+        } else {
+          addEntry('error', 'No code blocks found in the last response.\n\nAsk the AI to generate HTML, CSS, or JavaScript code wrapped in markdown code blocks (```html ... ```).');
+        }
+      }
       return;
     }
 
@@ -2243,5 +2284,7 @@ Data powered by Semantic Scholar API`);
     getHistoryCommand,
     loadConversation,
     isLoading: chatMutation.isPending,
+    previewCode,
+    setPreviewCode,
   };
 }

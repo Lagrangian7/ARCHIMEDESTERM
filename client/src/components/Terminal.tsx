@@ -23,6 +23,7 @@ import { SshwiftyInterface } from './SshwiftyInterface';
 import { MudClient } from './MudClient';
 import { TheHarvester } from './TheHarvester';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
+import { CodePreview } from './CodePreview';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,6 +68,8 @@ export function Terminal() {
     getHistoryCommand,
     isLoading,
     loadConversation,
+    previewCode,
+    setPreviewCode,
   } = useTerminal(() => {
     if (isAuthenticated) {
       setShowUpload(true);
@@ -937,6 +940,14 @@ export function Terminal() {
           forceActive();
         }}
       />
+
+      {/* Code Preview */}
+      {previewCode && (
+        <CodePreview 
+          code={previewCode}
+          onClose={() => setPreviewCode(null)}
+        />
+      )}
     </div>
   );
 }
