@@ -315,8 +315,12 @@ export function useSpeechRecognition() {
     setIsSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
   }, []);
 
-  const startListening = useCallback((onResult: (transcript: string) => void) => {
-    if (!isSupported) return;
+  const startListening = useCallback((onResult: (transcript: string) => void, onError?: (error: string) => void) => {
+    if (!isSupported) {
+      console.error('Speech recognition not supported');
+      onError?.('Speech recognition is not supported in this browser');
+      return;
+    }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
@@ -325,22 +329,69 @@ export function useSpeechRecognition() {
     recognition.interimResults = false;
     recognition.lang = 'en-US';
 
-    recognition.onstart = () => setIsListening(true);
+    recognition.onstart = () => {
+      console.log('🎤 Speech recognition started successfully');
+      setIsListening(true);
+    };
     
     recognition.onresult = (event: any) => {
+      console.log('📝 Speech recognition result received');
       const transcript = event.results[0][0].transcript;
       onResult(transcript);
       setIsListening(false);
     };
 
     recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+      console.error('❌ Speech recognition error:', event.error);
+      setIsListening(false);
+      
+      // Provide Mac-specific error messages
+      let errorMessage = 'Speech recognition error';
+      
+      switch (event.error) {
+        case 'not-allowed':
+          errorMessage = 'Microphone access denied. On Mac:\n' +
+            '1. Check System Settings → Privacy & Security → Microphone\n' +
+            '2. Enable microphone access for your browser (Safari/Chrome)\n' +
+            '3. In Safari: Click AA in address bar → Settings → Allow Microphone\n' +
+            '4. Reload the page and try again';
+          break;
+        case 'no-speech':
+          errorMessage = 'No speech detected. Please speak clearly into your microphone.';
+          break;
+        case 'audio-capture':
+          errorMessage = 'No microphone found or access blocked.\n' +
+            'On Mac: Check System Settings → Privacy & Security → Microphone';
+          break;
+        case 'network':
+          errorMessage = 'Network error. Speech recognition requires internet connection.';
+          break;
+        case 'aborted':
+          errorMessage = 'Speech recognition aborted. If using Safari on Mac with Siri enabled, try disabling Siri in System Settings.';
+          break;
+        default:
+          errorMessage = `Speech recognition error: ${event.error}`;
+      }
+      
+      console.error('Error details:', errorMessage);
+      onError?.(errorMessage);
+    };
+
+    recognition.onend = () => {
+      console.log('🛑 Speech recognition ended');
       setIsListening(false);
     };
 
-    recognition.onend = () => setIsListening(false);
-
-    recognition.start();
+    try {
+      console.log('🎙️ Attempting to start speech recognition...');
+      console.log('Browser:', navigator.userAgent.includes('Safari') ? 'Safari' : 
+                             navigator.userAgent.includes('Chrome') ? 'Chrome' : 'Other');
+      recognition.start();
+    } catch (error) {
+      console.error('Failed to start recognition:', error);
+      setIsListening(false);
+      onError?.('Failed to start speech recognition. Make sure microphone permissions are granted.');
+    }
   }, [isSupported]);
 
   return {

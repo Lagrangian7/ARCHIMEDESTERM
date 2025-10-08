@@ -4,12 +4,14 @@ import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { useToast } from '@/hooks/use-toast';
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
 }
 
 export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
+  const { toast } = useToast();
   const {
     voices,
     isEnabled,
@@ -37,8 +39,25 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
   };
 
   const handleVoiceInput = () => {
-    if (isSupported && !isListening) {
-      startListening(onVoiceInput);
+    if (!isSupported) {
+      toast({
+        variant: "destructive",
+        title: "Speech Recognition Unavailable",
+        description: "Your browser doesn't support speech recognition. Try Chrome or Safari.",
+      });
+      return;
+    }
+    
+    if (!isListening) {
+      startListening(onVoiceInput, (error) => {
+        // Show error toast with Mac-specific instructions
+        toast({
+          variant: "destructive",
+          title: "Microphone Error",
+          description: error,
+          duration: 8000,
+        });
+      });
     }
   };
 
