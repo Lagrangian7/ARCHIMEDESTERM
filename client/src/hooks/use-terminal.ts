@@ -13,6 +13,9 @@ interface TerminalEntry {
 
 export function useTerminal(onUploadCommand?: () => void) {
   const [sessionId] = useState(() => crypto.randomUUID());
+  const [sessionStartTime] = useState(() => new Date());
+  const [totalWords, setTotalWords] = useState(0);
+  
   const [entries, setEntries] = useState<TerminalEntry[]>([
     {
       id: '1',
@@ -283,6 +286,12 @@ Use the URLs above to access the full articles and information.`;
       mode,
     };
     setEntries(prev => [...prev, entry]);
+    
+    // Track word count for session analytics
+    if (type === 'response' || type === 'command') {
+      const wordCount = content.trim().split(/\s+/).filter(word => word.length > 0).length;
+      setTotalWords(prev => prev + wordCount);
+    }
   }, []);
 
   const processCommand = useCallback((command: string) => {
@@ -596,6 +605,13 @@ Knowledge Base Commands:
   search [query] - Search your knowledge base
   save - Save last AI response to knowledge base
   knowledge stats - Show knowledge base statistics
+
+Session & Productivity:
+  session - View session analytics (time, words, commands)
+  copy - Copy last response to clipboard
+  bookmark <command> - Save a command as bookmark
+  bookmarks - View all bookmarked commands
+  bookmark-delete <number> - Remove a bookmark
   
 You can also chat naturally or ask technical questions.`);
       return;
@@ -836,6 +852,102 @@ You can also chat naturally or ask technical questions.`);
           setIsTyping(false);
           addEntry('error', `Failed to read document: ${error.message || 'Network error'}`);
         });
+      return;
+    }
+
+    if (cmd === 'session') {
+      const currentTime = new Date();
+      const sessionDuration = Math.floor((currentTime.getTime() - sessionStartTime.getTime()) / 1000);
+      const hours = Math.floor(sessionDuration / 3600);
+      const minutes = Math.floor((sessionDuration % 3600) / 60);
+      const seconds = sessionDuration % 60;
+      
+      const timeString = hours > 0 
+        ? `${hours}h ${minutes}m ${seconds}s`
+        : minutes > 0 
+          ? `${minutes}m ${seconds}s`
+          : `${seconds}s`;
+      
+      const analyticsText = `📊 SESSION ANALYTICS
+
+⏱️  Duration: ${timeString}
+📝 Total Words: ${totalWords.toLocaleString()}
+🔢 Commands Used: ${commandHistory.length}
+🎯 Current Mode: ${currentMode.toUpperCase()}
+📅 Session Started: ${sessionStartTime.toLocaleTimeString()}
+
+💡 Tip: Use 'bookmarks' to save your favorite commands!`;
+      
+      addEntry('system', analyticsText);
+      return;
+    }
+
+    if (cmd === 'copy') {
+      const lastResponse = [...entries].reverse().find(entry => entry.type === 'response');
+      
+      if (!lastResponse) {
+        addEntry('error', 'No response to copy. Please ask a question first.');
+        return;
+      }
+
+      navigator.clipboard.writeText(lastResponse.content)
+        .then(() => {
+          addEntry('system', '📋 Response copied to clipboard!');
+        })
+        .catch((error) => {
+          addEntry('error', `Failed to copy to clipboard: ${error.message}`);
+        });
+      return;
+    }
+
+    if (cmd === 'bookmark' || cmd.startsWith('bookmark ')) {
+      const bookmarkCmd = cmd.substring('bookmark'.length).trim();
+      
+      if (!bookmarkCmd) {
+        addEntry('error', 'Usage: bookmark <command> - Save a command as bookmark\nExample: bookmark weather San Francisco');
+        return;
+      }
+      
+      const bookmarks = JSON.parse(localStorage.getItem('terminal-bookmarks') || '[]');
+      if (bookmarks.includes(bookmarkCmd)) {
+        addEntry('error', `Command "${bookmarkCmd}" is already bookmarked.`);
+        return;
+      }
+      
+      bookmarks.push(bookmarkCmd);
+      localStorage.setItem('terminal-bookmarks', JSON.stringify(bookmarks));
+      addEntry('system', `🔖 Bookmarked: "${bookmarkCmd}"\n\nUse 'bookmarks' to view all bookmarks.`);
+      return;
+    }
+
+    if (cmd === 'bookmarks') {
+      const bookmarks = JSON.parse(localStorage.getItem('terminal-bookmarks') || '[]');
+      
+      if (bookmarks.length === 0) {
+        addEntry('system', '📚 No bookmarks saved yet.\n\nUse "bookmark <command>" to save your favorite commands.\nExample: bookmark weather Tokyo');
+        return;
+      }
+      
+      const bookmarkList = bookmarks.map((bm: string, i: number) => `${i + 1}. ${bm}`).join('\n');
+      addEntry('system', `📚 YOUR BOOKMARKS (${bookmarks.length}):\n\n${bookmarkList}\n\nType the command to run it, or use "bookmark-delete <number>" to remove.`);
+      return;
+    }
+
+    if (cmd.startsWith('bookmark-delete ')) {
+      const indexStr = cmd.substring('bookmark-delete '.length).trim();
+      const index = parseInt(indexStr) - 1;
+      
+      const bookmarks = JSON.parse(localStorage.getItem('terminal-bookmarks') || '[]');
+      
+      if (isNaN(index) || index < 0 || index >= bookmarks.length) {
+        addEntry('error', `Invalid bookmark number. Use "bookmarks" to see the list.`);
+        return;
+      }
+      
+      const deletedBookmark = bookmarks[index];
+      bookmarks.splice(index, 1);
+      localStorage.setItem('terminal-bookmarks', JSON.stringify(bookmarks));
+      addEntry('system', `🗑️ Deleted bookmark: "${deletedBookmark}"`);
       return;
     }
 
