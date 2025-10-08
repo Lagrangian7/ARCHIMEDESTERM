@@ -174,12 +174,15 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
               <div className="absolute top-2 right-2 flex items-center gap-2">
                 {/* Save button */}
                 <button
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     saveMutation.mutate();
                   }}
                   disabled={saveMutation.isPending}
-                  className="text-terminal-highlight hover:text-terminal-bright-green transition-colors disabled:opacity-50"
+                  className="text-terminal-highlight hover:text-terminal-bright-green transition-colors disabled:opacity-50 cursor-pointer"
                   title="Save to knowledge base"
                   data-testid={`save-response-${entryId}`}
                 >
