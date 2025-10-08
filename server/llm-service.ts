@@ -159,6 +159,7 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
     userId?: string
   ): Promise<string> {
     let contextualMessage = userMessage;
+    let relevantDocuments: { fileName: string; snippet: string }[] = [];
     
     // Get knowledge base context if user is authenticated
     if (userId) {
@@ -167,28 +168,39 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
         if (knowledgeContext) {
           contextualMessage = `${knowledgeContext}\n\nUser Query: ${userMessage}`;
         }
+
+        // Also get relevant documents to reference at the end
+        const searchResults = await knowledgeService.searchKnowledge(userId, userMessage);
+        if (searchResults.documents && searchResults.documents.length > 0) {
+          relevantDocuments = searchResults.documents.slice(0, 3).map((doc: any) => ({
+            fileName: doc.originalName || doc.fileName,
+            snippet: doc.summary || ''
+          }));
+        }
       } catch (error) {
         console.error('Knowledge base error:', error);
         // Continue without knowledge context if there's an error
       }
     }
 
+    let aiResponse: string;
+
     try {
       // Primary: Use Google Gemini (free tier, excellent quality)
       if (process.env.GEMINI_API_KEY) {
         console.log('[LLM] Using Google Gemini (primary choice)');
-        return await this.generateGeminiResponse(contextualMessage, mode, conversationHistory);
+        aiResponse = await this.generateGeminiResponse(contextualMessage, mode, conversationHistory);
       }
-      
       // Secondary: Perplexity for technical queries requiring recent information
-      if (mode === 'technical' && process.env.PERPLEXITY_API_KEY) {
+      else if (mode === 'technical' && process.env.PERPLEXITY_API_KEY) {
         console.log('[LLM] Using Perplexity for technical query');
-        return await this.generatePerplexityResponse(contextualMessage, mode, conversationHistory);
+        aiResponse = await this.generatePerplexityResponse(contextualMessage, mode, conversationHistory);
       }
-      
       // Tertiary: Enhanced Hugging Face models
-      console.log('[LLM] Using enhanced Hugging Face models');
-      return await this.generateReplitOptimizedResponse(contextualMessage, mode, conversationHistory);
+      else {
+        console.log('[LLM] Using enhanced Hugging Face models');
+        aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, mode, conversationHistory);
+      }
       
     } catch (primaryError) {
       console.error('Primary AI models error:', primaryError);
@@ -196,32 +208,50 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
       try {
         // Backup: Mistral AI fallback
         if (process.env.MISTRAL_API_KEY) {
-          return await this.generateMistralResponse(contextualMessage, mode, conversationHistory);
+          aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory);
         }
-        
         // If no Mistral key, try OpenAI
-        if (process.env.OPENAI_API_KEY) {
-          return await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory);
+        else if (process.env.OPENAI_API_KEY) {
+          aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory);
         }
-        
         // Final fallback
-        return this.getEnhancedFallbackResponse(contextualMessage, mode);
+        else {
+          aiResponse = this.getEnhancedFallbackResponse(contextualMessage, mode);
+        }
       } catch (secondaryError) {
         console.error('Fallback AI models error:', secondaryError);
         
         try {
           // Final paid option: OpenAI fallback
           if (process.env.OPENAI_API_KEY) {
-            return await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory);
+            aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory);
+          } else {
+            aiResponse = this.getEnhancedFallbackResponse(contextualMessage, mode);
           }
         } catch (tertiaryError) {
           console.error('OpenAI fallback error:', tertiaryError);
+          aiResponse = this.getEnhancedFallbackResponse(contextualMessage, mode);
         }
-        
-        // Ultimate: Enhanced contextual fallback
-        return this.getEnhancedFallbackResponse(contextualMessage, mode);
       }
     }
+
+    // Append document references at the end if relevant documents were found
+    if (relevantDocuments.length > 0) {
+      const documentRefs = relevantDocuments
+        .filter(doc => doc.fileName) // Only include docs with filenames
+        .map((doc, index) => {
+          const fileName = doc.fileName || `Document ${index + 1}`;
+          const description = doc.snippet || '(see full document for details)';
+          return `${index + 1}. ${fileName} - ${description}`;
+        })
+        .join('\n');
+      
+      if (documentRefs) {
+        aiResponse = `${aiResponse}\n\n📚 Related documents from your knowledge base:\n${documentRefs}`;
+      }
+    }
+
+    return aiResponse;
   }
 
   private async generateGeminiResponse(
