@@ -616,6 +616,7 @@ Session & Productivity:
 
 Code Execution:
   preview / run - Execute and preview code from last AI response
+  preview <code> - Execute and preview your pasted HTML/CSS/JS code
   
 You can also chat naturally or ask technical questions.`);
       return;
@@ -913,11 +914,26 @@ You can also chat naturally or ask technical questions.`);
       return;
     }
 
-    if (cmd === 'preview' || cmd === 'run') {
+    if (cmd === 'preview' || cmd === 'run' || cmd.startsWith('preview ') || cmd.startsWith('run ')) {
+      // Check if user pasted code after the command
+      const pastedCode = cmd.startsWith('preview ') 
+        ? command.substring('preview '.length).trim()
+        : cmd.startsWith('run ')
+          ? command.substring('run '.length).trim()
+          : '';
+
+      if (pastedCode) {
+        // User provided code directly - use it
+        setPreviewCode(pastedCode);
+        addEntry('system', '🚀 Opening code preview with your pasted code...');
+        return;
+      }
+
+      // No pasted code - extract from last AI response
       const lastResponse = [...entries].reverse().find(entry => entry.type === 'response');
       
       if (!lastResponse) {
-        addEntry('error', 'No AI response found. Please ask the AI to generate some code first.');
+        addEntry('error', 'No AI response found. Please ask the AI to generate some code first, or use:\n\npreview <paste your HTML/CSS/JS here>');
         return;
       }
 
@@ -935,7 +951,7 @@ You can also chat naturally or ask technical questions.`);
           setPreviewCode(lastResponse.content);
           addEntry('system', '🚀 Opening code preview...');
         } else {
-          addEntry('error', 'No code blocks found in the last response.\n\nAsk the AI to generate HTML, CSS, or JavaScript code wrapped in markdown code blocks (```html ... ```).');
+          addEntry('error', 'No code blocks found in the last response.\n\nAsk the AI to generate HTML, CSS, or JavaScript code, or use:\n\npreview <paste your code here>');
         }
       }
       return;
