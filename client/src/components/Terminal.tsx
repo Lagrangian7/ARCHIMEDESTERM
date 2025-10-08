@@ -30,7 +30,6 @@ import { useChat } from '@/hooks/useChat';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2 } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
-import terminalWatermark from '@assets/wally new_1757883178780.jpeg';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
 
@@ -383,21 +382,6 @@ export function Terminal() {
         
         {/* Matrix Rain Background Effect */}
         <MatrixRain />
-
-        {/* Background Watermark - Centered and Large */}
-        <div className="absolute inset-0 z-[5] flex items-center justify-center">
-          <div 
-            className="watermark-background watermark-glitch watermark-glitch-red watermark-glitch-cyan watermark-noise opacity-5"
-            style={{
-              backgroundImage: `url(${terminalWatermark})`,
-              backgroundSize: 'contain',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              width: '400px',
-              height: '400px',
-            }}
-          />
-        </div>
         
         {/* Header - Fixed at top */}
         <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-terminal-subtle bg-terminal-bg relative z-10">
