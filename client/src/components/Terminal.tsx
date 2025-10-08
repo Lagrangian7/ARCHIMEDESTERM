@@ -396,6 +396,7 @@ export function Terminal() {
               width: '400px',
               height: '400px',
               filter: 'drop-shadow(3px 0px 0px rgba(255, 0, 0, 0.5)) drop-shadow(-3px 0px 0px rgba(0, 255, 255, 0.5))',
+              animation: 'rotateGlitch 8s ease-in-out infinite',
             }}
           />
         </div>
