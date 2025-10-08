@@ -29,10 +29,10 @@ Preferred communication style: Simple, everyday language.
 - **Request Logging**: Custom middleware for API request/response logging
 
 ## Data Storage Solutions
-- **Database**: PostgreSQL with Drizzle ORM
-- **Schema**: Users table for authentication, conversations table with JSONB message storage
+- **Database**: PostgreSQL with Drizzle ORM (DatabaseStorage implementation)
+- **Schema**: Users table for authentication, conversations table with JSONB message storage, documents table for knowledge base
 - **BBS Directory**: Comprehensive tables for BBS systems, categories, connection logs, and user favorites
-- **Development Storage**: In-memory storage implementation for development/testing
+- **Document Persistence**: All uploaded documents and saved AI responses persist in PostgreSQL per user
 - **Session Management**: UUID-based session tracking for conversation persistence
 
 ## Authentication and Authorization
