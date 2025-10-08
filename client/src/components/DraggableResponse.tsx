@@ -80,6 +80,12 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
 
   // Drag functionality - similar to RadioCharacter
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Don't start dragging if clicking on a button or interactive element
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'BUTTON' || target.closest('button')) {
+      return;
+    }
+    
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
