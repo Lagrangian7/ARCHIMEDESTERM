@@ -80,9 +80,13 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
 
   // Drag functionality - similar to RadioCharacter
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // Don't start dragging if clicking on a button or interactive element
+    // Don't start dragging if clicking on a button or in the action buttons area
     const target = e.target as HTMLElement;
-    if (target.tagName === 'BUTTON' || target.closest('button')) {
+    if (
+      target.tagName === 'BUTTON' || 
+      target.closest('button') ||
+      target.closest('[data-no-drag]')
+    ) {
       return;
     }
     
@@ -171,12 +175,9 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
               </div>
               
               {/* Action buttons */}
-              <div className="absolute top-2 right-2 flex items-center gap-2">
+              <div className="absolute top-2 right-2 flex items-center gap-2" data-no-drag>
                 {/* Save button */}
                 <button
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     saveMutation.mutate();
@@ -190,7 +191,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
                 </button>
                 
                 {/* Drag indicator */}
-                <div className="text-terminal-subtle text-xs opacity-50" title="Double-click to dismiss">
+                <div className="text-terminal-subtle text-xs opacity-50 cursor-move" title="Drag to move, double-click to dismiss">
                   ⋮⋮
                 </div>
               </div>
