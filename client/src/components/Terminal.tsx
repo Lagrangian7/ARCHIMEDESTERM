@@ -387,7 +387,7 @@ export function Terminal() {
         {/* Background Watermark - Centered and Large */}
         <div className="absolute inset-0 z-[5] flex items-center justify-center">
           <div 
-            className="watermark-background watermark-glitch watermark-glitch-red watermark-glitch-cyan watermark-noise opacity-15"
+            className="watermark-background watermark-glitch watermark-glitch-red watermark-glitch-cyan watermark-noise opacity-5"
             style={{
               backgroundImage: `url(${terminalWatermark})`,
               backgroundSize: 'contain',
