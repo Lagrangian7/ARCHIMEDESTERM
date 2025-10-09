@@ -584,6 +584,7 @@ Radio & Music:
   radio status - Show current stream status
   play our song - Play Lagrangian 25 in background
   stop - Stop background music
+  debug audio - Test audio file loading and show diagnostic info
   
 OSINT (Open Source Intelligence):
   whois <domain> - Domain registration lookup
@@ -686,6 +687,36 @@ You can also chat naturally or ask technical questions.`);
       return;
     }
 
+    if (cmd === 'debug audio' || cmd === 'test audio') {
+      addEntry('system', `Audio Debug Information:\n\nImported path: ${lagrangianSong}\nPath type: ${typeof lagrangianSong}\nPath length: ${lagrangianSong.length}\nEnvironment: ${import.meta.env.MODE}\n\nTrying to create Audio element...`);
+      
+      try {
+        const testAudio = new Audio(lagrangianSong);
+        addEntry('system', `✓ Audio element created successfully\nAudio src: ${testAudio.src}\n\nAttempting to load metadata...`);
+        
+        testAudio.addEventListener('loadedmetadata', () => {
+          addEntry('system', `✓ Audio metadata loaded\nDuration: ${testAudio.duration}s\nReady to play!`);
+        });
+        
+        testAudio.addEventListener('error', (e) => {
+          const errorCode = testAudio.error?.code;
+          const errorMessages: Record<number, string> = {
+            1: 'MEDIA_ERR_ABORTED - Download aborted',
+            2: 'MEDIA_ERR_NETWORK - Network error',
+            3: 'MEDIA_ERR_DECODE - Decoding error',
+            4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Format not supported or file not found'
+          };
+          addEntry('error', `✗ Audio loading failed\nError code: ${errorCode}\nError: ${errorMessages[errorCode || 0] || 'Unknown error'}\nSource: ${testAudio.src}`);
+        });
+        
+        testAudio.load();
+      } catch (error: any) {
+        addEntry('error', `✗ Failed to create audio element: ${error.message}`);
+      }
+      
+      return;
+    }
+    
     if (cmd === 'play our song') {
       // Stop any currently playing audio
       if (backgroundAudio) {
@@ -693,10 +724,30 @@ You can also chat naturally or ask technical questions.`);
         backgroundAudio.currentTime = 0;
       }
 
+      // Log the audio path for debugging
+      console.log('Audio file path:', lagrangianSong);
+      console.log('Audio file type:', typeof lagrangianSong);
+      
       // Create new audio element and play
       const audio = new Audio(lagrangianSong);
       audio.loop = true;
       audio.volume = 0.5;
+      
+      // Add event listeners for better error handling
+      audio.addEventListener('error', (e) => {
+        console.error('Audio loading error:', e);
+        console.error('Audio error code:', audio.error?.code);
+        console.error('Audio error message:', audio.error?.message);
+        console.error('Audio src:', audio.src);
+      });
+      
+      audio.addEventListener('loadstart', () => {
+        console.log('Audio loading started');
+      });
+      
+      audio.addEventListener('canplay', () => {
+        console.log('Audio can play');
+      });
       
       audio.play()
         .then(() => {
@@ -704,7 +755,8 @@ You can also chat naturally or ask technical questions.`);
           addEntry('system', '🎵 Now playing: Lagrangian 25\n\nBackground music started. Use "stop" to end playback.');
         })
         .catch((error) => {
-          addEntry('error', `Failed to play audio: ${error.message}\n\nNote: Some browsers require user interaction before audio playback.`);
+          console.error('Audio playback error:', error);
+          addEntry('error', `Failed to play audio: ${error.message}\n\nDebug info: Path=${lagrangianSong.substring(0, 50)}...\n\nNote: Some browsers require user interaction before audio playback.`);
         });
       
       return;
