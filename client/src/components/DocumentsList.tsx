@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -105,14 +105,10 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
     );
   }, [documents, searchQuery]);
 
-  // Maintain focus on search input when user types
-  useEffect(() => {
-    searchInputRef.current?.focus();
-  }, [searchQuery]);
 
   if (error) {
     return (
-      <div className="bg-[#0D1117] border border-red-500/20 rounded-lg p-6 max-w-4xl w-full max-h-[90vh]">
+      <div className="bg-[#0D1117] border border-red-500/20 rounded-lg p-6 max-w-4xl w-full max-h-[90vh]" data-no-terminal-autofocus>
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-red-400 font-mono flex items-center">
             <FileText className="mr-2" size={20} />
@@ -135,7 +131,7 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
   }
 
   return (
-    <div className="bg-[#0D1117] border border-[#00FF41]/20 rounded-lg p-6 max-w-4xl w-full max-h-[90vh]">
+    <div className="bg-[#0D1117] border border-[#00FF41]/20 rounded-lg p-6 max-w-4xl w-full max-h-[90vh]" data-no-terminal-autofocus>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-[#00FF41] font-mono flex items-center">
           <FileText className="mr-2" size={20} />
