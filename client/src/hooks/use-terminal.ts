@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message } from '@shared/schema';
+import lagrangianSong from '@assets/Lagrangian 25_1759973094289.mp3';
 
 interface TerminalEntry {
   id: string;
