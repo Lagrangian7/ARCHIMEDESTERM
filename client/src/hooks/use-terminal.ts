@@ -42,6 +42,7 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [currentMode, setCurrentMode] = useState<'natural' | 'technical'>('natural');
   const [isTyping, setIsTyping] = useState(false);
+  const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
 
   const chatMutation = useMutation({
     mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' }) => {
@@ -277,6 +278,16 @@ Use the URLs above to access the full articles and information.`;
       addEntry('error', `Research Error: ${error.message}`);
     },
   });
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (backgroundAudio) {
+        backgroundAudio.pause();
+        backgroundAudio.currentTime = 0;
+      }
+    };
+  }, [backgroundAudio]);
 
   const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical') => {
     const entry: TerminalEntry = {
@@ -668,6 +679,42 @@ You can also chat naturally or ask technical questions.`);
         activateScreensaver();
       } else {
         addEntry('error', 'Screensaver not available. Please ensure the system is loaded.');
+      }
+      return;
+    }
+
+    if (cmd === 'play our song') {
+      // Stop any currently playing audio
+      if (backgroundAudio) {
+        backgroundAudio.pause();
+        backgroundAudio.currentTime = 0;
+      }
+
+      // Create new audio element and play
+      const audio = new Audio('/attached_assets/Lagrangian%2025_1759973094289.mp3');
+      audio.loop = true;
+      audio.volume = 0.5;
+      
+      audio.play()
+        .then(() => {
+          setBackgroundAudio(audio);
+          addEntry('system', '🎵 Now playing: Lagrangian 25\n\nBackground music started. Use "stop" to end playback.');
+        })
+        .catch((error) => {
+          addEntry('error', `Failed to play audio: ${error.message}\n\nNote: Some browsers require user interaction before audio playback.`);
+        });
+      
+      return;
+    }
+
+    if (cmd === 'stop') {
+      if (backgroundAudio) {
+        backgroundAudio.pause();
+        backgroundAudio.currentTime = 0;
+        setBackgroundAudio(null);
+        addEntry('system', '🔇 Background music stopped.');
+      } else {
+        addEntry('system', 'No background music is currently playing.');
       }
       return;
     }
