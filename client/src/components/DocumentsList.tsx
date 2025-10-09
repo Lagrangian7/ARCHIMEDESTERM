@@ -105,11 +105,9 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
     );
   }, [documents, searchQuery]);
 
-  // Maintain focus on search input during re-renders
+  // Maintain focus on search input when user types
   useEffect(() => {
-    if (searchInputRef.current && document.activeElement !== searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
+    searchInputRef.current?.focus();
   }, [searchQuery]);
 
   if (error) {
