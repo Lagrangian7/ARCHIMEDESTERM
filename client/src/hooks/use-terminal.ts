@@ -576,11 +576,13 @@ Project Gutenberg Books:
   books info <id> - Get detailed info and download links for a book
   books help - Show detailed book command help
   
-Radio Streaming:
+Radio & Music:
   radio play - Start Radio Swiss Jazz stream
   radio stop - Stop radio stream
   radio volume <0-100> - Set volume level
   radio status - Show current stream status
+  play our song - Play Lagrangian 25 in background
+  stop - Stop background music
   
 OSINT (Open Source Intelligence):
   whois <domain> - Domain registration lookup
