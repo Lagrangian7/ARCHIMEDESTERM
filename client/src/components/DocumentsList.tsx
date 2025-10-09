@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -35,6 +35,7 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Query for user documents
   const { data: documents = [], isLoading, error } = useQuery<Document[]>({
@@ -95,11 +96,21 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
     }
   };
 
-  const filteredDocuments = documents.filter(doc =>
-    doc.originalName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.keywords?.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // Memoize filtered documents to prevent unnecessary recalculations
+  const filteredDocuments = useMemo(() => {
+    return documents.filter(doc =>
+      doc.originalName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.keywords?.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  }, [documents, searchQuery]);
+
+  // Maintain focus on search input during re-renders
+  useEffect(() => {
+    if (searchInputRef.current && document.activeElement !== searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchQuery]);
 
   if (error) {
     return (
@@ -144,6 +155,7 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Search documents by name, content, or keywords..."
             value={searchQuery}
