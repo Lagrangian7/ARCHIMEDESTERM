@@ -393,8 +393,8 @@ export function Terminal() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono">
-      <div className={`terminal-container theme-${currentTheme} flex flex-col h-full relative z-0`}>
+    <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
+      <div className={`terminal-container flex flex-col h-full relative z-0`}>
         
         {/* Matrix Rain Background Effect */}
         <MatrixRain />
@@ -789,16 +789,19 @@ export function Terminal() {
 
       {showUpload && isAuthenticated && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0D1117] border border-[#00FF41]/20 rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="border rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto" style={{
+            backgroundColor: 'var(--terminal-bg)',
+            borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)'
+          }}>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-[#00FF41] font-mono">
+              <h2 className="text-xl font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
                 Knowledge Base Manager
               </h2>
               <Button
                 onClick={() => setShowUpload(false)}
                 variant="ghost"
                 size="sm"
-                className="text-terminal-text hover:text-[#00FF41]"
+                style={{ color: 'var(--terminal-text)' }}
                 data-testid="close-upload-modal"
               >
                 ×
@@ -806,14 +809,22 @@ export function Terminal() {
             </div>
             
             {/* Tab Navigation */}
-            <div className="flex space-x-2 mb-6 border-b border-[#00FF41]/20">
+            <div className="flex space-x-2 mb-6 border-b" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)' }}>
               <Button
                 onClick={() => setUploadTab('list')}
                 variant={uploadTab === 'list' ? 'default' : 'ghost'}
                 size="sm"
-                className={uploadTab === 'list' 
-                  ? 'bg-[#00FF41] text-black border-b-2 border-[#00FF41] rounded-b-none' 
-                  : 'text-[#00FF41] hover:text-black hover:bg-[#00FF41]/20 border-b-2 border-transparent'
+                style={uploadTab === 'list' 
+                  ? { 
+                      backgroundColor: 'var(--terminal-highlight)', 
+                      color: 'var(--terminal-bg)', 
+                      borderBottom: '2px solid var(--terminal-highlight)', 
+                      borderRadius: '0.375rem 0.375rem 0 0' 
+                    } 
+                  : { 
+                      color: 'var(--terminal-text)', 
+                      borderBottom: '2px solid transparent' 
+                    }
                 }
                 data-testid="tab-documents-list"
               >
@@ -823,9 +834,17 @@ export function Terminal() {
                 onClick={() => setUploadTab('upload')}
                 variant={uploadTab === 'upload' ? 'default' : 'ghost'}
                 size="sm"
-                className={uploadTab === 'upload' 
-                  ? 'bg-[#00FF41] text-black border-b-2 border-[#00FF41] rounded-b-none' 
-                  : 'text-[#00FF41] hover:text-black hover:bg-[#00FF41]/20 border-b-2 border-transparent'
+                style={uploadTab === 'upload' 
+                  ? { 
+                      backgroundColor: 'var(--terminal-highlight)', 
+                      color: 'var(--terminal-bg)', 
+                      borderBottom: '2px solid var(--terminal-highlight)', 
+                      borderRadius: '0.375rem 0.375rem 0 0' 
+                    } 
+                  : { 
+                      color: 'var(--terminal-text)', 
+                      borderBottom: '2px solid transparent' 
+                    }
                 }
                 data-testid="tab-upload-documents"
               >
