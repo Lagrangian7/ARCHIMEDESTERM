@@ -17,22 +17,26 @@ export function UserProfile({ onClose }: UserProfileProps) {
 
   if (!isAuthenticated || !user) {
     return (
-      <Card className="bg-black/90 border-green-400/30 text-green-400">
+      <Card style={{ 
+        backgroundColor: 'var(--terminal-bg)', 
+        borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)',
+        color: 'var(--terminal-text)'
+      }}>
         <CardHeader>
-          <CardTitle className="text-green-400">Authentication Required</CardTitle>
+          <CardTitle style={{ color: 'var(--terminal-text)' }}>Authentication Required</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>Please log in to access your profile.</p>
           <Button 
             onClick={() => window.location.href = '/api/login'}
-            className="bg-green-500 text-black hover:bg-green-400"
+            style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}
           >
             Log In
           </Button>
           <Button 
             onClick={onClose}
             variant="outline"
-            className="border-green-400/30 text-green-400 hover:bg-green-400/10"
+            style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }}
           >
             Cancel
           </Button>
@@ -50,10 +54,14 @@ export function UserProfile({ onClose }: UserProfileProps) {
   };
 
   return (
-    <Card className="bg-black/95 border-green-400/50 text-green-400 max-w-2xl w-full">
+    <Card className="max-w-2xl w-full" style={{ 
+      backgroundColor: 'var(--terminal-bg)', 
+      borderColor: 'rgba(var(--terminal-subtle-rgb), 0.5)',
+      color: 'var(--terminal-text)'
+    }}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2" style={{ color: 'var(--terminal-text)' }}>
             <User size={20} />
             ARCHIMEDES User Profile
           </CardTitle>
@@ -61,7 +69,7 @@ export function UserProfile({ onClose }: UserProfileProps) {
             onClick={onClose}
             variant="ghost"
             size="sm"
-            className="text-green-400 hover:text-green-300"
+            style={{ color: 'var(--terminal-text)' }}
           >
             ✕
           </Button>
@@ -71,9 +79,9 @@ export function UserProfile({ onClose }: UserProfileProps) {
             onClick={() => setActiveTab("profile")}
             variant={activeTab === "profile" ? "default" : "outline"}
             size="sm"
-            className={activeTab === "profile" 
-              ? "bg-green-500 text-black" 
-              : "border-green-400/30 text-green-400 hover:bg-green-400/10"
+            style={activeTab === "profile" 
+              ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
+              : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
             }
           >
             Profile
@@ -82,9 +90,9 @@ export function UserProfile({ onClose }: UserProfileProps) {
             onClick={() => setActiveTab("preferences")}
             variant={activeTab === "preferences" ? "default" : "outline"}
             size="sm"
-            className={activeTab === "preferences" 
-              ? "bg-green-500 text-black" 
-              : "border-green-400/30 text-green-400 hover:bg-green-400/10"
+            style={activeTab === "preferences" 
+              ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
+              : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
             }
           >
             <Settings size={16} />
@@ -101,27 +109,28 @@ export function UserProfile({ onClose }: UserProfileProps) {
                 <img
                   src={user.profileImageUrl}
                   alt="Profile"
-                  className="w-16 h-16 rounded-full border-2 border-green-400/50"
+                  className="w-16 h-16 rounded-full border-2"
+                  style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.5)' }}
                 />
               )}
               <div>
-                <h3 className="text-xl font-mono">
+                <h3 className="text-xl font-mono" style={{ color: 'var(--terminal-text)' }}>
                   {user.firstName && user.lastName 
                     ? `${user.firstName} ${user.lastName}`
                     : user.email
                   }
                 </h3>
-                <p className="text-green-300">{user.email}</p>
+                <p style={{ color: 'var(--terminal-text)', opacity: 0.8 }}>{user.email}</p>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-green-300">Status</p>
-                <Badge className="bg-green-500 text-black">Active</Badge>
+                <p className="text-sm" style={{ color: 'var(--terminal-text)', opacity: 0.8 }}>Status</p>
+                <Badge style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}>Active</Badge>
               </div>
               <div>
-                <p className="text-sm text-green-300">Member Since</p>
+                <p className="text-sm" style={{ color: 'var(--terminal-text)', opacity: 0.8 }}>Member Since</p>
                 <p className="font-mono text-sm">
                   {new Date(user.createdAt!).toLocaleDateString()}
                 </p>
@@ -133,7 +142,7 @@ export function UserProfile({ onClose }: UserProfileProps) {
         {activeTab === "preferences" && preferences && (
           <div className="space-y-6">
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" style={{ color: 'var(--terminal-text)' }}>
                 <Brain size={16} />
                 <h4 className="font-semibold">AI Behavior</h4>
               </div>
@@ -141,9 +150,9 @@ export function UserProfile({ onClose }: UserProfileProps) {
                 <Button
                   onClick={() => handlePreferenceUpdate({ defaultMode: "natural" })}
                   variant={preferences.defaultMode === "natural" ? "default" : "outline"}
-                  className={preferences.defaultMode === "natural"
-                    ? "bg-green-500 text-black"
-                    : "border-green-400/30 text-green-400 hover:bg-green-400/10"
+                  style={preferences.defaultMode === "natural"
+                    ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
+                    : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
                   }
                   disabled={isUpdating}
                 >
@@ -152,9 +161,9 @@ export function UserProfile({ onClose }: UserProfileProps) {
                 <Button
                   onClick={() => handlePreferenceUpdate({ defaultMode: "technical" })}
                   variant={preferences.defaultMode === "technical" ? "default" : "outline"}
-                  className={preferences.defaultMode === "technical"
-                    ? "bg-green-500 text-black"
-                    : "border-green-400/30 text-green-400 hover:bg-green-400/10"
+                  style={preferences.defaultMode === "technical"
+                    ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
+                    : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
                   }
                   disabled={isUpdating}
                 >
@@ -164,7 +173,7 @@ export function UserProfile({ onClose }: UserProfileProps) {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" style={{ color: 'var(--terminal-text)' }}>
                 <Volume2 size={16} />
                 <h4 className="font-semibold">Voice Settings</h4>
               </div>
@@ -172,9 +181,9 @@ export function UserProfile({ onClose }: UserProfileProps) {
                 <Button
                   onClick={() => handlePreferenceUpdate({ voiceEnabled: !preferences.voiceEnabled })}
                   variant={preferences.voiceEnabled ? "default" : "outline"}
-                  className={preferences.voiceEnabled
-                    ? "bg-green-500 text-black"
-                    : "border-green-400/30 text-green-400 hover:bg-green-400/10"
+                  style={preferences.voiceEnabled
+                    ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
+                    : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
                   }
                   disabled={isUpdating}
                 >
@@ -184,7 +193,7 @@ export function UserProfile({ onClose }: UserProfileProps) {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" style={{ color: 'var(--terminal-text)' }}>
                 <Palette size={16} />
                 <h4 className="font-semibold">Terminal Theme</h4>
               </div>
@@ -195,9 +204,9 @@ export function UserProfile({ onClose }: UserProfileProps) {
                     onClick={() => handlePreferenceUpdate({ terminalTheme: theme })}
                     variant={preferences.terminalTheme === theme ? "default" : "outline"}
                     size="sm"
-                    className={preferences.terminalTheme === theme
-                      ? "bg-green-500 text-black"
-                      : "border-green-400/30 text-green-400 hover:bg-green-400/10"
+                    style={preferences.terminalTheme === theme
+                      ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
+                      : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
                     }
                     disabled={isUpdating}
                   >
@@ -209,11 +218,12 @@ export function UserProfile({ onClose }: UserProfileProps) {
           </div>
         )}
 
-        <div className="pt-4 border-t border-green-400/20">
+        <div className="pt-4 border-t" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)' }}>
           <Button
             onClick={() => window.location.href = '/api/logout'}
             variant="outline"
-            className="w-full border-red-400/30 text-red-400 hover:bg-red-400/10"
+            className="w-full"
+            style={{ borderColor: 'rgba(255, 77, 77, 0.3)', color: '#ff4d4d' }}
           >
             <LogOut size={16} className="mr-2" />
             Log Out
