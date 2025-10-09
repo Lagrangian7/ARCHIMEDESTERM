@@ -82,17 +82,23 @@ export function MudClient({ isOpen, onClose }: MudClientProps) {
     if (!isOpen || !terminalRef.current) return;
 
     if (!terminalInstance.current) {
+      // Get CSS variable values for theme
+      const style = getComputedStyle(document.documentElement);
+      const terminalBg = style.getPropertyValue('--terminal-bg').trim() || '#0D1117';
+      const terminalText = style.getPropertyValue('--terminal-text').trim() || '#00FF41';
+      const terminalHighlight = style.getPropertyValue('--terminal-highlight').trim() || '#00FF41';
+      
       // Create terminal with cyberpunk theme
       const terminal = new Terminal({
         theme: {
-          background: '#0D1117',
-          foreground: '#00FF41',
-          cursor: '#00FF41',
-          cursorAccent: '#0D1117',
+          background: terminalBg,
+          foreground: terminalText,
+          cursor: terminalHighlight,
+          cursorAccent: terminalBg,
           selectionBackground: 'rgba(0, 255, 65, 0.3)',
-          black: '#0D1117',
+          black: terminalBg,
           red: '#FF6B6B',
-          green: '#00FF41',
+          green: terminalHighlight,
           yellow: '#FFD93D',
           blue: '#4DABF7',
           magenta: '#FF8CC8',
@@ -269,12 +275,12 @@ export function MudClient({ isOpen, onClose }: MudClientProps) {
   };
 
   // Connection status indicator
-  const getStatusColor = () => {
+  const getStatusStyle = () => {
     switch (connectionStatus) {
-      case 'connected': return 'text-green-400';
-      case 'connecting': return 'text-yellow-400';
-      case 'error': return 'text-red-400';
-      default: return 'text-gray-400';
+      case 'connected': return { color: 'var(--terminal-text)' };
+      case 'connecting': return { color: '#FFD93D' };
+      case 'error': return { color: '#FF6B6B' };
+      default: return { color: 'var(--terminal-text)', opacity: 0.6 };
     }
   };
 
@@ -297,7 +303,7 @@ export function MudClient({ isOpen, onClose }: MudClientProps) {
               <DialogTitle className="text-terminal-text text-xl font-bold">
                 MUD Client
               </DialogTitle>
-              <div className={`text-sm font-medium ${getStatusColor()}`}>
+              <div className="text-sm font-medium" style={getStatusStyle()}>
                 [{getStatusText()}]
               </div>
             </div>
@@ -341,7 +347,7 @@ export function MudClient({ isOpen, onClose }: MudClientProps) {
                       <SelectItem key={profile.id} value={profile.id}>
                         <div>
                           <div className="font-medium">{profile.name}</div>
-                          <div className="text-xs text-gray-400">
+                          <div className="text-xs" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
                             {profile.host}:{profile.port}
                           </div>
                         </div>
