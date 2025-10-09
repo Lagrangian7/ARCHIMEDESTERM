@@ -694,7 +694,7 @@ You can also chat naturally or ask technical questions.`);
       }
 
       // Create new audio element and play
-      const audio = new Audio('/attached_assets/Lagrangian%2025_1759973094289.mp3');
+      const audio = new Audio(lagrangianSong);
       audio.loop = true;
       audio.volume = 0.5;
       
