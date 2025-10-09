@@ -176,17 +176,17 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-6xl h-[80vh] bg-gray-900 border-green-500/30 flex flex-col">
-        <CardHeader className="border-b border-green-500/30 flex-shrink-0">
+      <Card className="w-full max-w-6xl h-[80vh] flex flex-col" style={{ backgroundColor: 'var(--terminal-bg)', borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
+        <CardHeader className="border-b flex-shrink-0" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <MessageCircle className="w-5 h-5 text-green-500" />
-              <CardTitle className="text-green-500">Chat System</CardTitle>
+              <MessageCircle className="w-5 h-5" style={{ color: 'var(--terminal-text)' }} />
+              <CardTitle style={{ color: 'var(--terminal-text)' }}>Chat System</CardTitle>
               <div className="flex items-center space-x-1 text-sm">
                 {isConnected ? (
                   <>
-                    <Wifi className="w-4 h-4 text-green-500" />
-                    <span className="text-green-400">Connected</span>
+                    <Wifi className="w-4 h-4" style={{ color: 'var(--terminal-text)' }} />
+                    <span style={{ color: 'var(--terminal-text)' }}>Connected</span>
                   </>
                 ) : (
                   <>
@@ -205,7 +205,10 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-green-500 hover:text-green-400 hover:bg-green-500/10"
+              className="hover:bg-opacity-10"
+              style={{ color: 'var(--terminal-text)' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(var(--terminal-subtle-rgb), 0.1)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             >
               <X className="w-4 h-4" />
             </Button>
@@ -214,12 +217,12 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
 
         <CardContent className="flex-1 p-0 flex overflow-hidden">
           {/* Left Panel - User List and Conversations */}
-          <div className="w-1/3 border-r border-green-500/30 flex flex-col">
+          <div className="w-1/3 border-r flex flex-col" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
             {/* Online Users */}
-            <div className="p-4 border-b border-green-500/30">
+            <div className="p-4 border-b" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
               <div className="flex items-center space-x-2 mb-3">
-                <Users className="w-4 h-4 text-green-500" />
-                <h3 className="text-sm font-medium text-green-500">
+                <Users className="w-4 h-4" style={{ color: 'var(--terminal-text)' }} />
+                <h3 className="text-sm font-medium" style={{ color: 'var(--terminal-text)' }}>
                   Online Users ({onlineUsers.length})
                 </h3>
               </div>
@@ -229,24 +232,27 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
                     <div
                       key={onlineUser.id}
                       onClick={() => handleStartChat(onlineUser)}
-                      className="flex items-center space-x-2 p-2 rounded cursor-pointer hover:bg-green-500/10 transition-colors"
+                      className="flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors"
+                      style={{ backgroundColor: 'transparent' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(var(--terminal-subtle-rgb), 0.1)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       <div className="relative">
                         <Avatar className="w-6 h-6">
                           <AvatarImage src={onlineUser.profileImageUrl} />
-                          <AvatarFallback className="bg-green-500/20 text-green-500 text-xs">
+                          <AvatarFallback className="text-xs" style={{ backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.2)', color: 'var(--terminal-text)' }}>
                             {getInitials(onlineUser)}
                           </AvatarFallback>
                         </Avatar>
-                        <Circle className="w-2 h-2 text-green-500 fill-current absolute -bottom-0.5 -right-0.5" />
+                        <Circle className="w-2 h-2 fill-current absolute -bottom-0.5 -right-0.5" style={{ color: 'var(--terminal-text)' }} />
                       </div>
-                      <span className="text-sm text-green-400 truncate">
+                      <span className="text-sm truncate" style={{ color: 'var(--terminal-text)' }}>
                         {getUserDisplayName(onlineUser)}
                       </span>
                     </div>
                   ))}
                   {onlineUsers.filter(u => u.id !== user?.id).length === 0 && (
-                    <div className="text-xs text-gray-500 text-center py-4">
+                    <div className="text-xs text-center py-4" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
                       No other users online
                     </div>
                   )}
@@ -256,7 +262,7 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
 
             {/* Conversations */}
             <div className="flex-1 p-4">
-              <h3 className="text-sm font-medium text-green-500 mb-3">
+              <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--terminal-text)' }}>
                 Recent Conversations ({conversations.length})
               </h3>
               <ScrollArea className="flex-1">
@@ -267,30 +273,46 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
                       onClick={() => handleSelectConversation(conversation)}
                       className={cn(
                         "flex items-center space-x-2 p-3 rounded cursor-pointer transition-colors",
-                        selectedChat?.id === conversation.id
-                          ? "bg-green-500/20 border border-green-500/50"
-                          : "hover:bg-green-500/10"
+                        selectedChat?.id === conversation.id ? "border" : ""
                       )}
+                      style={{
+                        backgroundColor: selectedChat?.id === conversation.id 
+                          ? 'rgba(var(--terminal-subtle-rgb), 0.2)' 
+                          : 'transparent',
+                        borderColor: selectedChat?.id === conversation.id 
+                          ? 'rgba(var(--terminal-subtle-rgb), 0.5)' 
+                          : 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedChat?.id !== conversation.id) {
+                          e.currentTarget.style.backgroundColor = 'rgba(var(--terminal-subtle-rgb), 0.1)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedChat?.id !== conversation.id) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
                     >
                       <Avatar className="w-8 h-8">
                         <AvatarImage src={conversation.otherUser.profileImageUrl} />
-                        <AvatarFallback className="bg-green-500/20 text-green-500 text-xs">
+                        <AvatarFallback className="text-xs" style={{ backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.2)', color: 'var(--terminal-text)' }}>
                           {getInitials(conversation.otherUser)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-green-400 truncate">
+                          <span className="text-sm truncate" style={{ color: 'var(--terminal-text)' }}>
                             {getUserDisplayName(conversation.otherUser)}
                           </span>
                           {conversation.lastMessage && (
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
                               {format(new Date(conversation.lastMessage.sentAt), 'HH:mm')}
                             </span>
                           )}
                         </div>
                         {conversation.lastMessage && (
-                          <p className="text-xs text-gray-400 truncate">
+                          <p className="text-xs truncate" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
                             {conversation.lastMessage.content}
                           </p>
                         )}
@@ -298,7 +320,7 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
                     </div>
                   ))}
                   {conversations.length === 0 && (
-                    <div className="text-xs text-gray-500 text-center py-8">
+                    <div className="text-xs text-center py-8" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
                       No conversations yet. Start chatting with online users!
                     </div>
                   )}
@@ -312,19 +334,19 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
             {selectedChat ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-green-500/30 flex items-center space-x-2">
+                <div className="p-4 border-b flex items-center space-x-2" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
                   <Avatar className="w-8 h-8">
                     <AvatarImage src={selectedChat.otherUser.profileImageUrl} />
-                    <AvatarFallback className="bg-green-500/20 text-green-500">
+                    <AvatarFallback style={{ backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.2)', color: 'var(--terminal-text)' }}>
                       {getInitials(selectedChat.otherUser)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="text-sm font-medium text-green-500">
+                    <h3 className="text-sm font-medium" style={{ color: 'var(--terminal-text)' }}>
                       {getUserDisplayName(selectedChat.otherUser)}
                     </h3>
                     {typingUsers[selectedChat.otherUser.id] && (
-                      <p className="text-xs text-green-400">typing...</p>
+                      <p className="text-xs" style={{ color: 'var(--terminal-text)' }}>typing...</p>
                     )}
                   </div>
                 </div>
@@ -333,7 +355,7 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
                 <ScrollArea className="flex-1 p-4">
                   {isLoadingMessages ? (
                     <div className="flex items-center justify-center h-full">
-                      <div className="text-green-500">Loading messages...</div>
+                      <div style={{ color: 'var(--terminal-text)' }}>Loading messages...</div>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -346,12 +368,18 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
                           )}
                         >
                           <div
-                            className={cn(
-                              "max-w-xs lg:max-w-md px-3 py-2 rounded-lg text-sm",
-                              message.fromUserId === user?.id
-                                ? "bg-green-600 text-white"
-                                : "bg-gray-700 text-green-400"
-                            )}
+                            className="max-w-xs lg:max-w-md px-3 py-2 rounded-lg text-sm"
+                            style={{
+                              backgroundColor: message.fromUserId === user?.id
+                                ? 'var(--terminal-highlight)'
+                                : 'var(--terminal-bg)',
+                              color: message.fromUserId === user?.id
+                                ? 'white'
+                                : 'var(--terminal-text)',
+                              border: message.fromUserId === user?.id
+                                ? 'none'
+                                : '1px solid rgba(var(--terminal-subtle-rgb), 0.3)'
+                            }}
                           >
                             <p>{message.content}</p>
                             <p className="text-xs opacity-70 mt-1">
@@ -366,13 +394,18 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
                 </ScrollArea>
 
                 {/* Message Input */}
-                <div className="p-4 border-t border-green-500/30">
+                <div className="p-4 border-t" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
                   <div className="flex space-x-2">
                     <Input
                       value={messageInput}
                       onChange={(e) => handleInputChange(e.target.value)}
                       placeholder="Type a message..."
-                      className="flex-1 bg-gray-800 border-green-500/30 text-green-400 placeholder-gray-500"
+                      className="flex-1"
+                      style={{ 
+                        backgroundColor: 'var(--terminal-bg)', 
+                        borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', 
+                        color: 'var(--terminal-text)'
+                      }}
                       onKeyPress={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -383,7 +416,13 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
                     <Button
                       onClick={handleSendMessage}
                       disabled={!messageInput.trim() || isSendingMessage}
-                      className="bg-green-600 hover:bg-green-700 text-white"
+                      className="text-white"
+                      style={{ backgroundColor: 'var(--terminal-highlight)' }}
+                      onMouseEnter={(e) => {
+                        if (!messageInput.trim() || isSendingMessage) return;
+                        e.currentTarget.style.opacity = '0.9';
+                      }}
+                      onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                     >
                       <Send className="w-4 h-4" />
                     </Button>
@@ -394,11 +433,11 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
               /* No Chat Selected */
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
-                  <MessageCircle className="w-12 h-12 text-green-500/50 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-green-500 mb-2">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--terminal-text)', opacity: 0.5 }} />
+                  <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--terminal-text)' }}>
                     Select a conversation
                   </h3>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
                     Choose an online user or existing conversation to start chatting
                   </p>
                 </div>
