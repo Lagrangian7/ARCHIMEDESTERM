@@ -148,6 +148,7 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
             placeholder="Search documents by name, content, or keywords..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            autoFocus
             className="w-full pl-10 pr-4 py-2 bg-black border border-[#00FF41]/20 text-[#00FF41] rounded-md focus:outline-none focus:border-[#00FF41] font-mono text-sm"
             data-testid="input-document-search"
           />
