@@ -108,21 +108,24 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
 
   if (error) {
     return (
-      <div className="bg-[#0D1117] border border-red-500/20 rounded-lg p-6 max-w-4xl w-full max-h-[90vh]" data-no-terminal-autofocus>
+      <div className="border rounded-lg p-6 max-w-4xl w-full max-h-[90vh]" data-no-terminal-autofocus style={{
+        backgroundColor: 'var(--terminal-bg)',
+        borderColor: 'rgba(255, 77, 77, 0.2)'
+      }}>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-red-400 font-mono flex items-center">
+          <h2 className="text-xl font-bold font-mono flex items-center" style={{ color: '#ff4d4d' }}>
             <FileText className="mr-2" size={20} />
             Knowledge Base Documents
           </h2>
           {onClose && (
-            <Button onClick={onClose} variant="ghost" size="sm" className="text-[#00FF41]">
+            <Button onClick={onClose} variant="ghost" size="sm" style={{ color: 'var(--terminal-text)' }}>
               ✕
             </Button>
           )}
         </div>
-        <div className="text-red-400 p-4 text-center">
+        <div className="p-4 text-center" style={{ color: '#ff4d4d' }}>
           <p>Error loading documents: {(error as Error).message}</p>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm mt-2" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
             You may need to log in again to access your documents.
           </p>
         </div>
@@ -131,14 +134,17 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
   }
 
   return (
-    <div className="bg-[#0D1117] border border-[#00FF41]/20 rounded-lg p-6 max-w-4xl w-full max-h-[90vh]" data-no-terminal-autofocus>
+    <div className="border rounded-lg p-6 max-w-4xl w-full max-h-[90vh]" data-no-terminal-autofocus style={{
+      backgroundColor: 'var(--terminal-bg)',
+      borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)'
+    }}>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-[#00FF41] font-mono flex items-center">
+        <h2 className="text-xl font-bold font-mono flex items-center" style={{ color: 'var(--terminal-text)' }}>
           <FileText className="mr-2" size={20} />
           Knowledge Base Documents
         </h2>
         {onClose && (
-          <Button onClick={onClose} variant="ghost" size="sm" className="text-[#00FF41]">
+          <Button onClick={onClose} variant="ghost" size="sm" style={{ color: 'var(--terminal-text)' }}>
             ✕
           </Button>
         )}
@@ -147,7 +153,7 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
       {/* Search Bar */}
       <div className="mb-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2" style={{ color: 'var(--terminal-text)', opacity: 0.5 }} size={16} />
           <input
             ref={searchInputRef}
             type="text"
@@ -155,14 +161,19 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             autoFocus
-            className="w-full pl-10 pr-4 py-2 bg-black border border-[#00FF41]/20 text-[#00FF41] rounded-md focus:outline-none focus:border-[#00FF41] font-mono text-sm"
+            className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none font-mono text-sm"
+            style={{
+              backgroundColor: 'var(--terminal-bg)',
+              borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)',
+              color: 'var(--terminal-text)'
+            }}
             data-testid="input-document-search"
           />
         </div>
       </div>
 
       {/* Documents Count */}
-      <div className="mb-4 text-sm text-gray-400">
+      <div className="mb-4 text-sm" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
         {isLoading ? (
           <span>Loading documents...</span>
         ) : (
@@ -176,12 +187,12 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
       {/* Documents List */}
       <ScrollArea className="h-[500px] pr-4">
         {isLoading ? (
-          <div className="text-center text-gray-400 py-8">
+          <div className="text-center py-8" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
             <HardDrive className="mx-auto mb-2" size={24} />
             Loading your documents...
           </div>
         ) : filteredDocuments.length === 0 ? (
-          <div className="text-center text-gray-400 py-8">
+          <div className="text-center py-8" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
             {documents.length === 0 ? (
               <>
                 <FileText className="mx-auto mb-2" size={24} />
@@ -200,15 +211,26 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
             {filteredDocuments.map((document) => (
               <div
                 key={document.id}
-                className="border border-[#00FF41]/20 rounded-lg p-4 hover:border-[#00FF41]/40 transition-colors bg-black/50"
+                className="border rounded-lg p-4 transition-colors"
+                style={{
+                  borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)',
+                  backgroundColor: 'var(--terminal-bg)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(var(--terminal-subtle-rgb), 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(var(--terminal-subtle-rgb), 0.3)';
+                }}
                 data-testid={`document-item-${document.id}`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
-                      <File className="text-[#00FF41] flex-shrink-0" size={16} />
+                      <File className="flex-shrink-0" style={{ color: 'var(--terminal-text)' }} size={16} />
                       <h3 
-                        className="text-[#00FF41] font-semibold truncate" 
+                        className="font-semibold truncate" 
+                        style={{ color: 'var(--terminal-text)' }}
                         title={document.originalName}
                         data-testid={`text-document-name-${document.id}`}
                       >
@@ -216,7 +238,7 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
                       </h3>
                     </div>
 
-                    <div className="flex items-center space-x-4 text-xs text-gray-400 mb-2">
+                    <div className="flex items-center space-x-4 text-xs mb-2" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
                       <span className="flex items-center">
                         <HardDrive size={12} className="mr-1" />
                         {formatFileSize(document.fileSize)}
@@ -231,7 +253,7 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
                     </div>
 
                     {document.summary && (
-                      <p className="text-sm text-gray-300 mb-2 line-clamp-2">
+                      <p className="text-sm mb-2 line-clamp-2" style={{ color: 'var(--terminal-text)', opacity: 0.8 }}>
                         {document.summary}
                       </p>
                     )}
@@ -242,13 +264,26 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
                           <Badge
                             key={keyword}
                             variant="secondary"
-                            className="text-xs px-2 py-0 bg-[#00FF41]/10 text-[#00FF41] border-[#00FF41]/20"
+                            className="text-xs px-2 py-0 border"
+                            style={{
+                              backgroundColor: 'var(--terminal-highlight)',
+                              color: 'var(--terminal-text)',
+                              borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)'
+                            }}
                           >
                             {keyword}
                           </Badge>
                         ))}
                         {document.keywords.length > 5 && (
-                          <Badge variant="secondary" className="text-xs px-2 py-0 bg-gray-800 text-gray-400">
+                          <Badge 
+                            variant="secondary" 
+                            className="text-xs px-2 py-0"
+                            style={{
+                              backgroundColor: 'var(--terminal-bg)',
+                              color: 'var(--terminal-text)',
+                              opacity: 0.6
+                            }}
+                          >
                             +{document.keywords.length - 5} more
                           </Badge>
                         )}
@@ -277,8 +312,8 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
 
       {/* Footer with stats */}
       {documents.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-[#00FF41]/20">
-          <div className="text-xs text-gray-400 flex justify-between">
+        <div className="mt-4 pt-4 border-t" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
+          <div className="text-xs flex justify-between" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
             <span>
               Total size: {formatFileSize(
                 documents.reduce((sum, doc) => sum + parseInt(doc.fileSize), 0).toString()

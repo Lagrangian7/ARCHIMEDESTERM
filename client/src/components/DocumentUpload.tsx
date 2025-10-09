@@ -188,11 +188,13 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4" data-testid="document-upload-container">
       <div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-          dragOver
-            ? 'border-[#00FF41] bg-[#00FF41]/5'
-            : 'border-muted-foreground/25 hover:border-[#00FF41]/50'
-        }`}
+        className="border-2 border-dashed rounded-lg p-8 text-center transition-colors"
+        style={dragOver ? {
+          borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)',
+          backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.05)'
+        } : {
+          borderColor: 'rgba(156, 163, 175, 0.25)'
+        }}
         onDrop={handleDrop}
         onDragOver={(e) => {
           e.preventDefault();
@@ -204,14 +206,15 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
         {selectedFiles.length > 0 ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-cyan-400">
+              <h3 className="text-lg font-medium" style={{ color: 'var(--terminal-text)' }}>
                 Selected Files ({selectedFiles.length}/10)
               </h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFiles}
-                className="text-cyan-400/70 hover:text-cyan-400"
+                className="hover:opacity-100"
+                style={{ color: 'var(--terminal-text)', opacity: 0.7 }}
                 data-testid="clear-all-files-button"
               >
                 Clear All
@@ -220,20 +223,20 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
             
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {selectedFiles.map((file, index) => (
-                <Card key={`${file.name}-${index}`} className="bg-background/50 border-[#00FF41]/20">
+                <Card key={`${file.name}-${index}`} className="bg-background/50" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)' }}>
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <FileText className="h-6 w-6 text-[#00FF41]" />
+                        <FileText className="h-6 w-6" style={{ color: 'var(--terminal-text)' }} />
                         <div className="flex-1 text-left">
-                          <h4 className="font-medium text-cyan-400 text-sm" data-testid={`selected-file-name-${index}`}>
+                          <h4 className="font-medium text-sm" style={{ color: 'var(--terminal-text)' }} data-testid={`selected-file-name-${index}`}>
                             {file.name}
                           </h4>
                           <div className="flex items-center gap-2 mt-1">
-                            <p className="text-xs text-cyan-400/70" data-testid={`selected-file-size-${index}`}>
+                            <p className="text-xs" style={{ color: 'var(--terminal-text)', opacity: 0.7 }} data-testid={`selected-file-size-${index}`}>
                               {formatFileSize(file.size)}
                             </p>
-                            <Badge variant="outline" className="text-xs text-cyan-400/70">
+                            <Badge variant="outline" className="text-xs" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
                               {file.type || 'Unknown type'}
                             </Badge>
                           </div>
@@ -243,7 +246,8 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
                         variant="ghost"
                         size="sm"
                         onClick={() => removeFile(index)}
-                        className="text-cyan-400/70 hover:text-cyan-400"
+                        className="hover:opacity-100"
+                        style={{ color: 'var(--terminal-text)', opacity: 0.7 }}
                         data-testid={`remove-file-button-${index}`}
                       >
                         <X className="h-4 w-4" />
@@ -258,12 +262,13 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
               <Button
                 onClick={handleUpload}
                 disabled={uploadMutation.isPending}
-                className="bg-[#00FF41] hover:bg-[#00FF41]/80 text-black font-mono"
+                className="font-mono"
+                style={{ backgroundColor: 'var(--terminal-highlight)', color: 'black' }}
                 data-testid="upload-button"
               >
                 {uploadMutation.isPending ? (
                   <>
-                    <div className="animate-spin h-4 w-4 border-2 border-black border-t-transparent rounded-full mr-2" />
+                    <div className="animate-spin h-4 w-4 border-2 border-t-transparent rounded-full mr-2" style={{ borderColor: 'black' }} />
                     Processing {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''}...
                   </>
                 ) : (
@@ -277,24 +282,24 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="mx-auto h-12 w-12 text-cyan-400">
+            <div className="mx-auto h-12 w-12" style={{ color: 'var(--terminal-text)' }}>
               <Upload className="h-full w-full" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-medium text-cyan-400">
+              <h3 className="text-lg font-medium" style={{ color: 'var(--terminal-text)' }}>
                 Upload Knowledge Documents
               </h3>
-              <p className="text-cyan-400/70">
+              <p style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
                 Drag & drop text files here, or click to browse
               </p>
-              <p className="text-sm text-cyan-400/70">
+              <p className="text-sm" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
                 Supports: TXT, MD, JSON, CSV, HTML, XML (max 5MB each, up to 10 files)
               </p>
             </div>
             <Button
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
-              className="border-[#00FF41]/50 text-[#00FF41] hover:bg-[#00FF41]/10"
+              style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.5)', color: 'var(--terminal-text)' }}
               data-testid="browse-files-button"
             >
               Browse Files
@@ -323,7 +328,7 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
         )}
         
         {uploadMutation.isSuccess && (
-          <div className="flex items-center space-x-2 text-[#00FF41] text-sm" data-testid="success-message">
+          <div className="flex items-center space-x-2 text-sm" style={{ color: 'var(--terminal-text)' }} data-testid="success-message">
             <CheckCircle className="h-4 w-4" />
             <span>Document successfully uploaded and processed!</span>
           </div>
