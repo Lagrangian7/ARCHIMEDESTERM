@@ -218,7 +218,19 @@ export function Terminal() {
 
   // Focus input on mount and clicks
   useEffect(() => {
-    const handleClick = () => {
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      
+      // Don't steal focus from inputs, textareas, or elements with data-no-terminal-autofocus
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable ||
+        target.closest('[data-no-terminal-autofocus]')
+      ) {
+        return;
+      }
+      
       inputRef.current?.focus();
     };
     
