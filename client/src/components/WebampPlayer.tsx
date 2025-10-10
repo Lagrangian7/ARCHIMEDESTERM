@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import Webamp from 'webamp/butterchurn';
+import Webamp from 'webamp';
 
 interface WebampPlayerProps {
   isOpen: boolean;
@@ -9,6 +9,23 @@ interface WebampPlayerProps {
 export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
   const webampRef = useRef<Webamp | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // ESC key handler
+    const handleEscKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscKey);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscKey);
+    };
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen || !containerRef.current) return;
@@ -30,22 +47,13 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
             }
           ],
           
-          // Enable Milkdrop visualizer with butterchurn presets
-          requireButterchurnPresets: () => import('butterchurn-presets').then(
-            (module: any) => module.default.getPresets()
-          ),
-          
-          // Initial window layout
+          // Initial window layout (without milkdrop for now)
           windowLayout: {
             main: { position: { top: 20, left: 20 } },
             equalizer: { position: { top: 20, left: 295 } },
             playlist: { 
               position: { top: 252, left: 20 },
               size: { extraHeight: 4, extraWidth: 0 } 
-            },
-            milkdrop: { 
-              position: { top: 20, left: 570 },
-              size: { extraHeight: 12, extraWidth: 7 }
             }
           },
           
