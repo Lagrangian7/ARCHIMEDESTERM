@@ -587,6 +587,7 @@ Radio & Music:
   play our song - Play Lagrangian 25 in background
   stop - Stop background music
   debug audio - Test audio file loading and show diagnostic info
+  webamp - Launch Webamp player with Milkdrop visualizer
   
 OSINT (Open Source Intelligence):
   whois <domain> - Domain registration lookup
@@ -783,6 +784,18 @@ You can also chat naturally or ask technical questions.`);
         openSshwiftyInterface();
       } else {
         addEntry('error', 'SSH/Telnet interface not available. Please ensure the system is loaded.');
+      }
+      return;
+    }
+    
+    if (cmd === 'webamp') {
+      addEntry('system', '🎵 Launching Webamp music player with Milkdrop visualizer...\n\nControls:\n- ESC to close\n- SPACE/← → for preset navigation\n- H for hard cut\n- R to toggle preset cycling\n\nLoading Lagrangian 25...');
+      
+      const openWebamp = (window as any).openWebamp;
+      if (openWebamp) {
+        openWebamp();
+      } else {
+        addEntry('error', 'Webamp not available. Please ensure the system is loaded.');
       }
       return;
     }
