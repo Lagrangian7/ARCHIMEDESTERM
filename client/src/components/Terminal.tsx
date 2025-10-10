@@ -24,6 +24,7 @@ import { MudClient } from './MudClient';
 import { TheHarvester } from './TheHarvester';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { CodePreview } from './CodePreview';
+import WebampPlayer from './WebampPlayer';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -87,6 +88,7 @@ export function Terminal() {
     (window as any).openMudClient = () => setShowMud(true);
     (window as any).openTheHarvester = () => setShowTheHarvester(true);
     (window as any).openPrivacyEncoder = () => setShowPrivacyEncoder(true);
+    (window as any).openWebamp = () => setShowWebamp(true);
   }, []);
   
   const { speak, isSpeaking } = useSpeech();
@@ -108,6 +110,7 @@ export function Terminal() {
   const [showMud, setShowMud] = useState(false);
   const [showTheHarvester, setShowTheHarvester] = useState(false);
   const [showPrivacyEncoder, setShowPrivacyEncoder] = useState(false);
+  const [showWebamp, setShowWebamp] = useState(false);
   
   // Theme management
   const [currentTheme, setCurrentTheme] = useState(() => {
@@ -979,6 +982,12 @@ export function Terminal() {
           onClose={() => setPreviewCode(null)}
         />
       )}
+
+      {/* Webamp Music Player */}
+      <WebampPlayer 
+        isOpen={showWebamp}
+        onClose={() => setShowWebamp(false)}
+      />
     </div>
   );
 }
