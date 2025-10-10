@@ -69,6 +69,30 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
               name: "Default Skin"
             },
             {
+              url: "/skin-orange.wsz",
+              name: "Orange"
+            },
+            {
+              url: "/skin-blue.wsz",
+              name: "Blue"
+            },
+            {
+              url: "/skin-green.wsz",
+              name: "Dark Green Evo"
+            },
+            {
+              url: "/skin-tintin.wsz",
+              name: "Tintin"
+            },
+            {
+              url: "/skin-mario.wsz",
+              name: "Super Mario Kart"
+            },
+            {
+              url: "/skin-soundcheck.wsz",
+              name: "Soundcheck"
+            },
+            {
               url: "https://cdn.webampskins.org/skins/base-2.91.wsz",
               name: "Classic Winamp"
             }
