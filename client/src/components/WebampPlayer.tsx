@@ -47,6 +47,11 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
             }
           ],
           
+          // Custom default skin
+          initialSkin: {
+            url: "/default-skin.wsz"
+          },
+          
           // Initial window layout (without milkdrop for now)
           windowLayout: {
             main: { position: { top: 20, left: 20 } },
@@ -59,6 +64,10 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
           
           // Available skins
           availableSkins: [
+            {
+              url: "/default-skin.wsz",
+              name: "Default Skin"
+            },
             {
               url: "https://cdn.webampskins.org/skins/base-2.91.wsz",
               name: "Classic Winamp"
