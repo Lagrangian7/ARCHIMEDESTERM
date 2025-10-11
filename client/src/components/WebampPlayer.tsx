@@ -136,19 +136,23 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
 
   return (
     <div 
-      className="fixed inset-0 z-[9999] bg-black/80"
+      className="fixed inset-0 bg-black/80"
       style={{ 
-        pointerEvents: 'none'
+        zIndex: 9999,
+        isolation: 'isolate'
       }}
       data-testid="webamp-overlay"
     >
       <div 
         ref={containerRef} 
-        className="absolute top-0 left-0 w-full h-full"
         style={{ 
-          pointerEvents: 'auto',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
           transform: 'translateZ(0)',
-          backfaceVisibility: 'hidden'
+          willChange: 'transform'
         }}
         data-testid="webamp-container"
       />
@@ -156,8 +160,8 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
       {/* Close button */}
       <button
         onClick={onClose}
-        className="fixed top-4 right-4 z-[10001] px-4 py-2 rounded border border-[var(--terminal-text)] text-[var(--terminal-text)] hover:bg-[var(--terminal-text)] hover:text-[var(--terminal-bg)] transition-colors"
-        style={{ pointerEvents: 'auto' }}
+        className="fixed top-4 right-4 px-4 py-2 rounded border border-[var(--terminal-text)] text-[var(--terminal-text)] hover:bg-[var(--terminal-text)] hover:text-[var(--terminal-bg)] transition-colors"
+        style={{ zIndex: 10001 }}
         data-testid="button-close-webamp"
       >
         ESC
@@ -165,8 +169,8 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
       
       {/* Instructions */}
       <div 
-        className="fixed bottom-4 left-4 z-[10001] text-[var(--terminal-subtle)] text-sm font-mono"
-        style={{ pointerEvents: 'none' }}
+        className="fixed bottom-4 left-4 text-[var(--terminal-subtle)] text-sm font-mono"
+        style={{ zIndex: 10001 }}
         data-testid="text-webamp-instructions"
       >
         <div>Press ESC or close Webamp to return to terminal</div>
