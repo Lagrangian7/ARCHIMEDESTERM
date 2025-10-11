@@ -584,7 +584,7 @@ Radio & Music:
   radio stop - Stop radio stream
   radio volume <0-100> - Set volume level
   radio status - Show current stream status
-  play our song - Play Lagrangian 25 in background
+  play our song - Launch Webamp and play Lagrangian 25
   stop - Stop background music
   debug audio - Test audio file loading and show diagnostic info
   webamp - Launch Webamp player with Milkdrop visualizer
@@ -721,46 +721,14 @@ You can also chat naturally or ask technical questions.`);
     }
     
     if (cmd === 'play our song') {
-      // Stop any currently playing audio
-      if (backgroundAudio) {
-        backgroundAudio.pause();
-        backgroundAudio.currentTime = 0;
+      addEntry('system', '🎵 Launching Webamp with Lagrangian 25...\n\nOpening music player with Milkdrop visualizer.');
+      
+      const openWebamp = (window as any).openWebamp;
+      if (openWebamp) {
+        openWebamp();
+      } else {
+        addEntry('error', 'Webamp not available. Please ensure the system is loaded.');
       }
-
-      // Log the audio path for debugging
-      console.log('Audio file path:', lagrangianSong);
-      console.log('Audio file type:', typeof lagrangianSong);
-      
-      // Create new audio element and play
-      const audio = new Audio(lagrangianSong);
-      audio.loop = true;
-      audio.volume = 0.5;
-      
-      // Add event listeners for better error handling
-      audio.addEventListener('error', (e) => {
-        console.error('Audio loading error:', e);
-        console.error('Audio error code:', audio.error?.code);
-        console.error('Audio error message:', audio.error?.message);
-        console.error('Audio src:', audio.src);
-      });
-      
-      audio.addEventListener('loadstart', () => {
-        console.log('Audio loading started');
-      });
-      
-      audio.addEventListener('canplay', () => {
-        console.log('Audio can play');
-      });
-      
-      audio.play()
-        .then(() => {
-          setBackgroundAudio(audio);
-          addEntry('system', '🎵 Now playing: Lagrangian 25\n\nBackground music started. Use "stop" to end playback.');
-        })
-        .catch((error) => {
-          console.error('Audio playback error:', error);
-          addEntry('error', `Failed to play audio: ${error.message}\n\nDebug info: Path=${lagrangianSong.substring(0, 50)}...\n\nNote: Some browsers require user interaction before audio playback.`);
-        });
       
       return;
     }

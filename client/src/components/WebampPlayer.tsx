@@ -118,6 +118,9 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
           await webamp.renderWhenReady(container);
           webampRef.current = webamp;
           console.log('Webamp initialized successfully');
+          
+          // Auto-play the track
+          webamp.play();
         }
       } catch (error) {
         console.error('Failed to initialize Webamp:', error);
