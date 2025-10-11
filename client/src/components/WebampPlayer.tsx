@@ -9,6 +9,7 @@ interface WebampPlayerProps {
 export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
   const webampRef = useRef<Webamp | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const initializingRef = useRef<boolean>(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -30,8 +31,10 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
   useEffect(() => {
     if (!isOpen || !containerRef.current) return;
 
-    // Check if Webamp is already initialized
-    if (webampRef.current) return;
+    // Check if Webamp is already initialized or initializing
+    if (webampRef.current || initializingRef.current) return;
+    
+    initializingRef.current = true;
 
     const initWebamp = async () => {
       try {
@@ -113,6 +116,7 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
         }
       } catch (error) {
         console.error('Failed to initialize Webamp:', error);
+        initializingRef.current = false;
       }
     };
 
@@ -123,9 +127,10 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
       if (webampRef.current) {
         webampRef.current.dispose();
         webampRef.current = null;
+        initializingRef.current = false;
       }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
