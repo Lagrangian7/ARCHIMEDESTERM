@@ -410,7 +410,7 @@ export function Terminal() {
                 ARCHIMEDES v7
               </h1>
               <div className="text-xs text-terminal-highlight">
-            
+                アルキメデス
                 {user && (
                   <span className="ml-2 text-green-300">
                     | {user.firstName || user.email?.split('@')[0] || 'User'}
