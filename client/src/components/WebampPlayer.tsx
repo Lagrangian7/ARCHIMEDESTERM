@@ -131,19 +131,21 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80"
+      style={{ isolation: 'isolate' }}
       data-testid="webamp-overlay"
     >
       <div 
         ref={containerRef} 
-        className="relative"
+        className="relative z-[10000]"
+        style={{ willChange: 'transform' }}
         data-testid="webamp-container"
       />
       
       {/* Close button */}
       <button
         onClick={onClose}
-        className="fixed top-4 right-4 px-4 py-2 rounded border border-[var(--terminal-text)] text-[var(--terminal-text)] hover:bg-[var(--terminal-text)] hover:text-[var(--terminal-bg)] transition-colors"
+        className="fixed top-4 right-4 z-[10001] px-4 py-2 rounded border border-[var(--terminal-text)] text-[var(--terminal-text)] hover:bg-[var(--terminal-text)] hover:text-[var(--terminal-bg)] transition-colors"
         data-testid="button-close-webamp"
       >
         ESC
@@ -151,7 +153,7 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
       
       {/* Instructions */}
       <div 
-        className="fixed bottom-4 left-4 text-[var(--terminal-subtle)] text-sm font-mono"
+        className="fixed bottom-4 left-4 z-[10001] text-[var(--terminal-subtle)] text-sm font-mono"
         data-testid="text-webamp-instructions"
       >
         <div>Press ESC or close Webamp to return to terminal</div>
