@@ -165,6 +165,86 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
               name: "Vegeta"
             },
             {
+              url: "/skin-swell.wsz",
+              name: "Swell"
+            },
+            {
+              url: "/skin-renandstimpy.wsz",
+              name: "Ren and Stimpy"
+            },
+            {
+              url: "/skin-solarglobes.wsz",
+              name: "Solar Globes"
+            },
+            {
+              url: "/skin-jetsetwilly.wsz",
+              name: "Jet Set Willy"
+            },
+            {
+              url: "/skin-commodore64.wsz",
+              name: "Commodore 64"
+            },
+            {
+              url: "/skin-denonavr.wsz",
+              name: "Denon AVR-1601"
+            },
+            {
+              url: "/skin-nampgreen.wsz",
+              name: "N-Amp Insomniac Green"
+            },
+            {
+              url: "/skin-goldplated.wsz",
+              name: "Gold Plated"
+            },
+            {
+              url: "/skin-tubeamp.wsz",
+              name: "The Tube Amp"
+            },
+            {
+              url: "/skin-lumkawaii.wsz",
+              name: "Lum KAWAII"
+            },
+            {
+              url: "/skin-swinginglum.wsz",
+              name: "Swinging Lum"
+            },
+            {
+              url: "/skin-japanese.wsz",
+              name: "Japanese"
+            },
+            {
+              url: "/skin-nokia.wsz",
+              name: "Nokia 702"
+            },
+            {
+              url: "/skin-panasonic06.wsz",
+              name: "Panasonic 06"
+            },
+            {
+              url: "/skin-panasonic.wsz",
+              name: "Panasonic"
+            },
+            {
+              url: "/skin-musicforever.wsz",
+              name: "Music Forever"
+            },
+            {
+              url: "/skin-o10f1.wsz",
+              name: "O10f1"
+            },
+            {
+              url: "/skin-newsnetamp.wsz",
+              name: "Newsnet Amp"
+            },
+            {
+              url: "/skin-blackandwhite.wsz",
+              name: "Black and White"
+            },
+            {
+              url: "/skin-terminalamp.wsz",
+              name: "The Terminal Amp"
+            },
+            {
               url: "https://cdn.webampskins.org/skins/base-2.91.wsz",
               name: "Classic Winamp"
             }
