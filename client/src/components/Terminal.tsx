@@ -407,9 +407,9 @@ export function Terminal() {
             <LogoIcon />
             <div>
               <h1 className="font-bold terminal-text terminal-glow text-[15px]" data-testid="text-title">
-                ARCHIMEDES v7
+                ARCHIMEDES <span className="text-[10px]">v7</span>
               </h1>
-              <div className="text-xs text-terminal-highlight">
+              <div className="text-sm text-white">
                 アルキメデス
                 {user && (
                   <span className="ml-2 text-green-300">
