@@ -54,9 +54,6 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
             }
           ],
           
-          // Enable double size mode for larger display
-          enableDoubleSizeMode: true,
-          
           // Custom default skin
           initialSkin: {
             url: "/default-skin.wsz"
