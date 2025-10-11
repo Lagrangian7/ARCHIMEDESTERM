@@ -131,14 +131,20 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
 
   return (
     <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80"
-      style={{ isolation: 'isolate' }}
+      className="fixed inset-0 z-[9999] bg-black/80"
+      style={{ 
+        pointerEvents: 'none'
+      }}
       data-testid="webamp-overlay"
     >
       <div 
         ref={containerRef} 
-        className="relative z-[10000]"
-        style={{ willChange: 'transform' }}
+        className="absolute top-0 left-0 w-full h-full"
+        style={{ 
+          pointerEvents: 'auto',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden'
+        }}
         data-testid="webamp-container"
       />
       
@@ -146,6 +152,7 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
       <button
         onClick={onClose}
         className="fixed top-4 right-4 z-[10001] px-4 py-2 rounded border border-[var(--terminal-text)] text-[var(--terminal-text)] hover:bg-[var(--terminal-text)] hover:text-[var(--terminal-bg)] transition-colors"
+        style={{ pointerEvents: 'auto' }}
         data-testid="button-close-webamp"
       >
         ESC
@@ -154,6 +161,7 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
       {/* Instructions */}
       <div 
         className="fixed bottom-4 left-4 z-[10001] text-[var(--terminal-subtle)] text-sm font-mono"
+        style={{ pointerEvents: 'none' }}
         data-testid="text-webamp-instructions"
       >
         <div>Press ESC or close Webamp to return to terminal</div>
