@@ -14,6 +14,9 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
   useEffect(() => {
     if (!isOpen) return;
 
+    // Add webamp-active class to disable scanlines
+    document.body.classList.add('webamp-active');
+
     // ESC key handler
     const handleEscKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -25,6 +28,7 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
 
     return () => {
       window.removeEventListener('keydown', handleEscKey);
+      document.body.classList.remove('webamp-active');
     };
   }, [isOpen, onClose]);
 
@@ -138,7 +142,8 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
     <div 
       className="fixed inset-0 bg-black/80"
       style={{ 
-        zIndex: 9999
+        zIndex: 10000,
+        isolation: 'isolate'
       }}
       data-testid="webamp-overlay"
     >

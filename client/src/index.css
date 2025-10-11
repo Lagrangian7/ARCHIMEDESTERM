@@ -970,3 +970,8 @@
     transform: translateY(3px) scaleY(0.99) skewY(-0.03deg);
   }
 }
+
+/* Disable scanlines when Webamp is active to prevent visual interference */
+body.webamp-active::after {
+  display: none;
+}
