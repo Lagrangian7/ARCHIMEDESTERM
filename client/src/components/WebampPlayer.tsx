@@ -101,6 +101,70 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
               name: "Soundcheck"
             },
             {
+              url: "/skin-bloodamp.wsz",
+              name: "Bloodamp"
+            },
+            {
+              url: "/skin-bugsbunny.wsz",
+              name: "Bugs Bunny"
+            },
+            {
+              url: "/skin-dexteramp.wsz",
+              name: "Dexter Amp"
+            },
+            {
+              url: "/skin-donkeykong.wsz",
+              name: "Donkey Kong"
+            },
+            {
+              url: "/skin-doritos.wsz",
+              name: "Doritos Nacho Amp"
+            },
+            {
+              url: "/skin-dosamp.wsz",
+              name: "DOS-Amp"
+            },
+            {
+              url: "/skin-garfield.wsz",
+              name: "Garfield"
+            },
+            {
+              url: "/skin-hpcalc.wsz",
+              name: "HP Calculator"
+            },
+            {
+              url: "/skin-marshallamp.wsz",
+              name: "Marshall Amp"
+            },
+            {
+              url: "/skin-mcdonalds.wsz",
+              name: "McDonalds"
+            },
+            {
+              url: "/skin-nicekitty.wsz",
+              name: "Nice Kitty"
+            },
+            {
+              url: "/skin-psxkin.wsz",
+              name: "PSXkin"
+            },
+            {
+              url: "/skin-quake2.wsz",
+              name: "Quake 2"
+            },
+            {
+              url: "/skin-darkgreenevo2.wsz",
+              name: "Dark Green Evo C"
+            },
+            {
+              url: "/skin-bestskinever.wsz",
+              name: "Best Winamp Skin Ever"
+            },
+            {
+              url: "/skin-vegeta.wsz",
+              name: "Vegeta"
+            },
+            {
               url: "https://cdn.webampskins.org/skins/base-2.91.wsz",
               name: "Classic Winamp"
             }
