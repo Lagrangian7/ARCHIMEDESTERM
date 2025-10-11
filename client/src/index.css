@@ -970,18 +970,3 @@
     transform: translateY(3px) scaleY(0.99) skewY(-0.03deg);
   }
 }
-
-/* Webamp drag fix - force GPU compositing to prevent artifacts */
-#webamp,
-#webamp *,
-#webamp [class*="window"] {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-}
-
-#webamp [class*="dragging"] {
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
-}

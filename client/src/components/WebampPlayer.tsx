@@ -138,21 +138,17 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
     <div 
       className="fixed inset-0 bg-black/80"
       style={{ 
-        zIndex: 9999,
-        isolation: 'isolate'
+        zIndex: 9999
       }}
       data-testid="webamp-overlay"
     >
       <div 
-        ref={containerRef} 
+        ref={containerRef}
+        id="webamp-container"
         style={{ 
-          position: 'absolute',
-          top: 0,
-          left: 0,
+          position: 'relative',
           width: '100%',
-          height: '100%',
-          transform: 'translateZ(0)',
-          willChange: 'transform'
+          height: '100%'
         }}
         data-testid="webamp-container"
       />
