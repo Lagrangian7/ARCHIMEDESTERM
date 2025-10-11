@@ -17,7 +17,7 @@ Preferred communication style: Simple, everyday language.
 - **Terminal Interface**: Custom terminal component with phosphor display aesthetic, scanlines, and authentic terminal features
 - **Telnet Client**: Full-screen modal with ANSI terminal emulation, WebSocket-based real-time connectivity to BBS systems
 - **Network Commands**: Integrated telnet, ping, bbs-list, and BBS discovery commands in main terminal
-- **Music Player**: Webamp integration with butterchurn Milkdrop visualizer, launchable via "webamp" command
+- **Music Player**: Webamp integration with butterchurn Milkdrop visualizer, launchable via "webamp" command, "play our song" command, or cassette tape icon in header
 
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js server

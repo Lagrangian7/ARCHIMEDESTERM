@@ -30,7 +30,7 @@ import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useChat } from '@/hooks/useChat';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
-import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2 } from 'lucide-react';
+import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
@@ -540,6 +540,24 @@ export function Terminal() {
                       </TooltipTrigger>
                       <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                         <p>Privacy</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => setShowWebamp(true)}
+                          variant="outline"
+                          size="sm"
+                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+                          data-testid="button-webamp"
+                          aria-label="Webamp Music Player"
+                        >
+                          <CassetteTape size={16} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                        <p>Webamp Music Player</p>
                       </TooltipContent>
                     </Tooltip>
                   </>
