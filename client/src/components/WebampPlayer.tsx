@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import Webamp from 'webamp';
+import Webamp from 'webamp/butterchurn';
 
 interface WebampPlayerProps {
   isOpen: boolean;
@@ -54,19 +54,23 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
             }
           ],
           
+          // Enable double size mode for larger display
+          enableDoubleSizeMode: true,
+          
           // Custom default skin
           initialSkin: {
             url: "/default-skin.wsz"
           },
           
-          // Initial window layout (without milkdrop for now)
+          // Initial window layout with Milkdrop visualizer
           windowLayout: {
             main: { position: { top: 20, left: 20 } },
-            equalizer: { position: { top: 20, left: 295 } },
+            equalizer: { position: { top: 20, left: 580 } },
             playlist: { 
-              position: { top: 252, left: 20 },
+              position: { top: 480, left: 20 },
               size: { extraHeight: 4, extraWidth: 0 } 
-            }
+            },
+            milkdrop: { position: { top: 20, left: 300 }, size: [275, 455] }
           },
           
           // Available skins
