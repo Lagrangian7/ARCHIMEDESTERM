@@ -144,7 +144,8 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
       id="webamp-container"
       className="fixed inset-0"
       style={{ 
-        zIndex: 10000
+        zIndex: 10000,
+        pointerEvents: 'none'
       }}
       data-testid="webamp-container"
     />

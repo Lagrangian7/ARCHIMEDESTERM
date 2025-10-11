@@ -975,3 +975,8 @@
 body.webamp-active::after {
   display: none;
 }
+
+/* Enable pointer events for Webamp elements while container passes through */
+#webamp-container > * {
+  pointer-events: auto;
+}
