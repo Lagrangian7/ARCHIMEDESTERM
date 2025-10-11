@@ -153,7 +153,8 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
         style={{ 
           position: 'relative',
           width: '100%',
-          height: '100%'
+          height: '100%',
+          zIndex: 1
         }}
         data-testid="webamp-container"
       />
@@ -162,7 +163,7 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
       <button
         onClick={onClose}
         className="fixed top-4 right-4 px-4 py-2 rounded border border-[var(--terminal-text)] text-[var(--terminal-text)] hover:bg-[var(--terminal-text)] hover:text-[var(--terminal-bg)] transition-colors"
-        style={{ zIndex: 10001 }}
+        style={{ zIndex: 10 }}
         data-testid="button-close-webamp"
       >
         ESC
@@ -171,7 +172,7 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
       {/* Instructions */}
       <div 
         className="fixed bottom-4 left-4 text-[var(--terminal-subtle)] text-sm font-mono"
-        style={{ zIndex: 10001 }}
+        style={{ zIndex: 10 }}
         data-testid="text-webamp-instructions"
       >
         <div>Press ESC or close Webamp to return to terminal</div>
