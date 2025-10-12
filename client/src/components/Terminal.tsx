@@ -397,18 +397,18 @@ export function Terminal() {
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
-      <div 
-        className={`terminal-container flex flex-col h-full relative z-0`}
-        style={{
-          backgroundImage: `url(${archyLogo})`,
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: 'contain',
-          backgroundAttachment: 'fixed',
-          opacity: 0.95
-        }}
-      >
-        <div className="absolute inset-0 bg-black/70 z-0" />
+      <div className={`terminal-container flex flex-col h-full relative z-0`}>
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url(${archyLogo})`,
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'contain',
+            backgroundAttachment: 'fixed',
+            opacity: 0.08
+          }}
+        />
         
         {/* Matrix Rain Background Effect */}
         <MatrixRain />
