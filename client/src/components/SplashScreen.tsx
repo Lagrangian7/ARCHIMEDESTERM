@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import archyLogo from '@assets/archyLOGO_1760233372464.png';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -22,6 +23,12 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       onClick={handleInteraction}
       onTouchStart={handleInteraction}
       data-testid="splash-screen"
+      style={{
+        backgroundImage: `url(${archyLogo})`,
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'contain'
+      }}
     >
       <h1 
         className="text-8xl font-bold text-red-600 animate-pulse mb-8"
