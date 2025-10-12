@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import archyLogo from '@assets/archyLOGO_1760233372464.png';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -23,8 +24,13 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       onTouchStart={handleInteraction}
       data-testid="splash-screen"
     >
+      <img
+        src={archyLogo}
+        alt="ARCHIMEDES Logo"
+        className="absolute inset-0 w-full h-full object-contain opacity-30"
+      />
       <h1 
-        className="text-8xl font-bold text-red-600 animate-pulse mb-8"
+        className="relative text-8xl font-bold text-red-600 animate-pulse mb-8 opacity-70"
         style={{
           textShadow: '0 0 30px rgba(255, 0, 0, 0.8), 0 0 60px rgba(255, 0, 0, 0.5)',
           fontFamily: 'monospace'
@@ -32,7 +38,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       >
         アルキメデス v7!
       </h1>
-      <p className="text-white text-xl animate-bounce">
+      <p className="relative text-white text-xl animate-bounce opacity-60">
         Click or tap to continue
       </p>
     </div>
