@@ -17,7 +17,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-black transition-opacity duration-500 cursor-pointer ${
+      className={`fixed inset-0 z-50 bg-black transition-opacity duration-500 cursor-pointer ${
         fadeOut ? 'opacity-0' : 'opacity-100'
       }`}
       onClick={handleInteraction}
@@ -29,16 +29,18 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         alt="ARCHIMEDES Logo"
         className="absolute inset-0 w-full h-full object-contain opacity-30"
       />
-      <h1 
-        className="relative text-8xl font-bold text-red-600 animate-pulse mb-8 opacity-70"
-        style={{
-          textShadow: '0 0 30px rgba(255, 0, 0, 0.8), 0 0 60px rgba(255, 0, 0, 0.5)',
-          fontFamily: 'monospace'
-        }}
-      >
-        アルキメデス v7!
-      </h1>
-      <p className="relative text-white text-xl animate-bounce opacity-60">
+      <div className="absolute inset-0 flex items-center justify-center">
+        <h1 
+          className="text-8xl font-bold text-red-600 animate-pulse opacity-70 text-center"
+          style={{
+            textShadow: '0 0 30px rgba(255, 0, 0, 0.8), 0 0 60px rgba(255, 0, 0, 0.5)',
+            fontFamily: 'monospace'
+          }}
+        >
+          アルキメデス v7!
+        </h1>
+      </div>
+      <p className="absolute bottom-8 left-0 right-0 text-center text-white text-xl animate-bounce opacity-60">
         Click or tap to continue
       </p>
     </div>
