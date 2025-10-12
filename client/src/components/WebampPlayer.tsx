@@ -46,10 +46,10 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
           initialTracks: [
             {
               metaData: {
-                artist: "ARCHIMEDES v7",
-                title: "Lagrangian 25"
+                artist: "SOMA_FM",
+                title: "ice6.somafm.com/live-128-mp3"
               },
-              url: "/lagrangian-25.mp3",
+              url: "https://ice6.somafm.com/live-128-mp3",
               duration: 240
             }
           ],
