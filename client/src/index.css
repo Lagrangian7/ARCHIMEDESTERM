@@ -90,7 +90,7 @@
 
 /* Terminal Theme Classes */
 .theme-green {
-  --terminal-bg: hsl(210 50% 5%);
+  --terminal-bg: hsl(0 0% 0%);
   --terminal-text: hsl(118 100% 63%);
   --terminal-highlight: hsl(118 100% 75%);
   --terminal-subtle: hsl(151 43% 24%);
@@ -101,7 +101,7 @@
 }
 
 .theme-blue {
-  --terminal-bg: hsl(210 50% 5%);
+  --terminal-bg: hsl(0 0% 0%);
   --terminal-text: hsl(200 100% 70%);
   --terminal-highlight: hsl(200 100% 80%);
   --terminal-subtle: hsl(200 43% 24%);
@@ -112,7 +112,7 @@
 }
 
 .theme-orange {
-  --terminal-bg: hsl(210 50% 5%);
+  --terminal-bg: hsl(0 0% 0%);
   --terminal-text: hsl(30 100% 70%);
   --terminal-highlight: hsl(30 100% 80%);
   --terminal-subtle: hsl(30 43% 24%);
@@ -123,7 +123,7 @@
 }
 
 .theme-greyscale {
-  --terminal-bg: hsl(0 0% 8%);
+  --terminal-bg: hsl(0 0% 0%);
   --terminal-text: hsl(0 0% 75%);
   --terminal-highlight: hsl(0 0% 90%);
   --terminal-subtle: hsl(0 0% 25%);
@@ -134,7 +134,7 @@
 }
 
 .theme-red {
-  --terminal-bg: hsl(210 50% 5%);
+  --terminal-bg: hsl(0 0% 0%);
   --terminal-text: hsl(0 100% 70%);
   --terminal-highlight: hsl(0 100% 80%);
   --terminal-subtle: hsl(0 43% 24%);
@@ -156,7 +156,7 @@
 }
 
 .theme-patriot {
-  --terminal-bg: hsl(220 60% 12%);
+  --terminal-bg: hsl(0 0% 0%);
   --terminal-text: hsl(0 0% 95%);
   --terminal-highlight: hsl(0 85% 65%);
   --terminal-subtle: hsl(220 50% 25%);
