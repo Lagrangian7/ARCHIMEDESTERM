@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import archyLogo from '@assets/archyLOGO_1760233372464.png';
+import archyLogo from '@assets/archy111_1760233943010.jpeg';
 
 interface SplashScreenProps {
   onComplete: () => void;
