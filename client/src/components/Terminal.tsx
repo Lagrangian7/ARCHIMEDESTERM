@@ -34,6 +34,7 @@ import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageS
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
+import archyLogo from '@assets/archy111_1760233943010.jpeg';
 
 // Logo Component
 const LogoIcon = () => (
@@ -396,7 +397,18 @@ export function Terminal() {
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
-      <div className={`terminal-container flex flex-col h-full relative z-0`}>
+      <div 
+        className={`terminal-container flex flex-col h-full relative z-0`}
+        style={{
+          backgroundImage: `url(${archyLogo})`,
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'contain',
+          backgroundAttachment: 'fixed',
+          opacity: 0.95
+        }}
+      >
+        <div className="absolute inset-0 bg-black/70 z-0" />
         
         {/* Matrix Rain Background Effect */}
         <MatrixRain />
