@@ -46,11 +46,10 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
           initialTracks: [
             {
               metaData: {
-                artist: "SOMA_FM",
-                title: "ice6.somafm.com/live-128-mp3"
+                artist: "Unknown Artist",
+                title: "Track 1"
               },
-              url: "https://ice6.somafm.com/live-128-mp3",
-              duration: 240
+              url: "/1_1760325427418.mp3"
             }
           ],
           
