@@ -51,14 +51,6 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
               },
               url: "https://ice6.somafm.com/live-128-mp3",
               duration: 240
-            },
-            {
-              metaData: {
-                artist: "ARCHIMEDES",
-                title: "System Audio 20250206 1420"
-              },
-              url: "/System Audio 20250206 1420_1760324363519.mp3",
-              duration: 180
             }
           ],
           
