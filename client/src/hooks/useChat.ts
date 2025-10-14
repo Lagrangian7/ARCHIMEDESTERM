@@ -231,7 +231,6 @@ export const useChat = (options?: { enableWebSocket?: boolean }) => {
           if (event.code !== 1000 && reconnectAttempts < maxReconnectAttempts) {
             reconnectAttempts++;
             const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Exponential backoff, max 30s
-            // Attempting to reconnect with exponential backoff
             
             reconnectTimeout = setTimeout(connectWebSocket, backoffTime);
           }
