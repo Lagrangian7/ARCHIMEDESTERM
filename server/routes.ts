@@ -5110,7 +5110,6 @@ function windowResized() {
     ws.on('message', async (data: Buffer) => {
       try {
         const message = JSON.parse(data.toString());
-        console.log('[Chat WS] Received message:', message.type, 'from user:', message.userId);
         
         switch (message.type) {
           case 'auth':

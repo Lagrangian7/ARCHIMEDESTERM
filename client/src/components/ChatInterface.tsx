@@ -111,6 +111,28 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
     }
   }, [incomingMessage, selectedChat?.id]);
 
+  // Poll for new messages in the active conversation every 2 seconds
+  useEffect(() => {
+    if (!selectedChat) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const chatMessages = await getChatMessages(selectedChat.id);
+        setMessages(prevMessages => {
+          // Only update if there are new messages
+          if (JSON.stringify(chatMessages) === JSON.stringify(prevMessages)) {
+            return prevMessages;
+          }
+          return chatMessages;
+        });
+      } catch (error) {
+        console.error('Error polling messages:', error);
+      }
+    }, 2000); // Poll every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [selectedChat, getChatMessages]);
+
   const handleStartChat = async (onlineUser: OnlineUser) => {
     try {
       const chat = await startConversation(onlineUser.id);

@@ -125,6 +125,18 @@ export const useChat = (options?: { enableWebSocket?: boolean }) => {
     return await response.json();
   }, []);
 
+  // Poll for new messages every 2 seconds when chat is active
+  useEffect(() => {
+    if (!enableWebSocket) return; // Only poll when WebSocket would be enabled
+    
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
+      refetchUnreadCount();
+    }, 2000); // Poll every 2 seconds
+    
+    return () => clearInterval(interval);
+  }, [enableWebSocket, queryClient, refetchUnreadCount]);
+
   // WebSocket connection management with improved reliability
   useEffect(() => {
     // Only connect if user is authenticated and WebSocket is enabled
@@ -151,22 +163,20 @@ export const useChat = (options?: { enableWebSocket?: boolean }) => {
             clearTimeout(disconnectTimeoutRef.current);
           }
           
-          console.log('[Chat WS Client] Connected, sending auth for user:', user?.id);
           setIsConnected(true);
           reconnectAttempts = 0; // Reset on successful connection
           isConnecting = false;
           
-          // Authenticate with the server
-          if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-            const authMessage = JSON.stringify({
-              type: 'auth',
-              userId: user?.id,
-            });
-            console.log('[Chat WS Client] Sending auth message:', authMessage);
-            wsRef.current.send(authMessage);
-          } else {
-            console.error('[Chat WS Client] Cannot send auth - WebSocket not open');
-          }
+          // Authenticate with the server - add small delay to ensure connection is fully established
+          setTimeout(() => {
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+              const authMessage = JSON.stringify({
+                type: 'auth',
+                userId: user?.id,
+              });
+              wsRef.current.send(authMessage);
+            }
+          }, 50); // 50ms delay
         };
 
         wsRef.current.onmessage = (event) => {
