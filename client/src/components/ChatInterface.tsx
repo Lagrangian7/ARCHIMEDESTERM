@@ -89,20 +89,27 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
 
   // Listen for incoming messages via WebSocket
   useEffect(() => {
-    if (!incomingMessage || !selectedChat) return;
+    if (!incomingMessage) return;
+
+    console.log('[ChatInterface] Incoming message:', incomingMessage, 'Selected chat:', selectedChat?.id);
 
     // Check if the incoming message belongs to the current chat
-    if (incomingMessage.chatId === selectedChat.id) {
+    if (selectedChat && incomingMessage.chatId === selectedChat.id) {
+      console.log('[ChatInterface] Adding incoming message to current chat');
       // Add message if it doesn't already exist
       setMessages(prev => {
         const messageExists = prev.some(m => m.id === incomingMessage.id);
         if (messageExists) {
+          console.log('[ChatInterface] Message already exists, skipping');
           return prev;
         }
+        console.log('[ChatInterface] Adding new message to chat');
         return [...prev, incomingMessage];
       });
+    } else {
+      console.log('[ChatInterface] Message chat ID mismatch or no chat selected');
     }
-  }, [incomingMessage, selectedChat]);
+  }, [incomingMessage, selectedChat?.id]);
 
   const handleStartChat = async (onlineUser: OnlineUser) => {
     try {
