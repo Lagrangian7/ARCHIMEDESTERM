@@ -25,6 +25,7 @@ Preferred communication style: Simple, everyday language.
 - **WebSocket Server**: Real-time telnet proxy server on `/ws/telnet` for live BBS connections
 - **Network Services**: Telnet proxy, BBS service, and network connectivity testing
 - **Academic Search**: Semantic Scholar API integration for academic paper search (FREE, no API key required)
+- **Wolfram Alpha**: Full Results API integration for computational queries, math solving, data lookup, and knowledge queries
 - **Development Setup**: Vite development server with hot module replacement
 - **Error Handling**: Centralized error middleware with structured error responses
 - **Request Logging**: Custom middleware for API request/response logging

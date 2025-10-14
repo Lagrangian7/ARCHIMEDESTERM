@@ -4890,6 +4890,28 @@ function windowResized() {
     }
   });
 
+  // Wolfram Alpha query endpoint
+  app.get('/api/wolfram/query', async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      
+      if (!query) {
+        return res.status(400).json({ error: 'Query parameter "q" is required' });
+      }
+
+      const { queryWolfram } = await import('./wolfram-service');
+      const result = await queryWolfram(query);
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Wolfram Alpha query error:', error);
+      res.status(500).json({ 
+        error: 'Failed to query Wolfram Alpha',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Chat system API endpoints
   
   // Get online users

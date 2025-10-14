@@ -571,6 +571,9 @@ Academic Research:
   scholar details <paperId> - Get full paper details
   scholar help - Show detailed scholar command help
 
+Wolfram Alpha:
+  query <search input> - Query Wolfram Alpha for computational answers
+
 Project Gutenberg Books:
   books popular - Show most popular free ebooks
   books search <query> - Search books by title or author
@@ -1526,6 +1529,70 @@ Data powered by Semantic Scholar API`);
       
       // If no valid subcommand, show help
       addEntry('error', 'Unknown scholar command. Type "scholar help" for available commands.');
+      return;
+    }
+
+    // Wolfram Alpha Query Command
+    if (cmd.startsWith('query ')) {
+      const query = cmd.substring(6).trim();
+      if (!query) {
+        addEntry('error', 'Usage: query <search input>');
+        addEntry('system', 'Examples:\n  query population of France\n  query solve x^2 + 5x + 6 = 0\n  query weather in Tokyo\n  query distance from Earth to Mars');
+        return;
+      }
+      
+      setIsTyping(true);
+      addEntry('system', `🔍 Querying Wolfram Alpha for: "${query}"...`);
+      
+      fetch(`/api/wolfram/query?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+          setIsTyping(false);
+          if (!data.success || data.error) {
+            addEntry('error', `Query failed: ${data.error || 'No results found'}`);
+          } else if (data.pods && data.pods.length > 0) {
+            let formatted = '╔═══════════════════════════════════════════════════════╗\n';
+            formatted += '║           WOLFRAM ALPHA QUERY RESULTS                 ║\n';
+            formatted += '╚═══════════════════════════════════════════════════════╝\n\n';
+            
+            data.pods.forEach((pod: any, index: number) => {
+              if (pod.plaintext || (pod.subpods && pod.subpods.length > 0)) {
+                formatted += `┌─ ${pod.title}\n`;
+                
+                if (pod.subpods && pod.subpods.length > 0) {
+                  pod.subpods.forEach((subpod: any) => {
+                    if (subpod.plaintext) {
+                      const lines = subpod.plaintext.split('\n');
+                      lines.forEach((line: string) => {
+                        if (line.trim()) {
+                          formatted += `│  ${line}\n`;
+                        }
+                      });
+                    }
+                  });
+                } else if (pod.plaintext) {
+                  const lines = pod.plaintext.split('\n');
+                  lines.forEach((line: string) => {
+                    if (line.trim()) {
+                      formatted += `│  ${line}\n`;
+                    }
+                  });
+                }
+                
+                formatted += '│\n';
+              }
+            });
+            
+            formatted += '└─ Powered by Wolfram Alpha';
+            addEntry('response', formatted);
+          } else {
+            addEntry('error', 'No results found for this query');
+          }
+        })
+        .catch(error => {
+          setIsTyping(false);
+          addEntry('error', `Error querying Wolfram Alpha: ${error.message}`);
+        });
       return;
     }
 
