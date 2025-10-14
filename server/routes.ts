@@ -5105,7 +5105,7 @@ function windowResized() {
 
   // Handle chat WebSocket connections
   chatWss.on('connection', (ws: any, req) => {
-    console.log('Chat WebSocket client connected');
+    console.log('Chat WebSocket client connected from:', req.headers['user-agent'] || 'unknown', 'URL:', req.url);
 
     ws.on('message', async (data: Buffer) => {
       try {

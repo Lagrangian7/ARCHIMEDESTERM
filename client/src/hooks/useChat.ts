@@ -48,13 +48,16 @@ export interface OnlineUser {
   };
 }
 
-export const useChat = () => {
+export const useChat = (options?: { enableWebSocket?: boolean }) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const wsRef = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
   const [incomingMessage, setIncomingMessage] = useState<ChatMessage | null>(null);
+  const disconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  
+  const enableWebSocket = options?.enableWebSocket ?? true;
 
   // Enable chat queries when user is authenticated
   const { data: onlineUsers = [], refetch: refetchOnlineUsers } = useQuery({
@@ -124,8 +127,8 @@ export const useChat = () => {
 
   // WebSocket connection management with improved reliability
   useEffect(() => {
-    // Only connect if user is authenticated
-    if (!user?.id) return;
+    // Only connect if user is authenticated and WebSocket is enabled
+    if (!user?.id || !enableWebSocket) return;
 
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 5;
@@ -143,6 +146,11 @@ export const useChat = () => {
         wsRef.current = new WebSocket(wsUrl);
 
         wsRef.current.onopen = () => {
+          // Clear any pending disconnect timeout
+          if (disconnectTimeoutRef.current) {
+            clearTimeout(disconnectTimeoutRef.current);
+          }
+          
           setIsConnected(true);
           reconnectAttempts = 0; // Reset on successful connection
           isConnecting = false;
@@ -212,8 +220,12 @@ export const useChat = () => {
         };
 
         wsRef.current.onclose = (event) => {
-          setIsConnected(false);
           isConnecting = false;
+          
+          // Delay showing "Disconnected" status to avoid flashing during brief reconnections
+          disconnectTimeoutRef.current = setTimeout(() => {
+            setIsConnected(false);
+          }, 2000); // Wait 2 seconds before showing as disconnected
           
           // Only attempt to reconnect if it wasn't a manual close (code 1000)
           if (event.code !== 1000 && reconnectAttempts < maxReconnectAttempts) {
@@ -240,11 +252,14 @@ export const useChat = () => {
       if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
       }
+      if (disconnectTimeoutRef.current) {
+        clearTimeout(disconnectTimeoutRef.current);
+      }
       if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
         wsRef.current.close(1000, 'Component unmounting'); // Normal closure
       }
     };
-  }, [user?.id, queryClient, refetchOnlineUsers, refetchUnreadCount]);
+  }, [user?.id, enableWebSocket]);
 
   // Send typing indicator
   const sendTypingIndicator = useCallback((chatId: string, toUserId: string, isTyping: boolean) => {

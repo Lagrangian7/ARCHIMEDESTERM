@@ -93,7 +93,7 @@ export function Terminal() {
   
   const { speak, isSpeaking } = useSpeech();
   const { user, isAuthenticated, preferences } = useAuth();
-  const { unreadCount } = useChat();
+  const { unreadCount } = useChat({ enableWebSocket: false });
   const [input, setInput] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -945,9 +945,9 @@ export function Terminal() {
       />
 
       {/* Chat Interface */}
-      {isAuthenticated && (
+      {isAuthenticated && showChat && (
         <ChatInterface 
-          isOpen={showChat}
+          isOpen={true}
           onClose={() => setShowChat(false)}
         />
       )}
