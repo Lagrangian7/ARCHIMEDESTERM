@@ -16,7 +16,14 @@ export interface WolframResult {
   }>;
 }
 
-export async function queryWolfram(input: string): Promise<WolframResult> {
+export interface WolframOptions {
+  latlong?: string;  // e.g., "40.7128,-74.0060"
+  units?: 'metric' | 'nonmetric';
+  assumption?: string;
+  location?: string;  // IP address
+}
+
+export async function queryWolfram(input: string, options?: WolframOptions): Promise<WolframResult> {
   if (!APP_ID) {
     return {
       success: false,
@@ -25,13 +32,29 @@ export async function queryWolfram(input: string): Promise<WolframResult> {
   }
 
   try {
+    const params: any = {
+      appid: APP_ID,
+      input: input,
+      format: 'plaintext',
+      output: 'json'
+    };
+
+    // Add optional parameters if provided
+    if (options?.latlong) {
+      params.latlong = options.latlong;
+    }
+    if (options?.units) {
+      params.units = options.units;
+    }
+    if (options?.assumption) {
+      params.assumption = options.assumption;
+    }
+    if (options?.location) {
+      params.location = options.location;
+    }
+
     const response = await axios.get(WOLFRAM_API_BASE, {
-      params: {
-        appid: APP_ID,
-        input: input,
-        format: 'plaintext',
-        output: 'json'
-      },
+      params,
       timeout: 10000
     });
 

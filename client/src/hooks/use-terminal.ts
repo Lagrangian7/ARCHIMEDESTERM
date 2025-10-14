@@ -572,7 +572,8 @@ Academic Research:
   scholar help - Show detailed scholar command help
 
 Wolfram Alpha:
-  query <search input> - Query Wolfram Alpha for computational answers
+  query <search input> [options] - Query Wolfram Alpha for computational answers
+  query help - Show detailed query command help and parameter options
 
 Project Gutenberg Books:
   books popular - Show most popular free ebooks
@@ -1534,17 +1535,144 @@ Data powered by Semantic Scholar API`);
 
     // Wolfram Alpha Query Command
     if (cmd.startsWith('query ')) {
-      const query = cmd.substring(6).trim();
+      // Extract query from original command to preserve case
+      const fullQuery = command.trim().substring(6).trim();
+      
+      // Show help
+      if (fullQuery === 'help') {
+        addEntry('system', `Wolfram Alpha Query Commands:
+
+Computational Knowledge:
+  query <search input> - Ask Wolfram Alpha anything
+  query <search input> [options] - Query with additional parameters
+  
+Optional Parameters:
+  --latlong=lat,long       Specify location coordinates (e.g., 40.7128,-74.0060)
+  --units=metric           Use metric units (or nonmetric)
+  --assumption="value"     Specify interpretation (use quotes for complex values)
+  --location="value"       Provide location or IP address (use quotes for names)
+  
+Examples:
+  query population of France
+  query solve x^2 + 5x + 6 = 0
+  query weather --latlong=40.7128,-74.0060
+  query convert 100 km to miles --units=metric
+  query weather --location="New York"
+  query Mars --assumption="PlanetClass:Planet"
+  query distance from earth to mars
+  query integral of x^2 dx
+  query what is the speed of light
+  
+Note: Use quotes around parameter values that contain spaces or special characters
+  
+Features:
+  • Computational math and solving equations
+  • Unit conversions and measurements
+  • Scientific data and constants
+  • Weather and location information
+  • Real-time data and statistics
+  
+Powered by Wolfram Alpha Full Results API`);
+        return;
+      }
+      
+      if (!fullQuery) {
+        addEntry('error', 'Usage: query <search input> [options]');
+        addEntry('system', 'Type "query help" for detailed information and examples');
+        return;
+      }
+      
+      // Parse query and optional parameters with proper quote handling
+      let query = '';
+      const params: any = {};
+      let i = 0;
+      let quoteChar: string | null = null;  // Track which quote character opened the quoted section
+      let currentToken = '';
+      
+      while (i < fullQuery.length) {
+        const char = fullQuery[i];
+        const prevChar = i > 0 ? fullQuery[i - 1] : '';
+        
+        // Only treat quotes as opening/closing when they follow '=' or are closing quotes
+        const isQuoteAfterEquals = (char === '"' || char === "'") && prevChar === '=' && quoteChar === null;
+        const isClosingQuote = char === quoteChar && quoteChar !== null;
+        
+        if (isQuoteAfterEquals) {
+          // Opening quote (only after '=')
+          quoteChar = char;
+          currentToken += char;
+          i++;
+        } else if (isClosingQuote) {
+          // Closing quote (matches the opening quote)
+          quoteChar = null;
+          currentToken += char;
+          i++;
+        } else if (char === ' ' && quoteChar === null) {
+          // Process current token (only split on spaces outside quotes)
+          if (currentToken.trim()) {
+            if (currentToken.startsWith('--')) {
+              // Parse parameter flag
+              const match = currentToken.match(/^--(\w+)=(.+)$/);
+              if (match) {
+                const [, key, value] = match;
+                // Remove matching quotes if present
+                const cleanValue = value.replace(/^["'](.*)["']$/, '$1');
+                if (key === 'latlong' || key === 'units' || key === 'assumption' || key === 'location') {
+                  params[key] = cleanValue;
+                }
+              }
+            } else {
+              query += (query ? ' ' : '') + currentToken;
+            }
+          }
+          currentToken = '';
+          i++;
+        } else {
+          currentToken += char;
+          i++;
+        }
+      }
+      
+      // Process final token
+      if (currentToken.trim()) {
+        if (currentToken.startsWith('--')) {
+          const match = currentToken.match(/^--(\w+)=(.+)$/);
+          if (match) {
+            const [, key, value] = match;
+            const cleanValue = value.replace(/^["'](.*)["']$/, '$1');
+            if (key === 'latlong' || key === 'units' || key === 'assumption' || key === 'location') {
+              params[key] = cleanValue;
+            }
+          }
+        } else {
+          query += (query ? ' ' : '') + currentToken;
+        }
+      }
+      
       if (!query) {
-        addEntry('error', 'Usage: query <search input>');
-        addEntry('system', 'Examples:\n  query population of France\n  query solve x^2 + 5x + 6 = 0\n  query weather in Tokyo\n  query distance from Earth to Mars');
+        addEntry('error', 'No query text provided');
         return;
       }
       
       setIsTyping(true);
-      addEntry('system', `🔍 Querying Wolfram Alpha for: "${query}"...`);
       
-      fetch(`/api/wolfram/query?q=${encodeURIComponent(query)}`)
+      // Build display message
+      let displayMsg = `🔍 Querying Wolfram Alpha for: "${query}"`;
+      if (Object.keys(params).length > 0) {
+        const paramStr = Object.entries(params)
+          .map(([k, v]) => `${k}=${v}`)
+          .join(', ');
+        displayMsg += `\nParameters: ${paramStr}`;
+      }
+      addEntry('system', displayMsg);
+      
+      // Build URL with parameters
+      let url = `/api/wolfram/query?q=${encodeURIComponent(query)}`;
+      Object.entries(params).forEach(([key, value]) => {
+        url += `&${key}=${encodeURIComponent(value as string)}`;
+      });
+      
+      fetch(url)
         .then(res => res.json())
         .then(data => {
           setIsTyping(false);
