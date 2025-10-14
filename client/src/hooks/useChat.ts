@@ -54,6 +54,7 @@ export const useChat = () => {
   const wsRef = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
+  const [incomingMessage, setIncomingMessage] = useState<ChatMessage | null>(null);
 
   // Enable chat queries when user is authenticated
   const { data: onlineUsers = [], refetch: refetchOnlineUsers } = useQuery({
@@ -160,6 +161,7 @@ export const useChat = () => {
             switch (message.type) {
               case 'message':
                 // New message received
+                setIncomingMessage(message.data);
                 queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
                 refetchUnreadCount();
                 break;
@@ -263,6 +265,7 @@ export const useChat = () => {
     unreadCount,
     isConnected,
     typingUsers,
+    incomingMessage,
 
     // Actions
     startConversation: startConversationMutation.mutateAsync,

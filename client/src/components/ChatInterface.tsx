@@ -34,6 +34,7 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
     unreadCount, 
     isConnected,
     typingUsers,
+    incomingMessage,
     startConversation,
     sendMessage,
     getChatMessages,
@@ -62,7 +63,20 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
       setIsLoadingMessages(true);
       try {
         const chatMessages = await getChatMessages(selectedChat.id);
-        setMessages(chatMessages);
+        // Merge with any messages that may have arrived via WebSocket during the fetch
+        setMessages(prevMessages => {
+          // Create a map of existing messages by ID
+          const existingIds = new Set(prevMessages.map(m => m.id));
+          
+          // Add fetched messages that don't already exist
+          const newMessages = chatMessages.filter((m: ChatMessage) => !existingIds.has(m.id));
+          
+          // Combine and sort by sentAt timestamp
+          const combined = [...chatMessages, ...prevMessages.filter(m => !chatMessages.some((cm: ChatMessage) => cm.id === m.id))];
+          combined.sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+          
+          return combined;
+        });
       } catch (error) {
         console.error('Error loading messages:', error);
       } finally {
@@ -72,6 +86,23 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
 
     loadMessages();
   }, [selectedChat, getChatMessages]);
+
+  // Listen for incoming messages via WebSocket
+  useEffect(() => {
+    if (!incomingMessage || !selectedChat) return;
+
+    // Check if the incoming message belongs to the current chat
+    if (incomingMessage.chatId === selectedChat.id) {
+      // Add message if it doesn't already exist
+      setMessages(prev => {
+        const messageExists = prev.some(m => m.id === incomingMessage.id);
+        if (messageExists) {
+          return prev;
+        }
+        return [...prev, incomingMessage];
+      });
+    }
+  }, [incomingMessage, selectedChat]);
 
   const handleStartChat = async (onlineUser: OnlineUser) => {
     try {
@@ -100,34 +131,26 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
     if (!messageInput.trim() || !selectedChat || !user) return;
 
     const toUserId = selectedChat.otherUser.id;
+    const messageContent = messageInput.trim();
+
+    // Clear input immediately for better UX
+    setMessageInput('');
 
     try {
       await sendMessage({
         chatId: selectedChat.id,
-        content: messageInput.trim(),
+        content: messageContent,
         toUserId,
       });
 
-      // Add message to local state immediately for better UX
-      const newMessage: ChatMessage = {
-        id: `temp-${Date.now()}`,
-        chatId: selectedChat.id,
-        fromUserId: user.id,
-        toUserId,
-        content: messageInput.trim(),
-        messageType: 'text',
-        isRead: false,
-        isDelivered: false,
-        sentAt: new Date().toISOString(),
-      };
-
-      setMessages(prev => [...prev, newMessage]);
-      setMessageInput('');
-
       // Stop typing indicator
       sendTypingIndicator(selectedChat.id, toUserId, false);
+      
+      // Note: The message will be added via WebSocket, no need for optimistic update
     } catch (error) {
       console.error('Error sending message:', error);
+      // Restore message input on error
+      setMessageInput(messageContent);
     }
   };
 
@@ -176,7 +199,7 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-6xl h-[80vh] flex flex-col" style={{ backgroundColor: 'var(--terminal-bg)', borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
+      <Card className="w-full max-w-6xl h-[80vh] flex flex-col" style={{ backgroundColor: '#0a1628', borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
         <CardHeader className="border-b flex-shrink-0" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -372,7 +395,7 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
                             style={{
                               backgroundColor: message.fromUserId === user?.id
                                 ? 'var(--terminal-highlight)'
-                                : 'var(--terminal-bg)',
+                                : '#0d1a33',
                               color: message.fromUserId === user?.id
                                 ? 'white'
                                 : 'var(--terminal-text)',
@@ -402,7 +425,7 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
                       placeholder="Type a message..."
                       className="flex-1"
                       style={{ 
-                        backgroundColor: 'var(--terminal-bg)', 
+                        backgroundColor: '#060f1c', 
                         borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', 
                         color: 'var(--terminal-text)'
                       }}
