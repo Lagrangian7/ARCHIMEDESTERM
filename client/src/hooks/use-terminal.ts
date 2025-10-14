@@ -1689,6 +1689,22 @@ Powered by Wolfram Alpha Full Results API`);
                 
                 if (pod.subpods && pod.subpods.length > 0) {
                   pod.subpods.forEach((subpod: any) => {
+                    // Render image if available
+                    if (subpod.img && subpod.img.src) {
+                      formatted += `│  <img src="${subpod.img.src}" alt="${subpod.img.alt}" title="${subpod.img.title}" style="max-width: 100%; height: auto; margin: 10px 0; background: white; padding: 10px; border-radius: 4px;" />\n`;
+                    }
+                    
+                    // Render MathML if available
+                    if (subpod.mathml) {
+                      formatted += `│  <div class="mathml-content" style="margin: 10px 0;">${subpod.mathml}</div>\n`;
+                    }
+                    
+                    // Render LaTeX if available
+                    if (subpod.latex) {
+                      formatted += `│  <div class="latex-content" style="margin: 10px 0;">$$${subpod.latex}$$</div>\n`;
+                    }
+                    
+                    // Render plaintext
                     if (subpod.plaintext) {
                       const lines = subpod.plaintext.split('\n');
                       lines.forEach((line: string) => {
@@ -1713,6 +1729,13 @@ Powered by Wolfram Alpha Full Results API`);
             
             formatted += '└─ Powered by Wolfram Alpha';
             addEntry('response', formatted);
+            
+            // Trigger MathJax to typeset the new content after a brief delay
+            setTimeout(() => {
+              if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise().catch((err: any) => console.error('MathJax typeset error:', err));
+              }
+            }, 100);
           } else {
             addEntry('error', 'No results found for this query');
           }
