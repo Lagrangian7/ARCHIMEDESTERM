@@ -247,25 +247,6 @@
     text-shadow: 0 0 2px currentColor;
   }
 
-  /* CRT Scanline Effect */
-  body::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: repeating-linear-gradient(
-      0deg,
-      rgba(0, 0, 0, 0.35),
-      rgba(0, 0, 0, 0.35) 1px,
-      transparent 1px,
-      transparent 2px
-    );
-    pointer-events: none;
-    z-index: 9999;
-  }
-
   /* Retro text selection */
   ::selection {
     background: #0080FF;
@@ -836,16 +817,6 @@
   }
 }
 
-@keyframes scanlineScroll {
-  0% {
-    background-position: 0 0;
-  }
-  
-  100% {
-    background-position: 0 100px;
-  }
-}
-
 /* Slow watermark effects */
 @keyframes slowIntenseGlitch {
   0%, 85% {
@@ -901,28 +872,6 @@
   }
 }
 
-@keyframes slowScanline {
-  0% {
-    box-shadow: inset 0 -2px 0 rgba(0, 255, 65, 0.8);
-  }
-  
-  25% {
-    box-shadow: inset 0 25% 0 rgba(0, 255, 65, 0.3);
-  }
-  
-  50% {
-    box-shadow: inset 0 50% 0 rgba(0, 255, 65, 0.6);
-  }
-  
-  75% {
-    box-shadow: inset 0 75% 0 rgba(0, 255, 65, 0.2);
-  }
-  
-  100% {
-    box-shadow: inset 0 100% 0 rgba(0, 255, 65, 0.8);
-  }
-}
-
 @keyframes slowWave {
   0%, 100% {
     transform: translateX(2px) scaleX(1) skewX(0deg);
@@ -971,10 +920,6 @@
   }
 }
 
-/* Disable scanlines when Webamp is active to prevent visual interference */
-body.webamp-active::after {
-  display: none;
-}
 
 /* Enable pointer events for Webamp elements while container passes through */
 #webamp-container > * {
