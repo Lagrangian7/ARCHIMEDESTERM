@@ -25,7 +25,10 @@ Preferred communication style: Simple, everyday language.
 - **WebSocket Server**: Real-time telnet proxy server on `/ws/telnet` for live BBS connections
 - **Network Services**: Telnet proxy, BBS service, and network connectivity testing
 - **Academic Search**: Semantic Scholar API integration for academic paper search (FREE, no API key required)
-- **Wolfram Alpha**: Full Results API integration for computational queries, math solving, data lookup, and knowledge queries
+- **Wolfram Alpha**: Full Results API integration for computational queries, math solving, data lookup, and knowledge queries with enhanced graphical and mathematical rendering
+  - Graphics rendering: Images from Wolfram Alpha (plots, diagrams) rendered as HTML <img> tags
+  - Mathematical rendering: MathML and LaTeX formats rendered using MathJax for proper mathematical display
+  - Multi-format support: Requests plaintext, image, MathML, and LaTeX formats from API
 - **Development Setup**: Vite development server with hot module replacement
 - **Error Handling**: Centralized error middleware with structured error responses
 - **Request Logging**: Custom middleware for API request/response logging
@@ -47,6 +50,7 @@ Preferred communication style: Simple, everyday language.
 - **UI Framework**: Comprehensive Radix UI component suite for accessible, unstyled components
 - **Voice Integration**: Web Speech API for speech synthesis and speech recognition
 - **Academic APIs**: Semantic Scholar API (FREE - 100 requests per 5 minutes, no authentication required)
+- **Mathematical Rendering**: MathJax 3 CDN for rendering MathML and LaTeX mathematical expressions
 - **Development Tools**: 
   - Replit-specific plugins for development environment
   - ESBuild for production bundling

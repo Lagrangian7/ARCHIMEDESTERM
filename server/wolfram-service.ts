@@ -44,7 +44,7 @@ export async function queryWolfram(input: string, options?: WolframOptions): Pro
     const params: any = {
       appid: APP_ID,
       input: input,
-      format: 'plaintext,image,mathml',
+      format: 'plaintext,image,mathml,latex',
       output: 'json'
     };
 
