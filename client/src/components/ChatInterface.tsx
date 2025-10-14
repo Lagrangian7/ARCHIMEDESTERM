@@ -234,19 +234,12 @@ export function ChatInterface({ isOpen, onClose }: ChatInterfaceProps) {
             <div className="flex items-center space-x-2">
               <MessageCircle className="w-5 h-5" style={{ color: 'var(--terminal-text)' }} />
               <CardTitle style={{ color: 'var(--terminal-text)' }}>Chat System</CardTitle>
-              <div className="flex items-center space-x-1 text-sm">
-                {isConnected ? (
-                  <>
-                    <Wifi className="w-4 h-4" style={{ color: 'var(--terminal-text)' }} />
-                    <span style={{ color: 'var(--terminal-text)' }}>Connected</span>
-                  </>
-                ) : (
-                  <>
-                    <WifiOff className="w-4 h-4 text-red-500" />
-                    <span className="text-red-400">Disconnected</span>
-                  </>
-                )}
-              </div>
+              {isConnected && (
+                <div className="flex items-center space-x-1 text-sm">
+                  <Wifi className="w-4 h-4" style={{ color: 'var(--terminal-text)' }} />
+                  <span style={{ color: 'var(--terminal-text)' }}>Connected</span>
+                </div>
+              )}
               {unreadCount > 0 && (
                 <Badge variant="destructive" className="bg-red-600">
                   {unreadCount}
