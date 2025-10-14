@@ -28,8 +28,12 @@ import session from 'express-session';
 import { parse } from 'cookie';
 import signature from 'cookie-signature';
 import { getSession } from './replitAuth';
+import { archimedesBotService } from './archimedes-bot-service';
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Initialize Archimedes AI bot
+  await archimedesBotService.initializeBot();
   
   // Serve attached assets (for soundtrack and other user files)
   app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
@@ -5016,6 +5020,43 @@ function windowResized() {
           }));
         }
       });
+
+      // Check if message was sent to Archimedes bot
+      if (archimedesBotService.isBot(toUserId)) {
+        // Get conversation history for context
+        const messages = await storage.getChatMessages(chatId, 20);
+        
+        // Generate AI response
+        const aiResponse = await archimedesBotService.generateResponse(content, messages);
+        
+        // Send bot response after a brief delay to simulate typing
+        setTimeout(async () => {
+          try {
+            const botMessage = await storage.sendMessage({
+              chatId,
+              fromUserId: archimedesBotService.getBotId(),
+              toUserId: userId,
+              content: aiResponse,
+              messageType: "text",
+              isRead: false,
+              isDelivered: true,
+            });
+
+            // Emit bot message via WebSocket
+            chatWss.clients.forEach((client: any) => {
+              if (client.readyState === WebSocket.OPEN && 
+                  (client.userId === userId || client.userId === archimedesBotService.getBotId())) {
+                client.send(JSON.stringify({
+                  type: 'message',
+                  data: botMessage
+                }));
+              }
+            });
+          } catch (error) {
+            console.error('Error sending bot message:', error);
+          }
+        }, 1000); // 1 second delay
+      }
 
       res.json(message);
     } catch (error) {
