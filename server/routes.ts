@@ -5110,6 +5110,7 @@ function windowResized() {
     ws.on('message', async (data: Buffer) => {
       try {
         const message = JSON.parse(data.toString());
+        console.log('[Chat WS] Received message:', message.type, 'from user:', message.userId);
         
         switch (message.type) {
           case 'auth':
@@ -5183,8 +5184,8 @@ function windowResized() {
       }
     });
 
-    ws.on('close', async () => {
-      console.log('Chat WebSocket client disconnected');
+    ws.on('close', async (code: number, reason: Buffer) => {
+      console.log('[Chat WS] Client disconnected - Code:', code, 'Reason:', reason.toString() || 'No reason', 'Had userId:', !!ws.userId);
       
       if (ws.userId) {
         try {

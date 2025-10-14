@@ -151,15 +151,22 @@ export const useChat = (options?: { enableWebSocket?: boolean }) => {
             clearTimeout(disconnectTimeoutRef.current);
           }
           
+          console.log('[Chat WS Client] Connected, sending auth for user:', user?.id);
           setIsConnected(true);
           reconnectAttempts = 0; // Reset on successful connection
           isConnecting = false;
           
           // Authenticate with the server
-          wsRef.current?.send(JSON.stringify({
-            type: 'auth',
-            userId: user?.id,
-          }));
+          if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            const authMessage = JSON.stringify({
+              type: 'auth',
+              userId: user?.id,
+            });
+            console.log('[Chat WS Client] Sending auth message:', authMessage);
+            wsRef.current.send(authMessage);
+          } else {
+            console.error('[Chat WS Client] Cannot send auth - WebSocket not open');
+          }
         };
 
         wsRef.current.onmessage = (event) => {
