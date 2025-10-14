@@ -12,6 +12,15 @@ export interface WolframResult {
     subpods: Array<{
       plaintext: string;
       title?: string;
+      img?: {
+        src: string;
+        alt: string;
+        title: string;
+        width: number;
+        height: number;
+      };
+      mathml?: string;
+      latex?: string;
     }>;
   }>;
 }
@@ -35,7 +44,7 @@ export async function queryWolfram(input: string, options?: WolframOptions): Pro
     const params: any = {
       appid: APP_ID,
       input: input,
-      format: 'plaintext',
+      format: 'plaintext,image,mathml',
       output: 'json'
     };
 
@@ -77,10 +86,35 @@ export async function queryWolfram(input: string, options?: WolframOptions): Pro
     const pods = data.queryresult.pods?.map((pod: any) => ({
       title: pod.title,
       plaintext: pod.subpods?.[0]?.plaintext || '',
-      subpods: pod.subpods?.map((subpod: any) => ({
-        plaintext: subpod.plaintext || '',
-        title: subpod.title
-      })) || []
+      subpods: pod.subpods?.map((subpod: any) => {
+        const result: any = {
+          plaintext: subpod.plaintext || '',
+          title: subpod.title
+        };
+        
+        // Add image if available
+        if (subpod.img) {
+          result.img = {
+            src: subpod.img.src,
+            alt: subpod.img.alt || subpod.title || pod.title,
+            title: subpod.img.title || subpod.title || pod.title,
+            width: parseInt(subpod.img.width) || 0,
+            height: parseInt(subpod.img.height) || 0
+          };
+        }
+        
+        // Add MathML if available
+        if (subpod.mathml) {
+          result.mathml = subpod.mathml;
+        }
+        
+        // Add LaTeX if available (some APIs provide this)
+        if (subpod.latex) {
+          result.latex = subpod.latex;
+        }
+        
+        return result;
+      }) || []
     })) || [];
 
     return {
