@@ -25,6 +25,7 @@ import { TheHarvester } from './TheHarvester';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { CodePreview } from './CodePreview';
 import WebampPlayer from './WebampPlayer';
+import AJVideoPopup from './AJVideoPopup';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -90,6 +91,7 @@ export function Terminal() {
     (window as any).openTheHarvester = () => setShowTheHarvester(true);
     (window as any).openPrivacyEncoder = () => setShowPrivacyEncoder(true);
     (window as any).openWebamp = () => setShowWebamp(true);
+    (window as any).openAJVideo = () => setShowAJVideo(true);
   }, []);
   
   const { speak, isSpeaking } = useSpeech();
@@ -112,6 +114,7 @@ export function Terminal() {
   const [showTheHarvester, setShowTheHarvester] = useState(false);
   const [showPrivacyEncoder, setShowPrivacyEncoder] = useState(false);
   const [showWebamp, setShowWebamp] = useState(false);
+  const [showAJVideo, setShowAJVideo] = useState(false);
   
   // Theme management
   const [currentTheme, setCurrentTheme] = useState(() => {
@@ -791,6 +794,12 @@ export function Terminal() {
       <WebampPlayer 
         isOpen={showWebamp}
         onClose={() => setShowWebamp(false)}
+      />
+
+      {/* AJ Video Player */}
+      <AJVideoPopup 
+        isOpen={showAJVideo}
+        onClose={() => setShowAJVideo(false)}
       />
     </div>
   );

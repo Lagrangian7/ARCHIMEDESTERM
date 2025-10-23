@@ -592,6 +592,7 @@ Radio & Music:
   stop - Stop background music
   debug audio - Test audio file loading and show diagnostic info
   webamp - Launch Webamp player with Milkdrop visualizer
+  aj - Launch AJ video player
   
 OSINT (Open Source Intelligence):
   whois <domain> - Domain registration lookup
@@ -768,6 +769,18 @@ You can also chat naturally or ask technical questions.`);
         openWebamp();
       } else {
         addEntry('error', 'Webamp not available. Please ensure the system is loaded.');
+      }
+      return;
+    }
+    
+    if (cmd === 'aj') {
+      addEntry('system', '📺 Launching AJ video player...');
+      
+      const openAJVideo = (window as any).openAJVideo;
+      if (openAJVideo) {
+        openAJVideo();
+      } else {
+        addEntry('error', 'AJ video player not available. Please ensure the system is loaded.');
       }
       return;
     }
