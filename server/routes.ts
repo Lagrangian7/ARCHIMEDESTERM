@@ -35,6 +35,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize Archimedes AI bot
   await archimedesBotService.initializeBot();
   
+  // Create a reference for the chat WebSocket server (will be initialized later)
+  let chatWss: WebSocketServer | null = null;
+  
   // Serve attached assets (for soundtrack and other user files)
   app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
   
@@ -5011,15 +5014,17 @@ function windowResized() {
       });
 
       // Emit message via WebSocket to connected users
-      chatWss.clients.forEach((client: any) => {
-        if (client.readyState === WebSocket.OPEN && 
-            (client.userId === userId || client.userId === toUserId)) {
-          client.send(JSON.stringify({
-            type: 'message',
-            data: message
-          }));
-        }
-      });
+      if (chatWss) {
+        chatWss.clients.forEach((client: any) => {
+          if (client.readyState === WebSocket.OPEN && 
+              (client.userId === userId || client.userId === toUserId)) {
+            client.send(JSON.stringify({
+              type: 'message',
+              data: message
+            }));
+          }
+        });
+      }
 
       // Check if message was sent to Archimedes bot
       if (archimedesBotService.isBot(toUserId)) {
@@ -5043,15 +5048,17 @@ function windowResized() {
             });
 
             // Emit bot message via WebSocket
-            chatWss.clients.forEach((client: any) => {
-              if (client.readyState === WebSocket.OPEN && 
-                  (client.userId === userId || client.userId === archimedesBotService.getBotId())) {
-                client.send(JSON.stringify({
-                  type: 'message',
-                  data: botMessage
-                }));
-              }
-            });
+            if (chatWss) {
+              chatWss.clients.forEach((client: any) => {
+                if (client.readyState === WebSocket.OPEN && 
+                    (client.userId === userId || client.userId === archimedesBotService.getBotId())) {
+                  client.send(JSON.stringify({
+                    type: 'message',
+                    data: botMessage
+                  }));
+                }
+              });
+            }
           } catch (error) {
             console.error('Error sending bot message:', error);
           }
@@ -5098,7 +5105,7 @@ function windowResized() {
   console.log('Sshwifty service initialized');
 
   // Create WebSocket server for chat system
-  const chatWss = new WebSocketServer({
+  chatWss = new WebSocketServer({
     server: httpServer,
     path: '/ws/chat'
   });
