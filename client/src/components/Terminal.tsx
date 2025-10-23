@@ -557,25 +557,6 @@ export function Terminal() {
 
                   </>
                 )}
-                
-                {/* SPACEWAR Game - Available to all users */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={launchSpacewars}
-                      variant="outline"
-                      size="sm"
-                      className="bg-terminal-bg border-terminal-highlight hover:bg-terminal-highlight transition-colors h-auto p-2"
-                      data-testid="button-spacewars"
-                      aria-label="Launch SPACEWAR Game"
-                    >
-                      <img src={invadersIcon} alt="SPACEWAR" className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                    <p>Launch SPACEWAR Game</p>
-                  </TooltipContent>
-                </Tooltip>
               </div>
             </TooltipProvider>
           </div>
