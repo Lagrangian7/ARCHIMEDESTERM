@@ -104,6 +104,17 @@ export function VoiceControls({ onVoiceInput, currentMode, switchMode, switchThe
         </div>
         
         <Button
+          onClick={handleVoiceToggle}
+          variant="outline"
+          size="sm"
+          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+          data-testid="button-voice-toggle"
+          aria-label={isEnabled ? 'Disable Voice' : 'Enable Voice'}
+        >
+          {isEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+        </Button>
+        
+        <Button
           onClick={handleVoiceInput}
           variant="outline"
           size="sm"
