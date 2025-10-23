@@ -427,7 +427,7 @@ export function Terminal() {
           <ScrollArea className="h-full" ref={scrollAreaRef}>
             <div 
               ref={outputRef}
-              className="terminal-output p-4 font-mono text-sm leading-relaxed relative z-10"
+              className="terminal-output p-2 md:p-4 font-mono text-xs md:text-sm leading-relaxed relative z-10"
               data-testid="terminal-output"
             >
               {entries.slice(0, visibleEntries).map((entry) => (
@@ -522,9 +522,10 @@ export function Terminal() {
         </div>
 
         {/* Command Input - Fixed at bottom */}
-        <div className="flex-shrink-0 p-4 border-t border-terminal-subtle bg-terminal-bg relative z-10">
-          <div className="flex items-center space-x-2 relative">
-            <span className="text-terminal-highlight font-semibold">archimedes@terminal:~$</span>
+        <div className="flex-shrink-0 p-2 md:p-4 border-t border-terminal-subtle bg-terminal-bg relative z-10">
+          <div className="flex items-center gap-1 md:gap-2 relative">
+            <span className="text-terminal-highlight font-semibold text-[10px] md:text-sm hidden sm:inline">archimedes@terminal:~$</span>
+            <span className="text-terminal-highlight font-semibold text-xs sm:hidden">$</span>
             <div className="flex-1 relative">
               <input
                 ref={inputRef}
@@ -532,14 +533,14 @@ export function Terminal() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full bg-transparent border-none outline-none text-terminal-text font-mono"
-                placeholder="Enter command or message..."
+                className="w-full bg-transparent border-none outline-none text-terminal-text font-mono text-xs md:text-sm"
+                placeholder="Enter command..."
                 autoComplete="off"
                 spellCheck={false}
                 disabled={isLoading}
                 data-testid="input-command"
               />
-              <span className="cursor-blink absolute text-terminal-text pointer-events-none">
+              <span className="cursor-blink absolute text-terminal-text pointer-events-none text-xs md:text-sm">
                 ▋
               </span>
             </div>
@@ -548,11 +549,11 @@ export function Terminal() {
               onClick={() => setShowHistory(!showHistory)}
               variant="outline"
               size="sm"
-              className="px-2 py-1 border-terminal-subtle hover:bg-terminal-subtle text-xs h-7 bg-transparent text-terminal-text"
+              className="px-1.5 md:px-2 py-1 border-terminal-subtle hover:bg-terminal-subtle text-[10px] md:text-xs h-6 md:h-7 bg-transparent text-terminal-text"
               data-testid="button-history-toggle"
             >
-              <History className="w-3 h-3 mr-1" />
-              HISTORY
+              <History className="w-3 h-3 md:mr-1" />
+              <span className="hidden md:inline">HISTORY</span>
             </Button>
           </div>
         </div>
