@@ -436,7 +436,7 @@ export function Terminal() {
             {/* User Controls */}
             <TooltipProvider>
               <div className="flex items-center space-x-2">
-                {isAuthenticated ? (
+                {isAuthenticated && (
                   <>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -555,42 +555,7 @@ export function Terminal() {
                       </TooltipContent>
                     </Tooltip>
 
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={() => setShowWebamp(true)}
-                          variant="outline"
-                          size="sm"
-                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
-                          data-testid="button-webamp"
-                          aria-label="Webamp Music Player"
-                        >
-                          <CassetteTape size={16} />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                        <p>Webamp Music Player</p>
-                      </TooltipContent>
-                    </Tooltip>
                   </>
-                ) : (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        onClick={() => window.location.href = '/api/login'}
-                        variant="outline"
-                        size="sm"
-                        className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
-                        data-testid="button-login"
-                        aria-label="Log In"
-                      >
-                        <LogIn size={16} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                      <p>Log In</p>
-                    </TooltipContent>
-                  </Tooltip>
                 )}
                 
                 {/* SPACEWAR Game - Available to all users */}
@@ -613,41 +578,19 @@ export function Terminal() {
                 </Tooltip>
               </div>
             </TooltipProvider>
-            
-            {/* Mode Switcher */}
-            <div className="flex items-center space-x-2 px-3 py-1 border border-terminal-subtle rounded">
-              <span className="text-xs">MODE:</span>
-              <Button
-                onClick={() => switchMode(currentMode === 'natural' ? 'technical' : 'natural')}
-                variant="ghost"
-                size="sm"
-                className="text-terminal-highlight hover:text-terminal-text transition-colors font-semibold h-auto p-0 text-xs"
-                data-testid="button-mode-toggle"
-              >
-                {currentMode === 'natural' ? 'NATURAL CHAT' : 'TECHNICAL MODE'}
-              </Button>
-            </div>
-            
-            {/* RGB Theme Switcher */}
-            <div 
-              onClick={switchTheme}
-              className="cursor-pointer p-2 rounded transition-all duration-300 hover:scale-110"
-              data-testid="button-theme-toggle"
-            >
-              <img 
-                src={cubesIcon}
-                alt="Theme Switcher"
-                width="24"
-                height="24"
-                className="rgb-theme-icon"
-              />
-            </div>
           </div>
         </header>
 
         {/* Voice Controls - Fixed below header */}
         <div className="flex-shrink-0">
-          <VoiceControls onVoiceInput={handleVoiceInput} />
+          <VoiceControls 
+            onVoiceInput={handleVoiceInput}
+            currentMode={currentMode}
+            switchMode={switchMode}
+            switchTheme={switchTheme}
+            setShowWebamp={setShowWebamp}
+            user={user}
+          />
         </div>
 
         {/* Terminal Output - Scrollable middle section */}
