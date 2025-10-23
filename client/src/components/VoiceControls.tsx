@@ -319,20 +319,6 @@ export function VoiceControls({
           <CassetteTape size={16} />
         </Button>
 
-        {/* Mode Switcher */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1 border border-terminal-subtle rounded min-h-[44px]">
-          <span className="text-xs">MODE:</span>
-          <Button
-            onClick={() => switchMode(currentMode === 'natural' ? 'technical' : 'natural')}
-            variant="ghost"
-            size="sm"
-            className="text-terminal-highlight hover:text-terminal-text transition-colors font-semibold h-auto p-0 text-xs whitespace-nowrap"
-            data-testid="button-mode-toggle"
-          >
-            {currentMode === 'natural' ? 'NATURAL' : 'TECHNICAL'}
-          </Button>
-        </div>
-
         {/* RGB Theme Switcher */}
         <button
           onClick={switchTheme}
