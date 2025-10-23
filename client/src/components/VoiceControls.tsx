@@ -132,11 +132,11 @@ export function VoiceControls({
           onClick={handleVoiceToggle}
           variant="outline"
           size="sm"
-          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-1.5 md:p-2"
+          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
           data-testid="button-voice-toggle"
           aria-label={isEnabled ? 'Disable Voice' : 'Enable Voice'}
         >
-          {isEnabled ? <Volume2 size={14} className="md:w-4 md:h-4" /> : <VolumeX size={14} className="md:w-4 md:h-4" />}
+          {isEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
         </Button>
         
         <Button
@@ -144,11 +144,11 @@ export function VoiceControls({
           variant="outline"
           size="sm"
           disabled={!isSupported}
-          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-1.5 md:p-2 disabled:opacity-50"
+          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2 disabled:opacity-50"
           data-testid="button-voice-input"
           aria-label={isListening ? 'Stop Listening' : 'Voice Input'}
         >
-          {isListening ? <MicOff size={14} className="md:w-4 md:h-4" /> : <Mic size={14} className="md:w-4 md:h-4" />}
+          {isListening ? <MicOff size={16} /> : <Mic size={16} />}
         </Button>
       </div>
 
@@ -163,11 +163,11 @@ export function VoiceControls({
                     onClick={() => setShowProfile(true)}
                     variant="outline"
                     size="sm"
-                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-1.5 md:p-2"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
                     data-testid="button-user-profile"
                     aria-label="Profile"
                   >
-                    <User size={14} className="md:w-4 md:h-4" />
+                    <User size={16} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
@@ -182,11 +182,11 @@ export function VoiceControls({
                     onClick={() => setShowUpload(true)}
                     variant="outline"
                     size="sm"
-                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-1.5 md:p-2"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
                     data-testid="button-upload"
                     aria-label="Upload"
                   >
-                    <Upload size={14} className="md:w-4 md:h-4" />
+                    <Upload size={16} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
@@ -201,13 +201,13 @@ export function VoiceControls({
                     onClick={() => setShowChat(true)}
                     variant="outline"
                     size="sm"
-                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-1.5 md:p-2 relative"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2 relative"
                     data-testid="button-chat"
                     aria-label="Chat"
                   >
-                    <MessageSquare size={14} className="md:w-4 md:h-4" />
+                    <MessageSquare size={16} />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] md:text-xs rounded-full w-3.5 h-3.5 md:w-4 md:h-4 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
@@ -225,7 +225,7 @@ export function VoiceControls({
                     onClick={toggleRadio}
                     variant="outline"
                     size="sm"
-                    className={`transition-colors h-auto p-1.5 md:p-2 ${
+                    className={`transition-colors min-h-[44px] min-w-[44px] p-2 ${
                       isRadioPlaying 
                         ? 'bg-terminal-highlight border-terminal-highlight text-terminal-bg' 
                         : 'bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg'
@@ -233,7 +233,7 @@ export function VoiceControls({
                     data-testid="button-radio"
                     aria-label={isRadioPlaying ? 'Stop Radio' : 'Radio'}
                   >
-                    <Radio size={14} className="md:w-4 md:h-4" />
+                    <Radio size={16} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
@@ -248,11 +248,11 @@ export function VoiceControls({
                     onClick={() => setShowSshwifty(true)}
                     variant="outline"
                     size="sm"
-                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-1.5 md:p-2"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
                     data-testid="button-sshwifty"
                     aria-label="SSH/Telnet"
                   >
-                    <TerminalIcon size={14} className="md:w-4 md:h-4" />
+                    <TerminalIcon size={16} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
@@ -267,11 +267,11 @@ export function VoiceControls({
                     onClick={() => setShowPrivacyEncoder(true)}
                     variant="outline"
                     size="sm"
-                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-1.5 md:p-2"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
                     data-testid="button-privacy"
                     aria-label="Privacy"
                   >
-                    <Shield size={14} className="md:w-4 md:h-4" />
+                    <Shield size={16} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
@@ -288,22 +288,22 @@ export function VoiceControls({
             onClick={() => window.location.href = '/api/logout'}
             variant="outline"
             size="sm"
-            className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-1.5 md:p-2"
+            className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
             data-testid="button-logout"
             aria-label="Log Out"
           >
-            <LogOut size={14} className="md:w-4 md:h-4" />
+            <LogOut size={16} />
           </Button>
         ) : (
           <Button
             onClick={() => window.location.href = '/api/login'}
             variant="outline"
             size="sm"
-            className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-1.5 md:p-2"
+            className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
             data-testid="button-login"
             aria-label="Log In"
           >
-            <LogIn size={14} className="md:w-4 md:h-4" />
+            <LogIn size={16} />
           </Button>
         )}
 
@@ -312,21 +312,21 @@ export function VoiceControls({
           onClick={() => setShowWebamp(true)}
           variant="outline"
           size="sm"
-          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-1.5 md:p-2"
+          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
           data-testid="button-webamp"
           aria-label="Webamp Music Player"
         >
-          <CassetteTape size={14} className="md:w-4 md:h-4" />
+          <CassetteTape size={16} />
         </Button>
 
         {/* Mode Switcher */}
-        <div className="hidden md:flex items-center gap-2 px-2 md:px-3 py-1 border border-terminal-subtle rounded">
-          <span className="text-[10px] md:text-xs">MODE:</span>
+        <div className="hidden md:flex items-center gap-2 px-3 py-1 border border-terminal-subtle rounded min-h-[44px]">
+          <span className="text-xs">MODE:</span>
           <Button
             onClick={() => switchMode(currentMode === 'natural' ? 'technical' : 'natural')}
             variant="ghost"
             size="sm"
-            className="text-terminal-highlight hover:text-terminal-text transition-colors font-semibold h-auto p-0 text-[10px] md:text-xs whitespace-nowrap"
+            className="text-terminal-highlight hover:text-terminal-text transition-colors font-semibold h-auto p-0 text-xs whitespace-nowrap"
             data-testid="button-mode-toggle"
           >
             {currentMode === 'natural' ? 'NATURAL' : 'TECHNICAL'}
@@ -334,19 +334,20 @@ export function VoiceControls({
         </div>
 
         {/* RGB Theme Switcher */}
-        <div 
+        <button
           onClick={switchTheme}
-          className="cursor-pointer p-1.5 md:p-2 rounded transition-all duration-300 hover:scale-110"
+          className="cursor-pointer p-2 rounded transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px] flex items-center justify-center bg-transparent border-none"
           data-testid="button-theme-toggle"
+          aria-label="Switch Theme"
         >
           <img 
             src={cubesIcon}
             alt="Theme Switcher"
-            width="18"
-            height="18"
-            className="rgb-theme-icon md:w-6 md:h-6"
+            width="24"
+            height="24"
+            className="rgb-theme-icon"
           />
-        </div>
+        </button>
       </div>
     </div>
   );

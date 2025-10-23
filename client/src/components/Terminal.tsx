@@ -549,10 +549,10 @@ export function Terminal() {
               onClick={() => setShowHistory(!showHistory)}
               variant="outline"
               size="sm"
-              className="px-1.5 md:px-2 py-1 border-terminal-subtle hover:bg-terminal-subtle text-[10px] md:text-xs h-6 md:h-7 bg-transparent text-terminal-text"
+              className="px-2 border-terminal-subtle hover:bg-terminal-subtle text-xs bg-transparent text-terminal-text min-h-[44px] flex items-center gap-1"
               data-testid="button-history-toggle"
             >
-              <History className="w-3 h-3 md:mr-1" />
+              <History className="w-4 h-4" />
               <span className="hidden md:inline">HISTORY</span>
             </Button>
           </div>
