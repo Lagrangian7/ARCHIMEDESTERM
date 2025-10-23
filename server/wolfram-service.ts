@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const WOLFRAM_API_BASE = 'http://api.wolframalpha.com/v2/query';
+const WOLFRAM_API_BASE = 'https://api.wolframalpha.com/v2/query';
 const APP_ID = process.env.WOLFRAM_ALPHA_APP_ID;
 
 export interface WolframResult {
