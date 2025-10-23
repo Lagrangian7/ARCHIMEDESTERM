@@ -932,3 +932,42 @@
 #webamp-container > * {
   pointer-events: auto;
 }
+
+/* Mobile Touch Optimizations */
+@media (max-width: 768px) {
+  /* Ensure touch targets are at least 44x44px (Apple/Google guidelines) */
+  button, a, input[type="button"], input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve scrolling on mobile */
+  .terminal-output, [class*="ScrollArea"] {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent text selection during touch interactions */
+  .voice-controls button,
+  .terminal-controls button {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  
+  /* Larger tap targets for terminal input */
+  input[data-testid="input-command"] {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Touch-friendly spacing for all screen sizes */
+@media (hover: none) and (pointer: coarse) {
+  /* Devices without hover capability (touch screens) */
+  button {
+    padding: 0.5rem;
+  }
+  
+  /* Better spacing for touch interactions */
+  .flex.items-center.gap-1 {
+    gap: 0.5rem;
+  }
+}
