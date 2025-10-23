@@ -81,50 +81,6 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
     <div className="voice-controls p-3 border-b border-terminal-subtle flex items-center justify-between text-sm relative z-10">
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
-          <span className="text-terminal-highlight">VOICE:</span>
-          <Select 
-            value={selectedVoice.toString()} 
-            onValueChange={(value) => {
-              const newVoice = parseInt(value);
-              console.log('Voice selector changed:', { from: selectedVoice, to: newVoice, voiceName: voices[newVoice]?.name });
-              setSelectedVoice(newVoice);
-            }}
-            disabled={!voicesLoaded}
-          >
-            <SelectTrigger 
-              className="w-40 bg-terminal-bg border-terminal-subtle text-terminal-text text-xs h-7 disabled:opacity-50"
-              data-testid="voice-select"
-            >
-              <SelectValue placeholder={voicesLoaded ? "Select voice..." : "Loading voices..."} />
-            </SelectTrigger>
-            <SelectContent className="bg-terminal-bg border-terminal-subtle text-terminal-text">
-              {voices.map((voice, index) => (
-                <SelectItem 
-                  key={index} 
-                  value={index.toString()}
-                  className="text-terminal-text hover:bg-terminal-subtle"
-                >
-                  {voice.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {!voicesLoaded && (
-            <span className="text-xs text-terminal-subtle">Loading...</span>
-          )}
-          <Button
-            onClick={handleVoiceTest}
-            variant="outline"
-            size="sm"
-            disabled={!voicesLoaded || !isEnabled}
-            className="px-2 py-1 border-terminal-subtle hover:bg-terminal-subtle text-xs h-7 bg-transparent text-terminal-text disabled:opacity-50"
-            data-testid="button-voice-test"
-          >
-            TEST
-          </Button>
-        </div>
-        
-        <div className="flex items-center space-x-2">
           <span className="text-terminal-highlight">SPEED:</span>
           <Slider
             value={[speechRate]}
