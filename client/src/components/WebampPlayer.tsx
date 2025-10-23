@@ -1,5 +1,9 @@
 import { useEffect, useRef } from 'react';
 import Webamp from 'webamp/butterchurn';
+import nDimensionsTheme from '@assets/n-Dimensions (Main Theme)_1758647261911.mp3';
+import fortressTrack from '@assets/fortress_1759293202674.mp3';
+import modeTrack from '@assets/mode_1759293195149.mp3';
+import serpentTrack from '@assets/serpent_1759431415420.mp3';
 
 interface WebampPlayerProps {
   isOpen: boolean;
@@ -46,11 +50,39 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
           initialTracks: [
             {
               metaData: {
-                artist: "SOMA_FM",
-                title: "ice6.somafm.com/live-128-mp3"
+                artist: "SOMA FM",
+                title: "Groove Salad - Live Stream"
               },
               url: "https://ice6.somafm.com/live-128-mp3",
               duration: 240
+            },
+            {
+              metaData: {
+                artist: "SPACEWAR",
+                title: "n-Dimensions (Main Theme)"
+              },
+              url: nDimensionsTheme
+            },
+            {
+              metaData: {
+                artist: "SPACEWAR",
+                title: "Fortress"
+              },
+              url: fortressTrack
+            },
+            {
+              metaData: {
+                artist: "SPACEWAR",
+                title: "Mode"
+              },
+              url: modeTrack
+            },
+            {
+              metaData: {
+                artist: "SPACEWAR",
+                title: "Serpent"
+              },
+              url: serpentTrack
             }
           ],
           
