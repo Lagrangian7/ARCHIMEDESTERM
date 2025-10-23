@@ -971,3 +971,11 @@
     gap: 0.5rem;
   }
 }
+
+/* Terminal grid background - uses theme colors */
+.terminal-grid {
+  background-image: 
+    linear-gradient(to right, rgba(var(--terminal-subtle-rgb), 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(var(--terminal-subtle-rgb), 0.12) 1px, transparent 1px);
+  background-size: 20px 20px;
+}

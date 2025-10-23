@@ -138,16 +138,7 @@ export function MatrixRain() {
   return (
     <div className="fixed inset-0 pointer-events-none z-[0] overflow-hidden">
       {/* Grid background */}
-      <div 
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, rgba(var(--terminal-subtle-rgb), 0.08) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(var(--terminal-subtle-rgb), 0.08) 1px, transparent 1px)
-          `,
-          backgroundSize: '20px 20px'
-        }}
-      />
+      <div className="absolute inset-0 terminal-grid" />
       
       {/* Droplet container */}
       <div ref={containerRef} className="absolute" />
