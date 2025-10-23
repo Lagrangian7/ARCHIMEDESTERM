@@ -142,8 +142,8 @@ export function MatrixRain() {
         className="absolute inset-0"
         style={{
           backgroundImage: `
-            linear-gradient(to right, rgba(0, 255, 65, 0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(0, 255, 65, 0.05) 1px, transparent 1px)
+            linear-gradient(to right, rgba(var(--terminal-subtle-rgb), 0.08) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(var(--terminal-subtle-rgb), 0.08) 1px, transparent 1px)
           `,
           backgroundSize: '20px 20px'
         }}
