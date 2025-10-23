@@ -1,10 +1,11 @@
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Radio, Terminal as TerminalIcon, Shield } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from '@/components/Terminal';
 
@@ -16,9 +17,33 @@ interface VoiceControlsProps {
   setShowWebamp: (show: boolean) => void;
   user: any;
   isAuthenticated: boolean;
+  setShowProfile: (show: boolean) => void;
+  setShowUpload: (show: boolean) => void;
+  setShowChat: (show: boolean) => void;
+  toggleRadio: () => void;
+  isRadioPlaying: boolean;
+  setShowSshwifty: (show: boolean) => void;
+  setShowPrivacyEncoder: (show: boolean) => void;
+  unreadCount: number;
 }
 
-export function VoiceControls({ onVoiceInput, currentMode, switchMode, switchTheme, setShowWebamp, user, isAuthenticated }: VoiceControlsProps) {
+export function VoiceControls({ 
+  onVoiceInput, 
+  currentMode, 
+  switchMode, 
+  switchTheme, 
+  setShowWebamp, 
+  user, 
+  isAuthenticated,
+  setShowProfile,
+  setShowUpload,
+  setShowChat,
+  toggleRadio,
+  isRadioPlaying,
+  setShowSshwifty,
+  setShowPrivacyEncoder,
+  unreadCount
+}: VoiceControlsProps) {
   const { toast } = useToast();
   const {
     voices,
@@ -128,6 +153,135 @@ export function VoiceControls({ onVoiceInput, currentMode, switchMode, switchThe
       </div>
 
       <div className="flex items-center space-x-3">
+        <TooltipProvider>
+          {isAuthenticated && (
+            <>
+              {/* Profile Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowProfile(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+                    data-testid="button-user-profile"
+                    aria-label="Profile"
+                  >
+                    <User size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <p>Profile</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Upload Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowUpload(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+                    data-testid="button-upload"
+                    aria-label="Upload"
+                  >
+                    <Upload size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <p>Upload</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Chat Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowChat(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2 relative"
+                    data-testid="button-chat"
+                    aria-label="Chat"
+                  >
+                    <MessageSquare size={16} />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <p>Chat</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Radio Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={toggleRadio}
+                    variant="outline"
+                    size="sm"
+                    className={`transition-colors h-auto p-2 ${
+                      isRadioPlaying 
+                        ? 'bg-terminal-highlight border-terminal-highlight text-terminal-bg' 
+                        : 'bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg'
+                    }`}
+                    data-testid="button-radio"
+                    aria-label={isRadioPlaying ? 'Stop Radio' : 'Radio'}
+                  >
+                    <Radio size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <p>{isRadioPlaying ? 'Stop Radio' : 'Radio'}</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* SSH/Telnet Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowSshwifty(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+                    data-testid="button-sshwifty"
+                    aria-label="SSH/Telnet"
+                  >
+                    <TerminalIcon size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <p>SSH/Telnet</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Privacy Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowPrivacyEncoder(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+                    data-testid="button-privacy"
+                    aria-label="Privacy"
+                  >
+                    <Shield size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <p>Privacy</p>
+                </TooltipContent>
+              </Tooltip>
+            </>
+          )}
+        </TooltipProvider>
+
         {/* Power/Login Button */}
         {user ? (
           <Button

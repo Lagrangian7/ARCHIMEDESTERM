@@ -400,140 +400,8 @@ export function Terminal() {
       <div className={`terminal-container flex flex-col h-full relative z-0`}>
         {/* Matrix Rain Background Effect */}
         <MatrixRain />
-        
-        {/* Header - Fixed at top */}
-        <header className="flex-shrink-0 flex items-center justify-end p-4 border-b border-terminal-subtle bg-terminal-bg relative z-10">
-          <div className="flex items-center space-x-3">
-            {/* User Controls */}
-            <TooltipProvider>
-              <div className="flex items-center space-x-2">
-                {isAuthenticated && (
-                  <>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={() => setShowProfile(true)}
-                          variant="outline"
-                          size="sm"
-                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
-                          data-testid="button-user-profile"
-                          aria-label="Profile"
-                        >
-                          <User size={16} />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                        <p>Profile</p>
-                      </TooltipContent>
-                    </Tooltip>
 
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={() => setShowUpload(true)}
-                          variant="outline"
-                          size="sm"
-                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
-                          data-testid="button-upload"
-                          aria-label="Upload"
-                        >
-                          <Upload size={16} />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                        <p>Upload</p>
-                      </TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={() => setShowChat(true)}
-                          variant="outline"
-                          size="sm"
-                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2 relative"
-                          data-testid="button-chat"
-                          aria-label="Chat"
-                        >
-                          <MessageSquare size={16} />
-                          {unreadCount > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                              {unreadCount > 9 ? '9+' : unreadCount}
-                            </span>
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                        <p>Chat</p>
-                      </TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={toggleRadio}
-                          variant="outline"
-                          size="sm"
-                          className={`transition-colors h-auto p-2 ${
-                            isRadioPlaying 
-                              ? 'bg-terminal-highlight border-terminal-highlight text-terminal-bg' 
-                              : 'bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg'
-                          }`}
-                          data-testid="button-radio"
-                          aria-label={isRadioPlaying ? 'Stop Radio' : 'Radio'}
-                        >
-                          <Radio size={16} />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                        <p>{isRadioPlaying ? 'Stop Radio' : 'Radio'}</p>
-                      </TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={() => setShowSshwifty(true)}
-                          variant="outline"
-                          size="sm"
-                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
-                          data-testid="button-sshwifty"
-                          aria-label="SSH/Telnet"
-                        >
-                          <TerminalIcon size={16} />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                        <p>SSH/Telnet</p>
-                      </TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={() => setShowPrivacyEncoder(true)}
-                          variant="outline"
-                          size="sm"
-                          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
-                          data-testid="button-privacy"
-                          aria-label="Privacy"
-                        >
-                          <Shield size={16} />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                        <p>Privacy</p>
-                      </TooltipContent>
-                    </Tooltip>
-
-                  </>
-                )}
-              </div>
-            </TooltipProvider>
-          </div>
-        </header>
-
-        {/* Voice Controls - Fixed below header */}
+        {/* Voice Controls - Fixed at top */}
         <div className="flex-shrink-0">
           <VoiceControls 
             onVoiceInput={handleVoiceInput}
@@ -543,6 +411,14 @@ export function Terminal() {
             setShowWebamp={setShowWebamp}
             user={user}
             isAuthenticated={isAuthenticated}
+            setShowProfile={setShowProfile}
+            setShowUpload={setShowUpload}
+            setShowChat={setShowChat}
+            toggleRadio={toggleRadio}
+            isRadioPlaying={isRadioPlaying}
+            setShowSshwifty={setShowSshwifty}
+            setShowPrivacyEncoder={setShowPrivacyEncoder}
+            unreadCount={unreadCount}
           />
         </div>
 
