@@ -433,7 +433,7 @@ export function Terminal() {
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
               backgroundSize: 'contain',
-              opacity: 0.08,
+              opacity: 0.18,
               maxWidth: '600px',
               margin: '0 auto',
             }}
