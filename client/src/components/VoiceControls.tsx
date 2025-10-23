@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import cubesIcon from '@assets/cubes_1758504853239.png';
+import { LogoIcon } from '@/components/Terminal';
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
@@ -14,9 +15,10 @@ interface VoiceControlsProps {
   switchTheme: () => void;
   setShowWebamp: (show: boolean) => void;
   user: any;
+  isAuthenticated: boolean;
 }
 
-export function VoiceControls({ onVoiceInput, currentMode, switchMode, switchTheme, setShowWebamp, user }: VoiceControlsProps) {
+export function VoiceControls({ onVoiceInput, currentMode, switchMode, switchTheme, setShowWebamp, user, isAuthenticated }: VoiceControlsProps) {
   const { toast } = useToast();
   const {
     voices,
@@ -85,12 +87,27 @@ export function VoiceControls({ onVoiceInput, currentMode, switchMode, switchThe
 
   return (
     <div className="voice-controls p-3 border-b border-terminal-subtle flex items-center justify-between text-sm relative z-10">
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-4">
+        <LogoIcon />
+        <div>
+          <h1 className="font-bold terminal-text terminal-glow text-[15px]" data-testid="text-title">
+            ARCHIMEDES <span className="text-[10px]">v7</span>
+          </h1>
+          <div className="text-sm text-white">
+            アルキメデス
+            {user && (
+              <span className="ml-2 text-green-300">
+                | {user.firstName || user.email?.split('@')[0] || 'User'}
+              </span>
+            )}
+          </div>
+        </div>
+
         <Button
           onClick={handleVoiceToggle}
           variant="outline"
           size="sm"
-          className="px-3 py-1 border-terminal-subtle hover:bg-terminal-subtle text-xs h-7 bg-transparent text-terminal-text"
+          className="px-3 py-1 border-terminal-subtle hover:bg-terminal-subtle text-xs h-7 bg-transparent text-terminal-text ml-4"
           data-testid="button-voice-toggle"
         >
           {isEnabled ? <Volume2 className="w-3 h-3 mr-1" /> : <VolumeX className="w-3 h-3 mr-1" />}

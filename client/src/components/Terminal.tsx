@@ -37,7 +37,7 @@ import invadersIcon from '@assets/invaders_1758659503566.png';
 import archyLogo from '@assets/archy111_1760233943010.jpeg';
 
 // Logo Component
-const LogoIcon = () => (
+export const LogoIcon = () => (
   <img 
     src={logoImage} 
     alt="ARCHIMEDES Logo" 
@@ -414,24 +414,7 @@ export function Terminal() {
         <MatrixRain />
         
         {/* Header - Fixed at top */}
-        <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-terminal-subtle bg-terminal-bg relative z-10">
-          <div className="flex items-center space-x-4">
-            <LogoIcon />
-            <div>
-              <h1 className="font-bold terminal-text terminal-glow text-[15px]" data-testid="text-title">
-                ARCHIMEDES <span className="text-[10px]">v7</span>
-              </h1>
-              <div className="text-sm text-white">
-                アルキメデス
-                {user && (
-                  <span className="ml-2 text-green-300">
-                    | {user.firstName || user.email?.split('@')[0] || 'User'}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-          
+        <header className="flex-shrink-0 flex items-center justify-end p-4 border-b border-terminal-subtle bg-terminal-bg relative z-10">
           <div className="flex items-center space-x-3">
             {/* User Controls */}
             <TooltipProvider>
@@ -571,6 +554,7 @@ export function Terminal() {
             switchTheme={switchTheme}
             setShowWebamp={setShowWebamp}
             user={user}
+            isAuthenticated={isAuthenticated}
           />
         </div>
 
