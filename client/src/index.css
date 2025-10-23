@@ -238,10 +238,6 @@
   body {
     @apply font-mono antialiased;
     background: var(--terminal-bg);
-    background-image: radial-gradient(
-      color-mix(in srgb, var(--terminal-text) 75%, transparent),
-      var(--terminal-bg) 120%
-    );
     color: var(--terminal-text);
     overflow: hidden;
     text-shadow: 0 0 2px currentColor;
