@@ -561,13 +561,13 @@ export function Terminal() {
       
       {/* Modal Overlays */}
       {showProfile && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
           <UserProfile onClose={() => setShowProfile(false)} />
         </div>
       )}
       
       {showConversationHistory && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
           <ConversationHistory 
             onClose={() => setShowConversationHistory(false)}
             onLoadConversation={loadConversation}
@@ -576,19 +576,20 @@ export function Terminal() {
       )}
 
       {showUpload && isAuthenticated && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="border rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto" style={{
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
+          <div className="border rounded-lg p-3 md:p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto" style={{
             backgroundColor: 'var(--terminal-bg)',
             borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)'
           }}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
+            <div className="flex justify-between items-center mb-3 md:mb-6">
+              <h2 className="text-sm md:text-xl font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
                 Knowledge Base Manager
               </h2>
               <Button
                 onClick={() => setShowUpload(false)}
                 variant="ghost"
                 size="sm"
+                className="text-xl md:text-2xl"
                 style={{ color: 'var(--terminal-text)' }}
                 data-testid="close-upload-modal"
               >
@@ -597,11 +598,12 @@ export function Terminal() {
             </div>
             
             {/* Tab Navigation */}
-            <div className="flex space-x-2 mb-6 border-b" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)' }}>
+            <div className="flex gap-1 md:gap-2 mb-3 md:mb-6 border-b" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)' }}>
               <Button
                 onClick={() => setUploadTab('list')}
                 variant={uploadTab === 'list' ? 'default' : 'ghost'}
                 size="sm"
+                className="text-xs md:text-sm"
                 style={uploadTab === 'list' 
                   ? { 
                       backgroundColor: 'var(--terminal-highlight)', 
@@ -616,12 +618,14 @@ export function Terminal() {
                 }
                 data-testid="tab-documents-list"
               >
-                📂 My Documents
+                <span className="hidden sm:inline">📂 My Documents</span>
+                <span className="sm:hidden">📂 Docs</span>
               </Button>
               <Button
                 onClick={() => setUploadTab('upload')}
                 variant={uploadTab === 'upload' ? 'default' : 'ghost'}
                 size="sm"
+                className="text-xs md:text-sm"
                 style={uploadTab === 'upload' 
                   ? { 
                       backgroundColor: 'var(--terminal-highlight)', 
@@ -636,7 +640,8 @@ export function Terminal() {
                 }
                 data-testid="tab-upload-documents"
               >
-                ⬆️ Upload New
+                <span className="hidden sm:inline">⬆️ Upload New</span>
+                <span className="sm:hidden">⬆️ Upload</span>
               </Button>
             </div>
             
