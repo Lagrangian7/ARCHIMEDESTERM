@@ -30,7 +30,7 @@ export const users = pgTable("users", {
 export const userPreferences = pgTable("user_preferences", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull(),
-  defaultMode: text("default_mode").notNull().default("natural"), // "natural" | "technical"
+  defaultMode: text("default_mode").notNull().default("natural"), // "natural" | "technical" | "wellness"
   voiceEnabled: boolean("voice_enabled").notNull().default(false),
   selectedVoice: text("selected_voice").default("default"),
   voiceRate: text("voice_rate").default("1"),
@@ -44,7 +44,7 @@ export const conversations = pgTable("conversations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id"), // Optional for anonymous sessions
   sessionId: text("session_id").notNull(),
-  mode: text("mode").notNull().default("natural"), // "natural" | "technical"
+  mode: text("mode").notNull().default("natural"), // "natural" | "technical" | "wellness"
   title: text("title"), // Auto-generated conversation title
   messages: jsonb("messages").notNull().default([]),
   createdAt: timestamp("created_at").defaultNow(),
@@ -100,7 +100,7 @@ export const messageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
   content: z.string(),
   timestamp: z.string(),
-  mode: z.enum(["natural", "technical"]),
+  mode: z.enum(["natural", "technical", "wellness"]),
 });
 
 // Type exports
