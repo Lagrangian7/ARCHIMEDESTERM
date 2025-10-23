@@ -4,7 +4,7 @@ import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Settings, LogOut, Brain, Volume2, Palette } from "lucide-react";
+import { User, Settings, LogOut, Brain, Volume2 } from "lucide-react";
 
 interface UserProfileProps {
   onClose: () => void;
@@ -189,30 +189,6 @@ export function UserProfile({ onClose }: UserProfileProps) {
                 >
                   {preferences.voiceEnabled ? "Voice On" : "Voice Off"}
                 </Button>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-2" style={{ color: 'var(--terminal-text)' }}>
-                <Palette size={16} />
-                <h4 className="font-semibold">Terminal Theme</h4>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {["classic", "neon", "minimal"].map((theme) => (
-                  <Button
-                    key={theme}
-                    onClick={() => handlePreferenceUpdate({ terminalTheme: theme })}
-                    variant={preferences.terminalTheme === theme ? "default" : "outline"}
-                    size="sm"
-                    style={preferences.terminalTheme === theme
-                      ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
-                      : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
-                    }
-                    disabled={isUpdating}
-                  >
-                    {theme.charAt(0).toUpperCase() + theme.slice(1)}
-                  </Button>
-                ))}
               </div>
             </div>
           </div>
