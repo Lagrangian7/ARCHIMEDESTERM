@@ -668,16 +668,6 @@ You can also chat naturally or ask technical questions.`);
       return;
     }
     
-    if (cmd === 'mode') {
-      const newMode = args.toLowerCase();
-      if (newMode === 'natural' || newMode === 'technical') {
-        switchMode(newMode);
-      } else {
-        addEntry('error', 'Invalid mode. Usage: mode [natural|technical]');
-      }
-      return;
-    }
-    
     if (cmd === 'privacy') {
       addEntry('system', 'Privacy screen activated! Matrix rain overlay is now protecting your screen. Type "QWERTY" to unlock and return to normal view.');
       

@@ -35,6 +35,7 @@ import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
 import archyLogo from '@assets/archy111_1760233943010.jpeg';
+import watermarkImage from '@assets/archi watermark_1761255886679.png';
 
 // Logo Component
 export const LogoIcon = () => (
@@ -424,6 +425,19 @@ export function Terminal() {
 
         {/* Terminal Output - Scrollable middle section */}
         <div className="flex-1 min-h-0 relative">
+          {/* Watermark Background */}
+          <div 
+            className="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
+            style={{
+              backgroundImage: `url(${watermarkImage})`,
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: 'contain',
+              opacity: 0.08,
+              maxWidth: '600px',
+              margin: '0 auto',
+            }}
+          />
           <ScrollArea className="h-full" ref={scrollAreaRef}>
             <div 
               ref={outputRef}
