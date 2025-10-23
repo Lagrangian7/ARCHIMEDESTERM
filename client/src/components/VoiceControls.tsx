@@ -1,16 +1,22 @@
-import { Volume2, VolumeX, Mic, MicOff } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
+import cubesIcon from '@assets/cubes_1758504853239.png';
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
+  currentMode: 'natural' | 'technical';
+  switchMode: (mode: 'natural' | 'technical') => void;
+  switchTheme: () => void;
+  setShowWebamp: (show: boolean) => void;
+  user: any;
 }
 
-export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
+export function VoiceControls({ onVoiceInput, currentMode, switchMode, switchTheme, setShowWebamp, user }: VoiceControlsProps) {
   const { toast } = useToast();
   const {
     voices,
@@ -102,6 +108,74 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
           {isListening ? <MicOff className="w-3 h-3 mr-1" /> : <Mic className="w-3 h-3 mr-1" />}
           {isListening ? 'LISTENING...' : 'LISTEN'}
         </Button>
+      </div>
+
+      <div className="flex items-center space-x-3">
+        {/* Power/Login Button */}
+        {user ? (
+          <Button
+            onClick={() => window.location.href = '/api/logout'}
+            variant="outline"
+            size="sm"
+            className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+            data-testid="button-logout"
+            aria-label="Log Out"
+          >
+            <LogOut size={16} />
+          </Button>
+        ) : (
+          <Button
+            onClick={() => window.location.href = '/api/login'}
+            variant="outline"
+            size="sm"
+            className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+            data-testid="button-login"
+            aria-label="Log In"
+          >
+            <LogIn size={16} />
+          </Button>
+        )}
+
+        {/* Cassette Tape (Webamp) */}
+        <Button
+          onClick={() => setShowWebamp(true)}
+          variant="outline"
+          size="sm"
+          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2"
+          data-testid="button-webamp"
+          aria-label="Webamp Music Player"
+        >
+          <CassetteTape size={16} />
+        </Button>
+
+        {/* Mode Switcher */}
+        <div className="flex items-center space-x-2 px-3 py-1 border border-terminal-subtle rounded">
+          <span className="text-xs">MODE:</span>
+          <Button
+            onClick={() => switchMode(currentMode === 'natural' ? 'technical' : 'natural')}
+            variant="ghost"
+            size="sm"
+            className="text-terminal-highlight hover:text-terminal-text transition-colors font-semibold h-auto p-0 text-xs"
+            data-testid="button-mode-toggle"
+          >
+            {currentMode === 'natural' ? 'NATURAL CHAT' : 'TECHNICAL MODE'}
+          </Button>
+        </div>
+
+        {/* RGB Theme Switcher */}
+        <div 
+          onClick={switchTheme}
+          className="cursor-pointer p-2 rounded transition-all duration-300 hover:scale-110"
+          data-testid="button-theme-toggle"
+        >
+          <img 
+            src={cubesIcon}
+            alt="Theme Switcher"
+            width="24"
+            height="24"
+            className="rgb-theme-icon"
+          />
+        </div>
       </div>
     </div>
   );
