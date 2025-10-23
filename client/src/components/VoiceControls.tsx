@@ -79,24 +79,6 @@ export function VoiceControls({ onVoiceInput }: VoiceControlsProps) {
 
   return (
     <div className="voice-controls p-3 border-b border-terminal-subtle flex items-center justify-between text-sm relative z-10">
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2">
-          <span className="text-terminal-highlight">SPEED:</span>
-          <Slider
-            value={[speechRate]}
-            onValueChange={handleRateChange}
-            min={0.5}
-            max={2}
-            step={0.1}
-            className="w-16"
-            data-testid="speech-rate-slider"
-          />
-          <span className="text-xs w-8 text-center text-terminal-text">
-            {speechRate.toFixed(1)}
-          </span>
-        </div>
-      </div>
-      
       <div className="flex items-center space-x-2">
         <Button
           onClick={handleVoiceToggle}
