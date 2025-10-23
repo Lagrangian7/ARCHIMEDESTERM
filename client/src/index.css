@@ -979,3 +979,40 @@
     linear-gradient(to bottom, rgba(var(--terminal-subtle-rgb), 0.3) 1px, transparent 1px);
   background-size: 20px 20px;
 }
+
+/* Terminal watermark theme colorization */
+.terminal-watermark {
+  filter: brightness(0) saturate(100%);
+}
+
+.theme-green .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(86%) sepia(57%) saturate(3430%) hue-rotate(59deg) brightness(106%) contrast(101%);
+}
+
+.theme-blue .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(70%) sepia(98%) saturate(1523%) hue-rotate(169deg) brightness(102%) contrast(101%);
+}
+
+.theme-orange .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(71%) sepia(97%) saturate(1265%) hue-rotate(346deg) brightness(104%) contrast(101%);
+}
+
+.theme-red .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(56%) sepia(91%) saturate(4838%) hue-rotate(337deg) brightness(102%) contrast(101%);
+}
+
+.theme-blackwhite .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+}
+
+.theme-greyscale .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(90%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%) contrast(90%);
+}
+
+.theme-patriot .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(53%) sepia(80%) saturate(3221%) hue-rotate(334deg) brightness(98%) contrast(89%);
+}
+
+.theme-solarized .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(52%) sepia(85%) saturate(3520%) hue-rotate(6deg) brightness(103%) contrast(101%);
+}

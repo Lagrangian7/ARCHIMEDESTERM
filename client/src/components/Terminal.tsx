@@ -427,7 +427,7 @@ export function Terminal() {
         <div className="flex-1 min-h-0 relative">
           {/* Watermark Background */}
           <div 
-            className="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
+            className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 terminal-watermark"
             style={{
               backgroundImage: `url(${watermarkImage})`,
               backgroundPosition: 'center',
