@@ -108,11 +108,11 @@ export function VoiceControls({ onVoiceInput, currentMode, switchMode, switchThe
           variant="outline"
           size="sm"
           disabled={!isSupported}
-          className="px-3 py-1 border-terminal-subtle hover:bg-terminal-subtle text-xs h-7 bg-transparent text-terminal-text disabled:opacity-50"
+          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-auto p-2 disabled:opacity-50"
           data-testid="button-voice-input"
+          aria-label={isListening ? 'Stop Listening' : 'Voice Input'}
         >
-          {isListening ? <MicOff className="w-3 h-3 mr-1" /> : <Mic className="w-3 h-3 mr-1" />}
-          {isListening ? 'LISTENING...' : 'LISTEN'}
+          {isListening ? <MicOff size={16} /> : <Mic size={16} />}
         </Button>
       </div>
 
