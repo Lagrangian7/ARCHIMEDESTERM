@@ -772,6 +772,14 @@ You can also chat naturally or ask technical questions.`);
       return;
     }
     
+    if (cmd === 'mode') {
+      // Toggle between natural and technical
+      const newMode = currentMode === 'natural' ? 'technical' : 'natural';
+      setCurrentMode(newMode);
+      addEntry('system', `Mode switched to: ${newMode.toUpperCase()}`);
+      return;
+    }
+    
     if (cmd.startsWith('mode ')) {
       const newMode = cmd.split(' ')[1] as 'natural' | 'technical';
       if (newMode === 'natural' || newMode === 'technical') {
