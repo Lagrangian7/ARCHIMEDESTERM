@@ -102,17 +102,6 @@ export function VoiceControls({ onVoiceInput, currentMode, switchMode, switchThe
             )}
           </div>
         </div>
-
-        <Button
-          onClick={handleVoiceToggle}
-          variant="outline"
-          size="sm"
-          className="px-3 py-1 border-terminal-subtle hover:bg-terminal-subtle text-xs h-7 bg-transparent text-terminal-text ml-4"
-          data-testid="button-voice-toggle"
-        >
-          {isEnabled ? <Volume2 className="w-3 h-3 mr-1" /> : <VolumeX className="w-3 h-3 mr-1" />}
-          {isEnabled ? 'ON' : 'OFF'}
-        </Button>
         
         <Button
           onClick={handleVoiceInput}
