@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, ArrowRight, Terminal as TerminalIcon, Radio, Book, TrendingUp, Wifi, Gamepad2, Upload, Mic } from 'lucide-react';
+import { X, ArrowRight, Terminal as TerminalIcon, Radio, Book, TrendingUp, Wifi, Gamepad2, Upload, Mic, MessageSquare } from 'lucide-react';
 
 interface HelpMenuItem {
   id: string;
@@ -696,18 +696,18 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
     if (selectedItemRef.current && scrollContainerRef.current) {
       const container = scrollContainerRef.current;
       const item = selectedItemRef.current;
-      
+
       const containerRect = container.getBoundingClientRect();
       const itemRect = item.getBoundingClientRect();
-      
+
       const isItemVisible = 
         itemRect.top >= containerRect.top && 
         itemRect.bottom <= containerRect.bottom;
-      
+
       if (!isItemVisible) {
         const scrollOffset = itemRect.top - containerRect.top - container.scrollTop;
         const targetScrollTop = container.scrollTop + scrollOffset - 100; // 100px padding from top
-        
+
         container.scrollTo({
           top: Math.max(0, targetScrollTop),
           behavior: 'smooth'
