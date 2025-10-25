@@ -19,13 +19,13 @@ export function useSpeechSynthesis() {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isEnabled, setIsEnabled] = useState(true);
   const [selectedVoice, setSelectedVoice] = useState<number>(1); // Always HAL 9000
-  const [speechRate, setSpeechRate] = useState(0.9); // Slower speaking speed
+  const [speechRate, setSpeechRate] = useState(1.1); // Slightly faster speaking speed
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
-  
+
   // Use refs to store current values for the speech callback
   const selectedVoiceRef = useRef<number>(1); // Always HAL 9000
-  const speechRateRef = useRef<number>(0.9); // Slower speaking speed
+  const speechRateRef = useRef<number>(1.1); // Slightly faster speaking speed
   const voicesRef = useRef<Voice[]>([]);
   const isEnabledRef = useRef<boolean>(true);
 
@@ -38,13 +38,13 @@ export function useSpeechSynthesis() {
     const loadVoices = () => {
       try {
         const availableVoices = window.speechSynthesis.getVoices();
-        
+
         // Create a custom voice options
         const customVoices: Voice[] = [
           { name: 'System Default', lang: 'en-US', voiceURI: 'default', localService: true },
           { name: 'HAL 9000 (2001 AI)', lang: 'en-US', voiceURI: 'hal', localService: true },
         ];
-        
+
         // Known female voice names to filter out
         const femaleVoiceNames = [
           'fiona', 'karen', 'moira', 'samantha', 'tessa', 'veena', 'victoria',
@@ -53,14 +53,14 @@ export function useSpeechSynthesis() {
           'alice', 'ellen', 'melina', 'nora', 'paulina', 'sara', 'serena',
           'vicki', 'zosia'
         ];
-        
+
         // Add available system voices with better filtering (male voices only)
         availableVoices.forEach((voice) => {
           // Filter for English voices only and exclude female voices
           if (voice.lang.startsWith('en')) {
             const voiceName = voice.name.toLowerCase();
             const isFemale = femaleVoiceNames.some(female => voiceName.includes(female));
-            
+
             if (!isFemale) {
               customVoices.push({
                 name: `${voice.name} (${voice.lang})`,
@@ -71,11 +71,11 @@ export function useSpeechSynthesis() {
             }
           }
         });
-        
+
         setVoices(customVoices);
         voicesRef.current = customVoices;
         setVoicesLoaded(true);
-        
+
         // If no voices loaded yet and this is our first load, wait a bit for browser to initialize
         if (availableVoices.length === 0 && !voicesLoaded) {
           setTimeout(loadVoices, 100);
@@ -87,21 +87,21 @@ export function useSpeechSynthesis() {
 
     // Try immediate load first
     loadVoices();
-    
+
     // Also listen for the voiceschanged event for browsers that load voices asynchronously
     const handleVoicesChanged = () => {
       loadVoices();
     };
-    
+
     window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
-    
+
     // Fallback: Force voice reload after a delay for some browsers
     const fallbackTimer = setTimeout(() => {
       if (!voicesLoaded) {
         loadVoices();
       }
     }, 1000);
-    
+
     return () => {
       window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
       clearTimeout(fallbackTimer);
@@ -115,17 +115,17 @@ export function useSpeechSynthesis() {
     setSelectedVoice(value);
     console.log('selectedVoiceRef.current is now:', selectedVoiceRef.current);
   }, []);
-  
+
   const setSpeechRateWithRef = useCallback((value: number) => {
     speechRateRef.current = value;
     setSpeechRate(value);
   }, []);
-  
+
   const setIsEnabledWithRef = useCallback((value: boolean) => {
     isEnabledRef.current = value;
     setIsEnabled(value);
   }, []);
-  
+
   // Keep refs in sync with state as backup
   useEffect(() => {
     selectedVoiceRef.current = selectedVoice;
@@ -150,11 +150,11 @@ export function useSpeechSynthesis() {
       const currentVoice = selectedVoiceRef.current;
       const currentRate = speechRateRef.current;
       const currentVoices = voicesRef.current;
-      
+
       console.log('speak() called with selectedVoice:', currentVoice);
-      
+
       window.speechSynthesis.cancel();
-      
+
       // Clean text for speech synthesis
       let cleanText = text
         .replace(/<[^>]*>/g, '') // Remove HTML tags
@@ -206,22 +206,22 @@ export function useSpeechSynthesis() {
         .replace(/=/g, ' equals ') // Replace remaining = with word
         .replace(/\s+/g, ' ') // Normalize whitespace
         .trim();
-      
+
       if (!cleanText) {
         console.warn('No text to speak after cleaning');
         return;
       }
 
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      
+
       // Set base properties
       utterance.rate = currentRate;
       utterance.volume = 0.63;
       utterance.pitch = 0.6;
-      
+
       // Get available system voices
       const systemVoices = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en'));
-      
+
       // Debug logging
       console.log('Voice Selection Debug:', {
         selectedVoice: currentVoice,
@@ -231,7 +231,7 @@ export function useSpeechSynthesis() {
         voicesLoaded,
         voiceNames: currentVoices.map(v => v.name)
       });
-      
+
       // Voice selection logic
       if (currentVoice === 0) {
         // System Default - use browser default (no voice set)
@@ -261,12 +261,12 @@ export function useSpeechSynthesis() {
         setIsSpeaking(true);
         console.log('Speech started');
       };
-      
+
       utterance.onend = () => {
         setIsSpeaking(false);
         console.log('Speech ended');
       };
-      
+
       utterance.onerror = (event) => {
         setIsSpeaking(false);
         console.error('Speech synthesis error:', event.error);
@@ -324,7 +324,7 @@ export function useSpeechRecognition() {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    
+
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = 'en-US';
@@ -333,7 +333,7 @@ export function useSpeechRecognition() {
       console.log('🎤 Speech recognition started successfully');
       setIsListening(true);
     };
-    
+
     recognition.onresult = (event: any) => {
       console.log('📝 Speech recognition result received');
       const transcript = event.results[0][0].transcript;
@@ -344,10 +344,10 @@ export function useSpeechRecognition() {
     recognition.onerror = (event: any) => {
       console.error('❌ Speech recognition error:', event.error);
       setIsListening(false);
-      
+
       // Provide Mac-specific error messages
       let errorMessage = 'Speech recognition error';
-      
+
       switch (event.error) {
         case 'not-allowed':
           errorMessage = 'Microphone access denied. On Mac:\n' +
@@ -372,7 +372,7 @@ export function useSpeechRecognition() {
         default:
           errorMessage = `Speech recognition error: ${event.error}`;
       }
-      
+
       console.error('Error details:', errorMessage);
       onError?.(errorMessage);
     };
