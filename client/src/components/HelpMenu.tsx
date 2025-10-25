@@ -405,8 +405,281 @@ const helpMenuItems: HelpMenuItem[] = [
     category: 'Games',
     title: 'SPACEWAR',
     description: 'Launch enhanced SPACEWAR game in new browser window featuring Nyan Cat, UFOs, and multiple invasion patterns',
-    command: 'invaders',
+    command: 'spacewars',
     icon: <Gamepad2 size={16} />
+  },
+
+  // Research & Academic
+  {
+    id: 'research',
+    category: 'Research & Academic',
+    title: 'Web Research',
+    description: 'Search the web using Brave API for current information',
+    command: 'research',
+    example: 'research quantum computing news',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'scholar-search',
+    category: 'Research & Academic',
+    title: 'Scholar Search',
+    description: 'Search 200M+ academic papers via Semantic Scholar',
+    command: 'scholar search',
+    example: 'scholar search machine learning',
+    icon: <Book size={16} />
+  },
+  {
+    id: 'scholar-details',
+    category: 'Research & Academic',
+    title: 'Paper Details',
+    description: 'Get full details and abstract for an academic paper',
+    command: 'scholar details',
+    example: 'scholar details abc123xyz',
+    icon: <Book size={16} />
+  },
+
+  // Wolfram Alpha
+  {
+    id: 'query',
+    category: 'Computational Knowledge',
+    title: 'Wolfram Alpha Query',
+    description: 'Query Wolfram Alpha for computational answers, math, science, and data',
+    command: 'query',
+    example: 'query solve x^2 + 5x + 6 = 0',
+    icon: <TerminalIcon size={16} />
+  },
+
+  // Session & Productivity
+  {
+    id: 'session',
+    category: 'Session & Productivity',
+    title: 'Session Analytics',
+    description: 'View current session statistics (time, words, commands)',
+    command: 'session',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'copy',
+    category: 'Session & Productivity',
+    title: 'Copy Response',
+    description: 'Copy the last AI response to clipboard',
+    command: 'copy',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'bookmark',
+    category: 'Session & Productivity',
+    title: 'Bookmark Command',
+    description: 'Save a command as a bookmark for quick access',
+    command: 'bookmark',
+    example: 'bookmark weather Tokyo',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'bookmarks',
+    category: 'Session & Productivity',
+    title: 'View Bookmarks',
+    description: 'List all bookmarked commands',
+    command: 'bookmarks',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'bookmark-delete',
+    category: 'Session & Productivity',
+    title: 'Delete Bookmark',
+    description: 'Remove a bookmarked command by number',
+    command: 'bookmark-delete',
+    example: 'bookmark-delete 3',
+    icon: <TerminalIcon size={16} />
+  },
+
+  // Code Execution
+  {
+    id: 'preview',
+    category: 'Code Execution',
+    title: 'Preview Code',
+    description: 'Execute and preview HTML/CSS/JS code from last AI response or paste your own',
+    command: 'preview',
+    example: 'preview <your code here>',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'run',
+    category: 'Code Execution',
+    title: 'Run Code',
+    description: 'Alias for preview - execute and preview code',
+    command: 'run',
+    icon: <TerminalIcon size={16} />
+  },
+
+  // Media & Entertainment
+  {
+    id: 'webamp',
+    category: 'Media & Entertainment',
+    title: 'Webamp Player',
+    description: 'Launch Webamp music player with Milkdrop visualizer',
+    command: 'webamp',
+    icon: <Radio size={16} />
+  },
+  {
+    id: 'play-our-song',
+    category: 'Media & Entertainment',
+    title: 'Play Our Song',
+    description: 'Launch Webamp and play Lagrangian 25',
+    command: 'play our song',
+    icon: <Radio size={16} />
+  },
+  {
+    id: 'aj',
+    category: 'Media & Entertainment',
+    title: 'AJ Video Player',
+    description: 'Launch AJ video player interface',
+    command: 'aj',
+    icon: <Radio size={16} />
+  },
+
+  // Network Tools
+  {
+    id: 'ssh',
+    category: 'Network & BBS',
+    title: 'SSH Connection',
+    description: 'Connect to remote SSH servers via web-based client',
+    command: 'ssh',
+    example: 'ssh user@host.com 22',
+    icon: <Wifi size={16} />
+  },
+  {
+    id: 'ssh-client',
+    category: 'Network & BBS',
+    title: 'SSH/Telnet Client',
+    description: 'Open web-based SSH/Telnet client interface',
+    command: 'ssh-client',
+    icon: <Wifi size={16} />
+  },
+  {
+    id: 'sshwifty',
+    category: 'Network & BBS',
+    title: 'Sshwifty Interface',
+    description: 'Open Sshwifty terminal client interface',
+    command: 'sshwifty',
+    icon: <Wifi size={16} />
+  },
+  {
+    id: 'bbs-popular',
+    category: 'Network & BBS',
+    title: 'Popular BBS',
+    description: 'Show most popular BBS systems by connections',
+    command: 'bbs-popular',
+    icon: <Wifi size={16} />
+  },
+  {
+    id: 'bbs-favorites',
+    category: 'Network & BBS',
+    title: 'Favorite BBS',
+    description: 'Show your favorite BBS systems (requires login)',
+    command: 'bbs-favorites',
+    icon: <Wifi size={16} />
+  },
+
+  // Radio Garden
+  {
+    id: 'radio-search',
+    category: 'Audio & Radio',
+    title: 'Search Radio',
+    description: 'Search Radio Garden for stations worldwide',
+    command: 'radio search',
+    example: 'radio search jazz',
+    icon: <Radio size={16} />
+  },
+  {
+    id: 'radio-random',
+    category: 'Audio & Radio',
+    title: 'Random Station',
+    description: 'Get a random radio station from Radio Garden',
+    command: 'radio random',
+    icon: <Radio size={16} />
+  },
+  {
+    id: 'radio-countries',
+    category: 'Audio & Radio',
+    title: 'Radio Countries',
+    description: 'List countries with available radio stations',
+    command: 'radio countries',
+    icon: <Radio size={16} />
+  },
+  {
+    id: 'radio-volume',
+    category: 'Audio & Radio',
+    title: 'Radio Volume',
+    description: 'Set radio volume level (0-100)',
+    command: 'radio volume',
+    example: 'radio volume 70',
+    icon: <Radio size={16} />
+  },
+  {
+    id: 'radio-status',
+    category: 'Audio & Radio',
+    title: 'Radio Status',
+    description: 'Check current radio streaming status',
+    command: 'radio status',
+    icon: <Radio size={16} />
+  },
+
+  // Additional Games
+  {
+    id: 'mud',
+    category: 'Games',
+    title: 'MUD Client',
+    description: 'Launch MUD (Multi-User Dungeon) client for text-based adventures',
+    command: 'mud',
+    icon: <Gamepad2 size={16} />
+  },
+
+  // Knowledge Base
+  {
+    id: 'read',
+    category: 'Knowledge Base',
+    title: 'Read Document',
+    description: 'Read a specific document from your knowledge base',
+    command: 'read',
+    example: 'read document.txt',
+    icon: <Upload size={16} />
+  },
+  {
+    id: 'save',
+    category: 'Knowledge Base',
+    title: 'Save Response',
+    description: 'Save the last AI response to your knowledge base',
+    command: 'save',
+    icon: <Upload size={16} />
+  },
+
+  // Chat
+  {
+    id: 'chat',
+    category: 'Communication',
+    title: 'User Chat',
+    description: 'Open chat interface to connect with other online users',
+    command: 'chat',
+    icon: <MessageSquare size={16} />
+  },
+
+  // System
+  {
+    id: 'xx',
+    category: 'Basic Commands',
+    title: 'Screensaver',
+    description: 'Manually activate puzzle screensaver',
+    command: 'xx',
+    icon: <TerminalIcon size={16} />
+  },
+  {
+    id: 'history',
+    category: 'Basic Commands',
+    title: 'Command History',
+    description: 'Show recent command history',
+    command: 'history',
+    icon: <TerminalIcon size={16} />
   }
 ];
 
