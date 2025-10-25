@@ -1,9 +1,25 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function MatrixRain() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isEnabled, setIsEnabled] = useState(true);
 
   useEffect(() => {
+    // Expose toggle function globally
+    (window as any).toggleMatrixRain = () => {
+      setIsEnabled(prev => !prev);
+      return !isEnabled;
+    };
+
+    return () => {
+      delete (window as any).toggleMatrixRain;
+    };
+  }, [isEnabled]);
+
+  useEffect(() => {
+    // Don't render if disabled
+    if (!isEnabled) return;
+
     // Respect user's motion preferences
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
@@ -133,15 +149,15 @@ export function MatrixRain() {
         });
       });
     };
-  }, []);
+  }, [isEnabled]);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[0] overflow-hidden">
       {/* Grid background */}
       <div className="absolute inset-0 terminal-grid" />
       
-      {/* Droplet container */}
-      <div ref={containerRef} className="absolute" />
+      {/* Droplet container - only visible when enabled */}
+      {isEnabled && <div ref={containerRef} className="absolute" />}
     </div>
   );
 }

@@ -680,6 +680,17 @@ You can also chat naturally or ask technical questions.`);
       return;
     }
 
+    if (cmd === 'rain') {
+      const toggleMatrixRain = (window as any).toggleMatrixRain;
+      if (toggleMatrixRain) {
+        const isEnabled = toggleMatrixRain();
+        addEntry('system', `Matrix rain ${isEnabled ? 'enabled' : 'disabled'}`);
+      } else {
+        addEntry('error', 'Matrix rain control not available');
+      }
+      return;
+    }
+
     if (cmd === 'privacy') {
       addEntry('system', 'Privacy screen activated! Matrix rain overlay is now protecting your screen. Type "QWERTY" to unlock and return to normal view.');
 
