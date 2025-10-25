@@ -19,7 +19,7 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [sessionStartTime] = useState(() => new Date());
   const [totalWords, setTotalWords] = useState(0);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
-  
+
   const [entries, setEntries] = useState<TerminalEntry[]>([
     {
       id: '1',
@@ -40,7 +40,7 @@ export function useTerminal(onUploadCommand?: () => void) {
       timestamp: new Date().toISOString(),
     },
   ]);
-  
+
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [currentMode, setCurrentMode] = useState<'natural' | 'technical'>('natural');
@@ -73,18 +73,18 @@ export function useTerminal(onUploadCommand?: () => void) {
     }) => {
       let endpoint = '/api/weather';
       const params = new URLSearchParams();
-      
+
       if (coordinates) {
         params.append('lat', coordinates.lat.toString());
         params.append('lon', coordinates.lon.toString());
       } else if (location) {
         params.append('location', location);
       }
-      
+
       if (params.toString()) {
         endpoint += `?${params.toString()}`;
       }
-      
+
       const response = await apiRequest('GET', endpoint);
       return response.json();
     },
@@ -109,7 +109,7 @@ export function useTerminal(onUploadCommand?: () => void) {
       page?: number;
     }) => {
       const queryParams = new URLSearchParams();
-      
+
       if (params.search) queryParams.append('search', params.search);
       if (params.languages?.length) queryParams.append('languages', params.languages.join(','));
       if (params.author_year_start) queryParams.append('author_year_start', params.author_year_start.toString());
@@ -273,7 +273,7 @@ ${data.results.map((result: any) =>
 `).join('\n')}
 
 Use the URLs above to access the full articles and information.`;
-      
+
       addEntry('response', formattedResults);
     },
     onError: (error) => {
@@ -301,7 +301,7 @@ Use the URLs above to access the full articles and information.`;
       mode,
     };
     setEntries(prev => [...prev, entry]);
-    
+
     // Track word count for session analytics
     if (type === 'response' || type === 'command') {
       const wordCount = content.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -312,13 +312,13 @@ Use the URLs above to access the full articles and information.`;
   const processCommand = useCallback((command: string) => {
     const timestamp = new Date().toLocaleTimeString();
     addEntry('command', command);
-    
+
     // Add to command history
     setCommandHistory(prev => [command, ...prev.slice(0, 49)]); // Keep last 50 commands
     setHistoryIndex(-1);
-    
+
     const cmd = command.toLowerCase().trim();
-    
+
     // Check if we're in OSINT input mode
     const osintMode = localStorage.getItem('osintMode');
     if (osintMode && command.trim()) {
@@ -328,10 +328,10 @@ Use the URLs above to access the full articles and information.`;
         addEntry('system', '❌ OSINT operation cancelled');
         return;
       }
-      
+
       const target = command.trim();
       localStorage.removeItem('osintMode'); // Clear the mode
-      
+
       // Execute the selected OSINT command
       if (osintMode === 'whois') {
         addEntry('system', `🔍 Performing WHOIS lookup for ${target}...`);
@@ -345,7 +345,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'dns') {
         addEntry('system', `🌐 Querying DNS records for ${target}...`);
         fetch(`/api/osint/dns/${target}`)
@@ -358,7 +358,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'geoip') {
         addEntry('system', `🌍 Geolocating IP address ${target}...`);
         fetch(`/api/osint/geoip/${target}`)
@@ -371,7 +371,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'headers') {
         addEntry('system', `🔍 Analyzing HTTP headers for ${target}...`);
         fetch(`/api/osint/headers?url=${encodeURIComponent(target)}`)
@@ -384,7 +384,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'wayback') {
         addEntry('system', `📚 Searching Wayback Machine for ${target}...`);
         fetch(`/api/osint/wayback?url=${encodeURIComponent(target)}`)
@@ -397,7 +397,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'username') {
         addEntry('system', `👤 Checking username availability for ${target}...`);
         fetch(`/api/osint/username/${target}`)
@@ -410,7 +410,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'traceroute') {
         addEntry('system', `🛤️ Tracing network path to ${target}...`);
         fetch(`/api/osint/traceroute/${target}`)
@@ -423,7 +423,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'subdomains') {
         addEntry('system', `🌐 Enumerating subdomains for ${target}...`);
         fetch(`/api/osint/subdomains/${target}`)
@@ -436,7 +436,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'ssl') {
         addEntry('system', `🔒 Analyzing SSL certificate for ${target}...`);
         fetch(`/api/osint/ssl/${target}`)
@@ -449,7 +449,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'tech') {
         addEntry('system', `⚙️ Detecting technology stack for ${target}...`);
         fetch(`/api/osint/tech/${target}`)
@@ -462,7 +462,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'reverse-ip') {
         addEntry('system', `🔄 Performing reverse IP lookup for ${target}...`);
         fetch(`/api/osint/reverse-ip/${target}`)
@@ -475,7 +475,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'portscan') {
         addEntry('system', `🛡️ Scanning ports on ${target}...`);
         fetch(`/api/osint/portscan/${target}`)
@@ -488,7 +488,7 @@ Use the URLs above to access the full articles and information.`;
           });
         return;
       }
-      
+
       if (osintMode === 'report') {
         addEntry('system', `📋 Generating comprehensive OSINT report for ${target}...`);
         addEntry('system', 'This may take a moment as we gather intelligence from multiple sources...');
@@ -503,12 +503,12 @@ Use the URLs above to access the full articles and information.`;
         return;
       }
     }
-    
+
     // Handle built-in terminal commands
     if (cmd === 'help') {
       // Open interactive help menu instead of static text  
       addEntry('system', 'Opening interactive help menu... (Use F1 key for quick access)');
-      
+
       // Trigger the help menu
       setTimeout(() => {
         const openHelpMenu = (window as any).openHelpMenu;
@@ -523,7 +523,7 @@ Use the URLs above to access the full articles and information.`;
 
     if (cmd === 'chat') {
       addEntry('system', 'Opening chat interface... Connect with other online users!');
-      
+
       // Trigger the chat interface
       setTimeout(() => {
         const openChatInterface = (window as any).openChatInterface;
@@ -535,7 +535,7 @@ Use the URLs above to access the full articles and information.`;
       }, 50);
       return;
     }
-    
+
     // Fallback help command if the interactive menu fails
     if (cmd === 'help-text') {
       addEntry('system', `Available Commands:
@@ -548,7 +548,7 @@ Use the URLs above to access the full articles and information.`;
   weather - Get current weather (uses location if available)
   research <query> - Search the web using Brave API
   chat - Open user-to-user chat interface
-  
+
 Network & BBS Commands:
   telnet <host> <port> - Connect via web-based telnet client
   ssh <user@host> [port] - Connect via web-based SSH client
@@ -558,7 +558,7 @@ Network & BBS Commands:
   bbs-search <query> - Search BBS systems by name or location
   bbs-popular - Show popular BBS systems
   bbs-favorites - Show your favorite BBS systems
-  
+
 Stock Market Data:
   stock quote <symbol> - Get current stock price and info
   stock quotes <symbols> - Get multiple quotes (comma-separated)
@@ -582,7 +582,7 @@ Project Gutenberg Books:
   books topic <topic> - Find books by topic/subject
   books info <id> - Get detailed info and download links for a book
   books help - Show detailed book command help
-  
+
 Radio & Music:
   radio play - Start Radio Swiss Jazz stream
   radio stop - Stop radio stream
@@ -593,7 +593,7 @@ Radio & Music:
   debug audio - Test audio file loading and show diagnostic info
   webamp - Launch Webamp player with Milkdrop visualizer
   aj - Launch AJ video player
-  
+
 OSINT (Open Source Intelligence):
   whois <domain> - Domain registration lookup
   dns <domain> - DNS records analysis
@@ -610,19 +610,19 @@ OSINT (Open Source Intelligence):
   osint-report <target> - Comprehensive OSINT report
   threat-actors - MISP Galaxy threat actor intelligence
   threat-actors <name> - Look up specific threat actor details
-  
+
 Audio & Signal Processing:
   dtmf - Start DTMF decoder for touch-tone signals
-  
+
 Games:
   snake - Play the classic Snake game
   zork - Play ZORK: The Great Underground Empire
   spacewars - Launch SPACEWAR game in new browser window
-  
+
 System Commands:
   privacy - Activate matrix rain privacy screen (type "QWERTY" to unlock)
   xx - Activate screensaver manually
-  
+
 Knowledge Base Commands:
   docs - List your uploaded documents
   upload - Open document upload interface
@@ -640,11 +640,11 @@ Session & Productivity:
 Code Execution:
   preview / run - Execute and preview code from last AI response
   preview <code> - Execute and preview your pasted HTML/CSS/JS code
-  
+
 You can also chat naturally or ask technical questions.`);
       return;
     }
-    
+
     if (cmd === 'clear') {
       setEntries([
         {
@@ -668,10 +668,10 @@ You can also chat naturally or ask technical questions.`);
       ]);
       return;
     }
-    
+
     if (cmd === 'privacy') {
       addEntry('system', 'Privacy screen activated! Matrix rain overlay is now protecting your screen. Type "QWERTY" to unlock and return to normal view.');
-      
+
       // Trigger the privacy screen overlay
       setTimeout(() => {
         const openPrivacyEncoder = (window as any).openPrivacyEncoder;
@@ -683,7 +683,7 @@ You can also chat naturally or ask technical questions.`);
       }, 50);
       return;
     }
-    
+
     if (cmd === 'xx') {
       addEntry('system', 'Activating screensaver...');
       const activateScreensaver = (window as any).activateScreensaver;
@@ -697,15 +697,15 @@ You can also chat naturally or ask technical questions.`);
 
     if (cmd === 'debug audio' || cmd === 'test audio') {
       addEntry('system', `Audio Debug Information:\n\nImported path: ${lagrangianSong}\nPath type: ${typeof lagrangianSong}\nPath length: ${lagrangianSong.length}\nEnvironment: ${import.meta.env.MODE}\n\nTrying to create Audio element...`);
-      
+
       try {
         const testAudio = new Audio(lagrangianSong);
         addEntry('system', `✓ Audio element created successfully\nAudio src: ${testAudio.src}\n\nAttempting to load metadata...`);
-        
+
         testAudio.addEventListener('loadedmetadata', () => {
           addEntry('system', `✓ Audio metadata loaded\nDuration: ${testAudio.duration}s\nReady to play!`);
         });
-        
+
         testAudio.addEventListener('error', (e) => {
           const errorCode = testAudio.error?.code;
           const errorMessages: Record<number, string> = {
@@ -716,25 +716,25 @@ You can also chat naturally or ask technical questions.`);
           };
           addEntry('error', `✗ Audio loading failed\nError code: ${errorCode}\nError: ${errorMessages[errorCode || 0] || 'Unknown error'}\nSource: ${testAudio.src}`);
         });
-        
+
         testAudio.load();
       } catch (error: any) {
         addEntry('error', `✗ Failed to create audio element: ${error.message}`);
       }
-      
+
       return;
     }
-    
+
     if (cmd === 'play our song') {
       addEntry('system', '🎵 Launching Webamp...\n\nOpening music player with Milkdrop visualizer.');
-      
+
       const openWebamp = (window as any).openWebamp;
       if (openWebamp) {
         openWebamp();
       } else {
         addEntry('error', 'Webamp not available. Please ensure the system is loaded.');
       }
-      
+
       return;
     }
 
@@ -749,7 +749,7 @@ You can also chat naturally or ask technical questions.`);
       }
       return;
     }
-    
+
     if (cmd === 'ssh-client' || cmd === 'sshwifty') {
       addEntry('system', 'Opening SSH/Telnet client interface...');
       const openSshwiftyInterface = (window as any).openSshwiftyInterface;
@@ -760,10 +760,10 @@ You can also chat naturally or ask technical questions.`);
       }
       return;
     }
-    
+
     if (cmd === 'webamp') {
       addEntry('system', '🎵 Launching Webamp music player with Milkdrop visualizer...\n\nControls:\n- ESC to close\n- SPACE/← → for preset navigation\n- H for hard cut\n- R to toggle preset cycling\n\nLoading...');
-      
+
       const openWebamp = (window as any).openWebamp;
       if (openWebamp) {
         openWebamp();
@@ -772,10 +772,10 @@ You can also chat naturally or ask technical questions.`);
       }
       return;
     }
-    
+
     if (cmd === 'aj') {
       addEntry('system', '📺 Launching AJ video player...');
-      
+
       const openAJVideo = (window as any).openAJVideo;
       if (openAJVideo) {
         openAJVideo();
@@ -784,7 +784,7 @@ You can also chat naturally or ask technical questions.`);
       }
       return;
     }
-    
+
     if (cmd === 'mode') {
       // Toggle between natural and technical
       const newMode = currentMode === 'natural' ? 'technical' : 'natural';
@@ -792,7 +792,7 @@ You can also chat naturally or ask technical questions.`);
       addEntry('system', `Mode switched to: ${newMode.toUpperCase()}`);
       return;
     }
-    
+
     if (cmd.startsWith('mode ')) {
       const newMode = cmd.split(' ')[1] as 'natural' | 'technical';
       if (newMode === 'natural' || newMode === 'technical') {
@@ -804,7 +804,7 @@ You can also chat naturally or ask technical questions.`);
         return;
       }
     }
-    
+
     if (cmd === 'status') {
       addEntry('system', `ARCHIMEDES v7 System Status:
   Mode: ${currentMode.toUpperCase()}
@@ -813,7 +813,7 @@ You can also chat naturally or ask technical questions.`);
   System: ONLINE`);
       return;
     }
-    
+
     if (cmd === 'history') {
       const historyText = commandHistory.length > 0 
         ? commandHistory.slice(0, 10).map((cmd, i) => `${i + 1}. ${cmd}`).join('\n')
@@ -836,11 +836,11 @@ You can also chat naturally or ask technical questions.`);
     // Handle weather command
     if (cmd.startsWith('weather')) {
       setIsTyping(true);
-      
+
       // Parse weather command arguments
       const weatherArgs = command.trim().split(/\s+/).slice(1);
       const location = weatherArgs.join(' ');
-      
+
       if (location) {
         // Use provided location
         addEntry('system', `Getting weather information for ${location}...`);
@@ -878,7 +878,7 @@ You can also chat naturally or ask technical questions.`);
         addEntry('error', 'Usage: research <search query>');
         return;
       }
-      
+
       setIsTyping(true);
       addEntry('system', `🔍 Searching the web for "${query}"...`);
       researchMutation.mutate(query);
@@ -889,7 +889,7 @@ You can also chat naturally or ask technical questions.`);
     if (cmd === 'docs') {
       setIsTyping(true);
       addEntry('system', 'Retrieving your document library...');
-      
+
       // Fetch user documents
       fetch('/api/documents', { credentials: 'include' })
         .then(async (res) => {
@@ -899,7 +899,7 @@ You can also chat naturally or ask technical questions.`);
             return;
           }
           if (!res.ok) throw new Error('Failed to fetch documents');
-          
+
           const documents = await res.json();
           if (documents.length === 0) {
             addEntry('system', 'No documents found. Use "upload" to add documents to your knowledge base.');
@@ -935,10 +935,10 @@ You can also chat naturally or ask technical questions.`);
         addEntry('error', 'Usage: read <document.txt>');
         return;
       }
-      
+
       addEntry('system', `📖 Reading document: ${filename}...`);
       setIsTyping(true);
-      
+
       fetch(`/api/documents/read/${encodeURIComponent(filename)}`, { credentials: 'include' })
         .then(async (res) => {
           setIsTyping(false);
@@ -955,7 +955,7 @@ You can also chat naturally or ask technical questions.`);
             addEntry('error', `Failed to read document: ${res.status} ${res.statusText}`);
             return;
           }
-          
+
           const data = await res.json();
           if (data.formatted) {
             addEntry('response', data.formatted);
@@ -976,13 +976,13 @@ You can also chat naturally or ask technical questions.`);
       const hours = Math.floor(sessionDuration / 3600);
       const minutes = Math.floor((sessionDuration % 3600) / 60);
       const seconds = sessionDuration % 60;
-      
+
       const timeString = hours > 0 
         ? `${hours}h ${minutes}m ${seconds}s`
         : minutes > 0 
           ? `${minutes}m ${seconds}s`
           : `${seconds}s`;
-      
+
       const analyticsText = `📊 SESSION ANALYTICS
 
 ⏱️  Duration: ${timeString}
@@ -992,14 +992,14 @@ You can also chat naturally or ask technical questions.`);
 📅 Session Started: ${sessionStartTime.toLocaleTimeString()}
 
 💡 Tip: Use 'bookmarks' to save your favorite commands!`;
-      
+
       addEntry('system', analyticsText);
       return;
     }
 
     if (cmd === 'copy') {
       const lastResponse = [...entries].reverse().find(entry => entry.type === 'response');
-      
+
       if (!lastResponse) {
         addEntry('error', 'No response to copy. Please ask a question first.');
         return;
@@ -1041,7 +1041,7 @@ You can also chat naturally or ask technical questions.`);
 
       // No pasted code - extract from last AI response
       const lastResponse = [...entries].reverse().find(entry => entry.type === 'response');
-      
+
       if (!lastResponse) {
         addEntry('error', 'No AI response found. Please ask the AI to generate some code first, or use:\n\npreview <paste your HTML/CSS/JS here>');
         return;
@@ -1050,7 +1050,7 @@ You can also chat naturally or ask technical questions.`);
       // Extract code blocks from the response (markdown code blocks or HTML)
       const codeBlockRegex = /```(?:html|css|javascript|js)?\n([\s\S]*?)```/;
       const match = lastResponse.content.match(codeBlockRegex);
-      
+
       if (match && match[1]) {
         setPreviewCode(match[1].trim());
         addEntry('system', '🚀 Opening code preview...');
@@ -1069,18 +1069,18 @@ You can also chat naturally or ask technical questions.`);
 
     if (cmd === 'bookmark' || cmd.startsWith('bookmark ')) {
       const bookmarkCmd = cmd.substring('bookmark'.length).trim();
-      
+
       if (!bookmarkCmd) {
         addEntry('error', 'Usage: bookmark <command> - Save a command as bookmark\nExample: bookmark weather San Francisco');
         return;
       }
-      
+
       const bookmarks = JSON.parse(localStorage.getItem('terminal-bookmarks') || '[]');
       if (bookmarks.includes(bookmarkCmd)) {
         addEntry('error', `Command "${bookmarkCmd}" is already bookmarked.`);
         return;
       }
-      
+
       bookmarks.push(bookmarkCmd);
       localStorage.setItem('terminal-bookmarks', JSON.stringify(bookmarks));
       addEntry('system', `🔖 Bookmarked: "${bookmarkCmd}"\n\nUse 'bookmarks' to view all bookmarks.`);
@@ -1089,12 +1089,12 @@ You can also chat naturally or ask technical questions.`);
 
     if (cmd === 'bookmarks') {
       const bookmarks = JSON.parse(localStorage.getItem('terminal-bookmarks') || '[]');
-      
+
       if (bookmarks.length === 0) {
         addEntry('system', '📚 No bookmarks saved yet.\n\nUse "bookmark <command>" to save your favorite commands.\nExample: bookmark weather Tokyo');
         return;
       }
-      
+
       const bookmarkList = bookmarks.map((bm: string, i: number) => `${i + 1}. ${bm}`).join('\n');
       addEntry('system', `📚 YOUR BOOKMARKS (${bookmarks.length}):\n\n${bookmarkList}\n\nType the command to run it, or use "bookmark-delete <number>" to remove.`);
       return;
@@ -1103,14 +1103,14 @@ You can also chat naturally or ask technical questions.`);
     if (cmd.startsWith('bookmark-delete ')) {
       const indexStr = cmd.substring('bookmark-delete '.length).trim();
       const index = parseInt(indexStr) - 1;
-      
+
       const bookmarks = JSON.parse(localStorage.getItem('terminal-bookmarks') || '[]');
-      
+
       if (isNaN(index) || index < 0 || index >= bookmarks.length) {
         addEntry('error', `Invalid bookmark number. Use "bookmarks" to see the list.`);
         return;
       }
-      
+
       const deletedBookmark = bookmarks[index];
       bookmarks.splice(index, 1);
       localStorage.setItem('terminal-bookmarks', JSON.stringify(bookmarks));
@@ -1121,7 +1121,7 @@ You can also chat naturally or ask technical questions.`);
     if (cmd === 'save' || cmd === 'save-response') {
       // Find the last response entry
       const lastResponse = [...entries].reverse().find(entry => entry.type === 'response');
-      
+
       if (!lastResponse) {
         addEntry('error', 'No response to save. Please ask a question first.');
         return;
@@ -1129,7 +1129,7 @@ You can also chat naturally or ask technical questions.`);
 
       setIsTyping(true);
       addEntry('system', '💾 Saving response to knowledge base...');
-      
+
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const filename = `archimedes-response-${timestamp}.txt`;
 
@@ -1152,7 +1152,7 @@ You can also chat naturally or ask technical questions.`);
             const error = await res.json();
             throw new Error(error.error || 'Failed to save');
           }
-          
+
           const data = await res.json();
           addEntry('system', `✅ Response saved successfully!\nFilename: ${data.document.originalName}\nSize: ${data.document.fileSize} bytes\n\nUse "docs" to view all saved documents.`);
         })
@@ -1172,7 +1172,7 @@ You can also chat naturally or ask technical questions.`);
 
       setIsTyping(true);
       addEntry('system', `Searching knowledge base for: "${query}"`);
-      
+
       fetch(`/api/knowledge/search?q=${encodeURIComponent(query)}`, { 
         credentials: 'include' 
       })
@@ -1183,10 +1183,10 @@ You can also chat naturally or ask technical questions.`);
             return;
           }
           if (!res.ok) throw new Error('Search failed');
-          
+
           const results = await res.json();
           const { documents, chunks, relevantContent } = results;
-          
+
           if (relevantContent.length === 0) {
             addEntry('system', `No results found for "${query}". Try different keywords or upload more documents.`);
           } else {
@@ -1209,7 +1209,7 @@ Documents: ${documents.map((doc: any) => doc.originalName).join(', ')}`;
     if (cmd === 'knowledge stats' || cmd === 'kb stats') {
       setIsTyping(true);
       addEntry('system', 'Retrieving knowledge base statistics...');
-      
+
       fetch('/api/knowledge/stats', { credentials: 'include' })
         .then(async (res) => {
           setIsTyping(false);
@@ -1218,15 +1218,15 @@ Documents: ${documents.map((doc: any) => doc.originalName).join(', ')}`;
             return;
           }
           if (!res.ok) throw new Error('Failed to fetch stats');
-          
+
           const stats = await res.json();
           const sizeInMB = (stats.totalSizeBytes / (1024 * 1024)).toFixed(2);
-          
+
           const statsText = `Knowledge Base Statistics:
   Total Documents: ${stats.totalDocuments}
   Total Size: ${sizeInMB} MB
   Total Chunks: ${stats.totalChunks}
-  
+
 Recent Documents:
 ${stats.recentDocuments.length > 0 
   ? stats.recentDocuments.map((doc: any, i: number) => 
@@ -1248,7 +1248,7 @@ Use "upload" to add more documents or "docs" to list all documents.`;
     // Project Gutenberg Book Commands
     if (cmd.startsWith('books ')) {
       const subCmd = cmd.substring(6).trim();
-      
+
       if (subCmd === 'help') {
         addEntry('system', `Project Gutenberg Book Commands:
 
@@ -1277,35 +1277,35 @@ Over 70,000 free ebooks from Project Gutenberg available!
 Download formats: Plain text, EPUB, HTML, and more.`);
         return;
       }
-      
+
       if (subCmd === 'popular' || subCmd.startsWith('popular ')) {
         const parts = subCmd.split(' ');
         const limit = parts.length > 1 ? parseInt(parts[1]) || 20 : 20;
-        
+
         setIsTyping(true);
         addEntry('system', `Fetching ${limit} most popular ebooks...`);
         popularBooksMutation.mutate(limit);
         return;
       }
-      
+
       if (subCmd.startsWith('search ')) {
         const query = subCmd.substring(7).trim();
         if (!query) {
           addEntry('error', 'Usage: books search <query> [lang:<codes>] [year:<start>-<end>] [topic:<subject>]');
           return;
         }
-        
+
         // Parse advanced search options
         const params: any = {};
         let searchQuery = query;
-        
+
         // Extract language filter
         const langMatch = query.match(/\blang:([a-z,]+)/i);
         if (langMatch) {
           params.languages = langMatch[1].split(',').map(l => l.trim());
           searchQuery = searchQuery.replace(/\blang:[a-z,]+/i, '').trim();
         }
-        
+
         // Extract year range filter
         const yearMatch = query.match(/\byear:(\d+)-(\d+)/);
         if (yearMatch) {
@@ -1313,63 +1313,63 @@ Download formats: Plain text, EPUB, HTML, and more.`);
           params.author_year_end = parseInt(yearMatch[2]);
           searchQuery = searchQuery.replace(/\byear:\d+-\d+/, '').trim();
         }
-        
+
         // Extract topic filter
         const topicMatch = query.match(/\btopic:(\w+)/i);
         if (topicMatch) {
           params.topic = topicMatch[1];
           searchQuery = searchQuery.replace(/\btopic:\w+/i, '').trim();
         }
-        
+
         if (searchQuery) {
           params.search = searchQuery;
         }
-        
+
         setIsTyping(true);
         addEntry('system', `Searching Project Gutenberg catalog...`);
         bookSearchMutation.mutate(params);
         return;
       }
-      
+
       if (subCmd.startsWith('author ')) {
         const authorName = subCmd.substring(7).trim().replace(/['"]/g, '');
         if (!authorName) {
           addEntry('error', 'Usage: books author <author name>');
           return;
         }
-        
+
         setIsTyping(true);
         addEntry('system', `Finding books by ${authorName}...`);
         booksByAuthorMutation.mutate(authorName);
         return;
       }
-      
+
       if (subCmd.startsWith('topic ')) {
         const topic = subCmd.substring(6).trim();
         if (!topic) {
           addEntry('error', 'Usage: books topic <topic>');
           return;
         }
-        
+
         setIsTyping(true);
         addEntry('system', `Finding books about ${topic}...`);
         booksByTopicMutation.mutate(topic);
         return;
       }
-      
+
       if (subCmd.startsWith('info ')) {
         const bookId = parseInt(subCmd.substring(5).trim());
         if (isNaN(bookId)) {
           addEntry('error', 'Usage: books info <book id>');
           return;
         }
-        
+
         setIsTyping(true);
         addEntry('system', `Retrieving details for book ID ${bookId}...`);
         bookDetailMutation.mutate(bookId);
         return;
       }
-      
+
       // If no valid subcommand, show help
       addEntry('error', 'Unknown books command. Type "books help" for available commands.');
       return;
@@ -1378,7 +1378,7 @@ Download formats: Plain text, EPUB, HTML, and more.`);
     // Stock Market Commands
     if (cmd.startsWith('stock ')) {
       const subCmd = cmd.substring(6).trim();
-      
+
       if (subCmd === 'help') {
         addEntry('system', `Stock Market Commands:
 
@@ -1387,7 +1387,7 @@ Basic Commands:
   stock quotes <symbols> - Multiple quotes (comma-separated: AAPL,MSFT,GOOGL)
   stock info <symbol> - Detailed company information
   stock search <query> - Find stocks by company name or symbol
-  
+
 Examples:
   stock quote AAPL
   stock quotes AAPL,MSFT,GOOGL
@@ -1398,72 +1398,72 @@ Data powered by Marketstack API - 125,000+ global stock tickers!
 Free plan includes 100 monthly requests with end-of-day data.`);
         return;
       }
-      
+
       if (subCmd.startsWith('quote ')) {
         const symbol = subCmd.substring(6).trim().toUpperCase();
         if (!symbol) {
           addEntry('error', 'Usage: stock quote <symbol>');
           return;
         }
-        
+
         setIsTyping(true);
         addEntry('system', `Fetching current quote for ${symbol}...`);
         stockQuoteMutation.mutate(symbol);
         return;
       }
-      
+
       if (subCmd.startsWith('quotes ')) {
         const symbolsStr = subCmd.substring(7).trim();
         if (!symbolsStr) {
           addEntry('error', 'Usage: stock quotes <symbol1,symbol2,symbol3>');
           return;
         }
-        
+
         const symbols = symbolsStr.split(',').map(s => s.trim().toUpperCase()).filter(s => s);
         if (symbols.length === 0) {
-          addEntry('error', 'Please provide at least one valid stock symbol');
+          addEntry('error', 'Please provide at least one stock symbol');
           return;
         }
-        
+
         if (symbols.length > 10) {
           addEntry('error', 'Maximum 10 symbols allowed per request');
           return;
         }
-        
+
         setIsTyping(true);
         addEntry('system', `Fetching quotes for ${symbols.join(', ')}...`);
         stockMultipleQuotesMutation.mutate(symbols);
         return;
       }
-      
+
       if (subCmd.startsWith('info ')) {
         const symbol = subCmd.substring(5).trim().toUpperCase();
         if (!symbol) {
           addEntry('error', 'Usage: stock info <symbol>');
           return;
         }
-        
+
         setIsTyping(true);
         addEntry('system', `Retrieving company information for ${symbol}...`);
         stockInfoMutation.mutate(symbol);
         return;
       }
-      
+
       if (subCmd.startsWith('search ')) {
         const query = subCmd.substring(7).trim();
         if (!query) {
           addEntry('error', 'Usage: stock search <company name or symbol>');
           return;
         }
-        
+
         setIsTyping(true);
         addEntry('system', `Searching stocks for "${query}"...`);
         stockSearchMutation.mutate(query);
         return;
       }
-      
-      
-      
+
+
+
       // If no valid subcommand, show help
       addEntry('error', 'Unknown stock command. Type "stock help" for available commands.');
       return;
@@ -1472,39 +1472,39 @@ Free plan includes 100 monthly requests with end-of-day data.`);
     // Scholar (Academic Paper Search) Commands
     if (cmd.startsWith('scholar ')) {
       const subCmd = cmd.substring(8).trim();
-      
+
       if (subCmd === 'help') {
         addEntry('system', `Semantic Scholar Commands:
 
 Academic Paper Search:
   scholar search <query> - Search for academic papers
   scholar details <paperId> - Get full paper details with abstract
-  
+
 Examples:
   scholar search quantum computing
   scholar search machine learning neural networks
   scholar details abc123xyz
-  
+
 Features:
   • Search 200M+ academic papers
   • View citations, authors, and publication info
   • Find open access PDFs
   • Completely FREE - no API key needed!
-  
+
 Data powered by Semantic Scholar API`);
         return;
       }
-      
+
       if (subCmd.startsWith('search ')) {
         const query = subCmd.substring(7).trim();
         if (!query) {
           addEntry('error', 'Usage: scholar search <query>');
           return;
         }
-        
+
         setIsTyping(true);
         addEntry('system', `🔍 Searching Semantic Scholar for: "${query}"...`);
-        
+
         fetch(`/api/scholar/search/${encodeURIComponent(query)}?limit=10`)
           .then(res => res.json())
           .then(data => {
@@ -1521,17 +1521,17 @@ Data powered by Semantic Scholar API`);
           });
         return;
       }
-      
+
       if (subCmd.startsWith('details ')) {
         const paperId = subCmd.substring(8).trim();
         if (!paperId) {
           addEntry('error', 'Usage: scholar details <paperId>');
           return;
         }
-        
+
         setIsTyping(true);
         addEntry('system', `📄 Fetching paper details...`);
-        
+
         fetch(`/api/scholar/paper/${encodeURIComponent(paperId)}`)
           .then(res => res.json())
           .then(data => {
@@ -1548,7 +1548,7 @@ Data powered by Semantic Scholar API`);
           });
         return;
       }
-      
+
       // If no valid subcommand, show help
       addEntry('error', 'Unknown scholar command. Type "scholar help" for available commands.');
       return;
@@ -1558,7 +1558,7 @@ Data powered by Semantic Scholar API`);
     if (cmd.startsWith('query ')) {
       // Extract query from original command to preserve case
       const fullQuery = command.trim().substring(6).trim();
-      
+
       // Show help
       if (fullQuery === 'help') {
         addEntry('system', `Wolfram Alpha Query Commands:
@@ -1566,13 +1566,13 @@ Data powered by Semantic Scholar API`);
 Computational Knowledge:
   query <search input> - Ask Wolfram Alpha anything
   query <search input> [options] - Query with additional parameters
-  
+
 Optional Parameters:
   --latlong=lat,long       Specify location coordinates (e.g., 40.7128,-74.0060)
   --units=metric           Use metric units (or nonmetric)
   --assumption="value"     Specify interpretation (use quotes for complex values)
   --location="value"       Provide location or IP address (use quotes for names)
-  
+
 Examples:
   query population of France
   query solve x^2 + 5x + 6 = 0
@@ -1583,41 +1583,41 @@ Examples:
   query distance from earth to mars
   query integral of x^2 dx
   query what is the speed of light
-  
+
 Note: Use quotes around parameter values that contain spaces or special characters
-  
+
 Features:
   • Computational math and solving equations
   • Unit conversions and measurements
   • Scientific data and constants
   • Weather and location information
   • Real-time data and statistics
-  
+
 Powered by Wolfram Alpha Full Results API`);
         return;
       }
-      
+
       if (!fullQuery) {
         addEntry('error', 'Usage: query <search input> [options]');
         addEntry('system', 'Type "query help" for detailed information and examples');
         return;
       }
-      
+
       // Parse query and optional parameters with proper quote handling
       let query = '';
       const params: any = {};
       let i = 0;
       let quoteChar: string | null = null;  // Track which quote character opened the quoted section
       let currentToken = '';
-      
+
       while (i < fullQuery.length) {
         const char = fullQuery[i];
         const prevChar = i > 0 ? fullQuery[i - 1] : '';
-        
+
         // Only treat quotes as opening/closing when they follow '=' or are closing quotes
         const isQuoteAfterEquals = (char === '"' || char === "'") && prevChar === '=' && quoteChar === null;
         const isClosingQuote = char === quoteChar && quoteChar !== null;
-        
+
         if (isQuoteAfterEquals) {
           // Opening quote (only after '=')
           quoteChar = char;
@@ -1653,7 +1653,7 @@ Powered by Wolfram Alpha Full Results API`);
           i++;
         }
       }
-      
+
       // Process final token
       if (currentToken.trim()) {
         if (currentToken.startsWith('--')) {
@@ -1669,14 +1669,14 @@ Powered by Wolfram Alpha Full Results API`);
           query += (query ? ' ' : '') + currentToken;
         }
       }
-      
+
       if (!query) {
         addEntry('error', 'No query text provided');
         return;
       }
-      
+
       setIsTyping(true);
-      
+
       // Build display message
       let displayMsg = `🔍 Querying Wolfram Alpha for: "${query}"`;
       if (Object.keys(params).length > 0) {
@@ -1686,13 +1686,13 @@ Powered by Wolfram Alpha Full Results API`);
         displayMsg += `\nParameters: ${paramStr}`;
       }
       addEntry('system', displayMsg);
-      
+
       // Build URL with parameters
       let url = `/api/wolfram/query?q=${encodeURIComponent(query)}`;
       Object.entries(params).forEach(([key, value]) => {
         url += `&${key}=${encodeURIComponent(value as string)}`;
       });
-      
+
       fetch(url)
         .then(res => res.json())
         .then(data => {
@@ -1704,33 +1704,35 @@ Powered by Wolfram Alpha Full Results API`);
             formatted += '<div style="border: 2px solid var(--terminal-highlight); padding: 10px; margin-bottom: 20px; border-radius: 4px;">';
             formatted += '<div style="text-align: center; font-weight: bold; color: var(--terminal-highlight); font-size: 16px;">WOLFRAM ALPHA QUERY RESULTS</div>';
             formatted += '</div>';
-            
+
             data.pods.forEach((pod: any, index: number) => {
               if (pod.plaintext || (pod.subpods && pod.subpods.length > 0)) {
                 formatted += `<div style="margin-bottom: 15px; border-left: 3px solid var(--terminal-highlight); padding-left: 10px;">`;
                 formatted += `<div style="font-weight: bold; color: var(--terminal-highlight); margin-bottom: 5px;">${pod.title}</div>`;
-                
+
                 if (pod.subpods && pod.subpods.length > 0) {
                   pod.subpods.forEach((subpod: any) => {
                     // Render image if available
                     if (subpod.img && subpod.img.src) {
-                      formatted += `<div style="margin: 10px 0;"><img src="${subpod.img.src}" alt="${subpod.img.alt || ''}" title="${subpod.img.title || ''}" style="max-width: 100%; height: auto; background: white; padding: 10px; border-radius: 4px; border: 1px solid var(--terminal-subtle);" /></div>`;
+                      formatted += `<div style="margin: 10px 0; text-align: center; background-color: #000000; padding: 10px;">`;
+                      formatted += `<img src="${subpod.img.src}" alt="${subpod.img.alt || 'Wolfram Alpha result'}" style="max-width: 100%; height: auto; border: 1px solid var(--terminal-subtle); background-color: #000000;" />`;
+                      formatted += `</div>`;
                     }
-                    
+
                     // Render MathML if available
                     if (subpod.mathml) {
                       formatted += `<div class="mathml-content">${subpod.mathml}</div>`;
                     }
-                    
+
                     // Render LaTeX if available
                     if (subpod.latex) {
                       formatted += `<div class="latex-content">$$${subpod.latex}$$</div>`;
                     }
-                    
+
                     // Render plaintext
                     if (subpod.plaintext) {
                       const lines = subpod.plaintext.split('\n');
-                      formatted += '<div style="margin: 5px 0;">';
+                      formatted += `<div style="margin-bottom: 10px; background-color: #000000; color: var(--terminal-text);">`;
                       lines.forEach((line: string) => {
                         if (line.trim()) {
                           formatted += `${line}<br/>`;
@@ -1741,7 +1743,7 @@ Powered by Wolfram Alpha Full Results API`);
                   });
                 } else if (pod.plaintext) {
                   const lines = pod.plaintext.split('\n');
-                  formatted += '<div style="margin: 5px 0;">';
+                  formatted += `<div style="margin-bottom: 10px; background-color: #000000; color: var(--terminal-text);">`;
                   lines.forEach((line: string) => {
                     if (line.trim()) {
                       formatted += `${line}<br/>`;
@@ -1749,15 +1751,15 @@ Powered by Wolfram Alpha Full Results API`);
                   });
                   formatted += '</div>';
                 }
-                
+
                 formatted += '</div>';
               }
             });
-            
+
             formatted += '<div style="margin-top: 20px; text-align: center; color: var(--terminal-subtle); font-size: 12px;">Powered by Wolfram Alpha</div>';
             formatted += '</div>';
             addEntry('response', formatted);
-            
+
             // Trigger MathJax to typeset the new content after a brief delay
             setTimeout(() => {
               if (window.MathJax && window.MathJax.typesetPromise) {
@@ -1782,21 +1784,21 @@ Powered by Wolfram Alpha Full Results API`);
         addEntry('error', 'Usage: telnet <host> <port>');
         return;
       }
-      
+
       const host = parts[1];
       const port = parseInt(parts[2]);
-      
+
       if (isNaN(port) || port <= 0 || port > 65535) {
         addEntry('error', 'Invalid port number. Port must be between 1 and 65535.');
         return;
       }
-      
+
       addEntry('system', `Opening telnet client for ${host}:${port}...`);
-      
+
       // Open Sshwifty in a new window/tab
       const sshwiftyUrl = `/sshwifty?host=${encodeURIComponent(host)}&port=${port}&type=telnet`;
       window.open(sshwiftyUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
-      
+
       addEntry('system', `Telnet client opened in new window for ${host}:${port}`);
       return;
     }
@@ -1807,10 +1809,10 @@ Powered by Wolfram Alpha Full Results API`);
         addEntry('error', 'Usage: ssh <user@host> [port]');
         return;
       }
-      
+
       let userHost = parts[1];
       let port = 22; // Default SSH port
-      
+
       if (parts[2]) {
         port = parseInt(parts[2]);
         if (isNaN(port) || port <= 0 || port > 65535) {
@@ -1818,23 +1820,23 @@ Powered by Wolfram Alpha Full Results API`);
           return;
         }
       }
-      
+
       // Parse user@host format
       const atIndex = userHost.indexOf('@');
       if (atIndex === -1) {
         addEntry('error', 'Usage: ssh <user@host> [port]');
         return;
       }
-      
+
       const user = userHost.substring(0, atIndex);
       const host = userHost.substring(atIndex + 1);
-      
+
       addEntry('system', `Opening SSH client for ${user}@${host}:${port}...`);
-      
+
       // Open Sshwifty in a new window/tab
       const sshwiftyUrl = `/sshwifty?host=${encodeURIComponent(host)}&port=${port}&user=${encodeURIComponent(user)}&type=ssh`;
       window.open(sshwiftyUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
-      
+
       addEntry('system', `SSH client opened in new window for ${user}@${host}:${port}`);
       return;
     }
@@ -1845,9 +1847,9 @@ Powered by Wolfram Alpha Full Results API`);
         addEntry('error', 'Usage: ping <host>');
         return;
       }
-      
+
       addEntry('system', `PING ${host} - Testing connectivity...`);
-      
+
       // Simulate ping by attempting a basic connectivity test
       const startTime = Date.now();
       fetch(`/api/ping/${encodeURIComponent(host)}`, { 
@@ -1857,7 +1859,7 @@ Powered by Wolfram Alpha Full Results API`);
         .then(response => {
           const endTime = Date.now();
           const latency = endTime - startTime;
-          
+
           if (response.ok) {
             addEntry('system', `PING ${host}: Host is reachable (${latency}ms)`);
           } else {
@@ -1873,7 +1875,7 @@ Powered by Wolfram Alpha Full Results API`);
     if (cmd === 'bbs-list') {
       setIsTyping(true);
       addEntry('system', 'Retrieving BBS directory...');
-      
+
       fetch('/api/bbs/systems')
         .then(response => response.json())
         .then((systems: any[]) => {
@@ -1882,7 +1884,7 @@ Powered by Wolfram Alpha Full Results API`);
             addEntry('system', 'No BBS systems found.');
             return;
           }
-          
+
           const bbsList = systems
             .slice(0, 10) // Show first 10
             .map((bbs, index) => 
@@ -1893,9 +1895,9 @@ Powered by Wolfram Alpha Full Results API`);
      Connect: telnet ${bbs.host} ${bbs.port}`
             )
             .join('\n\n');
-            
+
           const totalText = systems.length > 10 ? `\nShowing 10 of ${systems.length} systems. Use "bbs-search" to find specific systems.` : '';
-          
+
           addEntry('system', `BBS Systems Directory:\n\n${bbsList}${totalText}`);
         })
         .catch(error => {
@@ -1911,10 +1913,10 @@ Powered by Wolfram Alpha Full Results API`);
         addEntry('error', 'Usage: bbs-search <query>');
         return;
       }
-      
+
       setIsTyping(true);
       addEntry('system', `Searching BBS systems for: "${query}"`);
-      
+
       fetch(`/api/bbs/systems?search=${encodeURIComponent(query)}`)
         .then(response => response.json())
         .then((systems: any[]) => {
@@ -1923,7 +1925,7 @@ Powered by Wolfram Alpha Full Results API`);
             addEntry('system', `No BBS systems found matching "${query}".`);
             return;
           }
-          
+
           const searchResults = systems
             .map((bbs, index) => 
               `${index + 1}. ${bbs.name} - ${bbs.host}:${bbs.port}
@@ -1932,7 +1934,7 @@ Powered by Wolfram Alpha Full Results API`);
      Connect: telnet ${bbs.host} ${bbs.port}`
             )
             .join('\n\n');
-            
+
           addEntry('system', `BBS Search Results (${systems.length} found):\n\n${searchResults}`);
         })
         .catch(error => {
@@ -1945,7 +1947,7 @@ Powered by Wolfram Alpha Full Results API`);
     if (cmd === 'bbs-popular') {
       setIsTyping(true);
       addEntry('system', 'Retrieving popular BBS systems...');
-      
+
       fetch('/api/bbs/popular?limit=5')
         .then(response => response.json())
         .then((systems: any[]) => {
@@ -1954,7 +1956,7 @@ Powered by Wolfram Alpha Full Results API`);
             addEntry('system', 'No popular BBS systems found.');
             return;
           }
-          
+
           const popularList = systems
             .map((bbs, index) => 
               `${index + 1}. ${bbs.name} - ${bbs.host}:${bbs.port}
@@ -1963,7 +1965,7 @@ Powered by Wolfram Alpha Full Results API`);
      Connect: telnet ${bbs.host} ${bbs.port}`
             )
             .join('\n\n');
-            
+
           addEntry('system', `Popular BBS Systems:\n\n${popularList}`);
         })
         .catch(error => {
@@ -1976,7 +1978,7 @@ Powered by Wolfram Alpha Full Results API`);
     if (cmd === 'bbs-favorites') {
       setIsTyping(true);
       addEntry('system', 'Retrieving your favorite BBS systems...');
-      
+
       fetch('/api/bbs/favorites', { credentials: 'include' })
         .then(async response => {
           setIsTyping(false);
@@ -1985,13 +1987,13 @@ Powered by Wolfram Alpha Full Results API`);
             return;
           }
           if (!response.ok) throw new Error('Failed to fetch favorites');
-          
+
           const systems = await response.json();
           if (systems.length === 0) {
             addEntry('system', 'No favorite BBS systems yet. Connect to systems and save them as favorites!');
             return;
           }
-          
+
           const favoritesList = systems
             .map((bbs: any, index: number) => 
               `${index + 1}. ${bbs.name} - ${bbs.host}:${bbs.port}
@@ -1999,7 +2001,7 @@ Powered by Wolfram Alpha Full Results API`);
      Connect: telnet ${bbs.host} ${bbs.port}`
             )
             .join('\n\n');
-            
+
           addEntry('system', `Your Favorite BBS Systems (${systems.length}):\n\n${favoritesList}`);
         })
         .catch(error => {
@@ -2010,7 +2012,7 @@ Powered by Wolfram Alpha Full Results API`);
     }
 
     // Games
-    
+
     if (cmd === 'theharvester' || cmd === 'harvester') {
       addEntry('system', 'Launching theHarvester OSINT reconnaissance tool...');
       const openTheHarvester = (window as any).openTheHarvester;
@@ -2092,10 +2094,10 @@ Powered by Wolfram Alpha Full Results API`);
       addEntry('system', helpText);
       return;
     }
-    
+
     if (cmd.startsWith('radio ')) {
       const subCmd = cmd.substring(6).trim();
-      
+
       if (subCmd === 'play') {
         const radioElement = document.querySelector('audio') as HTMLAudioElement;
         if (radioElement && radioElement.src) {
@@ -2116,7 +2118,7 @@ Powered by Wolfram Alpha Full Results API`);
         }
         return;
       }
-      
+
       if (subCmd === 'stop') {
         const radioElement = document.querySelector('audio') as HTMLAudioElement;
         if (radioElement) {
@@ -2127,29 +2129,29 @@ Powered by Wolfram Alpha Full Results API`);
         }
         return;
       }
-      
+
       if (subCmd.startsWith('search ')) {
         const query = subCmd.substring(7).trim();
         if (!query) {
           addEntry('error', 'Usage: radio search <station name or location>');
           return;
         }
-        
+
         addEntry('system', `🔍 Searching Radio Garden for: "${query}"`);
-        
+
         fetch(`/api/radio/search?q=${encodeURIComponent(query)}&limit=5`)
           .then(res => res.json())
           .then(stations => {
             if (stations.length === 0) {
               addEntry('system', 'No stations found for that search');
             } else {
-              let result = `📻 Found ${stations.length} stations:\\n\\n`;
+              let result = `📻 Found ${stations.length} stations:\n\n`;
               stations.forEach((station: any, index: number) => {
-                result += `${index + 1}. ${station.title}\\n`;
-                result += `   📍 ${station.place}, ${station.country}\\n`;
-                if (index < stations.length - 1) result += '\\n';
+                result += `${index + 1}. ${station.title}\n`;
+                result += `   📍 ${station.place}, ${station.country}\n`;
+                if (index < stations.length - 1) result += '\n';
               });
-              result += '\\n💡 Use "radio play" to open the radio interface and select a station';
+              result += '\n💡 Use "radio play" to open the radio interface and select a station';
               addEntry('system', result);
             }
           })
@@ -2158,14 +2160,14 @@ Powered by Wolfram Alpha Full Results API`);
           });
         return;
       }
-      
+
       if (subCmd === 'random') {
         addEntry('system', '🎲 Getting random station from Radio Garden...');
-        
+
         fetch('/api/radio/random')
           .then(res => res.json())
           .then(station => {
-            const result = `📻 Random Station Found:\\n\\n🎵 ${station.title}\\n📍 ${station.place.title}, ${station.place.country}\\n\\n💡 Use "radio play" to open the radio interface`;
+            const result = `📻 Random Station Found:\n\n🎵 ${station.title}\n📍 ${station.place.title}, ${station.place.country}\n\n💡 Use "radio play" to open the radio interface`;
             addEntry('system', result);
           })
           .catch(() => {
@@ -2173,16 +2175,16 @@ Powered by Wolfram Alpha Full Results API`);
           });
         return;
       }
-      
+
       if (subCmd.startsWith('volume ')) {
         const volumeStr = subCmd.substring(7).trim();
         const volumeNum = parseFloat(volumeStr);
-        
+
         if (isNaN(volumeNum) || volumeNum < 0 || volumeNum > 100) {
           addEntry('error', 'Usage: radio volume <0-100>');
           return;
         }
-        
+
         const radioElement = document.querySelector('audio') as HTMLAudioElement;
         if (radioElement) {
           // Apply 30% reduction to the requested volume
@@ -2194,31 +2196,31 @@ Powered by Wolfram Alpha Full Results API`);
         }
         return;
       }
-      
+
       if (subCmd === 'status') {
         const radioElement = document.querySelector('audio') as HTMLAudioElement;
         if (radioElement && radioElement.src) {
           const isPlaying = !radioElement.paused;
           const volume = Math.round(radioElement.volume * 100);
-          const status = `📻 Radio Garden Status: ${isPlaying ? 'Streaming 🎵' : 'Stopped ⏹️'}\\nVolume: ${volume}%\\nConnection: ${radioElement.readyState >= 2 ? 'Ready' : 'Loading...'}\\n\\n💡 Use the radio interface to see current station details`;
+          const status = `📻 Radio Garden Status: ${isPlaying ? 'Streaming 🎵' : 'Stopped ⏹️'}\nVolume: ${volume}%\nConnection: ${radioElement.readyState >= 2 ? 'Ready' : 'Loading...'}\n\n💡 Use the radio interface to see current station details`;
           addEntry('system', status);
         } else {
-          addEntry('system', `📻 Radio Garden Status: Inactive\\n\\n💡 Use "radio play" to access thousands of global stations`);
+          addEntry('system', `📻 Radio Garden Status: Inactive\n\n💡 Use "radio play" to access thousands of global stations`);
         }
         return;
       }
-      
+
       if (subCmd === 'countries') {
         addEntry('system', '🌍 Getting countries with radio stations...');
-        
+
         fetch('/api/radio/countries')
           .then(res => res.json())
           .then(countries => {
-            let result = '🌍 Top countries with radio stations:\\n\\n';
+            let result = '🌍 Top countries with radio stations:\n\n';
             countries.slice(0, 10).forEach((country: any, index: number) => {
-              result += `${index + 1}. ${country.country} (${country.count} stations)\\n`;
+              result += `${index + 1}. ${country.country} (${country.count} stations)\n`;
             });
-            result += '\\n💡 Use "radio search <country>" to find stations';
+            result += '\n💡 Use "radio search <country>" to find stations';
             addEntry('system', result);
           })
           .catch(() => {
@@ -2226,26 +2228,26 @@ Powered by Wolfram Alpha Full Results API`);
           });
         return;
       }
-      
+
       // Help command
       if (subCmd === '' || subCmd === 'help') {
-        const helpText = `📻 Radio Garden Commands:\\n\\n` +
-          `radio play        - Open radio interface\\n` +
-          `radio stop        - Stop current stream\\n` +
-          `radio search <q>  - Search for stations\\n` +
-          `radio random      - Get random station\\n` +
-          `radio countries   - List countries\\n` +
-          `radio volume <n>  - Set volume (0-100)\\n` +
-          `radio status      - Check status\\n\\n` +
+        const helpText = `📻 Radio Garden Commands:\n\n` +
+          `radio play        - Open radio interface\n` +
+          `radio stop        - Stop current stream\n` +
+          `radio search <q>  - Search for stations\n` +
+          `radio random      - Get random station\n` +
+          `radio countries   - List countries\n` +
+          `radio volume <n>  - Set volume (0-100)\n` +
+          `radio status      - Check status\n\n` +
           `💡 Radio Garden provides access to thousands of live stations worldwide`;
         addEntry('system', helpText);
         return;
       }
-      
+
       addEntry('error', 'Unknown radio command. Use "radio help" for available commands');
       return;
     }
-    
+
     // Handle OSINT commands
     if (cmd.startsWith('whois ')) {
       const domain = cmd.substring(6).trim();
@@ -2253,9 +2255,9 @@ Powered by Wolfram Alpha Full Results API`);
         addEntry('error', 'Usage: whois <domain>');
         return;
       }
-      
+
       addEntry('system', `🔍 Performing WHOIS lookup for ${domain}...`);
-      
+
       fetch(`/api/osint/whois/${domain}`)
         .then(res => res.json())
         .then(data => {
@@ -2266,16 +2268,16 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('dns ')) {
       const domain = cmd.substring(4).trim();
       if (!domain) {
         addEntry('error', 'Usage: dns <domain>');
         return;
       }
-      
+
       addEntry('system', `🌐 Querying DNS records for ${domain}...`);
-      
+
       fetch(`/api/osint/dns/${domain}`)
         .then(res => res.json())
         .then(data => {
@@ -2286,16 +2288,16 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('geoip ')) {
       const ip = cmd.substring(6).trim();
       if (!ip) {
         addEntry('error', 'Usage: geoip <ip_address>');
         return;
       }
-      
+
       addEntry('system', `🌍 Geolocating IP address ${ip}...`);
-      
+
       fetch(`/api/osint/geoip/${ip}`)
         .then(res => res.json())
         .then(data => {
@@ -2306,16 +2308,16 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('headers ')) {
       const url = cmd.substring(8).trim();
       if (!url) {
         addEntry('error', 'Usage: headers <url>');
         return;
       }
-      
+
       addEntry('system', `🔍 Analyzing HTTP headers for ${url}...`);
-      
+
       fetch(`/api/osint/headers?url=${encodeURIComponent(url)}`)
         .then(res => res.json())
         .then(data => {
@@ -2326,16 +2328,16 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('wayback ')) {
       const url = cmd.substring(8).trim();
       if (!url) {
         addEntry('error', 'Usage: wayback <url>');
         return;
       }
-      
+
       addEntry('system', `📚 Searching Wayback Machine for ${url}...`);
-      
+
       fetch(`/api/osint/wayback?url=${encodeURIComponent(url)}`)
         .then(res => res.json())
         .then(data => {
@@ -2346,16 +2348,16 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('username ')) {
       const username = cmd.substring(9).trim();
       if (!username) {
         addEntry('error', 'Usage: username <username>');
         return;
       }
-      
+
       addEntry('system', `👤 Checking username availability for ${username}...`);
-      
+
       fetch(`/api/osint/username/${username}`)
         .then(res => res.json())
         .then(data => {
@@ -2366,16 +2368,16 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('traceroute ')) {
       const target = cmd.substring(11).trim();
       if (!target) {
         addEntry('error', 'Usage: traceroute <ip_or_domain>');
         return;
       }
-      
+
       addEntry('system', `🛤️ Tracing network path to ${target}...`);
-      
+
       fetch(`/api/osint/traceroute/${target}`)
         .then(res => res.json())
         .then(data => {
@@ -2386,16 +2388,16 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('subdomains ')) {
       const domain = cmd.substring(11).trim();
       if (!domain) {
         addEntry('error', 'Usage: subdomains <domain>');
         return;
       }
-      
+
       addEntry('system', `🌐 Enumerating subdomains for ${domain}...`);
-      
+
       fetch(`/api/osint/subdomains/${domain}`)
         .then(res => res.json())
         .then(data => {
@@ -2406,16 +2408,16 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('ssl ')) {
       const domain = cmd.substring(4).trim();
       if (!domain) {
         addEntry('error', 'Usage: ssl <domain>');
         return;
       }
-      
+
       addEntry('system', `🔒 Analyzing SSL certificate for ${domain}...`);
-      
+
       fetch(`/api/osint/ssl/${domain}`)
         .then(res => res.json())
         .then(data => {
@@ -2426,16 +2428,16 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('tech ')) {
       const domain = cmd.substring(5).trim();
       if (!domain) {
         addEntry('error', 'Usage: tech <domain>');
         return;
       }
-      
+
       addEntry('system', `⚙️ Detecting technology stack for ${domain}...`);
-      
+
       fetch(`/api/osint/tech/${domain}`)
         .then(res => res.json())
         .then(data => {
@@ -2446,16 +2448,16 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('reverse-ip ')) {
       const ip = cmd.substring(11).trim();
       if (!ip) {
         addEntry('error', 'Usage: reverse-ip <ip_address>');
         return;
       }
-      
+
       addEntry('system', `🔄 Performing reverse IP lookup for ${ip}...`);
-      
+
       fetch(`/api/osint/reverse-ip/${ip}`)
         .then(res => res.json())
         .then(data => {
@@ -2466,16 +2468,16 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('portscan ')) {
       const target = cmd.substring(9).trim();
       if (!target) {
         addEntry('error', 'Usage: portscan <ip_or_domain>');
         return;
       }
-      
+
       addEntry('system', `🛡️ Scanning ports on ${target}...`);
-      
+
       fetch(`/api/osint/portscan/${target}`)
         .then(res => res.json())
         .then(data => {
@@ -2486,17 +2488,17 @@ Powered by Wolfram Alpha Full Results API`);
         });
       return;
     }
-    
+
     if (cmd.startsWith('osint-report ')) {
       const target = cmd.substring(13).trim();
       if (!target) {
         addEntry('error', 'Usage: osint-report <domain_or_ip>');
         return;
       }
-      
+
       addEntry('system', `📋 Generating comprehensive OSINT report for ${target}...`);
       addEntry('system', 'This may take a moment as we gather intelligence from multiple sources...');
-      
+
       fetch(`/api/osint/report/${target}`)
         .then(res => res.json())
         .then(data => {
@@ -2512,7 +2514,7 @@ Powered by Wolfram Alpha Full Results API`);
       if (cmd === 'threat-actors') {
         addEntry('system', '🎯 Fetching MISP Galaxy threat actor intelligence...');
         addEntry('system', 'This may take a moment as we retrieve current threat data...');
-        
+
         fetch('/api/osint/threat-actors')
           .then(res => res.json())
           .then(data => {
@@ -2523,16 +2525,16 @@ Powered by Wolfram Alpha Full Results API`);
           });
         return;
       }
-      
+
       const actorName = cmd.substring(13).trim();
       if (!actorName) {
         addEntry('error', 'Usage: threat-actors <name> or just threat-actors for all actors');
         return;
       }
-      
+
       addEntry('system', `🎯 Looking up threat actor: ${actorName}...`);
       addEntry('system', 'Searching MISP Galaxy intelligence database...');
-      
+
       fetch(`/api/osint/threat-actors/${encodeURIComponent(actorName)}`)
         .then(res => res.json())
         .then(data => {
@@ -2551,8 +2553,8 @@ Powered by Wolfram Alpha Full Results API`);
       return;
     }
 
-      
-    
+
+
     // For non-command inputs, send to AI
     setIsTyping(true);
     chatMutation.mutate({ message: command, mode: currentMode });
@@ -2587,7 +2589,7 @@ Powered by Wolfram Alpha Full Results API`);
     try {
       const response = await apiRequest('GET', `/api/conversation/${targetSessionId}`);
       const conversation = await response.json();
-      
+
       if (conversation && Array.isArray(conversation.messages)) {
         // Clear current entries and load conversation
         setEntries([
@@ -2598,7 +2600,7 @@ Powered by Wolfram Alpha Full Results API`);
             timestamp: new Date().toISOString(),
           },
         ]);
-        
+
         // Add all messages from the conversation
         conversation.messages.forEach((msg: Message, index: number) => {
           setEntries(prev => [...prev, {
@@ -2609,7 +2611,7 @@ Powered by Wolfram Alpha Full Results API`);
             mode: msg.mode,
           }]);
         });
-        
+
         // Update current mode to match the conversation
         if (conversation.mode) {
           setCurrentMode(conversation.mode);
