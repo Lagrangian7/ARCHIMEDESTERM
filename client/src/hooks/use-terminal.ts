@@ -1714,8 +1714,8 @@ Powered by Wolfram Alpha Full Results API`);
                   pod.subpods.forEach((subpod: any) => {
                     // Render image if available
                     if (subpod.img && subpod.img.src) {
-                      formatted += `<div style="margin: 10px 0; text-align: center; background-color: #000000; padding: 10px;">`;
-                      formatted += `<img src="${subpod.img.src}" alt="${subpod.img.alt || 'Wolfram Alpha result'}" style="max-width: 100%; height: auto; border: 1px solid var(--terminal-subtle); background-color: #000000;" />`;
+                      formatted += `<div style="margin: 10px 0; text-align: center; background-color: rgba(0, 0, 0, 0.3); padding: 10px;">`;
+                      formatted += `<img src="${subpod.img.src}" alt="${subpod.img.alt || 'Wolfram Alpha result'}" style="max-width: 100%; height: auto; border: 1px solid var(--terminal-subtle); background-color: rgba(0, 0, 0, 0.3);" />`;
                       formatted += `</div>`;
                     }
 
@@ -1732,7 +1732,7 @@ Powered by Wolfram Alpha Full Results API`);
                     // Render plaintext
                     if (subpod.plaintext) {
                       const lines = subpod.plaintext.split('\n');
-                      formatted += `<div style="margin-bottom: 10px; background-color: #000000; color: var(--terminal-text);">`;
+                      formatted += `<div style="margin-bottom: 10px; background-color: rgba(0, 0, 0, 0.3); color: var(--terminal-text);">`;
                       lines.forEach((line: string) => {
                         if (line.trim()) {
                           formatted += `${line}<br/>`;
@@ -1743,7 +1743,7 @@ Powered by Wolfram Alpha Full Results API`);
                   });
                 } else if (pod.plaintext) {
                   const lines = pod.plaintext.split('\n');
-                  formatted += `<div style="margin-bottom: 10px; background-color: #000000; color: var(--terminal-text);">`;
+                  formatted += `<div style="margin-bottom: 10px; background-color: rgba(0, 0, 0, 0.3); color: var(--terminal-text);">`;
                   lines.forEach((line: string) => {
                     if (line.trim()) {
                       formatted += `${line}<br/>`;
@@ -1766,6 +1766,26 @@ Powered by Wolfram Alpha Full Results API`);
                 window.MathJax.typesetPromise().catch((err: any) => console.error('MathJax typeset error:', err));
               }
             }, 100);
+
+            // Get AI commentary on the Wolfram results
+            setIsTyping(true);
+            addEntry('system', '💭 Archimedes AI analyzing results...');
+
+            // Extract text summary from pods for AI to analyze
+            const resultSummary = data.pods
+              .filter((pod: any) => pod.plaintext || (pod.subpods && pod.subpods.length > 0))
+              .map((pod: any) => {
+                const content = pod.subpods 
+                  ? pod.subpods.map((sp: any) => sp.plaintext).filter(Boolean).join('\n')
+                  : pod.plaintext;
+                return `${pod.title}:\n${content}`;
+              })
+              .join('\n\n');
+
+            chatMutation.mutate({
+              message: `Please provide a brief, insightful commentary on these Wolfram Alpha results for the query "${query}":\n\n${resultSummary}\n\nGive a short analysis (2-3 sentences) explaining the significance or practical application of these results.`,
+              mode: currentMode
+            });
           } else {
             addEntry('error', 'No results found for this query');
           }
