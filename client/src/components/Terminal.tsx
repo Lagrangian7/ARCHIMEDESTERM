@@ -117,7 +117,7 @@ export function Terminal() {
   const [showAJVideo, setShowAJVideo] = useState(false);
 
   // Theme management
-  const themes = ['green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized', 'commodore64'];
+  const themes = ['commodore64', 'green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized'];
   const [currentTheme, setCurrentTheme] = useState<string>(themes[0]);
 
   // Switch theme function
