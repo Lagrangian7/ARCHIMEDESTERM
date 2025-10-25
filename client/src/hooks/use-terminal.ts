@@ -1700,55 +1700,62 @@ Powered by Wolfram Alpha Full Results API`);
           if (!data.success || data.error) {
             addEntry('error', `Query failed: ${data.error || 'No results found'}`);
           } else if (data.pods && data.pods.length > 0) {
-            let formatted = '╔═══════════════════════════════════════════════════════╗\n';
-            formatted += '║           WOLFRAM ALPHA QUERY RESULTS                 ║\n';
-            formatted += '╚═══════════════════════════════════════════════════════╝\n\n';
+            let formatted = '<div class="wolfram-results">';
+            formatted += '<div style="border: 2px solid var(--terminal-highlight); padding: 10px; margin-bottom: 20px; border-radius: 4px;">';
+            formatted += '<div style="text-align: center; font-weight: bold; color: var(--terminal-highlight); font-size: 16px;">WOLFRAM ALPHA QUERY RESULTS</div>';
+            formatted += '</div>';
             
             data.pods.forEach((pod: any, index: number) => {
               if (pod.plaintext || (pod.subpods && pod.subpods.length > 0)) {
-                formatted += `┌─ ${pod.title}\n`;
+                formatted += `<div style="margin-bottom: 15px; border-left: 3px solid var(--terminal-highlight); padding-left: 10px;">`;
+                formatted += `<div style="font-weight: bold; color: var(--terminal-highlight); margin-bottom: 5px;">${pod.title}</div>`;
                 
                 if (pod.subpods && pod.subpods.length > 0) {
                   pod.subpods.forEach((subpod: any) => {
                     // Render image if available
                     if (subpod.img && subpod.img.src) {
-                      formatted += `│  <img src="${subpod.img.src}" alt="${subpod.img.alt}" title="${subpod.img.title}" style="max-width: 100%; height: auto; margin: 10px 0; background: white; padding: 10px; border-radius: 4px;" />\n`;
+                      formatted += `<div style="margin: 10px 0;"><img src="${subpod.img.src}" alt="${subpod.img.alt || ''}" title="${subpod.img.title || ''}" style="max-width: 100%; height: auto; background: white; padding: 10px; border-radius: 4px; border: 1px solid var(--terminal-subtle);" /></div>`;
                     }
                     
                     // Render MathML if available
                     if (subpod.mathml) {
-                      formatted += `│  <div class="mathml-content" style="margin: 10px 0;">${subpod.mathml}</div>\n`;
+                      formatted += `<div class="mathml-content">${subpod.mathml}</div>`;
                     }
                     
                     // Render LaTeX if available
                     if (subpod.latex) {
-                      formatted += `│  <div class="latex-content" style="margin: 10px 0;">$$${subpod.latex}$$</div>\n`;
+                      formatted += `<div class="latex-content">$$${subpod.latex}$$</div>`;
                     }
                     
                     // Render plaintext
                     if (subpod.plaintext) {
                       const lines = subpod.plaintext.split('\n');
+                      formatted += '<div style="margin: 5px 0;">';
                       lines.forEach((line: string) => {
                         if (line.trim()) {
-                          formatted += `│  ${line}\n`;
+                          formatted += `${line}<br/>`;
                         }
                       });
+                      formatted += '</div>';
                     }
                   });
                 } else if (pod.plaintext) {
                   const lines = pod.plaintext.split('\n');
+                  formatted += '<div style="margin: 5px 0;">';
                   lines.forEach((line: string) => {
                     if (line.trim()) {
-                      formatted += `│  ${line}\n`;
+                      formatted += `${line}<br/>`;
                     }
                   });
+                  formatted += '</div>';
                 }
                 
-                formatted += '│\n';
+                formatted += '</div>';
               }
             });
             
-            formatted += '└─ Powered by Wolfram Alpha';
+            formatted += '<div style="margin-top: 20px; text-align: center; color: var(--terminal-subtle); font-size: 12px;">Powered by Wolfram Alpha</div>';
+            formatted += '</div>';
             addEntry('response', formatted);
             
             // Trigger MathJax to typeset the new content after a brief delay

@@ -530,6 +530,42 @@
   }
 }
 
+/* Rich content support in terminal */
+.terminal-output img {
+  max-width: 100%;
+  height: auto;
+  margin: 10px 0;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid var(--terminal-subtle);
+  display: block;
+}
+
+.terminal-output .mathml-content,
+.terminal-output .latex-content {
+  margin: 10px 0;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 3px solid var(--terminal-highlight);
+  overflow-x: auto;
+  color: var(--terminal-text);
+}
+
+.terminal-output mjx-container {
+  color: var(--terminal-text) !important;
+}
+
+.terminal-output a {
+  color: var(--terminal-highlight);
+  text-decoration: underline;
+}
+
+.terminal-output a:hover {
+  color: var(--terminal-text);
+  background: var(--terminal-highlight);
+}
+
 @keyframes telnetBorderGlitch {
   0% {
     background-position: 0 0;

@@ -192,6 +192,13 @@ export function Terminal() {
     if (!showContinuePrompt) {
       scrollToBottom();
     }
+    
+    // Trigger MathJax typesetting for any new mathematical content
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise().catch((err: any) => {
+        console.error('MathJax typesetting error:', err);
+      });
+    }
   }, [entries, isTyping, showContinuePrompt, scrollToBottom]);
 
   // Additional scroll trigger for when responses are being drawn
@@ -475,9 +482,8 @@ export function Terminal() {
                             '--steps': entry.content.length,
                             '--type-dur': `${Math.min(3000, Math.max(800, entry.content.length * 30))}ms`
                           } as React.CSSProperties : undefined}
-                        >
-                          <LinkifiedText>{entry.content}</LinkifiedText>
-                        </div>
+                          dangerouslySetInnerHTML={{ __html: entry.content }}
+                        />
                       </DraggableResponse>
                     </div>
                   )}
