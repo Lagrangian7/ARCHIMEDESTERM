@@ -1033,21 +1033,68 @@ You can also chat naturally or ask technical questions.`);
           : '';
 
       if (pastedCode) {
-        // User provided code directly - use it
-        setPreviewCode(pastedCode);
-        addEntry('system', '🚀 Opening code preview with your pasted code...');
-        return;
+        // Check if it's Python code
+        if (pastedCode.includes('import ') || pastedCode.includes('def ') || pastedCode.includes('print(')) {
+          setIsTyping(true);
+          addEntry('system', '🐍 Executing Python code...');
+          
+          fetch('/api/execute/python', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: pastedCode })
+          })
+            .then(res => res.json())
+            .then(data => {
+              setIsTyping(false);
+              addEntry('response', data.formatted);
+            })
+            .catch(error => {
+              setIsTyping(false);
+              addEntry('error', `Python execution failed: ${error.message}`);
+            });
+          return;
+        } else {
+          // HTML/CSS/JS code
+          setPreviewCode(pastedCode);
+          addEntry('system', '🚀 Opening code preview with your pasted code...');
+          return;
+        }
       }
 
       // No pasted code - extract from last AI response
       const lastResponse = [...entries].reverse().find(entry => entry.type === 'response');
 
       if (!lastResponse) {
-        addEntry('error', 'No AI response found. Please ask the AI to generate some code first, or use:\n\npreview <paste your HTML/CSS/JS here>');
+        addEntry('error', 'No AI response found. Please ask the AI to generate some code first, or use:\n\npreview <paste your code here>');
         return;
       }
 
-      // Extract code blocks from the response (markdown code blocks or HTML)
+      // Extract code blocks from the response
+      const pythonBlockRegex = /```(?:python|py)\n([\s\S]*?)```/;
+      const pythonMatch = lastResponse.content.match(pythonBlockRegex);
+
+      if (pythonMatch && pythonMatch[1]) {
+        setIsTyping(true);
+        addEntry('system', '🐍 Executing Python code...');
+        
+        fetch('/api/execute/python', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: pythonMatch[1].trim() })
+        })
+          .then(res => res.json())
+          .then(data => {
+            setIsTyping(false);
+            addEntry('response', data.formatted);
+          })
+          .catch(error => {
+            setIsTyping(false);
+            addEntry('error', `Python execution failed: ${error.message}`);
+          });
+        return;
+      }
+
+      // Try HTML/CSS/JS code blocks
       const codeBlockRegex = /```(?:html|css|javascript|js)?\n([\s\S]*?)```/;
       const match = lastResponse.content.match(codeBlockRegex);
 
@@ -1061,7 +1108,7 @@ You can also chat naturally or ask technical questions.`);
           setPreviewCode(lastResponse.content);
           addEntry('system', '🚀 Opening code preview...');
         } else {
-          addEntry('error', 'No code blocks found in the last response.\n\nAsk the AI to generate HTML, CSS, or JavaScript code, or use:\n\npreview <paste your code here>');
+          addEntry('error', 'No code blocks found in the last response.\n\nAsk the AI to generate Python, HTML, CSS, or JavaScript code, or use:\n\npreview <paste your code here>');
         }
       }
       return;

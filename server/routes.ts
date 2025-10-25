@@ -3163,6 +3163,92 @@ function windowResized() {
       const formatted = marketstackService.formatMultipleQuotesForTerminal(quotes);
 
       res.json({
+
+
+  // Python code execution endpoint
+  app.post("/api/execute/python", async (req, res) => {
+    try {
+      const { code } = req.body;
+
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ error: "Python code is required" });
+      }
+
+      if (code.length > 50000) {
+        return res.status(400).json({ error: "Code too large (max 50KB)" });
+      }
+
+      // Create a temporary Python file
+      const { writeFile, unlink } = require('fs').promises;
+      const path = require('path');
+      const tmpDir = require('os').tmpdir();
+      const tmpFile = path.join(tmpDir, `python_${Date.now()}_${Math.random().toString(36).substring(7)}.py`);
+
+      await writeFile(tmpFile, code, 'utf8');
+
+      // Execute Python with timeout and resource limits
+      const execPromise = promisify(exec);
+      
+      try {
+        const { stdout, stderr } = await execPromise(
+          `timeout 10s python3 "${tmpFile}"`,
+          {
+            maxBuffer: 1024 * 1024 * 5, // 5MB max output
+            env: {
+              ...process.env,
+              PYTHONUNBUFFERED: '1'
+            }
+          }
+        );
+
+        // Clean up temp file
+        try {
+          await unlink(tmpFile);
+        } catch (e) {
+          console.error('Failed to delete temp file:', e);
+        }
+
+        res.json({
+          success: true,
+          output: stdout || '',
+          error: stderr || '',
+          formatted: `╭─ Python Execution Result\n${stdout ? `├─ Output:\n${stdout}` : ''}${stderr ? `├─ Errors:\n${stderr}` : ''}╰─ Execution complete`
+        });
+
+      } catch (execError: any) {
+        // Clean up temp file on error
+        try {
+          await unlink(tmpFile);
+        } catch (e) {
+          console.error('Failed to delete temp file:', e);
+        }
+
+        if (execError.killed) {
+          return res.json({
+            success: false,
+            output: '',
+            error: 'Execution timeout (10 seconds)',
+            formatted: '╭─ Python Execution Result\n├─ Error: Execution timeout (10 seconds)\n╰─ Code took too long to execute'
+          });
+        }
+
+        res.json({
+          success: false,
+          output: execError.stdout || '',
+          error: execError.stderr || execError.message,
+          formatted: `╭─ Python Execution Result\n├─ Error: ${execError.stderr || execError.message}\n╰─ Execution failed`
+        });
+      }
+
+    } catch (error) {
+      console.error("Python execution error:", error);
+      res.status(500).json({ 
+        error: "Failed to execute Python code",
+        formatted: '╭─ Python Execution Result\n├─ Error: Internal server error\n╰─ Failed to execute code'
+      });
+    }
+  });
+
         quotes,
         formatted
       });
