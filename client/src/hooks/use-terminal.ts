@@ -646,8 +646,6 @@ You can also chat naturally or ask technical questions.`);
     }
     
     if (cmd === 'clear') {
-      // Note: Draggable response bubbles will persist on screen after clear
-      // They can only be dismissed by double-clicking them
       setEntries([
         {
           id: crypto.randomUUID(),
@@ -664,7 +662,7 @@ You can also chat naturally or ask technical questions.`);
         {
           id: crypto.randomUUID(),
           type: 'system',
-          content: "Terminal cleared. Floating response bubbles remain visible. Double-click bubbles to dismiss.",
+          content: "Welcome to ARCHIMEDES v7.",
           timestamp: new Date().toISOString(),
         },
       ]);
