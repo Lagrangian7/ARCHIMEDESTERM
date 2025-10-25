@@ -3163,7 +3163,15 @@ function windowResized() {
       const formatted = marketstackService.formatMultipleQuotesForTerminal(quotes);
 
       res.json({
-
+        quotes,
+        formatted
+      });
+    } catch (error) {
+      console.error("Multiple stock quotes error:", error);
+      const message = error instanceof Error ? error.message : "Failed to fetch stock quotes";
+      res.status(500).json({ error: message });
+    }
+  });
 
   // Python code execution endpoint
   app.post("/api/execute/python", async (req, res) => {
@@ -3246,16 +3254,6 @@ function windowResized() {
         error: "Failed to execute Python code",
         formatted: '╭─ Python Execution Result\n├─ Error: Internal server error\n╰─ Failed to execute code'
       });
-    }
-  });
-
-        quotes,
-        formatted
-      });
-    } catch (error) {
-      console.error("Multiple quotes error:", error);
-      const message = error instanceof Error ? error.message : "Failed to fetch stock quotes";
-      res.status(500).json({ error: message });
     }
   });
 
