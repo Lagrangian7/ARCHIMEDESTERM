@@ -160,6 +160,16 @@ export function useSpeechSynthesis() {
         .replace(/<[^>]*>/g, '') // Remove HTML tags
         .replace(/\*/g, '') // Remove asterisks
         .replace(/(?<!\d\s?)>\s*(?!\d)/g, '') // Remove > unless it's between numbers (like "5 > 3")
+        // Remove ALL Unicode control characters and zero-width characters
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Control characters
+        .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-width spaces
+        .replace(/[\u2060-\u206F]/g, '') // Word joiners and invisible separators
+        .replace(/\u2063/g, '') // Invisible separator (unicode 8291)
+        .replace(/\u2062/g, '') // Invisible times (unicode 8290)
+        .replace(/\u2061/g, '') // Function application (unicode 8289)
+        .replace(/\u2064/g, '') // Invisible plus (unicode 8292)
+        // Remove specific problematic unicode like "8288"
+        .replace(/[\u2000-\u206F]/g, '') // General punctuation and formatting
         // Remove ALL Unicode box-drawing characters (U+2500-U+257F)
         .replace(/[\u2500-\u257F]/g, '') // Complete box-drawing block
         // Remove additional visual/decorative characters
@@ -172,6 +182,14 @@ export function useSpeechSynthesis() {
         .replace(/[€£¥¢§¶†‡•…‰′″‴]/g, '') // Remove currency and special symbols
         .replace(/[⌐⌠⌡°∙·√ⁿ²]/g, '') // Remove mathematical drawing chars
         .replace(/[▬▭▮▯▰▱]/g, '') // Remove horizontal bars
+        // Remove any remaining unicode digits that look like "8288", "8289", etc.
+        .replace(/\b\d{4}\b/g, (match) => {
+          // Only remove if it looks like a unicode reference (82xx, 20xx ranges)
+          if (match.startsWith('82') || match.startsWith('20')) {
+            return '';
+          }
+          return match;
+        })
         // Preserve mathematical operators in formulas - check if surrounded by alphanumeric
         .replace(/([a-zA-Z0-9]\s*)([\+\-×÷=<>≤≥≠∞∑∏∫])(\s*[a-zA-Z0-9])/g, (match, before, op, after) => {
           const operatorWords: { [key: string]: string } = {
