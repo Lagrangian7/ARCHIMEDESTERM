@@ -93,7 +93,7 @@ export function Terminal() {
     (window as any).openWebamp = () => setShowWebamp(true);
     (window as any).openAJVideo = () => setShowAJVideo(true);
   }, []);
-  
+
   const { speak, isSpeaking } = useSpeech();
   const { user, isAuthenticated, preferences } = useAuth();
   const { unreadCount } = useChat({ enableWebSocket: false });
@@ -115,29 +115,27 @@ export function Terminal() {
   const [showPrivacyEncoder, setShowPrivacyEncoder] = useState(false);
   const [showWebamp, setShowWebamp] = useState(false);
   const [showAJVideo, setShowAJVideo] = useState(false);
-  
+
   // Theme management
-  const [currentTheme, setCurrentTheme] = useState(() => {
-    return localStorage.getItem('terminal-theme') || 'blue';
-  });
+  const themes = ['green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized', 'commodore64'];
+  const [currentTheme, setCurrentTheme] = useState<string>(themes[0]);
 
   // Switch theme function
   const switchTheme = () => {
-    const themes = ['green', 'blue', 'orange', 'red', 'blackwhite', 'greyscale', 'patriot', 'solarized'];
     const currentIndex = themes.indexOf(currentTheme);
     const nextTheme = themes[(currentIndex + 1) % themes.length];
     setCurrentTheme(nextTheme);
     localStorage.setItem('terminal-theme', nextTheme);
   };
-  
+
   // Screensaver state
   const [screensaverActive, setScreensaverActive] = useState(false);
-  
+
   // Radio streaming controls - direct playback without modal
   const [isRadioPlaying, setIsRadioPlaying] = useState(false);
   const [radioStatus, setRadioStatus] = useState('Radio ready');
   const audioRef = useRef<HTMLAudioElement>(null);
-  
+
   // Activity tracker for screensaver (5 minutes = 300,000ms)
   const { forceActive } = useActivityTracker({
     inactivityTimeout: 5 * 60 * 1000, // 5 minutes
@@ -165,7 +163,7 @@ export function Terminal() {
       } else {
         setShowContinuePrompt(false);
       }
-      
+
       // Update visible entries if we have fewer entries than the limit
       if (entries.length <= 15 && visibleEntries !== entries.length) {
         setVisibleEntries(entries.length);
@@ -180,7 +178,7 @@ export function Terminal() {
       if (outputRef.current) {
         outputRef.current.scrollTop = outputRef.current.scrollHeight;
       }
-      
+
       // Also scroll the ScrollArea viewport to ensure proper positioning
       const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
       if (viewport) {
@@ -206,7 +204,7 @@ export function Terminal() {
   const handleContinue = () => {
     setVisibleEntries(Math.min(visibleEntries + 10, entries.length)); // Show 10 more entries
     setShowContinuePrompt(false);
-    
+
     // Auto-scroll after showing more content
     setTimeout(() => {
       scrollToBottom();
@@ -216,7 +214,7 @@ export function Terminal() {
   const handleShowAll = () => {
     setVisibleEntries(entries.length);
     setShowContinuePrompt(false);
-    
+
     // Auto-scroll after showing all content
     setTimeout(() => {
       scrollToBottom();
@@ -227,7 +225,7 @@ export function Terminal() {
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      
+
       // Don't steal focus from inputs, textareas, or elements with data-no-terminal-autofocus
       if (
         target.tagName === 'INPUT' ||
@@ -237,13 +235,13 @@ export function Terminal() {
       ) {
         return;
       }
-      
+
       inputRef.current?.focus();
     };
-    
+
     document.addEventListener('click', handleClick);
     inputRef.current?.focus();
-    
+
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
@@ -258,16 +256,16 @@ export function Terminal() {
   // Handle typing animation for new response entries
   useEffect(() => {
     const lastEntry = entries[entries.length - 1];
-    
+
     // If the last entry is a response and we're not currently typing (meaning it's a new response)
     if (lastEntry && lastEntry.type === 'response' && !isTyping) {
       // Add the entry to typing animations
       setTypingEntries(prev => new Set(prev).add(lastEntry.id));
-      
+
       // Calculate animation duration based on content length
       const contentLength = lastEntry.content.length;
       const typingDuration = Math.min(3000, Math.max(800, contentLength * 30)); // Min 800ms, max 3s
-      
+
       // Remove the typing animation after the calculated duration + buffer
       const timer = setTimeout(() => {
         setTypingEntries(prev => {
@@ -276,7 +274,7 @@ export function Terminal() {
           return next;
         });
       }, typingDuration + 500); // Animation duration + 500ms buffer
-      
+
       return () => clearTimeout(timer);
     }
   }, [entries, isTyping]);
@@ -288,21 +286,21 @@ export function Terminal() {
       setShowHelpMenu(true);
       return;
     }
-    
+
     // Ctrl+Shift+P opens privacy encoder
     if (e.ctrlKey && e.shiftKey && e.key === 'P') {
       e.preventDefault();
       setShowPrivacyEncoder(true);
       return;
     }
-    
+
     // Handle continue prompt with Space or Enter
     if (showContinuePrompt && (e.key === ' ' || e.key === 'Enter')) {
       e.preventDefault();
       handleContinue();
       return;
     }
-    
+
     if (e.key === 'Enter') {
       e.preventDefault();
       if (input.trim() && !isLoading) {
@@ -356,7 +354,7 @@ export function Terminal() {
       audio.src = 'https://ice6.somafm.com/live-128-mp3';
       audio.volume = 0.7; // Set volume to 30% (decreased by 30% from 100%)
       setRadioStatus('Connecting to radio...');
-      
+
       try {
         await audio.play();
         setRadioStatus('Radio playing');
@@ -488,7 +486,7 @@ export function Terminal() {
                   )}
                 </div>
               ))}
-              
+
               {isTyping && (
                 <div className="typing-indicator text-terminal-highlight opacity-70" data-testid="typing-indicator">
                   ARCHIMEDES is processing...
@@ -561,7 +559,7 @@ export function Terminal() {
                 ▋
               </span>
             </div>
-            
+
             <Button
               onClick={() => setShowHistory(!showHistory)}
               variant="outline"
@@ -575,14 +573,14 @@ export function Terminal() {
           </div>
         </div>
       </div>
-      
+
       {/* Modal Overlays */}
       {showProfile && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
           <UserProfile onClose={() => setShowProfile(false)} />
         </div>
       )}
-      
+
       {showConversationHistory && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
           <ConversationHistory 
@@ -613,7 +611,7 @@ export function Terminal() {
                 ×
               </Button>
             </div>
-            
+
             {/* Tab Navigation */}
             <div className="flex gap-1 md:gap-2 mb-3 md:mb-6 border-b" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)' }}>
               <Button
@@ -661,7 +659,7 @@ export function Terminal() {
                 <span className="sm:hidden">⬆️ Upload</span>
               </Button>
             </div>
-            
+
             {/* Tab Content */}
             {uploadTab === 'list' ? (
               <DocumentsList onClose={() => setShowUpload(false)} />
