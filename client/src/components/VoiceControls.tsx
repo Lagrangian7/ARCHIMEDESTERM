@@ -58,7 +58,7 @@ export function VoiceControls({
     speak,
     stop,
   } = useSpeech();
-  
+
   const { isSupported, isListening, startListening } = useSpeechRecognition();
 
   const handleVoiceToggle = () => {
@@ -80,7 +80,7 @@ export function VoiceControls({
       });
       return;
     }
-    
+
     if (!isListening) {
       startListening(onVoiceInput, (error) => {
         // Show error toast with Mac-specific instructions
@@ -127,7 +127,7 @@ export function VoiceControls({
             )}
           </div>
         </div>
-        
+
         <Button
           onClick={handleVoiceToggle}
           variant="outline"
@@ -138,7 +138,7 @@ export function VoiceControls({
         >
           {isEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
         </Button>
-        
+
         <Button
           onClick={handleVoiceInput}
           variant="outline"

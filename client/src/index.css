@@ -177,6 +177,17 @@
   --terminal-orange: hsl(18 80% 45%);
 }
 
+.theme-commodore64 {
+  --terminal-bg: hsl(225 67% 25%);
+  --terminal-text: hsl(195 100% 75%);
+  --terminal-highlight: hsl(195 100% 85%);
+  --terminal-subtle: hsl(225 67% 35%);
+  --terminal-subtle-rgb: 42, 56, 143;
+  --terminal-logo-green: hsl(195 100% 85%);
+  --terminal-bright-green: hsl(195 100% 85%);
+  --terminal-orange: hsl(195 100% 65%);
+}
+
 /* Logo pulsating glow animation */
 @keyframes logoGlow {
   0%, 100% { 
@@ -1015,4 +1026,8 @@
 
 .theme-solarized .terminal-watermark {
   filter: brightness(0) saturate(100%) invert(52%) sepia(85%) saturate(3520%) hue-rotate(6deg) brightness(103%) contrast(101%);
+}
+
+.theme-commodore64 .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(77%) sepia(98%) saturate(1523%) hue-rotate(169deg) brightness(102%) contrast(101%);
 }
