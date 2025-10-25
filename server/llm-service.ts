@@ -25,15 +25,16 @@ const PERPLEXITY_API_URL = 'https://api.perplexity.ai/chat/completions';
 
 // Replit-specific AI configuration
 const REPLIT_AI_CONFIG = {
-  primaryModel: 'meta-llama/Llama-2-7b-chat-hf', // Fast, efficient model for Replit
+  primaryModel: 'mlabonne/CWC-Mistral-Nemo-12B-V2-q4_k_m', // Quantized Mistral Nemo model
   fallbackModels: [
+    'meta-llama/Llama-2-7b-chat-hf',       // Fast, efficient model for Replit
     'microsoft/DialoGPT-medium',           // Good for conversational AI
     'google/flan-t5-large',                // Reliable instruction following
     'EleutherAI/gpt-neo-2.7B'              // Creative and flexible responses
   ],
   maxTokens: {
-    natural: 200,
-    technical: 1200
+    natural: 400,
+    technical: 1500
   },
   temperature: {
     natural: 0.8,
