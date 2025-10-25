@@ -19,13 +19,13 @@ export function useSpeechSynthesis() {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isEnabled, setIsEnabled] = useState(true);
   const [selectedVoice, setSelectedVoice] = useState<number>(1); // Always HAL 9000
-  const [speechRate, setSpeechRate] = useState(1.2); // Faster speaking speed
+  const [speechRate, setSpeechRate] = useState(0.9); // Slower speaking speed
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
   
   // Use refs to store current values for the speech callback
   const selectedVoiceRef = useRef<number>(1); // Always HAL 9000
-  const speechRateRef = useRef<number>(1.2); // Faster speaking speed
+  const speechRateRef = useRef<number>(0.9); // Slower speaking speed
   const voicesRef = useRef<Voice[]>([]);
   const isEnabledRef = useRef<boolean>(true);
 
