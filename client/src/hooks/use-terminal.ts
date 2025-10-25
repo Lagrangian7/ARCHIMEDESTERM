@@ -1732,7 +1732,7 @@ Powered by Wolfram Alpha Full Results API`);
                     // Render plaintext
                     if (subpod.plaintext) {
                       const lines = subpod.plaintext.split('\n');
-                      formatted += `<div style="margin-bottom: 10px; background-color: rgba(0, 0, 0, 0.6); color: var(--terminal-text);">`;
+                      formatted += `<div style="margin-bottom: 10px; background-color: rgba(0, 0, 0, 0.3); color: var(--terminal-text);">`;
                       lines.forEach((line: string) => {
                         if (line.trim()) {
                           formatted += `${line}<br/>`;
@@ -1743,7 +1743,7 @@ Powered by Wolfram Alpha Full Results API`);
                   });
                 } else if (pod.plaintext) {
                   const lines = pod.plaintext.split('\n');
-                  formatted += `<div style="margin-bottom: 10px; background-color: rgba(0, 0, 0, 0.6); color: var(--terminal-text);">`;
+                  formatted += `<div style="margin-bottom: 10px; background-color: rgba(0, 0, 0, 0.3); color: var(--terminal-text);">`;
                   lines.forEach((line: string) => {
                     if (line.trim()) {
                       formatted += `${line}<br/>`;
