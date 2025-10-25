@@ -232,10 +232,13 @@ export function useSpeechSynthesis() {
 
       const utterance = new SpeechSynthesisUtterance(cleanText);
 
-      // Set base properties
+      // Set base properties - ensure consistent rate for all content types
       utterance.rate = currentRate;
       utterance.volume = 0.63;
       utterance.pitch = 0.6;
+      
+      // Log for debugging speech rate consistency
+      console.log('Speech rate applied:', currentRate, 'for text length:', cleanText.length);
 
       // Get available system voices
       const systemVoices = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en'));
@@ -250,6 +253,11 @@ export function useSpeechSynthesis() {
         voiceNames: currentVoices.map(v => v.name)
       });
 
+      // Detect if this is dense technical content (likely Wolfram Alpha)
+      // Check for mathematical terms, numbers, and technical patterns
+      const isDenseTechnical = /(\d+\.\d+|\d{3,}|equals|plus|minus|times|divided|integral|sum|product|approximately)/i.test(cleanText);
+      const technicalSlowdown = isDenseTechnical ? 0.9 : 1.0; // 10% slower for technical content
+      
       // Voice selection logic
       if (currentVoice === 0) {
         // System Default - use browser default (no voice set)
@@ -257,10 +265,10 @@ export function useSpeechSynthesis() {
       } else if (currentVoice === 1) {
         // HAL 9000 voice simulation - deep, calm, male voice
         utterance.pitch = 0.4; // Very low pitch for deeper male voice
-        utterance.rate = currentRate; // Use the set rate (0.85 by default)
+        utterance.rate = currentRate * technicalSlowdown; // Apply slowdown for technical content
         utterance.volume = 0.75;
-        console.log('Using HAL 9000 voice simulation (deep male voice)');
-      } else if (currentVoice >= 2 && currentVoice < currentVoices.length) {
+        console.log('Using HAL 9000 voice simulation (deep male voice)', isDenseTechnical ? '(technical slowdown applied)' : '');
+      } else if (currentVoice >= 2 && currentVoices.length) {
         // System voice selection - map to actual system voice
         const systemVoiceIndex = currentVoice - 2; // Subtract 2 for our custom voices
         console.log(`Attempting to use system voice at index ${systemVoiceIndex}`);
