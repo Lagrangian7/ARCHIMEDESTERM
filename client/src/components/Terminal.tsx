@@ -104,7 +104,6 @@ export function Terminal() {
   const [showUpload, setShowUpload] = useState(false);
   const [uploadTab, setUploadTab] = useState<'upload' | 'list'>('list');
   const [typingEntries, setTypingEntries] = useState<Set<string>>(new Set());
-  const [persistentBubbles, setPersistentBubbles] = useState<Array<{id: string, content: string, timestamp: string}>>([]);
   const [showZork, setShowZork] = useState(false);
   const [showDTMF, setShowDTMF] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
@@ -281,13 +280,6 @@ export function Terminal() {
           next.delete(lastEntry.id);
           return next;
         });
-        
-        // Add to persistent bubbles when typing finishes
-        setPersistentBubbles(prev => [...prev, {
-          id: lastEntry.id,
-          content: lastEntry.content,
-          timestamp: lastEntry.timestamp
-        }]);
       }, typingDuration + 500); // Animation duration + 500ms buffer
 
       return () => clearTimeout(timer);
@@ -784,20 +776,6 @@ export function Terminal() {
         isOpen={showPrivacyEncoder}
         onClose={() => setShowPrivacyEncoder(false)}
       />
-
-      {/* Persistent Response Bubbles - survive terminal clear */}
-      {persistentBubbles.map((bubble) => (
-        <DraggableResponse 
-          key={bubble.id}
-          isTyping={false}
-          entryId={bubble.id}
-        >
-          <div 
-            className="whitespace-pre-wrap"
-            dangerouslySetInnerHTML={{ __html: bubble.content }}
-          />
-        </DraggableResponse>
-      ))}
 
       {/* Puzzle Screensaver */}
       <PuzzleScreensaver 

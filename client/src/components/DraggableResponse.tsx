@@ -67,9 +67,6 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
   useEffect(() => {
     if (isTyping) {
       setShowFloating(true);
-    } else {
-      // If not typing but being used as persistent bubble, show it
-      setShowFloating(true);
     }
     // No auto-hide - bubbles stay until double-clicked
   }, [isTyping]);
@@ -172,14 +169,8 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
                 ARCHIMEDES v7 Response:
               </div>
               
-              {/* Response Content - Scrollable */}
-              <div 
-                className="text-terminal-text font-mono text-sm leading-relaxed max-h-96 overflow-y-auto pr-2 custom-scrollbar" 
-                style={{
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: 'var(--terminal-highlight) transparent'
-                }}
-              >
+              {/* Response Content */}
+              <div className="text-terminal-text font-mono text-sm leading-relaxed">
                 {children}
               </div>
               
