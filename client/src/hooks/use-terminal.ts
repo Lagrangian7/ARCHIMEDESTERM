@@ -1767,25 +1767,40 @@ Powered by Wolfram Alpha Full Results API`);
               }
             }, 100);
 
-            // Get AI commentary on the Wolfram results
-            setIsTyping(true);
-            addEntry('system', '💭 Archimedes AI analyzing results...');
-
-            // Extract text summary from pods for AI to analyze
+            // Extract text summary from pods for speech and AI analysis
             const resultSummary = data.pods
               .filter((pod: any) => pod.plaintext || (pod.subpods && pod.subpods.length > 0))
               .map((pod: any) => {
                 const content = pod.subpods 
                   ? pod.subpods.map((sp: any) => sp.plaintext).filter(Boolean).join('\n')
                   : pod.plaintext;
-                return `${pod.title}:\n${content}`;
+                return `${pod.title}: ${content}`;
               })
               .join('\n\n');
 
-            chatMutation.mutate({
-              message: `Please provide a brief, insightful commentary on these Wolfram Alpha results for the query "${query}":\n\n${resultSummary}\n\nGive a short analysis (2-3 sentences) explaining the significance or practical application of these results.`,
-              mode: currentMode
-            });
+            // Speak the Wolfram results first, then get AI commentary after speech completes
+            // Use a simple speak function (assuming it's defined elsewhere or globally)
+            if ('speechSynthesis' in window) {
+              const utterance = new SpeechSynthesisUtterance(resultSummary);
+              window.speechSynthesis.speak(utterance);
+            } else {
+              console.warn("Speech synthesis not supported in this browser.");
+            }
+
+            // Wait for speech to complete before getting AI commentary
+            // Estimate speech duration based on text length (average 150 words per minute)
+            const wordCount = resultSummary.split(/\s+/).length;
+            const speechDuration = Math.max(3000, (wordCount / 150) * 60 * 1000); // Minimum 3 seconds
+
+            setTimeout(() => {
+              setIsTyping(true);
+              addEntry('system', '💭 Archimedes AI analyzing results...');
+
+              chatMutation.mutate({
+                message: `Please provide a brief, insightful commentary on these Wolfram Alpha results for the query "${query}":\n\n${resultSummary}\n\nGive a short analysis (2-3 sentences) explaining the significance or practical application of these results.`,
+                mode: currentMode
+              });
+            }, speechDuration);
           } else {
             addEntry('error', 'No results found for this query');
           }
