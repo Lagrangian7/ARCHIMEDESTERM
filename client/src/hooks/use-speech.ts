@@ -18,14 +18,14 @@ interface Voice {
 export function useSpeechSynthesis() {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isEnabled, setIsEnabled] = useState(true);
-  const [selectedVoice, setSelectedVoice] = useState<number>(1); // Start with HAL 9000
-  const [speechRate, setSpeechRate] = useState(1.2); // Faster speaking speed
+  const [selectedVoice, setSelectedVoice] = useState<number>(1); // Always HAL 9000
+  const [speechRate, setSpeechRate] = useState(0.85); // HAL 9000 deliberate pace
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
   
   // Use refs to store current values for the speech callback
-  const selectedVoiceRef = useRef<number>(1); // Start with HAL 9000
-  const speechRateRef = useRef<number>(1.2); // Faster speaking speed
+  const selectedVoiceRef = useRef<number>(1); // Always HAL 9000
+  const speechRateRef = useRef<number>(0.85); // HAL 9000 deliberate pace
   const voicesRef = useRef<Voice[]>([]);
   const isEnabledRef = useRef<boolean>(true);
 
@@ -237,11 +237,11 @@ export function useSpeechSynthesis() {
         // System Default - use browser default (no voice set)
         console.log('Using system default voice');
       } else if (currentVoice === 1) {
-        // HAL 9000 voice simulation - deep, calm voice
-        utterance.pitch = 0.6; // Lower pitch for deeper voice
-        utterance.rate = currentRate * 0.85; // Slower, more deliberate
-        utterance.volume = 0.7;
-        console.log('Using HAL 9000 voice simulation');
+        // HAL 9000 voice simulation - deep, calm, male voice
+        utterance.pitch = 0.4; // Very low pitch for deeper male voice
+        utterance.rate = currentRate; // Use the set rate (0.85 by default)
+        utterance.volume = 0.75;
+        console.log('Using HAL 9000 voice simulation (deep male voice)');
       } else if (currentVoice >= 2 && currentVoice < currentVoices.length) {
         // System voice selection - map to actual system voice
         const systemVoiceIndex = currentVoice - 2; // Subtract 2 for our custom voices
