@@ -76,7 +76,7 @@
   --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
-  
+
   /* Terminal-specific colors - Default Green Theme */
   --terminal-bg: hsl(210 50% 5%);
   --terminal-text: hsl(118 100% 63%);
@@ -334,7 +334,30 @@
   }
 
   .cursor-blink {
-    animation: blink 1s infinite;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Custom scrollbar for draggable response bubbles */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--terminal-highlight);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--terminal-bright-green);
   }
 
   .typing-indicator::after {
@@ -361,7 +384,7 @@
   .ansi-magenta { color: #cc00cc; }
   .ansi-cyan { color: #00cccc; }
   .ansi-white { color: #cccccc; }
-  
+
   .ansi-bright-black { color: #808080; }
   .ansi-bright-red { color: #ff0000; }
   .ansi-bright-green { color: #00ff00; }
@@ -370,7 +393,7 @@
   .ansi-bright-magenta { color: #ff00ff; }
   .ansi-bright-cyan { color: #00ffff; }
   .ansi-bright-white { color: #ffffff; }
-  
+
   .ansi-bg-black { background-color: #000000; }
   .ansi-bg-red { background-color: #cc0000; }
   .ansi-bg-green { background-color: #00cc00; }
@@ -379,7 +402,7 @@
   .ansi-bg-magenta { background-color: #cc00cc; }
   .ansi-bg-cyan { background-color: #00cccc; }
   .ansi-bg-white { background-color: #cccccc; }
-  
+
   .ansi-bold { font-weight: bold; }
   .ansi-italic { font-style: italic; }
   .ansi-underline { text-decoration: underline; }
@@ -490,19 +513,19 @@
     opacity: 0;
     transform: translateX(0);
   }
-  
+
   91% {
     opacity: 0.1;
     transform: translateX(-1px);
     background: rgba(0, 255, 65, 0.02);
   }
-  
+
   92% {
     opacity: 0.05;
     transform: translateX(1px);
     background: rgba(255, 0, 65, 0.01);
   }
-  
+
   93%, 100% {
     opacity: 0;
     transform: translateX(0);
@@ -514,16 +537,16 @@
     opacity: 0;
     transform: translateY(-100%);
   }
-  
+
   10%, 90% {
     opacity: 0.3;
   }
-  
+
   50% {
     opacity: 0.6;
     transform: translateY(0%);
   }
-  
+
   100% {
     opacity: 0;
     transform: translateY(100%);
@@ -571,22 +594,22 @@
     background-position: 0 0;
     opacity: 0.6;
   }
-  
+
   25% {
     opacity: 0.8;
     transform: translateX(-1px);
   }
-  
+
   50% {
     background-position: 20px 20px;
     opacity: 0.4;
   }
-  
+
   75% {
     opacity: 0.9;
     transform: translateX(1px);
   }
-  
+
   100% {
     background-position: 0 0;
     opacity: 0.6;
@@ -598,19 +621,19 @@
   0%, 90% {
     opacity: 1;
   }
-  
+
   91% {
     opacity: 0.3;
   }
-  
+
   92% {
     opacity: 1;
   }
-  
+
   94% {
     opacity: 0.1;
   }
-  
+
   95%, 100% {
     opacity: 1;
   }
@@ -622,32 +645,32 @@
     transform: translateX(0) scaleX(1) skewX(0deg);
     filter: brightness(0.6) contrast(1.4);
   }
-  
+
   2% {
     transform: translateX(-4px) scaleX(1.02) skewX(0.8deg);
     filter: brightness(0.9) contrast(1.8) hue-rotate(30deg);
   }
-  
+
   4% {
     transform: translateX(3px) scaleX(0.98) skewX(-0.6deg);
     filter: brightness(0.4) contrast(2.2) saturate(1.8);
   }
-  
+
   6% {
     transform: translateX(-2px) scaleX(1.01) skewX(0.3deg);
     filter: brightness(0.7) contrast(1.6) hue-rotate(-20deg);
   }
-  
+
   15% {
     transform: translateX(0) scaleX(1) skewX(0deg);
     filter: brightness(0.6) contrast(1.4);
   }
-  
+
   87% {
     transform: translateX(2px) scaleX(1.01) skewX(-0.4deg);
     filter: brightness(0.8) contrast(1.9) hue-rotate(15deg);
   }
-  
+
   89% {
     transform: translateX(-3px) scaleX(0.99) skewX(0.5deg);
     filter: brightness(0.3) contrast(2.5) saturate(2.2);
@@ -658,15 +681,15 @@
   0%, 80% {
     filter: hue-rotate(0deg) saturate(1.2);
   }
-  
+
   20% {
     filter: hue-rotate(90deg) saturate(2) contrast(1.5);
   }
-  
+
   40% {
     filter: hue-rotate(180deg) saturate(1.8) contrast(1.8);
   }
-  
+
   60% {
     filter: hue-rotate(270deg) saturate(1.5) contrast(1.3);
   }
@@ -677,27 +700,27 @@
     transform: translateX(2px) translateY(0);
     opacity: 0.8;
   }
-  
+
   10% {
     transform: translateX(5px) translateY(-1px);
     opacity: 0.6;
   }
-  
+
   20% {
     transform: translateX(-2px) translateY(1px);
     opacity: 0.9;
   }
-  
+
   30% {
     transform: translateX(3px) translateY(-2px);
     opacity: 0.7;
   }
-  
+
   92% {
     transform: translateX(4px) translateY(1px);
     opacity: 0.5;
   }
-  
+
   94% {
     transform: translateX(-3px) translateY(-1px);
     opacity: 0.8;
@@ -709,27 +732,27 @@
     transform: translateX(-1px) translateY(1px);
     opacity: 0.6;
   }
-  
+
   12% {
     transform: translateX(-4px) translateY(2px);
     opacity: 0.8;
   }
-  
+
   24% {
     transform: translateX(2px) translateY(-1px);
     opacity: 0.5;
   }
-  
+
   36% {
     transform: translateX(-3px) translateY(-2px);
     opacity: 0.7;
   }
-  
+
   90% {
     transform: translateX(-5px) translateY(1px);
     opacity: 0.4;
   }
-  
+
   92% {
     transform: translateX(1px) translateY(-2px);
     opacity: 0.9;
@@ -740,23 +763,23 @@
   0%, 85% {
     transform: scaleX(1) translateX(2px);
   }
-  
+
   15% {
     transform: scaleX(1.05) translateX(4px);
   }
-  
+
   30% {
     transform: scaleX(0.95) translateX(-2px);
   }
-  
+
   45% {
     transform: scaleX(1.03) translateX(3px);
   }
-  
+
   87% {
     transform: scaleX(0.98) translateX(-1px);
   }
-  
+
   91% {
     transform: scaleX(1.02) translateX(5px);
   }
@@ -766,23 +789,23 @@
   0%, 82% {
     transform: scaleY(1) translateY(1px);
   }
-  
+
   18% {
     transform: scaleY(1.04) translateY(-2px);
   }
-  
+
   35% {
     transform: scaleY(0.96) translateY(3px);
   }
-  
+
   52% {
     transform: scaleY(1.02) translateY(-1px);
   }
-  
+
   84% {
     transform: scaleY(0.99) translateY(2px);
   }
-  
+
   88% {
     transform: scaleY(1.03) translateY(-3px);
   }
@@ -817,12 +840,12 @@
     transform: scale(1) rotate(0deg);
     filter: brightness(1.2) contrast(1.4);
   }
-  
+
   50% {
     transform: scale(1.01) rotate(0.1deg);
     filter: brightness(0.8) contrast(1.8);
   }
-  
+
   100% {
     transform: scale(0.99) rotate(-0.1deg);
     filter: brightness(1.1) contrast(1.6);
@@ -833,39 +856,39 @@
   0%, 100% {
     transform: translate(0, 0) scale(1);
   }
-  
+
   10% {
     transform: translate(-2px, 1px) scale(1.01);
   }
-  
+
   20% {
     transform: translate(3px, -1px) scale(0.99);
   }
-  
+
   30% {
     transform: translate(-1px, 2px) scale(1.02);
   }
-  
+
   40% {
     transform: translate(2px, -2px) scale(0.98);
   }
-  
+
   50% {
     transform: translate(-3px, 1px) scale(1.01);
   }
-  
+
   60% {
     transform: translate(1px, -3px) scale(1.02);
   }
-  
+
   70% {
     transform: translate(-2px, 2px) scale(0.99);
   }
-  
+
   80% {
     transform: translate(2px, 1px) scale(1.01);
   }
-  
+
   90% {
     transform: translate(-1px, -1px) scale(0.98);
   }
@@ -877,22 +900,22 @@
     transform: translateX(0) scaleX(1) skewX(0deg);
     filter: brightness(0.6) contrast(1.4);
   }
-  
+
   5% {
     transform: translateX(-3px) scaleX(1.02) skewX(0.4deg);
     filter: brightness(0.9) contrast(1.8) hue-rotate(20deg);
   }
-  
+
   10% {
     transform: translateX(2px) scaleX(0.98) skewX(-0.3deg);
     filter: brightness(0.4) contrast(2.2) saturate(1.8);
   }
-  
+
   87% {
     transform: translateX(1px) scaleX(1.01) skewX(-0.2deg);
     filter: brightness(0.8) contrast(1.9) hue-rotate(10deg);
   }
-  
+
   92% {
     transform: translateX(-2px) scaleX(0.99) skewX(0.3deg);
     filter: brightness(0.3) contrast(2.5) saturate(2.2);
@@ -904,22 +927,22 @@
     transform: translateY(0) rotate(0deg) scale(1);
     filter: hue-rotate(0deg);
   }
-  
+
   25% {
     transform: translateY(-5px) rotate(0.5deg) scale(1.02);
     filter: hue-rotate(90deg);
   }
-  
+
   50% {
     transform: translateY(3px) rotate(-0.3deg) scale(0.98);
     filter: hue-rotate(180deg);
   }
-  
+
   75% {
     transform: translateY(-2px) rotate(0.2deg) scale(1.01);
     filter: hue-rotate(270deg);
   }
-  
+
   100% {
     transform: translateY(0) rotate(0deg) scale(1);
     filter: hue-rotate(360deg);
@@ -930,15 +953,15 @@
   0%, 100% {
     transform: translateX(2px) scaleX(1) skewX(0deg);
   }
-  
+
   25% {
     transform: translateX(4px) scaleX(1.03) skewX(0.2deg);
   }
-  
+
   50% {
     transform: translateX(-2px) scaleX(0.97) skewX(-0.1deg);
   }
-  
+
   75% {
     transform: translateX(3px) scaleX(1.02) skewX(0.15deg);
   }
@@ -956,19 +979,19 @@
   0%, 100% {
     transform: translateY(1px) scaleY(1) skewY(0deg);
   }
-  
+
   20% {
     transform: translateY(-3px) scaleY(1.02) skewY(0.1deg);
   }
-  
+
   40% {
     transform: translateY(2px) scaleY(0.98) skewY(-0.05deg);
   }
-  
+
   60% {
     transform: translateY(-1px) scaleY(1.01) skewY(0.08deg);
   }
-  
+
   80% {
     transform: translateY(3px) scaleY(0.99) skewY(-0.03deg);
   }
@@ -987,19 +1010,19 @@
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   /* Improve scrolling on mobile */
   .terminal-output, [class*="ScrollArea"] {
     -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Prevent text selection during touch interactions */
   .voice-controls button,
   .terminal-controls button {
     -webkit-tap-highlight-color: transparent;
     user-select: none;
   }
-  
+
   /* Larger tap targets for terminal input */
   input[data-testid="input-command"] {
     font-size: 16px; /* Prevents zoom on iOS */
@@ -1012,7 +1035,7 @@
   button {
     padding: 0.5rem;
   }
-  
+
   /* Better spacing for touch interactions */
   .flex.items-center.gap-1 {
     gap: 0.5rem;
