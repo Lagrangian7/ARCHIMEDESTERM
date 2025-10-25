@@ -20,6 +20,8 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [totalWords, setTotalWords] = useState(0);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
 
+  const MAX_ENTRIES = 500; // Limit terminal history to prevent memory issues
+
   const [entries, setEntries] = useState<TerminalEntry[]>([
     {
       id: '1',
@@ -300,7 +302,13 @@ Use the URLs above to access the full articles and information.`;
       timestamp: new Date().toISOString(),
       mode,
     };
-    setEntries(prev => [...prev, entry]);
+    setEntries(prev => {
+      const newEntries = [...prev, entry];
+      // Keep only the last MAX_ENTRIES to prevent memory issues
+      return newEntries.length > MAX_ENTRIES 
+        ? newEntries.slice(-MAX_ENTRIES) 
+        : newEntries;
+    });
 
     // Track word count for session analytics
     if (type === 'response' || type === 'command') {
@@ -313,8 +321,11 @@ Use the URLs above to access the full articles and information.`;
     const timestamp = new Date().toLocaleTimeString();
     addEntry('command', command);
 
-    // Add to command history
-    setCommandHistory(prev => [command, ...prev.slice(0, 49)]); // Keep last 50 commands
+    // Add to command history (limit to 50)
+    setCommandHistory(prev => {
+      const newHistory = [command, ...prev];
+      return newHistory.slice(0, 50);
+    });
     setHistoryIndex(-1);
 
     const cmd = command.toLowerCase().trim();

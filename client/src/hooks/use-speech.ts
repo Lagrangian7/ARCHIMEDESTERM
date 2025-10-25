@@ -15,6 +15,8 @@ interface Voice {
   localService: boolean;
 }
 
+let speechTimeout: NodeJS.Timeout | null = null;
+
 export function useSpeechSynthesis() {
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isEnabled, setIsEnabled] = useState(true);
@@ -145,168 +147,178 @@ export function useSpeechSynthesis() {
       return;
     }
 
-    try {
-      // Use ref values to get the current state
-      const currentVoice = selectedVoiceRef.current;
-      const currentRate = speechRateRef.current;
-      const currentVoices = voicesRef.current;
-
-      console.log('speak() called with selectedVoice:', currentVoice);
-
-      window.speechSynthesis.cancel();
-
-      // Clean text for speech synthesis
-      let cleanText = text
-        .replace(/<[^>]*>/g, '') // Remove HTML tags
-        .replace(/\*/g, '') // Remove asterisks
-        .replace(/(?<!\d\s?)>\s*(?!\d)/g, '') // Remove > unless it's between numbers (like "5 > 3")
-        // Remove ALL Unicode control characters and zero-width characters
-        .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Control characters
-        .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-width spaces
-        .replace(/[\u2060-\u206F]/g, '') // Word joiners and invisible separators
-        .replace(/\u2063/g, '') // Invisible separator (unicode 8291)
-        .replace(/\u2062/g, '') // Invisible times (unicode 8290)
-        .replace(/\u2061/g, '') // Function application (unicode 8289)
-        .replace(/\u2064/g, '') // Invisible plus (unicode 8292)
-        // Remove specific problematic unicode like "8288"
-        .replace(/[\u2000-\u206F]/g, '') // General punctuation and formatting
-        // Remove ALL Unicode box-drawing characters (U+2500-U+257F)
-        .replace(/[\u2500-\u257F]/g, '') // Complete box-drawing block
-        // Remove additional visual/decorative characters
-        .replace(/[╔╗╚╝╠╣╦╩╬═║]/g, '') // Double-line box drawing
-        .replace(/[┏┓┗┛┣┫┳┻╋━┃]/g, '') // Heavy box drawing  
-        .replace(/[◆◇▲△▼▽●○■□▪▫]/g, '') // Remove geometric symbols
-        .replace(/[░▒▓█▀▄▌▐]/g, '') // Remove block characters
-        .replace(/[─━│┃┄┅┆┇┈┉┊┋]/g, '') // All line styles
-        .replace(/[└┘┌┐├┤┬┴┼]/g, '') // Light box corners/intersections
-        .replace(/[€£¥¢§¶†‡•…‰′″‴]/g, '') // Remove currency and special symbols
-        .replace(/[⌐⌠⌡°∙·√ⁿ²]/g, '') // Remove mathematical drawing chars
-        .replace(/[▬▭▮▯▰▱]/g, '') // Remove horizontal bars
-        // Remove any remaining unicode digits that look like "8288", "8289", etc.
-        .replace(/\b\d{4}\b/g, (match) => {
-          // Only remove if it looks like a unicode reference (82xx, 20xx ranges)
-          if (match.startsWith('82') || match.startsWith('20')) {
-            return '';
-          }
-          return match;
-        })
-        // Preserve mathematical operators in formulas - check if surrounded by alphanumeric
-        .replace(/([a-zA-Z0-9]\s*)([\+\-×÷=<>≤≥≠∞∑∏∫])(\s*[a-zA-Z0-9])/g, (match, before, op, after) => {
-          const operatorWords: { [key: string]: string } = {
-            '+': ' plus ',
-            '-': ' minus ',
-            '×': ' times ',
-            '÷': ' divided by ',
-            '=': ' equals ',
-            '<': ' less than ',
-            '>': ' greater than ',
-            '≤': ' less than or equal to ',
-            '≥': ' greater than or equal to ',
-            '≠': ' not equal to ',
-            '∞': ' infinity ',
-            '∑': ' sum ',
-            '∏': ' product ',
-            '∫': ' integral '
-          };
-          return before + (operatorWords[op] || op) + after;
-        })
-        // Replace punctuation that creates natural pauses
-        .replace(/[.!?]+/g, '.') // Normalize sentence endings to single period for pause
-        .replace(/[,;:]/g, ',') // Normalize pause punctuation to comma
-        // Remove punctuation that would be pronounced
-        .replace(/['""`''""]/g, '') // Remove all quotation marks
-        .replace(/[\[\](){}]/g, '') // Remove brackets and parentheses
-        .replace(/[#$%&@]/g, '') // Remove symbols
-        .replace(/[*_~`]/g, '') // Remove formatting characters
-        .replace(/-{2,}/g, ' ') // Replace multiple dashes with space
-        .replace(/\|/g, ' ') // Replace pipes with space
-        .replace(/\+/g, ' plus ') // Replace remaining + with word
-        .replace(/=/g, ' equals ') // Replace remaining = with word
-        .replace(/\s+/g, ' ') // Normalize whitespace
-        .trim();
-
-      if (!cleanText) {
-        console.warn('No text to speak after cleaning');
-        return;
-      }
-
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-
-      // Set base properties - ensure consistent rate for all content types
-      utterance.rate = currentRate;
-      utterance.volume = 0.63;
-      utterance.pitch = 0.6;
-      
-      // Log for debugging speech rate consistency
-      console.log('Speech rate applied:', currentRate, 'for text length:', cleanText.length);
-
-      // Get available system voices
-      const systemVoices = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en'));
-
-      // Debug logging
-      console.log('Voice Selection Debug:', {
-        selectedVoice: currentVoice,
-        selectedVoiceName: currentVoices[currentVoice]?.name || 'Unknown',
-        totalVoices: currentVoices.length,
-        systemVoicesCount: systemVoices.length,
-        voicesLoaded,
-        voiceNames: currentVoices.map(v => v.name)
-      });
-
-      // Detect if this is dense technical content (likely Wolfram Alpha)
-      // Check for mathematical terms, numbers, and technical patterns
-      const isDenseTechnical = /(\d+\.\d+|\d{3,}|equals|plus|minus|times|divided|integral|sum|product|approximately)/i.test(cleanText);
-      const technicalSlowdown = isDenseTechnical ? 0.9 : 1.0; // 10% slower for technical content
-      
-      // Voice selection logic
-      if (currentVoice === 0) {
-        // System Default - use browser default (no voice set)
-        console.log('Using system default voice');
-      } else if (currentVoice === 1) {
-        // HAL 9000 voice simulation - deep, calm, male voice
-        utterance.pitch = 0.4; // Very low pitch for deeper male voice
-        utterance.rate = currentRate * technicalSlowdown; // Apply slowdown for technical content
-        utterance.volume = 0.75;
-        console.log('Using HAL 9000 voice simulation (deep male voice)', isDenseTechnical ? '(technical slowdown applied)' : '');
-      } else if (currentVoice >= 2 && currentVoices.length) {
-        // System voice selection - map to actual system voice
-        const systemVoiceIndex = currentVoice - 2; // Subtract 2 for our custom voices
-        console.log(`Attempting to use system voice at index ${systemVoiceIndex}`);
-        if (systemVoices[systemVoiceIndex]) {
-          utterance.voice = systemVoices[systemVoiceIndex];
-          console.log(`Successfully set system voice: ${systemVoices[systemVoiceIndex].name}`);
-        } else {
-          console.warn(`System voice index ${systemVoiceIndex} not available (only ${systemVoices.length} voices), falling back to default`);
-        }
-      } else {
-        console.warn(`Invalid voice selection: ${currentVoice}, falling back to default`);
-      }
-
-      // Event handlers with error handling
-      utterance.onstart = () => {
-        setIsSpeaking(true);
-        console.log('Speech started');
-      };
-
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        console.log('Speech ended');
-      };
-
-      utterance.onerror = (event) => {
-        setIsSpeaking(false);
-        console.error('Speech synthesis error:', event.error);
-      };
-
-      window.speechSynthesis.speak(utterance);
-    } catch (error) {
-      console.error('Error in speak function:', error);
-      setIsSpeaking(false);
+    // Debounce speech calls
+    if (speechTimeout) {
+      clearTimeout(speechTimeout);
     }
+
+    speechTimeout = setTimeout(() => {
+      try {
+        // Use ref values to get the current state
+        const currentVoice = selectedVoiceRef.current;
+        const currentRate = speechRateRef.current;
+        const currentVoices = voicesRef.current;
+
+        console.log('speak() called with selectedVoice:', currentVoice);
+
+        window.speechSynthesis.cancel();
+
+        // Clean text for speech synthesis
+        let cleanText = text
+          .replace(/<[^>]*>/g, '') // Remove HTML tags
+          .replace(/\*/g, '') // Remove asterisks
+          .replace(/(?<!\d\s?)>\s*(?!\d)/g, '') // Remove > unless it's between numbers (like "5 > 3")
+          // Remove ALL Unicode control characters and zero-width characters
+          .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Control characters
+          .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-width spaces
+          .replace(/[\u2060-\u206F]/g, '') // Word joiners and invisible separators
+          .replace(/\u2063/g, '') // Invisible separator (unicode 8291)
+          .replace(/\u2062/g, '') // Invisible times (unicode 8290)
+          .replace(/\u2061/g, '') // Function application (unicode 8289)
+          .replace(/\u2064/g, '') // Invisible plus (unicode 8292)
+          // Remove specific problematic unicode like "8288"
+          .replace(/[\u2000-\u206F]/g, '') // General punctuation and formatting
+          // Remove ALL Unicode box-drawing characters (U+2500-U+257F)
+          .replace(/[\u2500-\u257F]/g, '') // Complete box-drawing block
+          // Remove additional visual/decorative characters
+          .replace(/[╔╗╚╝╠╣╦╩╬═║]/g, '') // Double-line box drawing
+          .replace(/[┏┓┗┛┣┫┳┻╋━┃]/g, '') // Heavy box drawing  
+          .replace(/[◆◇▲△▼▽●○■□▪▫]/g, '') // Remove geometric symbols
+          .replace(/[░▒▓█▀▄▌▐]/g, '') // Remove block characters
+          .replace(/[─━│┃┄┅┆┇┈┉┊┋]/g, '') // All line styles
+          .replace(/[└┘┌┐├┤┬┴┼]/g, '') // Light box corners/intersections
+          .replace(/[€£¥¢§¶†‡•…‰′″‴]/g, '') // Remove currency and special symbols
+          .replace(/[⌐⌠⌡°∙·√ⁿ²]/g, '') // Remove mathematical drawing chars
+          .replace(/[▬▭▮▯▰▱]/g, '') // Remove horizontal bars
+          // Remove any remaining unicode digits that look like "8288", "8289", etc.
+          .replace(/\b\d{4}\b/g, (match) => {
+            // Only remove if it looks like a unicode reference (82xx, 20xx ranges)
+            if (match.startsWith('82') || match.startsWith('20')) {
+              return '';
+            }
+            return match;
+          })
+          // Preserve mathematical operators in formulas - check if surrounded by alphanumeric
+          .replace(/([a-zA-Z0-9]\s*)([\+\-×÷=<>≤≥≠∞∑∏∫])(\s*[a-zA-Z0-9])/g, (match, before, op, after) => {
+            const operatorWords: { [key: string]: string } = {
+              '+': ' plus ',
+              '-': ' minus ',
+              '×': ' times ',
+              '÷': ' divided by ',
+              '=': ' equals ',
+              '<': ' less than ',
+              '>': ' greater than ',
+              '≤': ' less than or equal to ',
+              '≥': ' greater than or equal to ',
+              '≠': ' not equal to ',
+              '∞': ' infinity ',
+              '∑': ' sum ',
+              '∏': ' product ',
+              '∫': ' integral '
+            };
+            return before + (operatorWords[op] || op) + after;
+          })
+          // Replace punctuation that creates natural pauses
+          .replace(/[.!?]+/g, '.') // Normalize sentence endings to single period for pause
+          .replace(/[,;:]/g, ',') // Normalize pause punctuation to comma
+          // Remove punctuation that would be pronounced
+          .replace(/['""`''""]/g, '') // Remove all quotation marks
+          .replace(/[\[\](){}]/g, '') // Remove brackets and parentheses
+          .replace(/[#$%&@]/g, '') // Remove symbols
+          .replace(/[*_~`]/g, '') // Remove formatting characters
+          .replace(/-{2,}/g, ' ') // Replace multiple dashes with space
+          .replace(/\|/g, ' ') // Replace pipes with space
+          .replace(/\+/g, ' plus ') // Replace remaining + with word
+          .replace(/=/g, ' equals ') // Replace remaining = with word
+          .replace(/\s+/g, ' ') // Normalize whitespace
+          .trim();
+
+        if (!cleanText) {
+          console.warn('No text to speak after cleaning');
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+
+        // Set base properties - ensure consistent rate for all content types
+        utterance.rate = currentRate;
+        utterance.volume = 0.63;
+        utterance.pitch = 0.6;
+
+        // Log for debugging speech rate consistency
+        console.log('Speech rate applied:', currentRate, 'for text length:', cleanText.length);
+
+        // Get available system voices
+        const systemVoices = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en'));
+
+        // Debug logging
+        console.log('Voice Selection Debug:', {
+          selectedVoice: currentVoice,
+          selectedVoiceName: currentVoices[currentVoice]?.name || 'Unknown',
+          totalVoices: currentVoices.length,
+          systemVoicesCount: systemVoices.length,
+          voicesLoaded,
+          voiceNames: currentVoices.map(v => v.name)
+        });
+
+        // Detect if this is dense technical content (likely Wolfram Alpha)
+        // Check for mathematical terms, numbers, and technical patterns
+        const isDenseTechnical = /(\d+\.\d+|\d{3,}|equals|plus|minus|times|divided|integral|sum|product|approximately)/i.test(cleanText);
+        const technicalSlowdown = isDenseTechnical ? 0.9 : 1.0; // 10% slower for technical content
+
+        // Voice selection logic
+        if (currentVoice === 0) {
+          // System Default - use browser default (no voice set)
+          console.log('Using system default voice');
+        } else if (currentVoice === 1) {
+          // HAL 9000 voice simulation - deep, calm, male voice
+          utterance.pitch = 0.4; // Very low pitch for deeper male voice
+          utterance.rate = currentRate * technicalSlowdown; // Apply slowdown for technical content
+          utterance.volume = 0.75;
+          console.log('Using HAL 9000 voice simulation (deep male voice)', isDenseTechnical ? '(technical slowdown applied)' : '');
+        } else if (currentVoice >= 2 && currentVoices.length) {
+          // System voice selection - map to actual system voice
+          const systemVoiceIndex = currentVoice - 2; // Subtract 2 for our custom voices
+          console.log(`Attempting to use system voice at index ${systemVoiceIndex}`);
+          if (systemVoices[systemVoiceIndex]) {
+            utterance.voice = systemVoices[systemVoiceIndex];
+            console.log(`Successfully set system voice: ${systemVoices[systemVoiceIndex].name}`);
+          } else {
+            console.warn(`System voice index ${systemVoiceIndex} not available (only ${systemVoices.length} voices), falling back to default`);
+          }
+        } else {
+          console.warn(`Invalid voice selection: ${currentVoice}, falling back to default`);
+        }
+
+        // Event handlers with error handling
+        utterance.onstart = () => {
+          setIsSpeaking(true);
+          console.log('Speech started');
+        };
+
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          console.log('Speech ended');
+        };
+
+        utterance.onerror = (event) => {
+          setIsSpeaking(false);
+          console.error('Speech synthesis error:', event.error);
+        };
+
+        window.speechSynthesis.speak(utterance);
+      } catch (error) {
+        console.error('Error in speak function:', error);
+        setIsSpeaking(false);
+      }
+    }, 200); // Debounce delay of 200ms
   }, []); // Empty deps since we use refs for all dynamic values
 
   const stop = useCallback(() => {
     try {
+      if (speechTimeout) {
+        clearTimeout(speechTimeout);
+      }
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
         setIsSpeaking(false);

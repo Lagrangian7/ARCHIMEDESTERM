@@ -37,6 +37,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Create a reference for the chat WebSocket server (will be initialized later)
   let chatWss: WebSocketServer | null = null;
+  
+  // Rate limiting for WebSocket messages
+  const messageRateLimits = new Map<string, { count: number; resetTime: number }>();
+  const MESSAGE_RATE_LIMIT = 50; // messages per minute
+  const RATE_LIMIT_WINDOW = 60000; // 1 minute in ms
 
   // Serve attached assets (for soundtrack and other user files)
   app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
@@ -2056,7 +2061,9 @@ function windowResized() {
         }
       });
 
-      console.log(`✅ Radio stream: ${proxyRes.statusCode} - ${proxyRes.headers['content-type']}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`✅ Radio stream: ${proxyRes.statusCode} - ${proxyRes.headers['content-type']}`);
+      }
 
       if (proxyRes.statusCode !== 200) {
         console.log(`❌ Radio stream error: ${proxyRes.statusCode}`);
@@ -3502,7 +3509,9 @@ function windowResized() {
         return res.status(400).json({ error: 'Invalid domain format' });
       }
 
-      console.log(`🔍 WHOIS lookup for: ${domain}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔍 WHOIS lookup for: ${domain}`);
+      }
 
       // Try RDAP first (more reliable and standardized)
       try {

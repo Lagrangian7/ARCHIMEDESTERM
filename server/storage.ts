@@ -785,8 +785,13 @@ export class DatabaseStorage implements IStorage {
     return conversation;
   }
 
-  async getUserConversations(userId: string): Promise<Conversation[]> {
-    return await db.select().from(conversations).where(eq(conversations.userId, userId)).orderBy(desc(conversations.updatedAt));
+  async getUserConversations(userId: string, limit: number = 50): Promise<Conversation[]> {
+    return await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.userId, userId))
+      .orderBy(desc(conversations.updatedAt))
+      .limit(limit);
   }
 
   async createConversation(conversation: InsertConversation): Promise<Conversation> {
