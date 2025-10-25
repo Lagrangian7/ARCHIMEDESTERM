@@ -46,6 +46,28 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
 
     const initWebamp = async () => {
       try {
+        // Fetch MP3s from knowledge base
+        let knowledgeBaseTracks: any[] = [];
+        try {
+          const docsResponse = await fetch('/api/knowledge/documents', { credentials: 'include' });
+          if (docsResponse.ok) {
+            const documents = await docsResponse.json();
+            
+            // Filter for audio files
+            knowledgeBaseTracks = documents
+              .filter((doc: any) => doc.mimeType && doc.mimeType.startsWith('audio/'))
+              .map((doc: any) => ({
+                metaData: {
+                  artist: "Knowledge Base",
+                  title: doc.originalName.replace(/\.[^/.]+$/, "") // Remove extension
+                },
+                url: `/api/knowledge/documents/${doc.id}/download`
+              }));
+          }
+        } catch (error) {
+          console.warn('Could not load knowledge base audio files:', error);
+        }
+
         const webamp = new Webamp({
           initialTracks: [
             {
@@ -83,7 +105,8 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
                 title: "Serpent"
               },
               url: serpentTrack
-            }
+            },
+            ...knowledgeBaseTracks // Add knowledge base MP3s
           ],
           
           // Custom default skin

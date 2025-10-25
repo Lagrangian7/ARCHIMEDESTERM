@@ -14,6 +14,7 @@ export class KnowledgeService {
     originalName: string;
     fileSize: string;
     mimeType: string;
+    objectPath?: string;
   }): Promise<Document> {
     // Extract keywords and generate summary
     const keywords = this.extractKeywords(content);
@@ -29,10 +30,13 @@ export class KnowledgeService {
       content,
       summary,
       keywords,
+      objectPath: metadata.objectPath,
     });
 
-    // Split content into chunks for better search
-    await this.createKnowledgeChunks(document.id, content);
+    // Split content into chunks for better search (skip for audio files)
+    if (!metadata.mimeType.startsWith('audio/')) {
+      await this.createKnowledgeChunks(document.id, content);
+    }
 
     return document;
   }

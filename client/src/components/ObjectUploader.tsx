@@ -49,7 +49,8 @@ export function ObjectUploader({
         maxFileSize,
         allowedFileTypes: [
           '.pdf', '.doc', '.docx', '.txt', '.md', 
-          '.epub', '.mobi', '.json', '.csv'
+          '.epub', '.mobi', '.json', '.csv',
+          '.mp3', '.wav', '.ogg', '.m4a' // Audio files
         ],
       },
       autoProceed: false,

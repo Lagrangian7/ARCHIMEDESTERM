@@ -31,23 +31,23 @@ import { getSession } from './replitAuth';
 import { archimedesBotService } from './archimedes-bot-service';
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+
   // Initialize Archimedes AI bot
   await archimedesBotService.initializeBot();
-  
+
   // Create a reference for the chat WebSocket server (will be initialized later)
   let chatWss: WebSocketServer | null = null;
-  
+
   // Serve attached assets (for soundtrack and other user files)
   app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
-  
+
   // SPACEWAR game endpoint (must be BEFORE Vite middleware to avoid processing)
   app.get('/spacewar.html', (req, res) => {
     // Add cache-busting headers to force reload
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    
+
     const gameHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -141,10 +141,10 @@ function setup() {
   limbAnimationSpeed = TWO_PI / 20;
   spawnInvaders();
   initializeCitySkyline();
-  
+
   // Initialize Web Audio API
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  
+
   // Start background music
   startBackgroundMusic();
   for (let i = 0; i < numStars; i++) {
@@ -186,20 +186,20 @@ function getBuildingColor(buildingType) {
 
 function initializeCitySkyline() {
   cityBlocks = [];
-  
+
   // Calculate number of blocks to fill entire screen width
   let numCityBlocks = Math.floor(width / cityBlockWidth);
   let totalWidth = numCityBlocks * cityBlockWidth;
   let startX = -totalWidth / 2;
   let groundY = height / 2 - 80; // Position skyline above bottom of screen
-  
+
   for (let i = 0; i < numCityBlocks; i++) {
     let buildingHeight = random(5, 12); // Random building heights for upper city - increased for more gameplay layers
-    
+
     // Randomly select building type for this column
     let buildingType = random(['normal', 'honeycomb', 'neon', 'industrial', 'glass']);
     let buildingColor = getBuildingColor(buildingType);
-    
+
     // Create the upper city buildings (destructible)
     for (let k = 0; k < buildingHeight; k++) {
       cityBlocks.push({
@@ -217,7 +217,7 @@ function initializeCitySkyline() {
         buildingColor: buildingColor // Color scheme for this building
       });
     }
-    
+
     // Create foundation blocks extending to bottom of screen (indestructible)
     let foundationBlocks = Math.floor((height / 2 + 80) / cityBlockHeight);
     for (let k = 0; k < foundationBlocks; k++) {
@@ -284,9 +284,7 @@ function spawnInvaders() {
         individualRadius: random(40, 80),
         noiseSeedX: random(10000),
         noiseSeedY: random(10000),
-        noiseT: 0,
-        randomVx: random(-2, 2),
-        randomVy: random(-2, 2)
+        noiseT: 0
       });
     }
   } else if (pattern === 'wheel') {
@@ -357,10 +355,10 @@ function spawnUfo() {
     speed: startLeft ? ufoSpeed : -ufoSpeed,
     active: true
   };
-  
+
   // Start UFO humming sound
   startUfoHum();
-  
+
   // Start UFO sound effect (new WAV file)
   startUfoSound();
 }
@@ -374,7 +372,7 @@ function spawnNyanCat() {
     speed: startLeft ? nyanCatSpeed : -nyanCatSpeed,
     active: true
   };
-  
+
   // Play Nyan Cat sound
   playNyanCatSound();
 }
@@ -402,7 +400,7 @@ function getRectangularPosition(t, spread) {
   let perimeter = 2 * (rectWidth + rectHeight);
   let dist = t * perimeter;
   let x, y;
-  
+
   if (dist < rectWidth) {
     x = -rectWidth / 2 + dist;
     y = -rectHeight / 2;
@@ -448,24 +446,24 @@ function getCombinedPosition(t, spread) {
 
 function draw() {
   background(0);
-  
+
   // If game has ended, stop all game logic
   if (gameEnded) {
     return;
   }
-  
+
   // Draw title at the top in big bold letters using custom pixel font
   fill(0, 255, 0); // Terminal green
   textAlign(CENTER, TOP);
   if (pixelFont) textFont(pixelFont); // Use the loaded CGA font
   textSize(48); // Big title
   text('SP4CEW4RZ', width / 2, 20);
-  
+
   // Draw credit line
   textSize(16); // Small font for credit
   fill(0, 200, 0); // Slightly dimmer green
   text('by B.Hutchy', width / 2, 75);
-  
+
   // Show pause message and return early if game is paused
   if (gamePaused) {
     fill(255, 255, 0); // Yellow pause text
@@ -476,7 +474,7 @@ function draw() {
     text('Press SPACEBAR or ENTER to resume', width / 2, height / 2 + 50);
     return;
   }
-  
+
   if (frameCount % ufoSpawnInterval === 0) {
     spawnUfo();
   }
@@ -760,10 +758,10 @@ function draw() {
             lifetime: 25
           });
         }
-        
+
         // Play explosion sound
         playExplosionSound();
-        
+
         invaders.splice(j, 1);
         nyanCatBombs.splice(i, 1);
         score += pointsPerHit;
@@ -819,10 +817,10 @@ function draw() {
     stroke(0, 200, 200, 150); // Cyan with transparency
     strokeWeight(1.5); // Thin laser beam
     noFill();
-    
+
     // Draw a thin laser line with slight glow
     line(laser.x - 3, laser.y, laser.x + 3, laser.y);
-    
+
     // Add subtle center core
     stroke(100, 255, 255, 100); // Brighter cyan core, very subtle
     strokeWeight(0.5);
@@ -834,12 +832,12 @@ function draw() {
   for (let i = invaders.length - 1; i >= 0; i--) {
     let invader = invaders[i];
     let x, y;
-    
+
     if (invader.pattern === 'random') {
       // Random movement pattern
       invader.individualX += invader.randomVx;
       invader.individualY += invader.randomVy;
-      
+
       // Bounce off boundaries
       if (invader.individualX > width/3 || invader.individualX < -width/3) {
         invader.randomVx *= -1;
@@ -847,7 +845,7 @@ function draw() {
       if (invader.individualY > height/3 || invader.individualY < -height/3) {
         invader.randomVy *= -1;
       }
-      
+
       x = invader.individualX;
       y = invader.individualY;
     } else if (invader.pattern === 'individual-circle') {
@@ -861,7 +859,7 @@ function draw() {
       let side = floor(t * 4);
       let progress = (t * 4) % 1;
       let size = invader.individualRadius;
-      
+
       if (side === 0) {
         x = invader.individualX - size + progress * size * 2;
         y = invader.individualY - size;
@@ -882,12 +880,12 @@ function draw() {
       let side = floor(invader.t * 6);
       let nextAngle = ((side + 1) / 6) * TWO_PI;
       let progress = (invader.t * 6) % 1;
-      
+
       let x1 = cos(side * TWO_PI / 6) * invader.individualRadius;
       let y1 = sin(side * TWO_PI / 6) * invader.individualRadius;
       let x2 = cos(nextAngle) * invader.individualRadius;
       let y2 = sin(nextAngle) * invader.individualRadius;
-      
+
       x = invader.individualX + x1 + (x2 - x1) * progress;
       y = invader.individualY + y1 + (y2 - y1) * progress;
       invader.t = (invader.t + speed * 0.01) % 1;
@@ -896,12 +894,12 @@ function draw() {
       let side = floor(invader.t * 8);
       let nextAngle = ((side + 1) / 8) * TWO_PI;
       let progress = (invader.t * 8) % 1;
-      
+
       let x1 = cos(side * TWO_PI / 8) * invader.individualRadius;
       let y1 = sin(side * TWO_PI / 8) * invader.individualRadius;
       let x2 = cos(nextAngle) * invader.individualRadius;
       let y2 = sin(nextAngle) * invader.individualRadius;
-      
+
       x = invader.individualX + x1 + (x2 - x1) * progress;
       y = invader.individualY + y1 + (y2 - y1) * progress;
       invader.t = (invader.t + speed * 0.01) % 1;
@@ -931,7 +929,7 @@ function draw() {
       y = pos.y;
       invader.t = (invader.t + speed / 10) % 1;
     }
-    
+
     invader.noiseT += 0.01;
     let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
     let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
@@ -954,7 +952,7 @@ function draw() {
       x += avoidX;
       y += avoidY;
     }
-    
+
     if (random() < invaderFireProbability) {
       invaderLasers.push({
         x: x,
@@ -963,7 +961,7 @@ function draw() {
       });
       playEnemyLaserSound();
     }
-    
+
     push();
     translate(x, y);
     // Use invader's pattern color for glow with transparency
@@ -1046,20 +1044,20 @@ function draw() {
     let laser = playerLasers[i];
     laser.x += laser.vx;
     laser.y += laser.vy;
-    
+
     // Remove lasers that go off screen
     if (laser.x < -width / 2 - 50 || laser.x > width / 2 + 50 || 
         laser.y < -height / 2 - 50 || laser.y > height / 2 + 50) {
       playerLasers.splice(i, 1);
       continue;
     }
-    
+
     // Add position to trail
     laser.trail.push({x: laser.x, y: laser.y});
     if (laser.trail.length > 8) {
       laser.trail.shift(); // Keep trail length manageable
     }
-    
+
     // Draw high-visibility laser trail
     for (let t = 0; t < laser.trail.length; t++) {
       let alpha = map(t, 0, laser.trail.length - 1, 50, 255);
@@ -1068,7 +1066,7 @@ function draw() {
       noStroke();
       ellipse(laser.trail[t].x, laser.trail[t].y, size, size);
     }
-    
+
     // Draw bright main laser bolt with glow effect
     // Outer glow
     fill(red(laser.color), green(laser.color), blue(laser.color), 100);
@@ -1079,13 +1077,13 @@ function draw() {
     // Inner bright core
     fill(255, 255, 255, 200);
     ellipse(laser.x, laser.y, 3, 8);
-    
+
     // Check collision with invaders
     const { spread } = getLevelModifiers();
     for (let j = invaders.length - 1; j >= 0; j--) {
       let invader = invaders[j];
       let x, y;
-      
+
       if (invader.pattern === 'wheel') {
         let baseX = cos(invader.angle) * (baseWheelRadius * spread);
         let baseY = sin(invader.angle) * (baseWheelRadius * spread);
@@ -1112,7 +1110,7 @@ function draw() {
         x = pos.x + jitterX;
         y = pos.y + jitterY;
       }
-      
+
       // Apply mouse avoidance to get final position
       let mouseXWorld = mouseX - width / 2;
       let mouseYWorld = mouseY - height / 2;
@@ -1130,13 +1128,13 @@ function draw() {
         x += avoidX;
         y += avoidY;
       }
-      
+
       // Prevent invaders from flying below turret tops
       let turretTopY = height / 2 - 80 - 180 - 20; // Ground - turret height - clearance
       if (y > turretTopY) {
         y = turretTopY;
       }
-      
+
       // Check collision
       if (laser.x > x - 15 && laser.x < x + 15 && laser.y > y - 15 && laser.y < y + 15) {
         // Create explosion particles
@@ -1149,10 +1147,10 @@ function draw() {
             lifetime: 30
           });
         }
-        
+
         // Play explosion sound
         playExplosionSound();
-        
+
         // Remove invader and laser
         invaders.splice(j, 1);
         playerLasers.splice(i, 1);
@@ -1160,7 +1158,7 @@ function draw() {
         break;
       }
     }
-    
+
     // Check collision with UFO
     if (ufo && ufo.active) {
       if (laser.x > ufo.x - 25 && laser.x < ufo.x + 25 && laser.y > ufo.y - 15 && laser.y < ufo.y + 15) {
@@ -1174,16 +1172,16 @@ function draw() {
             lifetime: 40
           });
         }
-        
+
         // Play explosion sound
         playExplosionSound();
-        
+
         // Stop UFO humming sound
         stopUfoHum();
-        
+
         // Stop UFO sound effect
         stopUfoSound();
-        
+
         // Remove UFO and laser, award bonus points
         ufo = null;
         playerLasers.splice(i, 1);
@@ -1191,7 +1189,7 @@ function draw() {
         break;
       }
     }
-    
+
     // Check collision with Nyan Cat
     if (nyanCat && nyanCat.active) {
       if (laser.x > nyanCat.x - 20 && laser.x < nyanCat.x + 20 && laser.y > nyanCat.y - 15 && laser.y < nyanCat.y + 15) {
@@ -1208,10 +1206,10 @@ function draw() {
             size: random(4, 8)
           });
         }
-        
+
         // Play explosion sound
         playExplosionSound();
-        
+
         // Remove Nyan Cat and laser, award mega bonus points
         nyanCat = null;
         playerLasers.splice(i, 1);
@@ -1226,7 +1224,7 @@ function draw() {
     p.x += p.vx;
     p.y += p.vy;
     p.lifetime--;
-    
+
     if (p.color && p.size) {
       // Muzzle blast particles with custom colors and sizes
       fill(red(p.color), green(p.color), blue(p.color), p.lifetime * 15);
@@ -1238,7 +1236,7 @@ function draw() {
       noStroke();
       rect(p.x, p.y, 3, 3);
     }
-    
+
     if (p.lifetime <= 0) {
       particles.splice(i, 1);
     }
@@ -1256,22 +1254,22 @@ function draw() {
   // Game stats at top corners
   fill(0, 255, 0);
   textSize(20);
-  
+
   // Top left - Score and Invaders
   textAlign(LEFT, TOP);
   text("Score: " + score, -width / 2 + 20, -height / 2 + 20);
   text("Invaders: " + invaders.length, -width / 2 + 20, -height / 2 + 50);
-  
+
   // Top right - Level
   textAlign(RIGHT, TOP);
   text("Level: " + level, width / 2 - 20, -height / 2 + 20);
-  
+
   // Render city skyline
   renderCitySkyline();
-  
+
   // Check collision between enemy projectiles and skyline
   checkSkylineCollisions();
-  
+
   // Check if skyline is completely destroyed
   if (isSkylineDestroyed()) {
     gameOver();
@@ -1281,7 +1279,7 @@ function draw() {
   fill(0, 255, 255);
   textSize(16);
   text("Click to shoot!", -width / 2 + 20, height / 2 - 20);
-  
+
   if (invaders.length === 0) {
     level++;
     if (level <= 4) {
@@ -1301,12 +1299,12 @@ function drawHoneycombPattern(x, y, w, h, cellSize) {
   // Draw hexagonal honeycomb pattern
   let rows = Math.floor(h / (cellSize * 0.75));
   let cols = Math.floor(w / cellSize);
-  
+
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       let hexX = x + col * cellSize + (row % 2) * (cellSize / 2);
       let hexY = y + row * cellSize * 0.75;
-      
+
       if (hexX + cellSize <= x + w && hexY + cellSize <= y + h) {
         drawHexagon(hexX + cellSize/2, hexY + cellSize/2, cellSize/3);
       }
@@ -1327,13 +1325,13 @@ function drawHexagon(centerX, centerY, radius) {
 
 function renderBuildingBlock(block) {
   if (block.destroyed) return;
-  
+
   // Handle flashing effect
   if (block.flashTimer > 0 && !block.isFoundation) {
     fill(255, 255, 255); // Bright white flash
     stroke(255, 255, 255);
     block.flashTimer--; // Decrement flash timer
-    
+
     // Destroy block when flash is done (only non-foundation blocks)
     if (block.flashTimer <= 0) {
       block.destroyed = true;
@@ -1343,9 +1341,9 @@ function renderBuildingBlock(block) {
     fill(block.buildingColor.fill[0], block.buildingColor.fill[1], block.buildingColor.fill[2]);
     stroke(block.buildingColor.stroke[0], block.buildingColor.stroke[1], block.buildingColor.stroke[2]);
   }
-  
+
   strokeWeight(1);
-  
+
   // Render based on building type
   switch (block.buildingType) {
     case 'honeycomb':
@@ -1356,7 +1354,7 @@ function renderBuildingBlock(block) {
       strokeWeight(0.5);
       drawHoneycombPattern(block.x + 2, block.y + 2, block.width - 4, block.height - 4, 8);
       break;
-      
+
     case 'neon':
       // Draw with glowing effect
       rect(block.x, block.y, block.width, block.height);
@@ -1366,7 +1364,7 @@ function renderBuildingBlock(block) {
       line(block.x + 3, block.y + 3, block.x + block.width - 3, block.y + 3);
       line(block.x + 3, block.y + block.height - 3, block.x + block.width - 3, block.y + block.height - 3);
       break;
-      
+
     case 'industrial':
       // Draw with rivets/bolts pattern
       rect(block.x, block.y, block.width, block.height);
@@ -1379,7 +1377,7 @@ function renderBuildingBlock(block) {
         }
       }
       break;
-      
+
     case 'glass':
       // Draw with reflective pattern
       rect(block.x, block.y, block.width, block.height);
@@ -1392,7 +1390,7 @@ function renderBuildingBlock(block) {
       // Horizontal line
       line(block.x, block.y + block.height/2, block.x + block.width, block.y + block.height/2);
       break;
-      
+
     default: // normal and foundation
       rect(block.x, block.y, block.width, block.height);
       break;
@@ -1403,7 +1401,7 @@ function renderCitySkyline() {
   for (let block of cityBlocks) {
     renderBuildingBlock(block);
   }
-  
+
   // Render turrets on the sides
   renderTurrets();
 }
@@ -1413,11 +1411,11 @@ function renderTurrets() {
   let leftTurretX = -width / 2 + 30;
   let rightTurretX = width / 2 - 70;
   let turretHeight = 180; // Make turrets much taller than skyline
-  
+
   // Convert mouse position to world coordinates
   let mouseWorldX = mouseX - width / 2;
   let mouseWorldY = mouseY - height / 2;
-  
+
   // Left turret
   fill(80, 80, 120);
   stroke(120, 120, 180);
@@ -1426,7 +1424,7 @@ function renderTurrets() {
   fill(60, 60, 100);
   rect(leftTurretX + 5, groundY - turretHeight - 20, 30, 25); // Top section
   rect(leftTurretX + 10, groundY - turretHeight - 35, 20, 20); // Cannon mount
-  
+
   // Left cannon barrel pointing at mouse
   let leftCannonBaseX = leftTurretX + 20;
   let leftCannonBaseY = groundY - turretHeight - 25;
@@ -1436,11 +1434,11 @@ function renderTurrets() {
   let cannonLength = 30;
   let leftCannonEndX = leftCannonBaseX + cos(leftAngle) * cannonLength;
   let leftCannonEndY = leftCannonBaseY + sin(leftAngle) * cannonLength;
-  
+
   stroke(255, 100, 100);
   strokeWeight(6);
   line(leftCannonBaseX, leftCannonBaseY, leftCannonEndX, leftCannonEndY);
-  
+
   // Right turret
   fill(80, 80, 120);
   stroke(120, 120, 180);
@@ -1449,7 +1447,7 @@ function renderTurrets() {
   fill(60, 60, 100);
   rect(rightTurretX + 5, groundY - turretHeight - 20, 30, 25); // Top section
   rect(rightTurretX + 10, groundY - turretHeight - 35, 20, 20); // Cannon mount
-  
+
   // Right cannon barrel pointing at mouse
   let rightCannonBaseX = rightTurretX + 20;
   let rightCannonBaseY = groundY - turretHeight - 25;
@@ -1458,30 +1456,30 @@ function renderTurrets() {
   let rightAngle = atan2(rightDy, rightDx);
   let rightCannonEndX = rightCannonBaseX + cos(rightAngle) * cannonLength;
   let rightCannonEndY = rightCannonBaseY + sin(rightAngle) * cannonLength;
-  
+
   stroke(255, 100, 100);
   strokeWeight(6);
   line(rightCannonBaseX, rightCannonBaseY, rightCannonEndX, rightCannonEndY);
-  
+
   noStroke();
 }
 
 function playLaserSound() {
   if (!audioContext) return;
-  
+
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
-  
+
   oscillator.connect(gainNode);
   gainNode.connect(audioContext.destination);
-  
+
   // Laser sound: high-pitched zap that drops in frequency
   oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
   oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.15);
-  
+
   gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-  
+
   oscillator.type = 'sawtooth';
   oscillator.start(audioContext.currentTime);
   oscillator.stop(audioContext.currentTime + 0.15);
@@ -1489,20 +1487,20 @@ function playLaserSound() {
 
 function startUfoHum() {
   if (!audioContext || ufoOscillator) return;
-  
+
   ufoOscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
-  
+
   ufoOscillator.connect(gainNode);
   gainNode.connect(audioContext.destination);
-  
+
   // UFO hum: low-frequency oscillating drone
   ufoOscillator.frequency.setValueAtTime(60, audioContext.currentTime);
   gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-  
+
   ufoOscillator.type = 'sine';
   ufoOscillator.start(audioContext.currentTime);
-  
+
   // Modulate the frequency for that classic UFO wobble
   const lfo = audioContext.createOscillator();
   const lfoGain = audioContext.createGain();
@@ -1518,15 +1516,15 @@ function startUfoSound() {
     ufoAudio.pause();
     ufoAudio = null;
   }
-  
+
   try {
     ufoAudio = new Audio('/attached_assets/ufo_4_1758648473127.wav');
     ufoAudio.volume = 0.3; // Set volume to 30%
     ufoAudio.loop = true; // Loop continuously while UFO is active
-    
+
     // Try to play immediately
     const playPromise = ufoAudio.play();
-    
+
     if (playPromise !== undefined) {
       playPromise.catch(error => {
         console.log('UFO sound failed to play:', error);
@@ -1554,22 +1552,22 @@ function stopUfoHum() {
 
 function playNyanCatSound() {
   if (!audioContext) return;
-  
+
   // Play a cute cat-like meow sound
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
-  
+
   oscillator.connect(gainNode);
   gainNode.connect(audioContext.destination);
-  
+
   // Cat meow: starts high, dips down, then back up
   oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
   oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
   oscillator.frequency.exponentialRampToValueAtTime(350, audioContext.currentTime + 0.3);
-  
+
   gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-  
+
   oscillator.type = 'triangle';
   oscillator.start(audioContext.currentTime);
   oscillator.stop(audioContext.currentTime + 0.3);
@@ -1577,22 +1575,22 @@ function playNyanCatSound() {
 
 function playUfoLaserSound() {
   if (!audioContext) return;
-  
+
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
-  
+
   oscillator.connect(gainNode);
   gainNode.connect(audioContext.destination);
-  
+
   // UFO laser: extremely subtle, whisper-quiet alien sound
   oscillator.frequency.setValueAtTime(380, audioContext.currentTime); // Lower starting frequency
   oscillator.frequency.linearRampToValueAtTime(240, audioContext.currentTime + 0.06); // Gentler frequency change
-  
+
   // Ultra-quiet volume with soft attack and decay
   gainNode.gain.setValueAtTime(0.0, audioContext.currentTime); // Start silent
   gainNode.gain.linearRampToValueAtTime(0.06, audioContext.currentTime + 0.01); // Soft attack
   gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.06); // Soft decay
-  
+
   oscillator.type = 'sine'; // Smoothest wave type
   oscillator.start(audioContext.currentTime);
   oscillator.stop(audioContext.currentTime + 0.06); // Very brief duration
@@ -1600,20 +1598,20 @@ function playUfoLaserSound() {
 
 function playEnemyLaserSound() {
   if (!audioContext) return;
-  
+
   const oscillator = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
-  
+
   oscillator.connect(gainNode);
   gainNode.connect(audioContext.destination);
-  
+
   // Enemy laser: deeper, more menacing sound, but quieter
   oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
   oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.2);
-  
+
   gainNode.gain.setValueAtTime(0.12, audioContext.currentTime); // Reduced from 0.25 to 0.12
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-  
+
   oscillator.type = 'square';
   oscillator.start(audioContext.currentTime);
   oscillator.stop(audioContext.currentTime + 0.2);
@@ -1621,48 +1619,48 @@ function playEnemyLaserSound() {
 
 function playExplosionSound() {
   if (!audioContext) return;
-  
+
   // Create white noise for explosion base
   const bufferSize = audioContext.sampleRate * 0.4; // 0.4 seconds
   const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
   const data = buffer.getChannelData(0);
-  
+
   // Generate white noise
   for (let i = 0; i < bufferSize; i++) {
     data[i] = Math.random() * 2 - 1;
   }
-  
+
   const noiseSource = audioContext.createBufferSource();
   noiseSource.buffer = buffer;
-  
+
   // Create filter for shaping the explosion
   const filter = audioContext.createBiquadFilter();
   filter.type = 'lowpass';
   filter.frequency.setValueAtTime(800, audioContext.currentTime);
   filter.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.4);
-  
+
   // Create gain envelope for explosion
   const gainNode = audioContext.createGain();
   gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-  
+
   // Connect the nodes
   noiseSource.connect(filter);
   filter.connect(gainNode);
   gainNode.connect(audioContext.destination);
-  
+
   // Add low-frequency rumble
   const rumbleOsc = audioContext.createOscillator();
   const rumbleGain = audioContext.createGain();
-  
+
   rumbleOsc.frequency.setValueAtTime(60, audioContext.currentTime);
   rumbleOsc.frequency.exponentialRampToValueAtTime(20, audioContext.currentTime + 0.3);
   rumbleGain.gain.setValueAtTime(0.3, audioContext.currentTime);
   rumbleGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-  
+
   rumbleOsc.connect(rumbleGain);
   rumbleGain.connect(audioContext.destination);
-  
+
   // Start the explosion
   noiseSource.start(audioContext.currentTime);
   noiseSource.stop(audioContext.currentTime + 0.4);
@@ -1692,15 +1690,15 @@ function playNextTrack() {
     }
     currentTrackIndex = newIndex;
   }
-  
+
   console.log('Playing next track:', soundtrackPlaylist[currentTrackIndex]);
-  
+
   // Load and play the next track
   if (backgroundMusic) {
     backgroundMusic.pause();
     backgroundMusic = null;
   }
-  
+
   startBackgroundMusic();
 }
 
@@ -1715,19 +1713,19 @@ function startBackgroundMusic() {
     }
     return; // Already playing
   }
-  
+
   try {
     // Load current track from playlist
     backgroundMusic = new Audio(soundtrackPlaylist[currentTrackIndex]);
     backgroundMusic.volume = 0.4; // Set volume to 40%
     backgroundMusic.loop = false; // Don't loop individual tracks
-    
+
     // Set up event listener to play next track when current one ends
     backgroundMusic.addEventListener('ended', playNextTrack);
-    
+
     // Try to play immediately, but handle autoplay restrictions
     const playPromise = backgroundMusic.play();
-    
+
     if (playPromise !== undefined) {
       playPromise.catch(error => {
         console.log('Background music failed to play (autoplay restriction):', error);
@@ -1761,7 +1759,7 @@ function createMuzzleBlast(x, y) {
       size: random(3, 8)
     });
   }
-  
+
   // Create bright blast ring
   for (let i = 0; i < 10; i++) {
     particles.push({
@@ -1794,7 +1792,7 @@ function checkSkylineCollisions() {
       }
     }
   }
-  
+
   // Check invader lasers hitting skyline
   for (let i = invaderLasers.length - 1; i >= 0; i--) {
     let laser = invaderLasers[i];
@@ -1812,7 +1810,7 @@ function checkSkylineCollisions() {
       }
     }
   }
-  
+
   // Check nyan cat bombs hitting skyline
   for (let i = nyanCatBombs.length - 1; i >= 0; i--) {
     let bomb = nyanCatBombs[i];
@@ -1835,11 +1833,11 @@ function checkSkylineCollisions() {
 function keyPressed() {
   // Don't allow pausing if game has ended
   if (gameEnded) return;
-  
+
   // Handle spacebar (32) and Enter key (13) for pause/unpause
   if (keyCode === 32 || keyCode === 13) {
     gamePaused = !gamePaused;
-    
+
     // Also pause/unpause background music
     if (gamePaused) {
       if (backgroundMusic && !backgroundMusic.paused) {
@@ -1857,19 +1855,19 @@ function keyPressed() {
 
 function destroySkylineBlock(blockIndex, explosionX, explosionY) {
   let block = cityBlocks[blockIndex];
-  
+
   // Decrement health instead of immediate destruction
   if (block.health !== undefined) {
     block.health--;
   }
-  
+
   // Set flash timer for hit effect
   block.flashTimer = 15; // Flash for 15 frames
-  
+
   // Only mark as destroyed when health reaches 0
   if (block.health <= 0) {
     block.destroyed = true;
-    
+
     // Create explosion particles only on final destruction
     for (let i = 0; i < 20; i++) {
       particles.push({
@@ -1880,7 +1878,7 @@ function destroySkylineBlock(blockIndex, explosionX, explosionY) {
         lifetime: 40
       });
     }
-    
+
     // Play explosion sound
     playExplosionSound();
   } else {
@@ -1897,26 +1895,26 @@ function isSkylineDestroyed() {
 function gameOver() {
   // Only execute once
   if (gameEnded) return;
-  
+
   gameEnded = true;
-  
+
   // Stop background music
   stopBackgroundMusic();
-  
+
   // Stop UFO sounds if active
   stopUfoHum();
   stopUfoSound();
-  
+
   // Stop the draw loop
   noLoop();
-  
+
   fill(255, 0, 0);
   textSize(32);
   textAlign(CENTER);
   text("CITY DESTROYED!", 0, -50);
   text("GAME OVER", 0, 0);
   text("Restarting...", 0, 50);
-  
+
   // Reset game after 3 seconds
   setTimeout(() => {
     level = 1;
@@ -1934,13 +1932,13 @@ function gameOver() {
     gameEnded = false;
     initializeCitySkyline();
     spawnInvaders();
-    
+
     // Occasionally start with a different track on game restart (30% chance)
     if (Math.random() < 0.3) {
       currentTrackIndex = Math.floor(Math.random() * soundtrackPlaylist.length);
       console.log('Game restart: Starting with track', currentTrackIndex);
     }
-    
+
     // Restart background music and resume game loop
     startBackgroundMusic();
     loop();
@@ -1952,44 +1950,44 @@ function mousePressed() {
   if (backgroundMusic && backgroundMusic.paused) {
     startBackgroundMusic();
   }
-  
+
   // Don't allow shooting if game has ended
   if (gameEnded) return;
-  
+
   // Convert screen coordinates to world coordinates
   let worldX = mouseX - width / 2;
   let worldY = mouseY - height / 2;
-  
+
   // Fire from exact turret positions
   let groundY = height / 2 - 80;
   let turretHeight = 180;
   let leftTurretX = -width / 2 + 50; // Center of left turret
   let rightTurretX = width / 2 - 50; // Center of right turret
   let cannonY = groundY - turretHeight - 25; // From cannon barrels
-  
+
   // Calculate direction vectors for both cannons to converge at mouse position
   let leftDx = worldX - leftTurretX;
   let leftDy = worldY - cannonY;
   let leftDistance = sqrt(leftDx * leftDx + leftDy * leftDy);
-  
+
   let rightDx = worldX - rightTurretX;
   let rightDy = worldY - cannonY;
   let rightDistance = sqrt(rightDx * rightDx + rightDy * rightDy);
-  
+
   // Normalize and set speed
   let speed = 15;
   let leftVx = (leftDx / leftDistance) * speed;
   let leftVy = (leftDy / leftDistance) * speed;
   let rightVx = (rightDx / rightDistance) * speed;
   let rightVy = (rightDy / rightDistance) * speed;
-  
+
   // Create muzzle blast effects at turret positions
   createMuzzleBlast(leftTurretX, cannonY);
   createMuzzleBlast(rightTurretX, cannonY);
-  
+
   // Play laser firing sound
   playLaserSound();
-  
+
   // Create two high-visibility lasers from turret cannons
   playerLasers.push({
     x: leftTurretX,
@@ -1999,7 +1997,7 @@ function mousePressed() {
     color: color(0, 255, 255), // Bright cyan
     trail: []
   });
-  
+
   playerLasers.push({
     x: rightTurretX,
     y: cannonY,
@@ -2016,7 +2014,7 @@ function windowResized() {
 </script>
 </body>
 </html>`;
-    
+
     res.setHeader('Content-Type', 'text/html');
     res.send(gameHtml);
   });
@@ -2024,10 +2022,10 @@ function windowResized() {
   // Radio streaming endpoint (must be BEFORE auth middleware)
   app.get('/api/radio/stream', (req, res) => {
     const streamUrl = 'https://ice.somafm.com/groovesalad';
-    
+
     // Parse the URL
     const url = new URL(streamUrl);
-    
+
     const options = {
       hostname: url.hostname,
       port: url.port || 443,
@@ -2039,27 +2037,27 @@ function windowResized() {
         'Connection': 'keep-alive'
       }
     };
-    
+
     const proxyReq = https.request(options, (proxyRes: any) => {
       // Set CORS and streaming headers
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Range, Content-Type');
-      
+
       // Copy headers from the original stream
       res.setHeader('Content-Type', proxyRes.headers['content-type'] || 'audio/mpeg');
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Accept-Ranges', 'none');
-      
+
       // Copy ICY headers if present (Shoutcast metadata)
       Object.keys(proxyRes.headers).forEach(key => {
         if (key.startsWith('icy-')) {
           res.setHeader(key, proxyRes.headers[key]);
         }
       });
-      
+
       console.log(`✅ Radio stream: ${proxyRes.statusCode} - ${proxyRes.headers['content-type']}`);
-      
+
       if (proxyRes.statusCode !== 200) {
         console.log(`❌ Radio stream error: ${proxyRes.statusCode}`);
         res.status(503).json({ 
@@ -2068,19 +2066,19 @@ function windowResized() {
         });
         return;
       }
-      
+
       // Set status code
       res.status(proxyRes.statusCode);
-      
+
       // Pipe the audio stream
       proxyRes.pipe(res);
-      
+
       proxyRes.on('error', (error: any) => {
         console.error('❌ Stream error:', error);
         res.end();
       });
     });
-    
+
     proxyReq.on('error', (error: any) => {
       console.error('❌ Radio proxy error:', error);
       res.status(503).json({ 
@@ -2088,7 +2086,7 @@ function windowResized() {
         message: 'Unable to connect to Soma FM Groove Salad stream'
       });
     });
-    
+
     proxyReq.setTimeout(30000, () => {
       console.log('⏰ Radio stream timeout');
       proxyReq.destroy();
@@ -2096,7 +2094,7 @@ function windowResized() {
         res.status(503).json({ error: 'Stream timeout' });
       }
     });
-    
+
     proxyReq.end();
   });
 
@@ -2105,7 +2103,7 @@ function windowResized() {
 
   // Initialize services
   const bbsService = new BbsService();
-  
+
   // Initialize starter data
   try {
     await bbsService.initializeStarterData();
@@ -2129,7 +2127,7 @@ function windowResized() {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       const preferences = await storage.getUserPreferences(userId);
-      
+
       res.json({ 
         user: user || null,
         preferences: preferences || null
@@ -2143,13 +2141,13 @@ function windowResized() {
       });
     }
   });
-  
+
   // User preferences routes
   app.get("/api/user/preferences", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const preferences = await storage.getUserPreferences(userId);
-      
+
       if (!preferences) {
         // Create default preferences if they don't exist
         const defaultPrefs = await storage.createUserPreferences({
@@ -2162,7 +2160,7 @@ function windowResized() {
         });
         return res.json(defaultPrefs);
       }
-      
+
       res.json(preferences);
     } catch (error) {
       console.error("Get user preferences error:", error);
@@ -2173,7 +2171,7 @@ function windowResized() {
   app.put("/api/user/preferences", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       // Validate request body
       const validationResult = insertUserPreferencesSchema.partial().safeParse(req.body);
       if (!validationResult.success) {
@@ -2182,7 +2180,7 @@ function windowResized() {
           details: validationResult.error.errors
         });
       }
-      
+
       const updatedPreferences = await storage.updateUserPreferences(userId, validationResult.data);
       res.json(updatedPreferences);
     } catch (error) {
@@ -2218,19 +2216,19 @@ function windowResized() {
   app.post("/api/mud/profiles", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       const validationResult = insertMudProfileSchema.safeParse({
         ...req.body,
         userId
       });
-      
+
       if (!validationResult.success) {
         return res.status(400).json({ 
           error: "Invalid profile data",
           details: validationResult.error.errors
         });
       }
-      
+
       const profile = await storage.createMudProfile(validationResult.data);
       res.json(profile);
     } catch (error) {
@@ -2242,16 +2240,16 @@ function windowResized() {
   app.get("/api/mud/profiles/:id", isAuthenticated, async (req: any, res) => {
     try {
       const profile = await storage.getMudProfile(req.params.id);
-      
+
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
-      
+
       // Ensure user owns this profile
       if (profile.userId !== req.user.claims.sub) {
         return res.status(403).json({ error: "Access denied" });
       }
-      
+
       res.json(profile);
     } catch (error) {
       console.error("Get MUD profile error:", error);
@@ -2263,15 +2261,15 @@ function windowResized() {
     try {
       const userId = req.user.claims.sub;
       const profile = await storage.getMudProfile(req.params.id);
-      
+
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
-      
+
       if (profile.userId !== userId) {
         return res.status(403).json({ error: "Access denied" });
       }
-      
+
       const validationResult = insertMudProfileSchema.partial().safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
@@ -2279,7 +2277,7 @@ function windowResized() {
           details: validationResult.error.errors
         });
       }
-      
+
       const updatedProfile = await storage.updateMudProfile(req.params.id, validationResult.data);
       res.json(updatedProfile);
     } catch (error) {
@@ -2292,15 +2290,15 @@ function windowResized() {
     try {
       const userId = req.user.claims.sub;
       const profile = await storage.getMudProfile(req.params.id);
-      
+
       if (!profile) {
         return res.status(404).json({ error: "Profile not found" });
       }
-      
+
       if (profile.userId !== userId) {
         return res.status(403).json({ error: "Access denied" });
       }
-      
+
       await storage.deleteMudProfile(req.params.id);
       res.json({ success: true });
     } catch (error) {
@@ -2324,19 +2322,19 @@ function windowResized() {
   app.post("/api/mud/sessions", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       const validationResult = insertMudSessionSchema.safeParse({
         ...req.body,
         userId
       });
-      
+
       if (!validationResult.success) {
         return res.status(400).json({ 
           error: "Invalid session data",
           details: validationResult.error.errors
         });
       }
-      
+
       // If profileId is provided, validate ownership
       if (validationResult.data.profileId) {
         const profile = await storage.getMudProfile(validationResult.data.profileId);
@@ -2344,7 +2342,7 @@ function windowResized() {
           return res.status(403).json({ error: "Profile access denied" });
         }
       }
-      
+
       const session = await storage.createMudSession(validationResult.data);
       res.json(session);
     } catch (error) {
@@ -2357,11 +2355,11 @@ function windowResized() {
     try {
       const sessions = await storage.getUserMudSessions(req.user.claims.sub);
       const session = sessions.find(s => s.id === req.params.id);
-      
+
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
       }
-      
+
       res.json(session);
     } catch (error) {
       console.error("Get MUD session error:", error);
@@ -2374,11 +2372,11 @@ function windowResized() {
       const userId = req.user.claims.sub;
       const sessions = await storage.getUserMudSessions(userId);
       const session = sessions.find(s => s.id === req.params.id);
-      
+
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
       }
-      
+
       const validationResult = insertMudSessionSchema.partial().safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
@@ -2386,7 +2384,7 @@ function windowResized() {
           details: validationResult.error.errors
         });
       }
-      
+
       // If profileId is being updated, validate ownership
       if (validationResult.data.profileId) {
         const profile = await storage.getMudProfile(validationResult.data.profileId);
@@ -2394,7 +2392,7 @@ function windowResized() {
           return res.status(403).json({ error: "Profile access denied" });
         }
       }
-      
+
       const updatedSession = await storage.updateMudSession(req.params.id, validationResult.data);
       res.json(updatedSession);
     } catch (error) {
@@ -2408,14 +2406,14 @@ function windowResized() {
       const userId = req.user.claims.sub;
       const sessions = await storage.getUserMudSessions(userId);
       const session = sessions.find(s => s.id === req.params.id);
-      
+
       if (!session) {
         return res.status(404).json({ error: "Session not found" });
       }
-      
+
       await storage.closeMudSession(session.sessionId);
       mudService.closeConnection(session.sessionId, 'Session closed via API');
-      
+
       res.json({ success: true, message: 'Session closed' });
     } catch (error) {
       console.error("Close MUD session error:", error);
@@ -2427,7 +2425,7 @@ function windowResized() {
   app.post("/api/chat", async (req, res) => {
     try {
       const { message, mode = "natural", sessionId } = req.body;
-      
+
       if (!message || typeof message !== "string") {
         return res.status(400).json({ error: "Message is required" });
       }
@@ -2438,14 +2436,14 @@ function windowResized() {
       }
 
       const currentSessionId = sessionId || randomUUID();
-      
+
       // Check if user is authenticated to link conversation
       let userId = null;
       const user = req.user as any;
       if (req.isAuthenticated?.() && user?.claims?.sub) {
         userId = user.claims.sub;
       }
-      
+
       // Add user message to conversation
       const userMessage = {
         role: "user" as const,
@@ -2453,9 +2451,9 @@ function windowResized() {
         timestamp: new Date().toISOString(),
         mode: mode as "natural" | "technical",
       };
-      
+
       await storage.addMessageToConversation(currentSessionId, userMessage);
-      
+
       // Link conversation to user if authenticated
       if (userId) {
         const conversation = await storage.getConversation(currentSessionId);
@@ -2464,29 +2462,29 @@ function windowResized() {
           await storage.updateConversationUserId(currentSessionId, userId);
         }
       }
-      
+
       // Get conversation history for context
       const conversation = await storage.getConversation(currentSessionId);
       const conversationHistory = Array.isArray(conversation?.messages) ? conversation.messages as Message[] : [];
-      
+
       // Generate AI response using LLM with knowledge base integration
       const responseContent = await llmService.generateResponse(message, mode as "natural" | "technical", conversationHistory, userId);
-      
+
       const assistantMessage = {
         role: "assistant" as const,
         content: responseContent,
         timestamp: new Date().toISOString(),
         mode: mode as "natural" | "technical",
       };
-      
+
       await storage.addMessageToConversation(currentSessionId, assistantMessage);
-      
+
       res.json({
         response: responseContent,
         sessionId: currentSessionId,
         mode,
       });
-      
+
     } catch (error) {
       console.error("Chat error:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -2498,11 +2496,11 @@ function windowResized() {
     try {
       const { sessionId } = req.params;
       const conversation = await storage.getConversation(sessionId);
-      
+
       if (!conversation) {
         return res.status(404).json({ error: "Conversation not found" });
       }
-      
+
       res.json(conversation);
     } catch (error) {
       console.error("Get conversation error:", error);
@@ -2526,7 +2524,7 @@ function windowResized() {
         'text/html',
         'text/xml',
       ];
-      
+
       if (allowedTypes.includes(file.mimetype) || file.originalname.match(/\.(txt|md|json|csv|html|xml)$/i)) {
         cb(null, true);
       } else {
@@ -2558,7 +2556,7 @@ function windowResized() {
   app.post("/api/documents/upload", isAuthenticated, handleMulterError, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       if (!req.files || req.files.length === 0) {
         return res.status(400).json({ error: "No files provided" });
       }
@@ -2571,7 +2569,7 @@ function windowResized() {
         try {
           // Convert buffer to string
           const content = file.buffer.toString('utf8');
-          
+
           if (content.length === 0) {
             return { type: 'error', file: file.originalname, error: "File is empty" };
           }
@@ -2607,7 +2605,7 @@ function windowResized() {
       });
 
       const processingResults = await Promise.allSettled(fileProcessingPromises);
-      
+
       processingResults.forEach((result) => {
         if (result.status === 'fulfilled') {
           if (result.value.type === 'success') {
@@ -2689,7 +2687,7 @@ function windowResized() {
     try {
       const userId = req.user.claims.sub;
       const documents = await storage.getUserDocuments(userId);
-      
+
       // Return limited info for list view
       const documentsInfo = documents.map(doc => ({
         id: doc.id,
@@ -2713,7 +2711,7 @@ function windowResized() {
     try {
       const userId = req.user.claims.sub;
       const documentId = req.params.id;
-      
+
       const document = await storage.getDocument(documentId);
       if (!document || document.userId !== userId) {
         return res.status(404).json({ error: "Document not found" });
@@ -2731,7 +2729,7 @@ function windowResized() {
     try {
       const filename = req.params.filename;
       const userId = req.user.claims.sub;
-      
+
       const document = await storage.getDocumentByFilename(userId, filename);
       if (!document) {
         return res.status(404).json({ 
@@ -2758,7 +2756,7 @@ function windowResized() {
     try {
       const userId = req.user.claims.sub;
       const documentId = req.params.id;
-      
+
       const success = await knowledgeService.deleteDocument(documentId, userId);
       if (!success) {
         return res.status(404).json({ error: "Document not found" });
@@ -2776,7 +2774,7 @@ function windowResized() {
     try {
       const userId = req.user.claims.sub;
       const query = req.query.q as string;
-      
+
       if (!query || query.trim().length === 0) {
         return res.status(400).json({ error: "Search query is required" });
       }
@@ -2801,9 +2799,37 @@ function windowResized() {
     }
   });
 
+  // Download a specific document (for audio files)
+  app.get("/api/knowledge/documents/:documentId/download", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { documentId } = req.params;
+
+      const document = await storage.getDocument(documentId);
+
+      if (!document || document.userId !== userId) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      // If it's an audio file with object storage path, stream it
+      if (document.objectPath && document.mimeType.startsWith('audio/')) {
+        const { ObjectStorageService } = await import("./objectStorage");
+        const objectStorageService = new ObjectStorageService();
+        const objectFile = await objectStorageService.getObjectEntityFile(document.objectPath);
+
+        await objectStorageService.downloadObject(objectFile, res, 86400); // Cache for 24 hours
+      } else {
+        res.status(400).json({ error: "Document is not downloadable" });
+      }
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      res.status(500).json({ error: "Failed to download document" });
+    }
+  });
+
   // Object Storage endpoints for knowledge base files
   // Reference: blueprint:javascript_object_storage
-  
+
   // Get upload URL for object storage
   app.post("/api/objects/upload", isAuthenticated, async (req: any, res) => {
     try {
@@ -2823,20 +2849,20 @@ function windowResized() {
       const userId = req.user.claims.sub;
       const { ObjectStorageService, ObjectNotFoundError } = await import("./objectStorage");
       const { ObjectPermission } = await import("./objectAcl");
-      
+
       const objectStorageService = new ObjectStorageService();
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      
+
       const canAccess = await objectStorageService.canAccessObjectEntity({
         objectFile,
         userId: userId,
         requestedPermission: ObjectPermission.READ,
       });
-      
+
       if (!canAccess) {
         return res.sendStatus(401);
       }
-      
+
       objectStorageService.downloadObject(objectFile, res);
     } catch (error: any) {
       console.error("Error accessing object:", error);
@@ -2861,7 +2887,7 @@ function windowResized() {
 
       const { ObjectStorageService } = await import("./objectStorage");
       const objectStorageService = new ObjectStorageService();
-      
+
       // Set ACL policy for the uploaded file
       const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
         objectURL,
@@ -2889,22 +2915,22 @@ function windowResized() {
     try {
       const location = req.query.location as string;
       let weather;
-      
+
       if (req.query.lat && req.query.lon) {
         const lat = parseFloat(req.query.lat as string);
         const lon = parseFloat(req.query.lon as string);
-        
+
         if (isNaN(lat) || isNaN(lon)) {
           return res.status(400).json({ error: "Invalid latitude or longitude" });
         }
-        
+
         weather = await weatherService.getWeatherByCoordinates(lat, lon);
       } else {
         weather = await weatherService.getCurrentWeather(location);
       }
-      
+
       const formattedWeather = weatherService.formatCurrentWeather(weather);
-      
+
       res.json({
         weather,
         formatted: formattedWeather
@@ -2920,7 +2946,7 @@ function windowResized() {
   app.get("/api/research", isAuthenticated, async (req, res) => {
     try {
       const query = req.query.q as string;
-      
+
       if (!query || query.trim().length === 0) {
         return res.status(400).json({ error: "Search query is required" });
       }
@@ -2949,7 +2975,7 @@ function windowResized() {
         // Capture the actual error response from Brave API
         const errorText = await response.text();
         console.error(`Brave API detailed error: ${response.status} ${response.statusText} | ${errorText}`);
-        
+
         // Return 400 for client errors (422) instead of 500
         const statusCode = response.status === 422 ? 400 : 500;
         return res.status(statusCode).json({ 
@@ -2959,7 +2985,7 @@ function windowResized() {
       }
 
       const data = await response.json();
-      
+
       // Format results for terminal display
       const formattedResults = {
         query: query.trim(),
@@ -2998,7 +3024,7 @@ function windowResized() {
       } = req.query;
 
       const params: any = {};
-      
+
       if (search) params.search = search as string;
       if (languages) {
         // Handle comma-separated languages
@@ -3045,7 +3071,7 @@ function windowResized() {
   app.get("/api/books/:id", async (req, res) => {
     try {
       const bookId = parseInt(req.params.id);
-      
+
       if (isNaN(bookId)) {
         return res.status(400).json({ error: "Invalid book ID" });
       }
@@ -3103,7 +3129,7 @@ function windowResized() {
     try {
       const symbol = req.params.symbol.toUpperCase();
       const quote = await marketstackService.getLatestQuote(symbol);
-      
+
       if (!quote) {
         return res.status(404).json({ error: `No data found for symbol ${symbol}` });
       }
@@ -3124,7 +3150,7 @@ function windowResized() {
   app.post("/api/stocks/quotes", async (req, res) => {
     try {
       const { symbols } = req.body;
-      
+
       if (!Array.isArray(symbols) || symbols.length === 0) {
         return res.status(400).json({ error: "Symbols array is required" });
       }
@@ -3151,7 +3177,7 @@ function windowResized() {
     try {
       const symbol = req.params.symbol.toUpperCase();
       const info = await marketstackService.getTickerInfo(symbol);
-      
+
       if (!info) {
         return res.status(404).json({ error: `No company information found for symbol ${symbol}` });
       }
@@ -3174,9 +3200,9 @@ function windowResized() {
     try {
       const query = req.params.query;
       const limit = parseInt(req.query.limit as string) || 10;
-      
+
       const tickers = await marketstackService.searchTickers(query, limit);
-      
+
       if (tickers.length === 0) {
         return res.json({
           tickers: [],
@@ -3207,10 +3233,10 @@ function windowResized() {
       const query = req.params.query;
       const limit = parseInt(req.query.limit as string) || 10;
       const offset = parseInt(req.query.offset as string) || 0;
-      
+
       const results = await scholarService.searchPapers(query, limit, offset);
       const formatted = scholarService.formatSearchResultsForTerminal(results, query);
-      
+
       res.json({
         results,
         formatted
@@ -3227,7 +3253,7 @@ function windowResized() {
       const paperId = req.params.paperId;
       const paper = await scholarService.getPaperDetails(paperId);
       const formatted = scholarService.formatPaperDetailsForTerminal(paper);
-      
+
       res.json({
         paper,
         formatted
@@ -3245,7 +3271,7 @@ function windowResized() {
     try {
       const category = req.query.category as string;
       const search = req.query.search as string;
-      
+
       let systems;
       if (search) {
         systems = await bbsService.searchBbsSystems(search);
@@ -3254,7 +3280,7 @@ function windowResized() {
       } else {
         systems = await bbsService.getAllBbsSystems();
       }
-      
+
       res.json(systems);
     } catch (error) {
       console.error("BBS systems error:", error);
@@ -3288,11 +3314,11 @@ function windowResized() {
     try {
       const userId = req.user.claims.sub;
       const { bbsId, nickname } = req.body;
-      
+
       if (!bbsId) {
         return res.status(400).json({ error: "BBS ID is required" });
       }
-      
+
       await bbsService.addToFavorites(userId, bbsId, nickname);
       res.json({ success: true });
     } catch (error) {
@@ -3316,11 +3342,11 @@ function windowResized() {
     try {
       const query = req.query.q as string;
       const limit = parseInt(req.query.limit as string) || 10;
-      
+
       if (!query) {
         return res.status(400).json({ error: 'Query parameter required' });
       }
-      
+
       const stations = await radioGardenService.search(query, limit);
       res.json(stations);
     } catch (error) {
@@ -3354,11 +3380,11 @@ function windowResized() {
     try {
       const channelId = req.params.channelId;
       const channel = await radioGardenService.getChannelDetails(channelId);
-      
+
       if (!channel) {
         return res.status(404).json({ error: 'Channel not found' });
       }
-      
+
       res.json(channel);
     } catch (error) {
       console.error('Radio Garden channel error:', error);
@@ -3369,11 +3395,11 @@ function windowResized() {
   app.get('/api/radio/random', async (req, res) => {
     try {
       const station = await radioGardenService.getRandomStation();
-      
+
       if (!station) {
         return res.status(404).json({ error: 'No stations available' });
       }
-      
+
       res.json(station);
     } catch (error) {
       console.error('Radio Garden random station error:', error);
@@ -3385,7 +3411,7 @@ function windowResized() {
   app.get('/api/osint/whois/:domain', async (req, res) => {
     try {
       const { domain } = req.params;
-      
+
       // Basic domain validation
       const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-._]*[a-zA-Z0-9]$/;
       if (!domainRegex.test(domain) || domain.length > 253) {
@@ -3400,13 +3426,13 @@ function windowResized() {
           signal: AbortSignal.timeout(8000),
           headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
         });
-        
+
         if (rdapResponse.ok) {
           const rdapData = await rdapResponse.json();
-          
+
           let formatted = `╭─ WHOIS Information for ${domain}\n`;
           formatted += `├─ Domain: ${domain}\n`;
-          
+
           // Extract registrar from entities
           const registrar = rdapData.entities?.find((entity: any) => 
             entity.roles?.includes('registrar'))?.vcardArray?.[1]?.find((item: any) => 
@@ -3414,13 +3440,13 @@ function windowResized() {
           if (registrar) {
             formatted += `├─ Registrar: ${registrar}\n`;
           }
-          
+
           // Extract dates from events
           if (rdapData.events) {
             const registration = rdapData.events.find((event: any) => event.eventAction === 'registration');
             const expiration = rdapData.events.find((event: any) => event.eventAction === 'expiration');
             const lastChanged = rdapData.events.find((event: any) => event.eventAction === 'last changed');
-            
+
             if (registration?.eventDate) {
               formatted += `├─ Creation Date: ${registration.eventDate.split('T')[0]}\n`;
             }
@@ -3431,12 +3457,12 @@ function windowResized() {
               formatted += `├─ Updated Date: ${lastChanged.eventDate.split('T')[0]}\n`;
             }
           }
-          
+
           // Extract status
           if (rdapData.status) {
             formatted += `├─ Domain Status: ${rdapData.status.join(', ')}\n`;
           }
-          
+
           // Extract nameservers
           if (rdapData.nameservers) {
             const nameServers = rdapData.nameservers.map((ns: any) => ns.ldhName).slice(0, 4);
@@ -3444,7 +3470,7 @@ function windowResized() {
               formatted += `├─ Name Servers: ${nameServers.join(', ')}\n`;
             }
           }
-          
+
           formatted += `╰─ Query completed using RDAP`;
           res.json({ formatted });
           return;
@@ -3452,20 +3478,20 @@ function windowResized() {
       } catch (rdapError) {
         console.log('RDAP failed, trying WHOIS API fallback');
       }
-      
+
       // Fallback to whois.vu API
       try {
         const whoisResponse = await fetch(`https://api.whois.vu/?q=${domain}`, {
           signal: AbortSignal.timeout(8000),
           headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
         });
-        
+
         if (whoisResponse.ok) {
           const whoisData = await whoisResponse.json();
-          
+
           let formatted = `╭─ WHOIS Information for ${domain}\n`;
           formatted += `├─ Domain: ${domain}\n`;
-          
+
           if (whoisData.registrar) {
             formatted += `├─ Registrar: ${whoisData.registrar}\n`;
           }
@@ -3485,7 +3511,7 @@ function windowResized() {
             const status = Array.isArray(whoisData.status) ? whoisData.status.join(', ') : whoisData.status;
             formatted += `├─ Domain Status: ${status}\n`;
           }
-          
+
           formatted += `╰─ Query completed using WHOIS API`;
           res.json({ formatted });
           return;
@@ -3493,26 +3519,26 @@ function windowResized() {
       } catch (whoisApiError) {
         console.log('WHOIS API failed, falling back to DNS-only lookup');
       }
-      
+
       // Final fallback: Enhanced DNS-only information
       try {
         let formatted = `╭─ Domain Information for ${domain}\n`;
         let hasData = false;
-        
+
         // Get A records
         try {
           const addresses = await dns.resolve4(domain);
           formatted += `├─ IPv4 Addresses: ${addresses.join(', ')}\n`;
           hasData = true;
         } catch (e) {}
-        
+
         // Get AAAA records
         try {
           const ipv6Addresses = await dns.resolve6(domain);
           formatted += `├─ IPv6 Addresses: ${ipv6Addresses.join(', ')}\n`;
           hasData = true;
         } catch (e) {}
-        
+
         // Get MX records
         try {
           const mxRecords = await dns.resolveMx(domain);
@@ -3520,14 +3546,14 @@ function windowResized() {
           formatted += `├─ Mail Servers: ${mxList}\n`;
           hasData = true;
         } catch (e) {}
-        
+
         // Get NS records
         try {
           const nsRecords = await dns.resolveNs(domain);
           formatted += `├─ Name Servers: ${nsRecords.join(', ')}\n`;
           hasData = true;
         } catch (e) {}
-        
+
         if (hasData) {
           formatted += `╰─ DNS resolution complete (WHOIS services unavailable)`;
           res.json({ formatted });
@@ -3551,7 +3577,7 @@ function windowResized() {
     try {
       const { domain } = req.params;
       // DNS module imported at top of file
-      
+
       const results: {
         A: string[];
         AAAA: string[];
@@ -3600,35 +3626,35 @@ function windowResized() {
         } catch (e) {}
 
         let formatted = `╭─ DNS Records for ${domain}\n`;
-        
+
         if (results.A.length) {
           formatted += `├─ A Records: ${results.A.join(', ')}\n`;
         }
-        
+
         if (results.AAAA.length) {
           formatted += `├─ AAAA Records: ${results.AAAA.join(', ')}\n`;
         }
-        
+
         if (results.MX.length) {
           formatted += `├─ MX Records: ${results.MX.map(mx => `${mx.exchange} (${mx.priority})`).join(', ')}\n`;
         }
-        
+
         if (results.NS.length) {
           formatted += `├─ NS Records: ${results.NS.join(', ')}\n`;
         }
-        
+
         if (results.TXT.length) {
           formatted += `├─ TXT Records: ${results.TXT.map(txt => txt.join(' ')).join(', ')}\n`;
         }
-        
+
         if (results.CNAME) {
           formatted += `├─ CNAME: ${results.CNAME.join(', ')}\n`;
         }
-        
+
         formatted += `╰─ DNS lookup complete`;
 
         res.json({ formatted });
-        
+
       } catch (error) {
         res.json({ formatted: `╭─ DNS lookup for ${domain}\n╰─ No DNS records found or domain does not exist` });
       }
@@ -3641,11 +3667,11 @@ function windowResized() {
   app.get('/api/osint/geoip/:ip', async (req, res) => {
     try {
       const { ip } = req.params;
-      
+
       // Basic IP validation
       const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
       const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
-      
+
       if (!ipv4Regex.test(ip) && !ipv6Regex.test(ip)) {
         return res.status(400).json({ error: 'Invalid IP address format' });
       }
@@ -3654,7 +3680,7 @@ function windowResized() {
         // Use ip-api.com free service
         const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as`);
         const data = await response.json();
-        
+
         if (data.status === 'success') {
           const formatted = `
 ╭─ IP Geolocation for ${ip}
@@ -3667,7 +3693,7 @@ function windowResized() {
 ├─ ISP: ${data.isp}
 ├─ Organization: ${data.org}
 ╰─ AS: ${data.as}`;
-          
+
           res.json({ formatted });
         } else {
           res.json({ formatted: `╭─ IP Geolocation for ${ip}\n╰─ Geolocation data not available for this IP` });
@@ -3684,7 +3710,7 @@ function windowResized() {
   app.get('/api/osint/headers', async (req, res) => {
     try {
       const { url } = req.query;
-      
+
       if (!url || typeof url !== 'string') {
         return res.status(400).json({ error: 'URL parameter required' });
       }
@@ -3708,18 +3734,18 @@ function windowResized() {
             'User-Agent': 'ARCHIMEDES-OSINT/1.0'
           }
         });
-        
+
         let formatted = `╭─ HTTP Headers for ${url}\n`;
         formatted += `├─ Status: ${response.status} ${response.statusText}\n`;
-        
+
         response.headers.forEach((value, key) => {
           formatted += `├─ ${key}: ${value}\n`;
         });
-        
+
         formatted += `╰─ Header analysis complete`;
 
         res.json({ formatted });
-        
+
       } catch (fetchError) {
         res.json({ formatted: `╭─ HTTP Headers for ${url}\n╰─ Unable to fetch headers - site may be unreachable` });
       }
@@ -3732,7 +3758,7 @@ function windowResized() {
   app.get('/api/osint/wayback', async (req, res) => {
     try {
       const { url } = req.query;
-      
+
       if (!url || typeof url !== 'string') {
         return res.status(400).json({ error: 'URL parameter required' });
       }
@@ -3742,30 +3768,30 @@ function windowResized() {
         const cdxUrl = `https://web.archive.org/cdx/search/cdx?url=${encodeURIComponent(url)}&output=json&limit=10&sort=timestamp`;
         const response = await fetch(cdxUrl);
         const data = await response.json();
-        
+
         if (data && data.length > 1) {
           let formatted = `╭─ Wayback Machine snapshots for ${url}\n`;
-          
+
           // Skip first row which contains headers
           const snapshots = data.slice(1, 6); // Show max 5 snapshots
-          
+
           snapshots.forEach((snapshot: any, index: number) => {
             const timestamp = snapshot[1];
             const date = `${timestamp.slice(0,4)}-${timestamp.slice(4,6)}-${timestamp.slice(6,8)} ${timestamp.slice(8,10)}:${timestamp.slice(10,12)}`;
             const statusCode = snapshot[4];
             const archiveUrl = `https://web.archive.org/web/${timestamp}/${url}`;
-            
+
             formatted += `├─ ${index + 1}. ${date} (Status: ${statusCode})\n`;
             formatted += `│   ${archiveUrl}\n`;
           });
-          
+
           formatted += `╰─ Found ${data.length - 1} total snapshots`;
-          
+
           res.json({ formatted });
         } else {
           res.json({ formatted: `╭─ Wayback Machine lookup for ${url}\n╰─ No archived snapshots found` });
         }
-        
+
       } catch (apiError) {
         res.json({ formatted: `╭─ Wayback Machine lookup for ${url}\n╰─ Archive service temporarily unavailable` });
       }
@@ -3778,7 +3804,7 @@ function windowResized() {
   app.get('/api/osint/username/:username', async (req, res) => {
     try {
       const { username } = req.params;
-      
+
       // Basic username validation
       const usernameRegex = /^[a-zA-Z0-9_.-]+$/;
       if (!usernameRegex.test(username) || username.length < 1 || username.length > 30) {
@@ -3797,7 +3823,7 @@ function windowResized() {
       ];
 
       let formatted = `╭─ Username availability check: ${username}\n`;
-      
+
       const checks = await Promise.allSettled(
         platforms.map(async (platform) => {
           try {
@@ -3808,7 +3834,7 @@ function windowResized() {
                 'User-Agent': 'ARCHIMEDES-OSINT/1.0'
               }
             });
-            
+
             const exists = response.status === 200;
             return { platform: platform.name, exists, status: response.status };
           } catch (error) {
@@ -3816,7 +3842,7 @@ function windowResized() {
           }
         })
       );
-      
+
       checks.forEach((result, index) => {
         if (result.status === 'fulfilled') {
           const { platform, exists, status } = result.value;
@@ -3827,11 +3853,11 @@ function windowResized() {
           formatted += `├─ ⚠️  ${platforms[index].name}: Check failed\n`;
         }
       });
-      
+
       formatted += `╰─ Username check complete`;
 
       res.json({ formatted });
-      
+
     } catch (error) {
       console.error('Username check error:', error);
       res.status(500).json({ error: 'Username check failed' });
@@ -3846,16 +3872,16 @@ function windowResized() {
   // Traceroute OSINT endpoint  
   app.get('/api/osint/traceroute/:target', async (req, res) => {
     const { target } = req.params;
-    
+
     // Simple validation
     if (!target || target.length === 0) {
       return res.status(400).json({ error: 'Target required' });
     }
-    
+
     try {
       // Try DNS resolution first
       const addresses = await dns.resolve4(target);
-      
+
       let formatted = `╭─ Network Analysis for ${target}\n`;
       formatted += `├─ DNS Resolution: SUCCESS\n`;
       formatted += `├─ Resolved to: ${addresses[0]}\n`;
@@ -3865,15 +3891,15 @@ function windowResized() {
       formatted += `├─ Status: System traceroute not available\n`;
       formatted += `├─ Note: Basic network connectivity confirmed via DNS\n`;
       formatted += `╰─ Analysis complete`;
-      
+
       res.json({ formatted });
-      
+
     } catch (error: any) {
       let formatted = `╭─ Network Analysis for ${target}\n`;
       formatted += `├─ DNS Resolution: FAILED\n`;
       formatted += `├─ Error: Target unreachable or invalid\n`;
       formatted += `╰─ Analysis complete`;
-      
+
       res.json({ formatted });
     }
   });
@@ -3882,7 +3908,7 @@ function windowResized() {
   app.get('/api/osint/subdomains/:domain', async (req, res) => {
     try {
       const { domain } = req.params;
-      
+
       // Validate domain format
       const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-._]*[a-zA-Z0-9]$/;
       if (!domainRegex.test(domain)) {
@@ -3890,7 +3916,7 @@ function windowResized() {
       }
 
       let formatted = `╭─ Subdomain Enumeration for ${domain}\n`;
-      
+
       // Common subdomain wordlist
       const commonSubdomains = [
         'www', 'mail', 'email', 'webmail', 'admin', 'administrator', 'login',
@@ -3905,11 +3931,11 @@ function windowResized() {
 
       const foundSubdomains: string[] = [];
       const maxConcurrent = 5;
-      
+
       // Process subdomains in batches to avoid overwhelming DNS
       for (let i = 0; i < commonSubdomains.length; i += maxConcurrent) {
         const batch = commonSubdomains.slice(i, i + maxConcurrent);
-        
+
         const batchPromises = batch.map(async (subdomain) => {
           const fullDomain = `${subdomain}.${domain}`;
           try {
@@ -3922,20 +3948,20 @@ function windowResized() {
           }
           return null;
         });
-        
+
         const batchResults = await Promise.all(batchPromises);
         batchResults.forEach(result => {
           if (result) {
             foundSubdomains.push(`${result.subdomain} → ${result.ip}`);
           }
         });
-        
+
         // Small delay between batches to be respectful
         if (i + maxConcurrent < commonSubdomains.length) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
-      
+
       if (foundSubdomains.length > 0) {
         formatted += `├─ Found ${foundSubdomains.length} active subdomains:\n`;
         foundSubdomains.forEach((subdomain, index) => {
@@ -3946,13 +3972,13 @@ function windowResized() {
         formatted += `├─ No common subdomains discovered\n`;
         formatted += `╰─ Try advanced enumeration tools for comprehensive scanning`;
       }
-      
+
       if (foundSubdomains.length > 0 && foundSubdomains.length < commonSubdomains.length) {
         formatted += `╰─ Scanned ${commonSubdomains.length} common patterns`;
       }
 
       res.json({ formatted });
-      
+
     } catch (error) {
       console.error('Subdomain enumeration error:', error);
       res.status(500).json({ error: 'Subdomain enumeration failed' });
@@ -3963,7 +3989,7 @@ function windowResized() {
   app.get('/api/osint/ssl/:domain', async (req, res) => {
     try {
       const { domain } = req.params;
-      
+
       // Validate domain format
       const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-._]*[a-zA-Z0-9]$/;
       if (!domainRegex.test(domain)) {
@@ -3971,12 +3997,12 @@ function windowResized() {
       }
 
       let formatted = `╭─ SSL/TLS Certificate Analysis for ${domain}\n`;
-      
+
       try {
         // Get certificate information via HTTPS connection
         const https = require('https');
         const { URL } = require('url');
-        
+
         const checkSSL = new Promise((resolve, reject) => {
           const options = {
             hostname: domain,
@@ -3985,38 +4011,38 @@ function windowResized() {
             timeout: 10000,
             rejectUnauthorized: false // Allow self-signed certs for analysis
           };
-          
+
           const req = https.request(options, (res: any) => {
             const cert = res.connection.getPeerCertificate(true);
             resolve(cert);
           });
-          
+
           req.on('error', (error: any) => {
             reject(error);
           });
-          
+
           req.on('timeout', () => {
             req.destroy();
             reject(new Error('SSL connection timeout'));
           });
-          
+
           req.end();
         });
-        
+
         const cert: any = await checkSSL;
-        
+
         if (cert && cert.subject) {
           formatted += `├─ Certificate Found: ✅\n`;
           formatted += `├─ Subject: ${cert.subject.CN || 'N/A'}\n`;
           formatted += `├─ Issuer: ${cert.issuer.CN || cert.issuer.O || 'Unknown'}\n`;
           formatted += `├─ Valid From: ${new Date(cert.valid_from).toISOString().split('T')[0]}\n`;
           formatted += `├─ Valid To: ${new Date(cert.valid_to).toISOString().split('T')[0]}\n`;
-          
+
           // Check if certificate is expired
           const now = new Date();
           const validTo = new Date(cert.valid_to);
           const daysUntilExpiry = Math.floor((validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-          
+
           if (daysUntilExpiry < 0) {
             formatted += `├─ Status: ❌ EXPIRED (${Math.abs(daysUntilExpiry)} days ago)\n`;
           } else if (daysUntilExpiry < 30) {
@@ -4024,7 +4050,7 @@ function windowResized() {
           } else {
             formatted += `├─ Status: ✅ VALID (${daysUntilExpiry} days remaining)\n`;
           }
-          
+
           // Alternative names (SAN)
           if (cert.subjectaltname) {
             const altNames = cert.subjectaltname
@@ -4036,20 +4062,20 @@ function windowResized() {
               formatted += `├─ ... and ${cert.subjectaltname.split(', ').length - 5} more\n`;
             }
           }
-          
+
           // Serial number and fingerprint
           if (cert.serialNumber) {
             formatted += `├─ Serial: ${cert.serialNumber.substring(0, 20)}...\n`;
           }
-          
+
         } else {
           formatted += `├─ Certificate: ❌ Not found or invalid\n`;
         }
-        
+
       } catch (sslError: any) {
         formatted += `├─ Certificate: ❌ Unable to retrieve\n`;
         formatted += `├─ Error: ${sslError.message}\n`;
-        
+
         // Try to determine if SSL is available at all
         try {
           const response = await fetch(`https://${domain}`, { 
@@ -4061,10 +4087,10 @@ function windowResized() {
           formatted += `├─ HTTPS Available: ❌\n`;
         }
       }
-      
+
       formatted += `╰─ SSL analysis complete`;
       res.json({ formatted });
-      
+
     } catch (error) {
       console.error('SSL analysis error:', error);
       res.status(500).json({ error: 'SSL analysis failed' });
@@ -4075,7 +4101,7 @@ function windowResized() {
   app.get('/api/osint/reverse-ip/:ip', async (req, res) => {
     try {
       const { ip } = req.params;
-      
+
       // Validate IP format
       const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
       if (!ipRegex.test(ip)) {
@@ -4083,20 +4109,20 @@ function windowResized() {
       }
 
       let formatted = `╭─ Reverse IP Lookup for ${ip}\n`;
-      
+
       try {
         // Perform reverse DNS lookup to get hostnames
         const hostnames = await dns.reverse(ip);
-        
+
         if (hostnames && hostnames.length > 0) {
           formatted += `├─ Found ${hostnames.length} hostname(s):\n`;
-          
+
           const uniqueHostnames = Array.from(new Set(hostnames));
           uniqueHostnames.forEach((hostname, index) => {
             const prefix = index === uniqueHostnames.length - 1 ? '╰─' : '├─';
             formatted += `${prefix} ${hostname}\n`;
           });
-          
+
           // Try to extract domain patterns to find related domains
           const domains = uniqueHostnames
             .map(hostname => {
@@ -4107,7 +4133,7 @@ function windowResized() {
               return hostname;
             })
             .filter((domain, index, arr) => arr.indexOf(domain) === index);
-          
+
           if (domains.length > 1) {
             formatted += `├─ Related domains detected: ${domains.slice(0, 5).join(', ')}`;
             if (domains.length > 5) {
@@ -4115,7 +4141,7 @@ function windowResized() {
             }
             formatted += '\n';
           }
-          
+
         } else {
           formatted += `├─ No hostnames found for this IP\n`;
           formatted += `├─ IP may not have reverse DNS configured\n`;
@@ -4124,10 +4150,10 @@ function windowResized() {
         formatted += `├─ Reverse DNS lookup failed\n`;
         formatted += `├─ IP may not have PTR records configured\n`;
       }
-      
+
       formatted += `╰─ Reverse IP analysis complete`;
       res.json({ formatted });
-      
+
     } catch (error) {
       console.error('Reverse IP lookup error:', error);
       res.status(500).json({ error: 'Reverse IP lookup failed' });
@@ -4138,7 +4164,7 @@ function windowResized() {
   app.get('/api/osint/portscan/:target', async (req, res) => {
     try {
       const { target } = req.params;
-      
+
       // Validate target format (IP or domain)
       const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
       const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-._]*[a-zA-Z0-9]$/;
@@ -4147,19 +4173,19 @@ function windowResized() {
       }
 
       let formatted = `╭─ Port Scan for ${target}\n`;
-      
+
       // Common ports to scan
       const commonPorts = [21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 993, 995, 1723, 3389, 5432, 3306];
       const net = require('net');
       const openPorts: number[] = [];
-      
+
       formatted += `├─ Scanning ${commonPorts.length} common ports...\n`;
-      
+
       // Scan ports concurrently but with limited concurrency
       const maxConcurrent = 10;
       for (let i = 0; i < commonPorts.length; i += maxConcurrent) {
         const batch = commonPorts.slice(i, i + maxConcurrent);
-        
+
         const batchPromises = batch.map(port => {
           return new Promise<number | null>((resolve) => {
             const socket = new net.Socket();
@@ -4167,18 +4193,18 @@ function windowResized() {
               socket.destroy();
               resolve(null);
             }, 2000); // 2 second timeout per port
-            
+
             socket.on('connect', () => {
               clearTimeout(timeout);
               socket.destroy();
               resolve(port);
             });
-            
+
             socket.on('error', () => {
               clearTimeout(timeout);
               resolve(null);
             });
-            
+
             try {
               socket.connect(port, target);
             } catch (error) {
@@ -4187,23 +4213,23 @@ function windowResized() {
             }
           });
         });
-        
+
         const batchResults = await Promise.all(batchPromises);
         batchResults.forEach(port => {
           if (port !== null) {
             openPorts.push(port);
           }
         });
-        
+
         // Small delay between batches to be respectful
         if (i + maxConcurrent < commonPorts.length) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
-      
+
       if (openPorts.length > 0) {
         formatted += `├─ Found ${openPorts.length} open ports:\n`;
-        
+
         const portServices: { [key: number]: string } = {
           21: 'FTP',
           22: 'SSH',
@@ -4223,7 +4249,7 @@ function windowResized() {
           5432: 'PostgreSQL',
           3306: 'MySQL'
         };
-        
+
         openPorts.forEach((port, index) => {
           const service = portServices[port] || 'Unknown';
           const prefix = index === openPorts.length - 1 ? '╰─' : '├─';
@@ -4233,10 +4259,10 @@ function windowResized() {
         formatted += `├─ No open ports found in common port range\n`;
         formatted += `├─ Target may have firewall protection or be offline\n`;
       }
-      
+
       formatted += `╰─ Port scan complete`;
       res.json({ formatted });
-      
+
     } catch (error) {
       console.error('Port scan error:', error);
       res.status(500).json({ error: 'Port scan failed' });
@@ -4247,7 +4273,7 @@ function windowResized() {
   app.get('/api/osint/tech/:domain', async (req, res) => {
     try {
       const { domain } = req.params;
-      
+
       // Validate domain format
       const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-._]*[a-zA-Z0-9]$/;
       if (!domainRegex.test(domain)) {
@@ -4255,7 +4281,7 @@ function windowResized() {
       }
 
       let formatted = `╭─ Technology Stack Analysis for ${domain}\n`;
-      
+
       try {
         const url = `https://${domain}`;
         const response = await fetch(url, { 
@@ -4265,26 +4291,26 @@ function windowResized() {
             'User-Agent': 'ARCHIMEDES-TechScan/1.0'
           }
         });
-        
+
         const headers = response.headers;
         const html = await response.text();
-        
+
         const technologies: string[] = [];
-        
+
         // Analyze HTTP headers
         const server = headers.get('server');
         if (server) {
           technologies.push(`Server: ${server}`);
         }
-        
+
         const poweredBy = headers.get('x-powered-by');
         if (poweredBy) {
           technologies.push(`Powered By: ${poweredBy}`);
         }
-        
+
         // Analyze HTML content for common technologies
         const htmlLower = html.toLowerCase();
-        
+
         // Frameworks and Libraries
         if (htmlLower.includes('react') || html.includes('_jsx') || html.includes('React.')) {
           technologies.push('Frontend: React');
@@ -4292,7 +4318,7 @@ function windowResized() {
         if (htmlLower.includes('vue.js') || htmlLower.includes('vue/dist')) {
           technologies.push('Frontend: Vue.js');
         }
-        if (htmlLower.includes('angular') || html.includes('ng-')) {
+        if (htmlLower.includes('angular') || htmlLower.includes('ng-')) {
           technologies.push('Frontend: Angular');
         }
         if (htmlLower.includes('jquery')) {
@@ -4304,7 +4330,7 @@ function windowResized() {
         if (htmlLower.includes('tailwind')) {
           technologies.push('CSS Framework: Tailwind');
         }
-        
+
         // CMS Detection
         if (htmlLower.includes('wp-content') || htmlLower.includes('wordpress')) {
           technologies.push('CMS: WordPress');
@@ -4315,7 +4341,7 @@ function windowResized() {
         if (htmlLower.includes('/ghost/')) {
           technologies.push('CMS: Ghost');
         }
-        
+
         // E-commerce
         if (htmlLower.includes('shopify')) {
           technologies.push('E-commerce: Shopify');
@@ -4323,7 +4349,7 @@ function windowResized() {
         if (htmlLower.includes('woocommerce')) {
           technologies.push('E-commerce: WooCommerce');
         }
-        
+
         // Analytics and Tracking
         if (htmlLower.includes('google-analytics') || htmlLower.includes('gtag')) {
           technologies.push('Analytics: Google Analytics');
@@ -4331,7 +4357,7 @@ function windowResized() {
         if (htmlLower.includes('gtm.js') || htmlLower.includes('googletagmanager')) {
           technologies.push('Tag Manager: Google Tag Manager');
         }
-        
+
         // CDN Detection
         if (headers.get('cf-ray') || headers.get('cf-cache-status')) {
           technologies.push('CDN: Cloudflare');
@@ -4339,9 +4365,9 @@ function windowResized() {
         if (headers.get('x-amz-cf-id')) {
           technologies.push('CDN: AWS CloudFront');
         }
-        
+
         formatted += `├─ Response Status: ${response.status} ${response.statusText}\n`;
-        
+
         if (technologies.length > 0) {
           formatted += `├─ Detected Technologies:\n`;
           technologies.forEach((tech, index) => {
@@ -4351,7 +4377,7 @@ function windowResized() {
         } else {
           formatted += `├─ No obvious technologies detected\n`;
         }
-        
+
         // Check for common security headers
         const securityHeaders = [
           'strict-transport-security',
@@ -4359,19 +4385,19 @@ function windowResized() {
           'x-content-type-options',
           'content-security-policy'
         ];
-        
+
         const presentHeaders = securityHeaders.filter(header => headers.get(header));
         if (presentHeaders.length > 0) {
           formatted += `├─ Security Headers: ${presentHeaders.length}/${securityHeaders.length} present\n`;
         }
-        
+
       } catch (techError: any) {
         formatted += `├─ Unable to analyze: ${techError.message}\n`;
       }
-      
+
       formatted += `╰─ Technology analysis complete`;
       res.json({ formatted });
-      
+
     } catch (error) {
       console.error('Technology analysis error:', error);
       res.status(500).json({ error: 'Technology analysis failed' });
@@ -4382,19 +4408,19 @@ function windowResized() {
   app.get('/api/osint/report/:target', async (req, res) => {
     try {
       const { target } = req.params;
-      
+
       // Determine if target is IP or domain
       const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
       const isIP = ipRegex.test(target);
-      
+
       let formatted = `╭─ Comprehensive OSINT Report for ${target}\n`;
       formatted += `├─ Target Type: ${isIP ? 'IP Address' : 'Domain'}\n`;
       formatted += `├─ Report Generated: ${new Date().toISOString()}\n`;
       formatted += `├─ Gathering intelligence from multiple sources...\n`;
       formatted += `│\n`;
-      
+
       const results: { [key: string]: any } = {};
-      
+
       // For domains, gather comprehensive intelligence
       if (!isIP) {
         // WHOIS Lookup
@@ -4405,7 +4431,7 @@ function windowResized() {
         } catch (e) {
           results.whois = { error: 'WHOIS lookup failed' };
         }
-        
+
         // DNS Records
         try {
           const dnsRes = await fetch(`http://localhost:5000/api/osint/dns/${target}`);
@@ -4414,7 +4440,7 @@ function windowResized() {
         } catch (e) {
           results.dns = { error: 'DNS lookup failed' };
         }
-        
+
         // SSL Certificate
         try {
           const sslRes = await fetch(`http://localhost:5000/api/osint/ssl/${target}`);
@@ -4423,7 +4449,7 @@ function windowResized() {
         } catch (e) {
           results.ssl = { error: 'SSL analysis failed' };
         }
-        
+
         // Technology Stack
         try {
           const techRes = await fetch(`http://localhost:5000/api/osint/tech/${target}`);
@@ -4432,7 +4458,7 @@ function windowResized() {
         } catch (e) {
           results.tech = { error: 'Technology analysis failed' };
         }
-        
+
         // Subdomain Enumeration (limited for report)
         try {
           const subdomainsRes = await fetch(`http://localhost:5000/api/osint/subdomains/${target}`);
@@ -4442,7 +4468,7 @@ function windowResized() {
           results.subdomains = { error: 'Subdomain enumeration failed' };
         }
       }
-      
+
       // For both IPs and domains, resolve to IP if needed
       let resolvedIP = target;
       if (!isIP) {
@@ -4454,7 +4480,7 @@ function windowResized() {
           results.resolvedIP = null;
         }
       }
-      
+
       // GeoIP for the resolved IP
       if (resolvedIP) {
         try {
@@ -4464,7 +4490,7 @@ function windowResized() {
         } catch (e) {
           results.geoip = { error: 'GeoIP lookup failed' };
         }
-        
+
         // Reverse IP if we have an IP
         try {
           const reverseRes = await fetch(`http://localhost:5000/api/osint/reverse-ip/${resolvedIP}`);
@@ -4474,7 +4500,7 @@ function windowResized() {
           results.reverse = { error: 'Reverse IP lookup failed' };
         }
       }
-      
+
       // Format comprehensive report
       formatted += `├─ DOMAIN INTELLIGENCE:\n`;
       if (results.whois && !results.whois.error) {
@@ -4483,32 +4509,32 @@ function windowResized() {
           if (line.trim()) formatted += `│  ${line}\n`;
         });
       }
-      
+
       if (results.dns && !results.dns.error) {
         formatted += `│  DNS: Multiple record types detected\n`;
       }
-      
+
       if (results.ssl && !results.ssl.error) {
         const sslLines = results.ssl.formatted.split('\n').slice(1, 3);
         sslLines.forEach((line: string) => {
           if (line.trim()) formatted += `│  ${line}\n`;
         });
       }
-      
+
       formatted += `│\n`;
       formatted += `├─ INFRASTRUCTURE ANALYSIS:\n`;
-      
+
       if (results.geoip && !results.geoip.error) {
         const geoLines = results.geoip.formatted.split('\n').slice(1, 4);
         geoLines.forEach((line: string) => {
           if (line.trim()) formatted += `│  ${line}\n`;
         });
       }
-      
+
       if (results.reverse && !results.reverse.error) {
         formatted += `│  Multiple domains may share this infrastructure\n`;
       }
-      
+
       formatted += `│\n`;
       formatted += `├─ TECHNOLOGY STACK:\n`;
       if (results.tech && !results.tech.error) {
@@ -4519,7 +4545,7 @@ function windowResized() {
       } else {
         formatted += `│  Technology analysis unavailable\n`;
       }
-      
+
       formatted += `│\n`;
       formatted += `├─ ATTACK SURFACE:\n`;
       if (results.subdomains && !results.subdomains.error) {
@@ -4527,7 +4553,7 @@ function windowResized() {
         formatted += `│  Subdomains discovered: ${subdomainCount}\n`;
       }
       formatted += `│  Recommend: Port scan, directory enumeration\n`;
-      
+
       formatted += `│\n`;
       formatted += `├─ RECOMMENDATIONS:\n`;
       formatted += `│  • Run detailed port scan: portscan ${resolvedIP || target}\n`;
@@ -4536,9 +4562,9 @@ function windowResized() {
       formatted += `│  • Verify username patterns: username ${target.split('.')[0]}\n`;
       formatted += `│\n`;
       formatted += `╰─ Comprehensive OSINT report complete`;
-      
+
       res.json({ formatted, data: results });
-      
+
     } catch (error) {
       console.error('OSINT report error:', error);
       res.status(500).json({ error: 'OSINT report generation failed' });
@@ -4549,22 +4575,22 @@ function windowResized() {
   app.get('/api/osint/threat-actors', async (req, res) => {
     try {
       console.log('🎯 Fetching MISP Galaxy threat actors...');
-      
+
       const response = await fetch('https://raw.githubusercontent.com/MISP/misp-galaxy/main/clusters/threat-actor.json', {
         signal: AbortSignal.timeout(10000),
         headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
       });
-      
+
       if (!response.ok) {
         throw new Error(`GitHub fetch failed: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (!data.values || !Array.isArray(data.values)) {
         throw new Error('Invalid MISP Galaxy data format');
       }
-      
+
       // Format the threat actor data for terminal display
       let formatted = `╭─ MISP Galaxy Threat Actors Intelligence\n`;
       formatted += `├─ Source: ${data.source || 'MISP Project'}\n`;
@@ -4574,7 +4600,7 @@ function windowResized() {
       formatted += `├─\n`;
       formatted += `├─ Top 20 Current Threat Actors:\n`;
       formatted += `├─\n`;
-      
+
       // Sort by attribution confidence and take top 20
       const sortedActors = data.values
         .filter((actor: any) => actor.value && actor.description)
@@ -4584,7 +4610,7 @@ function windowResized() {
           return bConfidence - aConfidence;
         })
         .slice(0, 20);
-      
+
       sortedActors.forEach((actor: any, index: number) => {
         const confidence = actor.meta?.['attribution-confidence'] || 'Unknown';
         const country = actor.meta?.country || 'Unknown';
@@ -4592,7 +4618,7 @@ function windowResized() {
         const description = actor.description.length > 100 
           ? actor.description.substring(0, 97) + '...'
           : actor.description;
-        
+
         formatted += `├─ ${index + 1}. ${actor.value}\n`;
         formatted += `│  ├─ Country: ${country}\n`;
         formatted += `│  ├─ Confidence: ${confidence}%\n`;
@@ -4603,16 +4629,16 @@ function windowResized() {
         }
         formatted += `├─\n`;
       });
-      
+
       formatted += `└─ Use 'threat-actors <name>' for detailed actor information\n`;
-      
+
       res.json({ 
         formatted,
         count: data.values.length,
         source: 'MISP Galaxy',
         type: 'threat-actors'
       });
-      
+
     } catch (error) {
       console.error('❌ Threat actors fetch error:', error);
       res.status(500).json({ 
@@ -4627,18 +4653,18 @@ function windowResized() {
     try {
       const { name } = req.params;
       console.log(`🎯 Looking up threat actor: ${name}`);
-      
+
       const response = await fetch('https://raw.githubusercontent.com/MISP/misp-galaxy/main/clusters/threat-actor.json', {
         signal: AbortSignal.timeout(10000),
         headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
       });
-      
+
       if (!response.ok) {
         throw new Error(`GitHub fetch failed: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       // Search for the specific threat actor
       const actor = data.values.find((actor: any) => 
         actor.value.toLowerCase().includes(name.toLowerCase()) ||
@@ -4646,14 +4672,14 @@ function windowResized() {
           synonym.toLowerCase().includes(name.toLowerCase())
         )
       );
-      
+
       if (!actor) {
         return res.status(404).json({ 
           error: `Threat actor '${name}' not found in MISP Galaxy database`,
           suggestion: 'Try using partial names or known aliases'
         });
       }
-      
+
       // Format detailed actor information
       let formatted = `╭─ Threat Actor: ${actor.value}\n`;
       formatted += `├─ UUID: ${actor.uuid}\n`;
@@ -4661,41 +4687,41 @@ function windowResized() {
       formatted += `├─ Description:\n`;
       formatted += `├─ ${actor.description}\n`;
       formatted += `├─\n`;
-      
+
       if (actor.meta) {
         const meta = actor.meta;
-        
+
         if (meta.country) {
           formatted += `├─ Country/Origin: ${meta.country}\n`;
         }
-        
+
         if (meta['attribution-confidence']) {
           formatted += `├─ Attribution Confidence: ${meta['attribution-confidence']}%\n`;
         }
-        
+
         if (meta['cfr-suspected-state-sponsor']) {
           formatted += `├─ Suspected State Sponsor: ${meta['cfr-suspected-state-sponsor']}\n`;
         }
-        
+
         if (meta['cfr-suspected-victims']) {
           formatted += `├─ Known Victims: ${meta['cfr-suspected-victims'].slice(0, 5).join(', ')}\n`;
           if (meta['cfr-suspected-victims'].length > 5) {
             formatted += `├─   (and ${meta['cfr-suspected-victims'].length - 5} more)\n`;
           }
         }
-        
+
         if (meta['cfr-target-category']) {
           formatted += `├─ Target Categories: ${meta['cfr-target-category'].join(', ')}\n`;
         }
-        
+
         if (meta['cfr-type-of-incident']) {
           formatted += `├─ Incident Type: ${meta['cfr-type-of-incident']}\n`;
         }
-        
+
         if (meta.synonyms) {
           formatted += `├─ Known Aliases: ${meta.synonyms.join(', ')}\n`;
         }
-        
+
         if (meta.refs) {
           formatted += `├─\n├─ References:\n`;
           meta.refs.slice(0, 8).forEach((ref: string, index: number) => {
@@ -4706,15 +4732,15 @@ function windowResized() {
           }
         }
       }
-      
+
       formatted += `└─ Intelligence sourced from MISP Galaxy\n`;
-      
+
       res.json({ 
         formatted,
         actor: actor.value,
         source: 'MISP Galaxy'
       });
-      
+
     } catch (error) {
       console.error('❌ Threat actor lookup error:', error);
       res.status(500).json({ 
@@ -4733,7 +4759,7 @@ function windowResized() {
         source: z.string().default('all'),
         limit: z.number().int().min(1).max(1000).default(100)
       });
-      
+
       const validationResult = harvestSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
@@ -4741,11 +4767,11 @@ function windowResized() {
           details: validationResult.error.errors
         });
       }
-      
+
       const { domain, source, limit } = validationResult.data;
 
       const cleanDomain = domain.toLowerCase().trim();
-      
+
       // Simulate progressive OSINT data gathering
       const mockResults = {
         emails: [
@@ -4758,7 +4784,7 @@ function windowResized() {
           `noreply@${cleanDomain}`,
           `security@${cleanDomain}`
         ].slice(0, Math.floor(Math.random() * 8) + 2),
-        
+
         subdomains: [
           `www.${cleanDomain}`,
           `mail.${cleanDomain}`,
@@ -4773,7 +4799,7 @@ function windowResized() {
           `assets.${cleanDomain}`,
           `static.${cleanDomain}`
         ].slice(0, Math.floor(Math.random() * 12) + 3),
-        
+
         ips: [
           `192.168.1.${Math.floor(Math.random() * 255)}`,
           `10.0.0.${Math.floor(Math.random() * 255)}`,
@@ -4781,7 +4807,7 @@ function windowResized() {
           `8.8.8.8`,
           `1.1.1.1`
         ].slice(0, Math.floor(Math.random() * 5) + 2),
-        
+
         urls: [
           `https://${cleanDomain}`,
           `https://www.${cleanDomain}`,
@@ -4794,13 +4820,13 @@ function windowResized() {
           `https://shop.${cleanDomain}/products`,
           `https://api.${cleanDomain}/v1`
         ].slice(0, Math.floor(Math.random() * 10) + 4),
-        
+
         certificates: [
           `CN=${cleanDomain}, O=Example Organization, C=US`,
           `CN=*.${cleanDomain}, O=Example Organization, C=US`,
           `CN=www.${cleanDomain}, O=Wildcard Certificate, C=US`
         ].slice(0, Math.floor(Math.random() * 3) + 1),
-        
+
         metadata: {
           domain: cleanDomain,
           source: source,
@@ -4841,7 +4867,7 @@ function windowResized() {
   app.get("/api/radio-proxy", async (req, res) => {
     try {
       const streamUrl = req.query.url as string;
-      
+
       if (!streamUrl) {
         return res.status(400).json({ error: "URL parameter is required" });
       }
@@ -4852,7 +4878,7 @@ function windowResized() {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-      
+
       // Fetch the stream and proxy it
       const response = await fetch(streamUrl, {
         method: 'GET',
@@ -4869,11 +4895,11 @@ function windowResized() {
       // Set appropriate headers for audio streaming
       const contentType = response.headers.get('content-type') || 'audio/mpeg';
       res.setHeader('Content-Type', contentType);
-      
+
       // Pipe the response directly
       if (response.body) {
         const reader = response.body.getReader();
-        
+
         const pump = async () => {
           try {
             while (true) {
@@ -4887,7 +4913,7 @@ function windowResized() {
             res.end();
           }
         };
-        
+
         pump();
       }
 
@@ -4901,14 +4927,14 @@ function windowResized() {
   app.get('/api/wolfram/query', async (req, res) => {
     try {
       const query = req.query.q as string;
-      
+
       if (!query) {
         return res.status(400).json({ error: 'Query parameter "q" is required' });
       }
 
       const { queryWolfram } = await import('./wolfram-service');
       const result = await queryWolfram(query);
-      
+
       res.json(result);
     } catch (error) {
       console.error('Wolfram Alpha query error:', error);
@@ -4920,7 +4946,7 @@ function windowResized() {
   });
 
   // Chat system API endpoints
-  
+
   // Get online users
   app.get("/api/chat/online-users", isAuthenticated, async (req: any, res) => {
     try {
@@ -5030,10 +5056,10 @@ function windowResized() {
       if (archimedesBotService.isBot(toUserId)) {
         // Get conversation history for context
         const messages = await storage.getChatMessages(chatId, 20);
-        
+
         // Generate AI response
         const aiResponse = await archimedesBotService.generateResponse(content, messages);
-        
+
         // Send bot response after a brief delay to simulate typing
         setTimeout(async () => {
           try {
@@ -5098,7 +5124,7 @@ function windowResized() {
 
   // Create HTTP server
   const httpServer = createServer(app);
-  
+
   // Initialize Sshwifty service
   const sshwiftyService = new SshwiftyService(httpServer);
   SshwiftyService.setupStaticRoutes(app);
@@ -5117,27 +5143,27 @@ function windowResized() {
     ws.on('message', async (data: Buffer) => {
       try {
         const message = JSON.parse(data.toString());
-        
+
         switch (message.type) {
           case 'auth':
             try {
               // Set user ID for this connection
               ws.userId = message.userId;
-              
+
               // Update user presence as online (if method exists)
               try {
                 await storage.updateUserPresence?.(message.userId, true, ws.id);
               } catch (error) {
                 console.error('Error updating user presence:', error);
               }
-              
+
               // Mark messages as delivered for this user (if method exists)  
               try {
                 await storage.markMessagesAsDelivered?.(message.userId);
               } catch (error) {
                 console.error('Error marking messages as delivered:', error);
               }
-              
+
               // Broadcast user online status
               chatWss.clients.forEach((client: any) => {
                 if (client.readyState === WebSocket.OPEN && client !== ws) {
@@ -5147,7 +5173,7 @@ function windowResized() {
                   }));
                 }
               });
-              
+
               ws.send(JSON.stringify({
                 type: 'auth_success',
                 data: { connected: true }
@@ -5192,12 +5218,12 @@ function windowResized() {
 
     ws.on('close', async (code: number, reason: Buffer) => {
       console.log('[Chat WS] Client disconnected - Code:', code, 'Reason:', reason.toString() || 'No reason', 'Had userId:', !!ws.userId);
-      
+
       if (ws.userId) {
         try {
           // Set user offline
           await storage.updateUserPresence?.(ws.userId, false);
-          
+
           // Broadcast user offline status
           chatWss.clients.forEach((client: any) => {
             if (client.readyState === WebSocket.OPEN && client !== ws) {
@@ -5220,71 +5246,6 @@ function windowResized() {
 
   console.log('Chat WebSocket server initialized on /ws/chat');
 
-  // Helper function to authenticate WebSocket connections using Express sessions
-  async function authenticateWebSocket(req: any): Promise<{ userId: string | null, isAuthenticated: boolean }> {
-    return new Promise((resolve) => {
-      try {
-        // Use Express session parser directly on WebSocket upgrade request
-        const sessionParser = getSession();
-        
-        // Create a mock response object for session parsing
-        const mockRes: any = {
-          getHeader: () => {},
-          setHeader: () => {},
-          end: () => {}
-        };
-        
-        // Parse the session using Express session middleware
-        sessionParser(req, mockRes, async () => {
-          try {
-            // Check if session exists and contains passport data
-            if (!req.session) {
-              console.log('WebSocket authentication failed: No session data');
-              resolve({ userId: null, isAuthenticated: false });
-              return;
-            }
-
-            if (!req.session.passport || !req.session.passport.user) {
-              console.log('WebSocket authentication failed: No passport user in session');
-              resolve({ userId: null, isAuthenticated: false });
-              return;
-            }
-
-            // Get user from passport session data
-            const user = req.session.passport.user;
-            
-            // Validate user claims and expiration
-            if (!user.claims || !user.claims.sub) {
-              console.log('WebSocket authentication failed: No user claims in session');
-              resolve({ userId: null, isAuthenticated: false });
-              return;
-            }
-
-            // Check if token is expired
-            const now = Math.floor(Date.now() / 1000);
-            if (user.expires_at && now > user.expires_at) {
-              console.log('WebSocket authentication failed: Token expired');
-              resolve({ userId: null, isAuthenticated: false });
-              return;
-            }
-
-            const userId = user.claims.sub;
-            console.log(`WebSocket authentication successful for user: ${userId}`);
-            resolve({ userId, isAuthenticated: true });
-            
-          } catch (error) {
-            console.error('WebSocket session validation error:', error);
-            resolve({ userId: null, isAuthenticated: false });
-          }
-        });
-        
-      } catch (error) {
-        console.error('WebSocket authentication error:', error);
-        resolve({ userId: null, isAuthenticated: false });
-      }
-    });
-  }
-
   // Create WebSocket server for MUD connections
   const mudWss = new WebSocketServer({
     server: httpServer,
@@ -5294,21 +5255,21 @@ function windowResized() {
   // Handle MUD WebSocket connections
   mudWss.on('connection', async (ws: any, req) => {
     console.log('MUD WebSocket client connected');
-    
+
     // Authenticate WebSocket connection using Express sessions
     const auth = await authenticateWebSocket(req);
-    
+
     if (!auth.isAuthenticated || !auth.userId) {
       console.log('MUD WebSocket authentication failed');
       ws.close(1008, 'Authentication failed - valid session required');
       return;
     }
-    
+
     ws.userId = auth.userId;
     ws.isAuthenticated = true;
-    
+
     console.log(`MUD WebSocket authenticated for user: ${auth.userId}`);
-    
+
     // Send authentication success
     ws.send(JSON.stringify({
       type: 'auth_success',
@@ -5318,12 +5279,12 @@ function windowResized() {
     ws.on('message', async (data: Buffer) => {
       try {
         const message = JSON.parse(data.toString());
-        
+
         // All operations require authentication (already validated on connection)
-        
+
         if (message.type === 'connect') {
           const { host, port, sessionId, profileId } = message;
-          
+
           // Validate required parameters
           if (!host || !port || !sessionId) {
             ws.send(JSON.stringify({
@@ -5443,7 +5404,6 @@ function windowResized() {
   });
 
   console.log('MUD WebSocket server initialized on /ws/mud');
-  
+
   return httpServer;
 }
-
