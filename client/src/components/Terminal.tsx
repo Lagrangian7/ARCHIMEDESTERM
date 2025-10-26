@@ -88,14 +88,6 @@ export function Terminal() {
     (window as any).openSshwiftyInterface = () => setShowSshwifty(true);
     (window as any).openMudClient = () => setShowMud(true);
     (window as any).openTheHarvester = () => setShowTheHarvester(true);
-    (window as any).openSpiderFoot = (target?: string, scanType?: string) => {
-      setShowSpiderFoot(true);
-      // Store target and scanType if provided
-      if (target) {
-        (window as any).spiderFootTarget = target;
-        (window as any).spiderFootScanType = scanType || 'footprint';
-      }
-    };
     (window as any).openPrivacyEncoder = () => setShowPrivacyEncoder(true);
     (window as any).openWebamp = () => setShowWebamp(true);
     (window as any).openAJVideo = () => setShowAJVideo(true);
@@ -119,7 +111,6 @@ export function Terminal() {
   const [showSshwifty, setShowSshwifty] = useState(false);
   const [showMud, setShowMud] = useState(false);
   const [showTheHarvester, setShowTheHarvester] = useState(false);
-  const [showSpiderFoot, setShowSpiderFoot] = useState(false); // New: SpiderFoot state
   const [showPrivacyEncoder, setShowPrivacyEncoder] = useState(false);
   const [showWebamp, setShowWebamp] = useState(false);
   const [showAJVideo, setShowAJVideo] = useState(false);
@@ -377,9 +368,6 @@ export function Terminal() {
     if (lastEntry && lastEntry.type === 'response' && lastEntry.action) {
       if (lastEntry.action === 'open_theharvester') {
         setShowTheHarvester(true);
-      }
-      if (lastEntry.action === 'open_spiderfoot') { // New: Handle SpiderFoot action
-        setShowSpiderFoot(true);
       }
       // Add other action handlers here as needed
     }
@@ -732,11 +720,6 @@ export function Terminal() {
       {/* theHarvester OSINT Tool */}
       {showTheHarvester && (
         <TheHarvester onClose={() => setShowTheHarvester(false)} />
-      )}
-
-      {/* SpiderFoot OSINT Tool */}
-      {showSpiderFoot && (
-        <SpiderFoot onClose={() => setShowSpiderFoot(false)} />
       )}
 
       {/* Privacy Encoder */}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Terminal as TerminalIcon, Shield, Search } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Terminal as TerminalIcon, Shield } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,6 @@ import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from '@/components/Terminal';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { SshwiftyInterface } from './SshwiftyInterface';
-import { SpiderFoot } from './SpiderFoot';
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
