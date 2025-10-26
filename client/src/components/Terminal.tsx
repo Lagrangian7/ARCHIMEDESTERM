@@ -490,7 +490,7 @@ export function Terminal() {
 
               {/* Continue Prompt */}
               {showContinuePrompt && (
-                <div className="continue-prompt mt-4 p-3 border border-terminal-highlight rounded bg-terminal-bg/50">
+                <div className="continue-prompt mt-4 p-3 border border-terminal-highlight rounded bg-terminal-bg">
                   <div className="text-terminal-highlight mb-2 flex items-center">
                     <span className="mr-2">⏸️</span>
                     <span className="terminal-glow">-- More Content Available --</span>
@@ -589,7 +589,7 @@ export function Terminal() {
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
           <div className="border rounded-lg p-3 md:p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto" style={{
             backgroundColor: 'var(--terminal-bg)',
-            borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)'
+            borderColor: 'var(--terminal-subtle)'
           }}>
             <div className="flex justify-between items-center mb-3 md:mb-6">
               <h2 className="text-sm md:text-xl font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
@@ -608,7 +608,7 @@ export function Terminal() {
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex gap-1 md:gap-2 mb-3 md:mb-6 border-b" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)' }}>
+            <div className="flex gap-1 md:gap-2 mb-3 md:mb-6 border-b" style={{ borderColor: 'var(--terminal-subtle)' }}>
               <Button
                 onClick={() => setUploadTab('list')}
                 variant={uploadTab === 'list' ? 'default' : 'ghost'}

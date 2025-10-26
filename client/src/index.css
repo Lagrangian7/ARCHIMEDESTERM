@@ -280,8 +280,7 @@
   }
 
   .voice-controls {
-    backdrop-filter: blur(10px);
-    background: rgba(var(--terminal-subtle-rgb), 0.8);
+    background: var(--terminal-bg);
     border-color: var(--terminal-subtle);
   }
 
@@ -300,9 +299,8 @@
   }
 
   .command-history {
-    background: rgba(var(--terminal-subtle-rgb), 0.9);
+    background: var(--terminal-bg);
     border: 1px solid var(--terminal-subtle);
-    backdrop-filter: blur(5px);
   }
 
   .terminal-output {
@@ -536,7 +534,7 @@
 .terminal-output .latex-content {
   margin: 10px 0;
   padding: 10px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--terminal-bg);
   border-left: 3px solid var(--terminal-highlight);
   overflow-x: auto;
   color: var(--terminal-text);
