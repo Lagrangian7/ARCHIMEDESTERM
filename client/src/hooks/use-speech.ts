@@ -258,10 +258,7 @@ export function useSpeechSynthesis() {
         const isDenseTechnical = /(\d+\.\d+|\d{3,}|equals|plus|minus|times|divided|integral|sum|product|approximately)/i.test(cleanText);
         const technicalSlowdown = isDenseTechnical ? 0.9 : 1.0; // 10% slower for technical content
 
-        // Detect if text contains Japanese characters
-        const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(cleanText);
-        
-        // Voice selection logic
+        // Voice selection logic (hasJapanese already detected earlier)
         if (hasJapanese) {
           // For Japanese text, try to find a Japanese voice first
           const japaneseVoice = systemVoices.find(v => v.lang.startsWith('ja'));
