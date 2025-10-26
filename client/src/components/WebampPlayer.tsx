@@ -74,7 +74,10 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
           // Enable Milkdrop visualizer
           __butterchurnOptions: {
             importButterchurn: () => import('butterchurn'),
-            getPresets: () => import('butterchurn-presets').then(presets => presets.default.getPresets()),
+            getPresets: () => import('butterchurn-presets').then(presets => {
+              // butterchurn-presets exports the presets directly
+              return presets.default || presets;
+            }),
             butterchurnOpen: true,
             // Enable automatic preset cycling
             cyclePresets: true,
