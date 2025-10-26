@@ -99,10 +99,8 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
     >
       <div className={`relative transition-all duration-300 ${
         shouldShow ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-      } ${isDragging ? 'scale-105' : ''}`}>
-        <div className={`relative w-48 h-48 rounded-full overflow-hidden border-2 border-terminal-highlight/20 bg-terminal-bg/70 backdrop-blur-sm transition-all duration-200 ${
-          isDragging ? 'shadow-2xl shadow-terminal-highlight/20 border-terminal-highlight/50' : ''
-        }`}>
+      }`}>
+        <div className="relative w-48 h-48 rounded-full overflow-hidden border-2 border-terminal-highlight/20 bg-terminal-bg/70 backdrop-blur-sm">
           <video 
             src={archimedesVideo2}
             autoPlay
