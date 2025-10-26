@@ -113,14 +113,17 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     }
   }, [isTyping, children, showFloating]);
 
-  // Double-click handler to dismiss the bubble without saving
+  // Double-click handler to save and dismiss the bubble
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Just dismiss - don't save
-    setShowFloating(false);
-  }, []);
+    // Don't allow double-click if already saving
+    if (saveMutation.isPending) return;
+
+    // Save to knowledge base (the mutation will auto-dismiss on success)
+    saveMutation.mutate();
+  }, [saveMutation]);
 
   // Drag functionality - similar to RadioCharacter
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -219,12 +222,18 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
               <div className="absolute top-2 right-2 flex items-center gap-2" data-no-drag>
                 {/* Save button */}
                 <button
-                  onClick={(e) => {
+                  onMouseDown={(e) => {
                     e.stopPropagation();
-                    saveMutation.mutate();
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!saveMutation.isPending) {
+                      saveMutation.mutate();
+                    }
                   }}
                   disabled={saveMutation.isPending}
-                  className="text-terminal-highlight hover:text-terminal-bright-green transition-colors disabled:opacity-50 cursor-pointer p-1"
+                  className="text-terminal-highlight hover:text-terminal-bright-green transition-colors disabled:opacity-50 cursor-pointer p-1 z-10"
                   title="Save to knowledge base"
                   data-testid={`save-response-${entryId}`}
                 >
@@ -232,7 +241,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
                 </button>
 
                 {/* Drag indicator */}
-                <div className="text-terminal-subtle text-xs opacity-50 cursor-move" title="Drag to move, double-click to dismiss">
+                <div className="text-terminal-subtle text-xs opacity-50 cursor-move" title="Drag to move, double-click to save">
                   ⋮⋮
                 </div>
               </div>
