@@ -224,11 +224,11 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
                     saveMutation.mutate();
                   }}
                   disabled={saveMutation.isPending}
-                  className="text-terminal-highlight hover:text-terminal-bright-green transition-colors disabled:opacity-50 cursor-pointer"
+                  className="text-terminal-highlight hover:text-terminal-bright-green transition-colors disabled:opacity-50 cursor-pointer p-1"
                   title="Save to knowledge base"
                   data-testid={`save-response-${entryId}`}
                 >
-                  <Save className="w-4 h-4" />
+                  <Save className="w-6 h-6" />
                 </button>
 
                 {/* Drag indicator */}
