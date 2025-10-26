@@ -12,7 +12,7 @@ interface DraggableResponseProps {
 
 export function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
   const { toast } = useToast();
-  
+
   // Drag state management
   const [position, setPosition] = useState({ x: 100, y: 100 }); // Default position
   const [isDragging, setIsDragging] = useState(false);
@@ -48,7 +48,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     mutationFn: async () => {
       // Try to extract text content
       let textContent = extractTextContent(children);
-      
+
       // If extraction failed, try to get it directly from the rendered DOM element
       if (!textContent || !textContent.trim()) {
         const floatingDiv = document.querySelector(`[data-testid="draggable-response-${entryId}"]`);
@@ -59,7 +59,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
           }
         }
       }
-      
+
       // Final validation
       if (!textContent || !textContent.trim()) {
         console.error('Failed to extract content from children:', children);
@@ -113,17 +113,14 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     }
   }, [isTyping, children, showFloating]);
 
-  // Double-click handler to dismiss the bubble and save to knowledge base
+  // Double-click handler to dismiss the bubble without saving
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Save to knowledge base before dismissing
-    saveMutation.mutate();
-    
-    // Dismiss the bubble
+
+    // Just dismiss - don't save
     setShowFloating(false);
-  }, [saveMutation]);
+  }, []);
 
   // Drag functionality - similar to RadioCharacter
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -136,7 +133,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     ) {
       return;
     }
-    
+
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
@@ -187,7 +184,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
       <div className={`${isTyping ? 'opacity-0 pointer-events-none' : ''}`}>
         {children}
       </div>
-      
+
       {/* Floating draggable version when typing */}
       {showFloating && (
         <div 
@@ -212,12 +209,12 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
               <div className="text-terminal-highlight mb-2 text-sm font-mono">
                 ARCHIMEDES v7 Response:
               </div>
-              
+
               {/* Response Content */}
               <div className="text-terminal-text font-mono text-sm leading-relaxed">
                 {children}
               </div>
-              
+
               {/* Action buttons */}
               <div className="absolute top-2 right-2 flex items-center gap-2" data-no-drag>
                 {/* Save button */}
@@ -233,13 +230,13 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
                 >
                   <Save className="w-4 h-4" />
                 </button>
-                
+
                 {/* Drag indicator */}
                 <div className="text-terminal-subtle text-xs opacity-50 cursor-move" title="Drag to move, double-click to dismiss">
                   ⋮⋮
                 </div>
               </div>
-              
+
               {/* Glowing border effect */}
               <div className="absolute inset-0 rounded-lg ring-1 ring-terminal-highlight/20 animate-pulse" 
                    style={{ animationDuration: '2s' }} />
