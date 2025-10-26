@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Terminal as TerminalIcon, Shield, Search } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
@@ -18,15 +19,12 @@ interface VoiceControlsProps {
   switchMode: (mode: 'natural' | 'technical') => void;
   switchTheme: () => void;
   setShowWebamp: (show: boolean) => void;
+  setIsWebampOpen?: (show: boolean) => void;
   user: any;
   isAuthenticated: boolean;
   setShowProfile: (show: boolean) => void;
   setShowUpload: (show: boolean) => void;
   setShowChat: (show: boolean) => void;
-  toggleRadio: () => void;
-  isRadioPlaying: boolean;
-  setShowSshwifty: (show: boolean) => void;
-  setShowPrivacyEncoder: (show: boolean) => void;
   unreadCount: number;
 }
 
@@ -36,15 +34,12 @@ export function VoiceControls({
   switchMode,
   switchTheme,
   setShowWebamp,
+  setIsWebampOpen,
   user,
   isAuthenticated,
   setShowProfile,
   setShowUpload,
   setShowChat,
-  toggleRadio,
-  isRadioPlaying,
-  setShowSshwifty,
-  setShowPrivacyEncoder,
   unreadCount
 }: VoiceControlsProps) {
   const { toast } = useToast();
@@ -114,6 +109,8 @@ export function VoiceControls({
   };
 
   const [showTheHarvester, setShowTheHarvester] = useState(false);
+  const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
+  const [showSshwifty, setShowSshwiftyLocal] = useState(false);
 
   return (
     <div className="voice-controls p-2 md:p-3 border-b border-terminal-subtle flex flex-wrap md:flex-nowrap items-center justify-between gap-2 text-sm relative z-10">
@@ -229,7 +226,7 @@ export function VoiceControls({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => setShowSshwifty(true)}
+                    onClick={() => setShowSshwiftyLocal(true)}
                     variant="outline"
                     size="sm"
                     className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
@@ -321,14 +318,14 @@ export function VoiceControls({
       </div>
 
       {showPrivacyEncoder && (
-        <EncodeDecodeOverlay onClose={() => setShowPrivacyEncoder(false)} />
+        <EncodeDecodeOverlay isOpen={showPrivacyEncoder} onClose={() => setShowPrivacyEncoderLocal(false)} />
       )}
 
       {/* Sshwifty Modal */}
       {showSshwifty && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
           <div className="w-full max-w-4xl h-[80vh] bg-terminal-bg border-2 border-terminal-highlight rounded-lg overflow-hidden">
-            <SshwiftyInterface onClose={() => setShowSshwifty(false)} />
+            <SshwiftyInterface onClose={() => setShowSshwiftyLocal(false)} />
           </div>
         </div>
       )}
@@ -337,6 +334,6 @@ export function VoiceControls({
       {showTheHarvester && (
         <TheHarvester onClose={() => setShowTheHarvester(false)} />
       )}
-    </>
+    </div>
   );
 }
