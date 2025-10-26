@@ -825,22 +825,118 @@ Code Execution:
       }
     }
 
-    // Language switching commands - simple direct commands
+    // Language switching commands - flexible with translation support
     if (cmd === 'english' || cmd === 'lang english') {
       localStorage.setItem('ai-language', 'english');
-      addEntry('system', 'Language set to English. AI responses will now be in English.');
+      addEntry('system', 'Language set to English. AI responses will now be in English.\n\nTip: Use "translate to <language>" to convert previous responses.');
       return;
     }
 
     if (cmd === 'spanish' || cmd === 'lang spanish') {
       localStorage.setItem('ai-language', 'spanish');
-      addEntry('system', 'Idioma configurado a Español. Las respuestas de IA ahora serán en español.');
+      addEntry('system', 'Idioma configurado a Español. Las respuestas de IA ahora serán en español.\n\nConsejo: Use "translate to <language>" para convertir respuestas anteriores.');
       return;
     }
 
     if (cmd === 'japanese' || cmd === 'lang japanese') {
       localStorage.setItem('ai-language', 'japanese');
-      addEntry('system', '言語を日本語に設定しました。AI応答は日本語になります。');
+      addEntry('system', '言語を日本語に設定しました。AI応答は日本語になります。\n\nヒント: "translate to <language>"で以前の応答を変換できます。');
+      return;
+    }
+
+    // Translation commands - translate last AI response to specified language
+    if (cmd.startsWith('translate to ') || cmd.startsWith('explain in ')) {
+      const isExplain = cmd.startsWith('explain in ');
+      const targetLang = cmd.replace(/^(translate to|explain in)\s+/, '').trim().toLowerCase();
+      
+      // Map language names to codes
+      const langMap: { [key: string]: 'english' | 'spanish' | 'japanese' } = {
+        'english': 'english',
+        'en': 'english',
+        'español': 'spanish',
+        'spanish': 'spanish',
+        'es': 'spanish',
+        'japanese': 'japanese',
+        'jp': 'japanese',
+        'ja': 'japanese',
+        '日本語': 'japanese'
+      };
+
+      const languageCode = langMap[targetLang];
+      
+      if (!languageCode) {
+        addEntry('error', `Language "${targetLang}" not supported. Use: english, spanish, or japanese`);
+        return;
+      }
+
+      // Find last AI response
+      const lastAiResponse = [...entries].reverse().find(entry => entry.type === 'response');
+      
+      if (!lastAiResponse) {
+        addEntry('error', 'No previous AI response found to translate.');
+        return;
+      }
+
+      // Send translation request
+      setIsTyping(true);
+      const translationPrompt = isExplain 
+        ? `Please explain the following response in ${languageCode}:\n\n${lastAiResponse.content}`
+        : `Please translate the following to ${languageCode}:\n\n${lastAiResponse.content}`;
+
+      chatMutation.mutate({ 
+        message: translationPrompt, 
+        mode: currentMode, 
+        language: languageCode 
+      });
+      return;
+    }
+
+    // Quick translation shortcuts
+    if (cmd === 'in english' || cmd === 'en inglés' || cmd === '英語で') {
+      const lastAiResponse = [...entries].reverse().find(entry => entry.type === 'response');
+      if (!lastAiResponse) {
+        addEntry('error', 'No previous response to translate.');
+        return;
+      }
+      
+      setIsTyping(true);
+      chatMutation.mutate({ 
+        message: `Please explain this in English:\n\n${lastAiResponse.content}`, 
+        mode: currentMode, 
+        language: 'english' 
+      });
+      return;
+    }
+
+    if (cmd === 'in spanish' || cmd === 'en español') {
+      const lastAiResponse = [...entries].reverse().find(entry => entry.type === 'response');
+      if (!lastAiResponse) {
+        addEntry('error', 'No previous response to translate.');
+        return;
+      }
+      
+      setIsTyping(true);
+      chatMutation.mutate({ 
+        message: `Por favor explica esto en español:\n\n${lastAiResponse.content}`, 
+        mode: currentMode, 
+        language: 'spanish' 
+      });
+      return;
+    }
+
+    if (cmd === 'in japanese' || cmd === '日本語で説明') {
+      const lastAiResponse = [...entries].reverse().find(entry => entry.type === 'response');
+      if (!lastAiResponse) {
+        addEntry('error', 'No previous response to translate.');
+        return;
+      }
+      
+      setIsTyping(true);
+      chatMutation.mutate({ 
+        message: `これを日本語で説明してください:\n\n${lastAiResponse.content}`, 
+        mode: currentMode, 
+        language: 'japanese' 
+      });
       return;
     }
 
