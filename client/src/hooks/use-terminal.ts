@@ -12,6 +12,7 @@ interface TerminalEntry {
   content: string;
   timestamp: string;
   mode?: 'natural' | 'technical';
+  action?: string;
 }
 
 export function useTerminal(onUploadCommand?: () => void) {

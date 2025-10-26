@@ -21,6 +21,7 @@ import { LinkifiedText } from '@/lib/linkify';
 import { SshwiftyInterface } from './SshwiftyInterface';
 import { MudClient } from './MudClient';
 import { TheHarvester } from './TheHarvester';
+import { SpiderFoot } from './SpiderFoot';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { CodePreview } from './CodePreview';
 import WebampPlayer from './WebampPlayer';
@@ -84,7 +85,6 @@ export function Terminal() {
     (window as any).openDTMFDecoder = () => setShowDTMF(true);
     (window as any).openHelpMenu = () => setShowHelpMenu(true);
     (window as any).openChatInterface = () => setShowChat(true);
-    (window as any).activateScreensaver = () => setScreensaverActive(true);
     (window as any).openSshwiftyInterface = () => setShowSshwifty(true);
     (window as any).openMudClient = () => setShowMud(true);
     (window as any).openTheHarvester = () => setShowTheHarvester(true);
