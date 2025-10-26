@@ -163,75 +163,67 @@ export function useSpeechSynthesis() {
 
         window.speechSynthesis.cancel();
 
+        // Detect if text contains Japanese characters
+        const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(text);
+        
         // Clean text for speech synthesis
         let cleanText = text
           .replace(/<[^>]*>/g, '') // Remove HTML tags
-          .replace(/\*/g, '') // Remove asterisks
-          .replace(/(?<!\d\s?)>\s*(?!\d)/g, '') // Remove > unless it's between numbers (like "5 > 3")
-          // Remove ALL Unicode control characters and zero-width characters
-          .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Control characters
-          .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-width spaces
-          .replace(/[\u2060-\u206F]/g, '') // Word joiners and invisible separators
-          .replace(/\u2063/g, '') // Invisible separator (unicode 8291)
-          .replace(/\u2062/g, '') // Invisible times (unicode 8290)
-          .replace(/\u2061/g, '') // Function application (unicode 8289)
-          .replace(/\u2064/g, '') // Invisible plus (unicode 8292)
-          // Remove specific problematic unicode like "8288"
-          .replace(/[\u2000-\u206F]/g, '') // General punctuation and formatting
-          // Remove ALL Unicode box-drawing characters (U+2500-U+257F)
-          .replace(/[\u2500-\u257F]/g, '') // Complete box-drawing block
-          // Remove additional visual/decorative characters
-          .replace(/[╔╗╚╝╠╣╦╩╬═║]/g, '') // Double-line box drawing
-          .replace(/[┏┓┗┛┣┫┳┻╋━┃]/g, '') // Heavy box drawing  
-          .replace(/[◆◇▲△▼▽●○■□▪▫]/g, '') // Remove geometric symbols
-          .replace(/[░▒▓█▀▄▌▐]/g, '') // Remove block characters
-          .replace(/[─━│┃┄┅┆┇┈┉┊┋]/g, '') // All line styles
-          .replace(/[└┘┌┐├┤┬┴┼]/g, '') // Light box corners/intersections
-          .replace(/[€£¥¢§¶†‡•…‰′″‴]/g, '') // Remove currency and special symbols
-          .replace(/[⌐⌠⌡°∙√ⁿ²]/g, '') // Remove mathematical drawing chars
-          .replace(/[▬▭▮▯▰▱]/g, '') // Remove horizontal bars
-          // Remove any remaining unicode digits that look like "8288", "8289", etc.
-          .replace(/\b\d{4}\b/g, (match) => {
-            // Only remove if it looks like a unicode reference (82xx, 20xx ranges)
-            if (match.startsWith('82') || match.startsWith('20')) {
-              return '';
-            }
-            return match;
-          })
-          // Preserve mathematical operators in formulas - check if surrounded by alphanumeric
-          .replace(/([a-zA-Z0-9]\s*)([\+\-×÷=<>≤≥≠∞∑∏∫])(\s*[a-zA-Z0-9])/g, (match, before, op, after) => {
-            const operatorWords: { [key: string]: string } = {
-              '+': ' plus ',
-              '-': ' minus ',
-              '×': ' times ',
-              '÷': ' divided by ',
-              '=': ' equals ',
-              '<': ' less than ',
-              '>': ' greater than ',
-              '≤': ' less than or equal to ',
-              '≥': ' greater than or equal to ',
-              '≠': ' not equal to ',
-              '∞': ' infinity ',
-              '∑': ' sum ',
-              '∏': ' product ',
-              '∫': ' integral '
-            };
-            return before + (operatorWords[op] || op) + after;
-          })
-          // Replace punctuation that creates natural pauses
-          .replace(/[.!?]+/g, '.') // Normalize sentence endings to single period for pause
-          .replace(/[,;:]/g, ',') // Normalize pause punctuation to comma
-          // Remove punctuation that would be pronounced
-          .replace(/['""`''""]/g, '') // Remove all quotation marks
-          .replace(/[\[\](){}]/g, '') // Remove brackets and parentheses
-          .replace(/[#$%&@]/g, '') // Remove symbols
-          .replace(/[*_~`]/g, '') // Remove formatting characters
-          .replace(/-{2,}/g, ' ') // Replace multiple dashes with space
-          .replace(/\|/g, ' ') // Replace pipes with space
-          .replace(/\+/g, ' plus ') // Replace remaining + with word
-          .replace(/=/g, ' equals ') // Replace remaining = with word
-          .replace(/\s+/g, ' ') // Normalize whitespace
-          .trim();
+          .replace(/\*/g, ''); // Remove asterisks
+        
+        if (hasJapanese) {
+          // Minimal cleaning for Japanese - preserve natural flow
+          cleanText = cleanText
+            .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Control characters only
+            .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-width spaces
+            .replace(/[\u2500-\u257F]/g, '') // Box-drawing characters
+            .replace(/[╔╗╚╝╠╣╦╩╬═║┏┓┗┛┣┫┳┻╋━┃]/g, '') // Box drawing
+            .replace(/[\[\](){}]/g, '') // Remove brackets
+            .replace(/\s+/g, ' ') // Normalize whitespace
+            .trim();
+        } else {
+          // Full cleaning for English/other languages
+          cleanText = cleanText
+            .replace(/(?<!\d\s?)>\s*(?!\d)/g, '') // Remove > unless between numbers
+            .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Control characters
+            .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-width spaces
+            .replace(/[\u2060-\u206F]/g, '') // Word joiners
+            .replace(/[\u2000-\u206F]/g, '') // General punctuation/formatting
+            .replace(/[\u2500-\u257F]/g, '') // Box-drawing characters
+            .replace(/[╔╗╚╝╠╣╦╩╬═║┏┓┗┛┣┫┳┻╋━┃]/g, '') // Box drawing
+            .replace(/[◆◇▲△▼▽●○■□▪▫]/g, '') // Geometric symbols
+            .replace(/[░▒▓█▀▄▌▐]/g, '') // Block characters
+            .replace(/[─━│┃┄┅┆┇┈┉┊┋└┘┌┐├┤┬┴┼]/g, '') // Line styles
+            .replace(/[€£¥¢§¶†‡•…‰′″‴]/g, '') // Currency/special symbols
+            .replace(/[⌐⌠⌡°∙√ⁿ²]/g, '') // Math drawing chars
+            .replace(/[▬▭▮▯▰▱]/g, '') // Horizontal bars
+            .replace(/\b\d{4}\b/g, (match) => {
+              if (match.startsWith('82') || match.startsWith('20')) return '';
+              return match;
+            })
+            .replace(/([a-zA-Z0-9]\s*)([\+\-×÷=<>≤≥≠∞∑∏∫])(\s*[a-zA-Z0-9])/g, (match, before, op, after) => {
+              const operatorWords: { [key: string]: string } = {
+                '+': ' plus ', '-': ' minus ', '×': ' times ', '÷': ' divided by ',
+                '=': ' equals ', '<': ' less than ', '>': ' greater than ',
+                '≤': ' less than or equal to ', '≥': ' greater than or equal to ',
+                '≠': ' not equal to ', '∞': ' infinity ', '∑': ' sum ',
+                '∏': ' product ', '∫': ' integral '
+              };
+              return before + (operatorWords[op] || op) + after;
+            })
+            .replace(/[.!?]+/g, '.') // Normalize sentence endings
+            .replace(/[,;:]/g, ',') // Normalize pause punctuation
+            .replace(/['""`''""]/g, '') // Remove quotation marks
+            .replace(/[\[\](){}]/g, '') // Remove brackets
+            .replace(/[#$%&@]/g, '') // Remove symbols
+            .replace(/[*_~`]/g, '') // Remove formatting chars
+            .replace(/-{2,}/g, ' ') // Multiple dashes to space
+            .replace(/\|/g, ' ') // Pipes to space
+            .replace(/\+/g, ' plus ')
+            .replace(/=/g, ' equals ')
+            .replace(/\s+/g, ' ') // Normalize whitespace
+            .trim();
+        }
 
         if (!cleanText) {
           console.warn('No text to speak after cleaning');
@@ -266,8 +258,22 @@ export function useSpeechSynthesis() {
         const isDenseTechnical = /(\d+\.\d+|\d{3,}|equals|plus|minus|times|divided|integral|sum|product|approximately)/i.test(cleanText);
         const technicalSlowdown = isDenseTechnical ? 0.9 : 1.0; // 10% slower for technical content
 
+        // Detect if text contains Japanese characters
+        const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(cleanText);
+        
         // Voice selection logic
-        if (currentVoice === 0) {
+        if (hasJapanese) {
+          // For Japanese text, try to find a Japanese voice first
+          const japaneseVoice = systemVoices.find(v => v.lang.startsWith('ja'));
+          if (japaneseVoice) {
+            utterance.voice = japaneseVoice;
+            utterance.lang = 'ja-JP';
+            utterance.rate = currentRate * 0.95; // Slightly slower for clarity
+            console.log('Using Japanese voice:', japaneseVoice.name);
+          } else {
+            console.warn('No Japanese voice found, using default');
+          }
+        } else if (currentVoice === 0) {
           // System Default - use browser default (no voice set)
           console.log('Using system default voice');
         } else if (currentVoice === 1) {
