@@ -81,6 +81,8 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
         description: `Response saved as ${data.document.originalName}`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      // Dismiss the bubble after successful save
+      setShowFloating(false);
     },
     onError: (error: any) => {
       toast({
