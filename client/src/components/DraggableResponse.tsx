@@ -94,7 +94,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     },
   });
 
-  // Calculate initial position near the command input line (upper right)
+  // Calculate initial position centered in the screen above command area
   useEffect(() => {
     if (isTyping && !position) {
       const commandInput = document.querySelector('[data-testid="input-command"]');
@@ -105,13 +105,17 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
         const outputRect = terminalOutput.getBoundingClientRect();
         const scrollTop = terminalOutput.scrollTop || 0;
         
-        // Position bubble to the upper right of the command line
-        // Calculate position relative to terminal-output container
+        // Center horizontally in the terminal output area
+        const bubbleWidth = 384; // max-w-md is roughly 384px
+        const centerX = (outputRect.width - bubbleWidth) / 2;
+        
+        // Position vertically above the command line (centered in upper portion)
         const relativeY = inputRect.top - outputRect.top + scrollTop;
+        const centerY = Math.max(relativeY - 200, 100); // Centered above command area
         
         setPosition({
-          x: Math.max(outputRect.width - 420, 20), // Upper right, with padding
-          y: Math.max(relativeY - 100, 20) // Above the command line
+          x: Math.max(centerX, 20), // Center horizontally with padding
+          y: centerY
         });
       }
     }
