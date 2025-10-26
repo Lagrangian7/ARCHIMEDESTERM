@@ -95,12 +95,13 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
+    <div
+      className="fixed inset-0 bg-black/90 flex items-center justify-center p-4"
+      style={{ zIndex: 9999 }}
       onClick={handleClose}
     >
-      <div 
-        className="bg-terminal-bg border-2 border-terminal-highlight rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col"
+      <div
+        className="bg-terminal-bg border-2 border-terminal-highlight rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -109,19 +110,19 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
             🕷️ SpiderFoot OSINT
           </h2>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
+            onMouseDown={(e) => {
               e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               handleClose();
             }}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-            }}
-            className="text-terminal-highlight hover:bg-terminal-highlight/10 p-2 rounded transition-colors cursor-pointer relative z-10"
+            className="text-terminal-highlight hover:bg-terminal-highlight/10 p-2 rounded transition-colors cursor-pointer"
             type="button"
-            style={{ pointerEvents: 'auto' }}
           >
-            <X className="w-5 h-5 pointer-events-none" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
