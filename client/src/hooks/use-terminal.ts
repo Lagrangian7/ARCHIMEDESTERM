@@ -826,19 +826,19 @@ Code Execution:
     }
 
     // Language switching commands - simple direct commands
-    if (cmd === 'english') {
+    if (cmd === 'english' || cmd === 'lang english') {
       localStorage.setItem('ai-language', 'english');
       addEntry('system', 'Language set to English. AI responses will now be in English.');
       return;
     }
 
-    if (cmd === 'spanish') {
+    if (cmd === 'spanish' || cmd === 'lang spanish') {
       localStorage.setItem('ai-language', 'spanish');
       addEntry('system', 'Idioma configurado a Español. Las respuestas de IA ahora serán en español.');
       return;
     }
 
-    if (cmd === 'japanese') {
+    if (cmd === 'japanese' || cmd === 'lang japanese') {
       localStorage.setItem('ai-language', 'japanese');
       addEntry('system', '言語を日本語に設定しました。AI応答は日本語になります。');
       return;
