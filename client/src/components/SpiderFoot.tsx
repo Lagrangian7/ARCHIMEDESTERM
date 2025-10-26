@@ -50,8 +50,8 @@ const MODULE_CATEGORIES = [
 ];
 
 export function SpiderFoot({ onClose }: SpiderFootProps) {
-  const [target, setTarget] = useState('');
-  const [scanType, setScanType] = useState('footprint');
+  const [target, setTarget] = useState((window as any).spiderFootTarget || '');
+  const [scanType, setScanType] = useState((window as any).spiderFootScanType || 'footprint');
   const [results, setResults] = useState<SpiderFootResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [progress, setProgress] = useState('');

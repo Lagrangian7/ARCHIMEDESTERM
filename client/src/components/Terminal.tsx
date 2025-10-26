@@ -88,7 +88,14 @@ export function Terminal() {
     (window as any).openSshwiftyInterface = () => setShowSshwifty(true);
     (window as any).openMudClient = () => setShowMud(true);
     (window as any).openTheHarvester = () => setShowTheHarvester(true);
-    (window as any).openSpiderFoot = () => setShowSpiderFoot(true); // New: SpiderFoot opener
+    (window as any).openSpiderFoot = (target?: string, scanType?: string) => {
+      setShowSpiderFoot(true);
+      // Store target and scanType if provided
+      if (target) {
+        (window as any).spiderFootTarget = target;
+        (window as any).spiderFootScanType = scanType || 'footprint';
+      }
+    };
     (window as any).openPrivacyEncoder = () => setShowPrivacyEncoder(true);
     (window as any).openWebamp = () => setShowWebamp(true);
     (window as any).openAJVideo = () => setShowAJVideo(true);
@@ -729,13 +736,7 @@ export function Terminal() {
 
       {/* SpiderFoot OSINT Tool */}
       {showSpiderFoot && (
-        // You would replace this with your actual SpiderFoot component
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="w-[90vw] h-[80vh] bg-terminal-bg border border-terminal-highlight rounded-lg overflow-hidden">
-            <p className="text-white p-4">SpiderFoot Interface Placeholder</p>
-            <Button onClick={() => setShowSpiderFoot(false)} className="m-4">Close</Button>
-          </div>
-        </div>
+        <SpiderFoot onClose={() => setShowSpiderFoot(false)} />
       )}
 
       {/* Privacy Encoder */}

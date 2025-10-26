@@ -2765,19 +2765,25 @@ Powered by Wolfram Alpha Full Results API`);
     if (lowerCmd.startsWith('spiderfoot') || lowerCmd.startsWith('spider')) {
       const parts = cmd.split(/\s+/);
       if (parts.length < 2) {
-        return {
-          output: '❌ Usage: spiderfoot <target>\n\nExample: spiderfoot example.com\n\nLaunches the SpiderFoot OSINT automation tool for comprehensive intelligence gathering with 200+ modules.',
-          isCommand: true
-        };
+        addEntry('error', '❌ Usage: spiderfoot <target> [scan_type]\n\nExample: spiderfoot example.com footprint\n\nScan types: footprint, investigate, passive, all');
+        return;
       }
 
-      // Launch SpiderFoot interface
-      return {
-        output: `🕷️ Launching SpiderFoot for target: ${parts[1]}\n\nOpening OSINT automation interface...`,
-        isCommand: true,
-        action: 'open_spiderfoot',
-        data: { target: parts[1] }
-      };
+      const target = parts[1];
+      const scanType = parts[2] || 'footprint';
+
+      addEntry('system', `🕷️ Launching SpiderFoot for target: ${target}\n\nOpening OSINT automation interface...`);
+      
+      // Trigger SpiderFoot modal to open
+      setTimeout(() => {
+        const openSpiderFoot = (window as any).openSpiderFoot;
+        if (openSpiderFoot) {
+          openSpiderFoot(target, scanType);
+        } else {
+          addEntry('error', 'SpiderFoot interface not available. Please ensure the system is loaded.');
+        }
+      }, 50);
+      return;
     }
 
 

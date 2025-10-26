@@ -30,6 +30,7 @@ import signature from 'cookie-signature';
 import { getSession } from './replitAuth';
 import { archimedesBotService } from './archimedes-bot-service';
 import compression from "compression";
+import { spiderFootService } from "./spiderfoot-service"; // Import SpiderFoot service
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
@@ -2468,7 +2469,7 @@ function windowResized() {
 
       // Check if this is a new session (no history yet)
       const isNewSession = conversationHistory.length === 0;
-      
+
       // Generate AI response using LLM with knowledge base integration
       const response = await llmService.generateResponse(
         message,
@@ -4847,8 +4848,8 @@ function windowResized() {
     }
   });
 
-  // SpiderFoot OSINT endpoint
-  app.post('/api/spiderfoot', async (req, res) => {
+  // SpiderFoot API endpoint
+  app.post("/api/spiderfoot", async (req, res) => {
     try {
       // Validate request body using Zod
       const spiderFootSchema = z.object({
@@ -4871,7 +4872,7 @@ function windowResized() {
       const generateFindings = (type: string, count: number) => {
         const findings = [];
         const confidenceLevels = ['High', 'Medium', 'Low'];
-        
+
         for (let i = 0; i < count; i++) {
           findings.push({
             type: type,
