@@ -96,7 +96,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
 
   // Calculate initial position centered in the viewport over background
   useEffect(() => {
-    if (isTyping && !position) {
+    if (!position) {
       // Center horizontally in viewport
       const bubbleWidth = 384; // max-w-md is roughly 384px
       const centerX = (window.innerWidth - bubbleWidth) / 2;
@@ -109,15 +109,12 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
         y: Math.max(centerY, 50) // Center vertically with padding
       });
     }
-  }, [isTyping, position]);
+  }, [position]);
 
-  // Show floating version when typing starts, keep visible until saved
+  // Always show floating version for responses, keep visible until saved
   useEffect(() => {
-    if (isTyping) {
-      setShowFloating(true);
-    }
-    // No auto-hide - bubbles stay until saved via button or double-click
-  }, [isTyping]);
+    setShowFloating(true);
+  }, []);
 
   // Double-click handler to save and dismiss the bubble
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
@@ -160,13 +157,10 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     const newX = e.clientX - dragOffset.x;
     const newY = e.clientY - dragOffset.y;
 
-    // Keep within viewport bounds
-    const maxX = window.innerWidth - 400; // Approximate bubble width
-    const maxY = window.innerHeight - 200; // Approximate bubble height
-
+    // Allow unlimited movement - no boundaries
     setPosition({
-      x: Math.max(0, Math.min(newX, maxX)),
-      y: Math.max(0, Math.min(newY, maxY))
+      x: newX,
+      y: newY
     });
   }, [isDragging, dragOffset]);
 
@@ -186,24 +180,19 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  // If not typing and not showing floating version, render normally in place
-  if (!isTyping && !showFloating) {
-    return <>{children}</>;
-  }
-
-  // When typing or showing floating, render both: original (hidden) + floating draggable version
+  // Always render both: original (hidden) + floating draggable version
   return (
     <>
-      {/* Original response in place (hidden when typing to avoid duplication) */}
+      {/* Original response in place (always hidden to avoid duplication) */}
       <div 
         ref={responseElementRef}
-        className={`${isTyping ? 'opacity-0 pointer-events-none' : ''}`}
+        className="opacity-0 pointer-events-none h-0 overflow-hidden"
       >
         {children}
       </div>
 
-      {/* Floating draggable version when typing */}
-      {showFloating && position && (
+      {/* Floating draggable version - always visible */}
+      {position && (
         <div 
           className="fixed z-50 cursor-move"
           style={{
