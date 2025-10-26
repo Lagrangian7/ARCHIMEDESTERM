@@ -110,12 +110,7 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
             🕷️ SpiderFoot OSINT
           </h2>
           <button
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
             onClick={(e) => {
-              e.preventDefault();
               e.stopPropagation();
               handleClose();
             }}
