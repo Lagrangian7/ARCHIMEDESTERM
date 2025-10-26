@@ -1,5 +1,5 @@
-import { useEffect, useRef, lazy, Suspense } from 'react';
-const Webamp = lazy(() => import('webamp').then(module => ({ default: module.default })));
+import { useEffect, useRef } from 'react';
+import Webamp from 'webamp';
 import nDimensionsTheme from '@assets/n-Dimensions (Main Theme)_1758647261911.mp3';
 import fortressTrack from '@assets/fortress_1759293202674.mp3';
 import modeTrack from '@assets/mode_1759293195149.mp3';
@@ -11,7 +11,7 @@ interface WebampPlayerProps {
 }
 
 export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
-  const webampRef = useRef<any | null>(null); // Use 'any' for lazy loaded component
+  const webampRef = useRef<Webamp | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const initializingRef = useRef<boolean>(false);
 
@@ -342,17 +342,15 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
   if (!isOpen) return null;
 
   return (
-    <Suspense fallback={<div>Loading Webamp...</div>}>
-      <div
-        ref={containerRef}
-        id="webamp-container"
-        className="fixed inset-0"
-        style={{
-          zIndex: 10000,
-          pointerEvents: 'none'
-        }}
-        data-testid="webamp-container"
-      />
-    </Suspense>
+    <div
+      ref={containerRef}
+      id="webamp-container"
+      className="fixed inset-0"
+      style={{
+        zIndex: 10000,
+        pointerEvents: 'none'
+      }}
+      data-testid="webamp-container"
+    />
   );
 }
