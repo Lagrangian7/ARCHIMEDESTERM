@@ -74,14 +74,16 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
           // Enable Milkdrop visualizer
           __butterchurnOptions: {
             importButterchurn: () => import('butterchurn'),
-            getPresets: () => import('butterchurn-presets').then(presets => {
-              // butterchurn-presets exports the presets directly
-              return presets.default || presets;
-            }),
-            butterchurnOpen: true,
-            // Enable automatic preset cycling
-            cyclePresets: true,
-            presetCycleLength: 30 // Change preset every 30 seconds
+            getPresets: async () => {
+              const presets = await import('butterchurn-presets');
+              const presetPack = presets.default || presets;
+              // Convert preset pack object to array format expected by Webamp
+              return Object.keys(presetPack).map(name => ({
+                name,
+                butterchurnPresetObject: presetPack[name]
+              }));
+            },
+            butterchurnOpen: true
           },
           
           initialTracks: [
