@@ -75,7 +75,10 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
           __butterchurnOptions: {
             importButterchurn: () => import('butterchurn'),
             getPresets: () => import('butterchurn-presets').then(presets => presets.default.getPresets()),
-            butterchurnOpen: true
+            butterchurnOpen: true,
+            // Enable automatic preset cycling
+            cyclePresets: true,
+            presetCycleLength: 30 // Change preset every 30 seconds
           },
           
           initialTracks: [
