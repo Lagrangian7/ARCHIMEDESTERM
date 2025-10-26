@@ -88,6 +88,7 @@ export function Terminal() {
     (window as any).openSshwiftyInterface = () => setShowSshwifty(true);
     (window as any).openMudClient = () => setShowMud(true);
     (window as any).openTheHarvester = () => setShowTheHarvester(true);
+    (window as any).openSpiderFoot = () => setShowSpiderFoot(true); // New: SpiderFoot opener
     (window as any).openPrivacyEncoder = () => setShowPrivacyEncoder(true);
     (window as any).openWebamp = () => setShowWebamp(true);
     (window as any).openAJVideo = () => setShowAJVideo(true);
@@ -111,6 +112,7 @@ export function Terminal() {
   const [showSshwifty, setShowSshwifty] = useState(false);
   const [showMud, setShowMud] = useState(false);
   const [showTheHarvester, setShowTheHarvester] = useState(false);
+  const [showSpiderFoot, setShowSpiderFoot] = useState(false); // New: SpiderFoot state
   const [showPrivacyEncoder, setShowPrivacyEncoder] = useState(false);
   const [showWebamp, setShowWebamp] = useState(false);
   const [showAJVideo, setShowAJVideo] = useState(false);
@@ -361,6 +363,20 @@ export function Terminal() {
         return 'text-terminal-text';
     }
   };
+
+  // Handle command processing results, including new actions
+  useEffect(() => {
+    const lastEntry = entries[entries.length - 1];
+    if (lastEntry && lastEntry.type === 'response' && lastEntry.action) {
+      if (lastEntry.action === 'open_theharvester') {
+        setShowTheHarvester(true);
+      }
+      if (lastEntry.action === 'open_spiderfoot') { // New: Handle SpiderFoot action
+        setShowSpiderFoot(true);
+      }
+      // Add other action handlers here as needed
+    }
+  }, [entries]);
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
@@ -709,6 +725,17 @@ export function Terminal() {
       {/* theHarvester OSINT Tool */}
       {showTheHarvester && (
         <TheHarvester onClose={() => setShowTheHarvester(false)} />
+      )}
+
+      {/* SpiderFoot OSINT Tool */}
+      {showSpiderFoot && (
+        // You would replace this with your actual SpiderFoot component
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="w-[90vw] h-[80vh] bg-terminal-bg border border-terminal-highlight rounded-lg overflow-hidden">
+            <p className="text-white p-4">SpiderFoot Interface Placeholder</p>
+            <Button onClick={() => setShowSpiderFoot(false)} className="m-4">Close</Button>
+          </div>
+        </div>
       )}
 
       {/* Privacy Encoder */}

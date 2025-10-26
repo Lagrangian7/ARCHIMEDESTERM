@@ -11,7 +11,7 @@ import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from '@/components/Terminal';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { SshwiftyInterface } from './SshwiftyInterface';
-import { TheHarvester } from './TheHarvester';
+import { SpiderFoot } from './SpiderFoot';
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
@@ -108,7 +108,7 @@ export function VoiceControls({
     speak(randomPhrase);
   };
 
-  const [showTheHarvester, setShowTheHarvester] = useState(false);
+  const [showSpiderFoot, setShowSpiderFoot] = useState(false);
   const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
   const [showSshwifty, setShowSshwiftyLocal] = useState(false);
 
@@ -241,22 +241,22 @@ export function VoiceControls({
                 </TooltipContent>
               </Tooltip>
 
-              {/* Privacy Button - now launches theHarvester */}
+              {/* OSINT Button - launches SpiderFoot */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => setShowTheHarvester(true)}
+                    onClick={() => setShowSpiderFoot(true)}
                     variant="outline"
                     size="sm"
                     className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
-                    data-testid="button-the-harvester"
-                    aria-label="theHarvester"
+                    data-testid="button-spiderfoot"
+                    aria-label="SpiderFoot"
                   >
                     <Search size={16} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>theHarvester</p>
+                  <p>SpiderFoot</p>
                 </TooltipContent>
               </Tooltip>
             </>
@@ -336,9 +336,9 @@ export function VoiceControls({
         </div>
       )}
 
-      {/* theHarvester Modal */}
-      {showTheHarvester && (
-        <TheHarvester onClose={() => setShowTheHarvester(false)} />
+      {/* SpiderFoot Modal */}
+      {showSpiderFoot && (
+        <SpiderFoot onClose={() => setShowSpiderFoot(false)} />
       )}
     </div>
   );
