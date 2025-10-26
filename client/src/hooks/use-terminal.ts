@@ -825,38 +825,22 @@ Code Execution:
       }
     }
 
-    // Language switching commands
-    if (cmd === 'lang' || cmd === 'language') {
-      const currentLang = localStorage.getItem('ai-language') || 'english';
-      addEntry('system', `Current language: ${currentLang}\n\nAvailable languages:\n  - english\n  - spanish (español)\n  - japanese (日本語)\n\nUsage: lang <language>\nExample: lang spanish`);
+    // Language switching commands - simple direct commands
+    if (cmd === 'english') {
+      localStorage.setItem('ai-language', 'english');
+      addEntry('system', 'Language set to English. AI responses will now be in English.');
       return;
     }
 
-    if (cmd.startsWith('lang ') || cmd.startsWith('language ')) {
-      const langCmd = cmd.startsWith('lang ') ? cmd.substring(5) : cmd.substring(9);
-      const language = langCmd.trim().toLowerCase();
+    if (cmd === 'spanish') {
+      localStorage.setItem('ai-language', 'spanish');
+      addEntry('system', 'Idioma configurado a Español. Las respuestas de IA ahora serán en español.');
+      return;
+    }
 
-      const validLanguages = ['english', 'spanish', 'español', 'japanese', '日本語'];
-
-      if (!validLanguages.includes(language)) {
-        addEntry('error', `Invalid language: ${language}\n\nSupported languages:\n  - english\n  - spanish (español)\n  - japanese (日本語)`);
-        return;
-      }
-
-      // Normalize language names
-      let normalizedLang = language;
-      if (language === 'español') normalizedLang = 'spanish';
-      if (language === '日本語') normalizedLang = 'japanese';
-
-      localStorage.setItem('ai-language', normalizedLang);
-
-      const confirmations = {
-        english: 'Language set to English. AI responses will now be in English.',
-        spanish: 'Idioma configurado a Español. Las respuestas de IA ahora serán en español.',
-        japanese: '言語を日本語に設定しました。AI応答は日本語になります。'
-      };
-
-      addEntry('system', confirmations[normalizedLang as keyof typeof confirmations]);
+    if (cmd === 'japanese') {
+      localStorage.setItem('ai-language', 'japanese');
+      addEntry('system', '言語を日本語に設定しました。AI応答は日本語になります。');
       return;
     }
 
