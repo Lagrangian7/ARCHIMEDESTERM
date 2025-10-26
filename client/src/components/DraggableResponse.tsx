@@ -94,19 +94,26 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     },
   });
 
-  // Calculate initial position based on the response element's location
+  // Calculate initial position near the command input line (upper right)
   useEffect(() => {
-    if (isTyping && !position && responseElementRef.current) {
-      const rect = responseElementRef.current.getBoundingClientRect();
+    if (isTyping && !position) {
+      const commandInput = document.querySelector('[data-testid="input-command"]');
       const terminalOutput = document.querySelector('.terminal-output');
-      const scrollTop = terminalOutput?.scrollTop || 0;
       
-      // Position the bubble near the response, slightly offset to the right
-      // Using offsetTop for absolute positioning relative to the terminal-output container
-      setPosition({
-        x: Math.min(300, window.innerWidth - 420), // Keep within viewport
-        y: responseElementRef.current.offsetTop + 10 // Position relative to container
-      });
+      if (commandInput && terminalOutput) {
+        const inputRect = commandInput.getBoundingClientRect();
+        const outputRect = terminalOutput.getBoundingClientRect();
+        const scrollTop = terminalOutput.scrollTop || 0;
+        
+        // Position bubble to the upper right of the command line
+        // Calculate position relative to terminal-output container
+        const relativeY = inputRect.top - outputRect.top + scrollTop;
+        
+        setPosition({
+          x: Math.max(outputRect.width - 420, 20), // Upper right, with padding
+          y: Math.max(relativeY - 100, 20) // Above the command line
+        });
+      }
     }
   }, [isTyping, position]);
 
