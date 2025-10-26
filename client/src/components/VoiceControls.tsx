@@ -1,4 +1,5 @@
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Terminal as TerminalIcon, Shield } from 'lucide-react';
+import { useState } from 'react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Terminal as TerminalIcon, Shield, Search } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from '@/components/Terminal';
+import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
+import { SshwiftyInterface } from './SshwiftyInterface';
+import { SpiderFoot } from './SpiderFoot';
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
@@ -15,33 +19,27 @@ interface VoiceControlsProps {
   switchMode: (mode: 'natural' | 'technical') => void;
   switchTheme: () => void;
   setShowWebamp: (show: boolean) => void;
+  setIsWebampOpen?: (show: boolean) => void;
   user: any;
   isAuthenticated: boolean;
   setShowProfile: (show: boolean) => void;
   setShowUpload: (show: boolean) => void;
   setShowChat: (show: boolean) => void;
-  toggleRadio: () => void;
-  isRadioPlaying: boolean;
-  setShowSshwifty: (show: boolean) => void;
-  setShowPrivacyEncoder: (show: boolean) => void;
   unreadCount: number;
 }
 
-export function VoiceControls({ 
-  onVoiceInput, 
-  currentMode, 
-  switchMode, 
-  switchTheme, 
-  setShowWebamp, 
-  user, 
+export function VoiceControls({
+  onVoiceInput,
+  currentMode,
+  switchMode,
+  switchTheme,
+  setShowWebamp,
+  setIsWebampOpen,
+  user,
   isAuthenticated,
   setShowProfile,
   setShowUpload,
   setShowChat,
-  toggleRadio,
-  isRadioPlaying,
-  setShowSshwifty,
-  setShowPrivacyEncoder,
   unreadCount
 }: VoiceControlsProps) {
   const { toast } = useToast();
@@ -109,6 +107,10 @@ export function VoiceControls({
     console.log('Voice test - speaking with voice:', selectedVoice, voices[selectedVoice]?.name);
     speak(randomPhrase);
   };
+
+  const [showSpiderFoot, setShowSpiderFoot] = useState(false);
+  const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
+  const [showSshwifty, setShowSshwiftyLocal] = useState(false);
 
   return (
     <div className="voice-controls p-2 md:p-3 border-b border-terminal-subtle flex flex-wrap md:flex-nowrap items-center justify-between gap-2 text-sm relative z-10">
@@ -224,7 +226,7 @@ export function VoiceControls({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => setShowSshwifty(true)}
+                    onClick={() => setShowSshwiftyLocal(true)}
                     variant="outline"
                     size="sm"
                     className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
@@ -239,22 +241,22 @@ export function VoiceControls({
                 </TooltipContent>
               </Tooltip>
 
-              {/* Privacy Button */}
+              {/* OSINT Button - launches SpiderFoot */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => setShowPrivacyEncoder(true)}
+                    onClick={() => setShowSpiderFoot(true)}
                     variant="outline"
                     size="sm"
                     className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
-                    data-testid="button-privacy"
-                    aria-label="Privacy"
+                    data-testid="button-spiderfoot"
+                    aria-label="SpiderFoot"
                   >
-                    <Shield size={16} />
+                    <Search size={16} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>Privacy</p>
+                  <p>SpiderFoot</p>
                 </TooltipContent>
               </Tooltip>
             </>
@@ -305,7 +307,7 @@ export function VoiceControls({
           data-testid="button-theme-toggle"
           aria-label="Switch Theme"
         >
-          <img 
+          <img
             src={cubesIcon}
             alt="Theme Switcher"
             width="24"
@@ -314,6 +316,30 @@ export function VoiceControls({
           />
         </button>
       </div>
+
+      {showPrivacyEncoder && (
+        <EncodeDecodeOverlay isOpen={showPrivacyEncoder} onClose={() => setShowPrivacyEncoderLocal(false)} />
+      )}
+
+      {/* Sshwifty Modal */}
+      {showSshwifty && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setShowSshwiftyLocal(false)}
+        >
+          <div 
+            className="w-full max-w-4xl h-[80vh] bg-terminal-bg border-2 border-terminal-highlight rounded-lg overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <SshwiftyInterface onClose={() => setShowSshwiftyLocal(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* SpiderFoot Modal */}
+      {showSpiderFoot && (
+        <SpiderFoot onClose={() => setShowSpiderFoot(false)} />
+      )}
     </div>
   );
 }

@@ -331,6 +331,7 @@ Use the URLs above to access the full articles and information.`;
     setHistoryIndex(-1);
 
     const cmd = command.toLowerCase().trim();
+    const lowerCmd = cmd; // Ensure lowerCmd is defined here
 
     // Check if we're in OSINT input mode
     const osintMode = localStorage.getItem('osintMode');
@@ -623,6 +624,7 @@ OSINT (Open Source Intelligence):
   osint-report <target> - Comprehensive OSINT report
   threat-actors - MISP Galaxy threat actor intelligence
   threat-actors <name> - Look up specific threat actor details
+  spiderfoot <target>        - Launch SpiderFoot OSINT automation tool
 
 Audio & Signal Processing:
   dtmf - Start DTMF decoder for touch-tone signals
@@ -848,7 +850,7 @@ Code Execution:
     if (cmd.startsWith('translate to ') || cmd.startsWith('explain in ')) {
       const isExplain = cmd.startsWith('explain in ');
       const targetLang = cmd.replace(/^(translate to|explain in)\s+/, '').trim().toLowerCase();
-      
+
       // Map language names to codes
       const langMap: { [key: string]: 'english' | 'spanish' | 'japanese' } = {
         'english': 'english',
@@ -863,7 +865,7 @@ Code Execution:
       };
 
       const languageCode = langMap[targetLang];
-      
+
       if (!languageCode) {
         addEntry('error', `Language "${targetLang}" not supported. Use: english, spanish, or japanese`);
         return;
@@ -871,7 +873,7 @@ Code Execution:
 
       // Find last AI response
       const lastAiResponse = [...entries].reverse().find(entry => entry.type === 'response');
-      
+
       if (!lastAiResponse) {
         addEntry('error', 'No previous AI response found to translate.');
         return;
@@ -879,14 +881,14 @@ Code Execution:
 
       // Send translation request
       setIsTyping(true);
-      const translationPrompt = isExplain 
+      const translationPrompt = isExplain
         ? `Please explain the following response in ${languageCode}:\n\n${lastAiResponse.content}`
         : `Please translate the following to ${languageCode}:\n\n${lastAiResponse.content}`;
 
-      chatMutation.mutate({ 
-        message: translationPrompt, 
-        mode: currentMode, 
-        language: languageCode 
+      chatMutation.mutate({
+        message: translationPrompt,
+        mode: currentMode,
+        language: languageCode
       });
       return;
     }
@@ -898,12 +900,12 @@ Code Execution:
         addEntry('error', 'No previous response to translate.');
         return;
       }
-      
+
       setIsTyping(true);
-      chatMutation.mutate({ 
-        message: `Please explain this in English:\n\n${lastAiResponse.content}`, 
-        mode: currentMode, 
-        language: 'english' 
+      chatMutation.mutate({
+        message: `Please explain this in English:\n\n${lastAiResponse.content}`,
+        mode: currentMode,
+        language: 'english'
       });
       return;
     }
@@ -914,12 +916,12 @@ Code Execution:
         addEntry('error', 'No previous response to translate.');
         return;
       }
-      
+
       setIsTyping(true);
-      chatMutation.mutate({ 
-        message: `Por favor explica esto en español:\n\n${lastAiResponse.content}`, 
-        mode: currentMode, 
-        language: 'spanish' 
+      chatMutation.mutate({
+        message: `Por favor explica esto en español:\n\n${lastAiResponse.content}`,
+        mode: currentMode,
+        language: 'spanish'
       });
       return;
     }
@@ -930,12 +932,12 @@ Code Execution:
         addEntry('error', 'No previous response to translate.');
         return;
       }
-      
+
       setIsTyping(true);
-      chatMutation.mutate({ 
-        message: `これを日本語で説明してください:\n\n${lastAiResponse.content}`, 
-        mode: currentMode, 
-        language: 'japanese' 
+      chatMutation.mutate({
+        message: `これを日本語で説明してください:\n\n${lastAiResponse.content}`,
+        mode: currentMode,
+        language: 'japanese'
       });
       return;
     }
@@ -2230,17 +2232,6 @@ Powered by Wolfram Alpha Full Results API`);
 
     // Games
 
-    if (cmd === 'theharvester' || cmd === 'harvester') {
-      addEntry('system', 'Launching theHarvester OSINT reconnaissance tool...');
-      const openTheHarvester = (window as any).openTheHarvester;
-      if (openTheHarvester) {
-        openTheHarvester();
-      } else {
-        addEntry('error', 'theHarvester interface not available. Please ensure the OSINT tool is loaded.');
-      }
-      return;
-    }
-
     if (cmd === 'mud') {
       addEntry('system', 'Launching MUD Client...');
       const openMudClient = (window as any).openMudClient;
@@ -2770,6 +2761,30 @@ Powered by Wolfram Alpha Full Results API`);
       return;
     }
 
+    // SpiderFoot command handler
+    if (lowerCmd.startsWith('spiderfoot') || lowerCmd.startsWith('spider')) {
+      const parts = cmd.split(/\s+/);
+      if (parts.length < 2) {
+        addEntry('error', '❌ Usage: spiderfoot <target> [scan_type]\n\nExample: spiderfoot example.com footprint\n\nScan types: footprint, investigate, passive, all');
+        return;
+      }
+
+      const target = parts[1];
+      const scanType = parts[2] || 'footprint';
+
+      addEntry('system', `🕷️ Launching SpiderFoot for target: ${target}\n\nOpening OSINT automation interface...`);
+      
+      // Trigger SpiderFoot modal to open
+      setTimeout(() => {
+        const openSpiderFoot = (window as any).openSpiderFoot;
+        if (openSpiderFoot) {
+          openSpiderFoot(target, scanType);
+        } else {
+          addEntry('error', 'SpiderFoot interface not available. Please ensure the system is loaded.');
+        }
+      }, 50);
+      return;
+    }
 
 
     // For non-command inputs, send to AI

@@ -30,6 +30,7 @@ import signature from 'cookie-signature';
 import { getSession } from './replitAuth';
 import { archimedesBotService } from './archimedes-bot-service';
 import compression from "compression";
+import { spiderFootService } from "./spiderfoot-service"; // Import SpiderFoot service
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
@@ -2468,7 +2469,7 @@ function windowResized() {
 
       // Check if this is a new session (no history yet)
       const isNewSession = conversationHistory.length === 0;
-      
+
       // Generate AI response using LLM with knowledge base integration
       const response = await llmService.generateResponse(
         message,
@@ -4847,17 +4848,16 @@ function windowResized() {
     }
   });
 
-  // theHarvester OSINT endpoint
-  app.post('/api/theharvester', async (req, res) => {
+  // SpiderFoot API endpoint
+  app.post("/api/spiderfoot", async (req, res) => {
     try {
       // Validate request body using Zod
-      const harvestSchema = z.object({
-        domain: z.string().min(1, 'Domain is required'),
-        source: z.string().default('all'),
-        limit: z.number().int().min(1).max(1000).default(100)
+      const spiderFootSchema = z.object({
+        target: z.string().min(1, 'Target is required'),
+        scanType: z.string().default('footprint')
       });
 
-      const validationResult = harvestSchema.safeParse(req.body);
+      const validationResult = spiderFootSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
           error: 'Invalid request data',
@@ -4865,96 +4865,100 @@ function windowResized() {
         });
       }
 
-      const { domain, source, limit } = validationResult.data;
+      const { target, scanType } = validationResult.data;
+      const cleanTarget = target.toLowerCase().trim();
 
-      const cleanDomain = domain.toLowerCase().trim();
+      // Generate mock SpiderFoot results
+      const generateFindings = (type: string, count: number) => {
+        const findings = [];
+        const confidenceLevels = ['High', 'Medium', 'Low'];
 
-      // Simulate progressive OSINT data gathering
+        for (let i = 0; i < count; i++) {
+          findings.push({
+            type: type,
+            data: `${type}_data_${i}_for_${cleanTarget}`,
+            source: `Module_${type.replace(/\s/g, '_')}`,
+            confidence: confidenceLevels[Math.floor(Math.random() * confidenceLevels.length)]
+          });
+        }
+        return findings;
+      };
+
       const mockResults = {
-        emails: [
-          `info@${cleanDomain}`,
-          `contact@${cleanDomain}`,
-          `admin@${cleanDomain}`,
-          `support@${cleanDomain}`,
-          `sales@${cleanDomain}`,
-          `webmaster@${cleanDomain}`,
-          `noreply@${cleanDomain}`,
-          `security@${cleanDomain}`
-        ].slice(0, Math.floor(Math.random() * 8) + 2),
-
-        subdomains: [
-          `www.${cleanDomain}`,
-          `mail.${cleanDomain}`,
-          `ftp.${cleanDomain}`,
-          `api.${cleanDomain}`,
-          `blog.${cleanDomain}`,
-          `shop.${cleanDomain}`,
-          `dev.${cleanDomain}`,
-          `test.${cleanDomain}`,
-          `staging.${cleanDomain}`,
-          `cdn.${cleanDomain}`,
-          `assets.${cleanDomain}`,
-          `static.${cleanDomain}`
-        ].slice(0, Math.floor(Math.random() * 12) + 3),
-
-        ips: [
-          `192.168.1.${Math.floor(Math.random() * 255)}`,
-          `10.0.0.${Math.floor(Math.random() * 255)}`,
-          `172.16.0.${Math.floor(Math.random() * 255)}`,
-          `8.8.8.8`,
-          `1.1.1.1`
-        ].slice(0, Math.floor(Math.random() * 5) + 2),
-
-        urls: [
-          `https://${cleanDomain}`,
-          `https://www.${cleanDomain}`,
-          `https://${cleanDomain}/about`,
-          `https://${cleanDomain}/contact`,
-          `https://${cleanDomain}/login`,
-          `https://${cleanDomain}/api`,
-          `https://${cleanDomain}/admin`,
-          `https://blog.${cleanDomain}`,
-          `https://shop.${cleanDomain}/products`,
-          `https://api.${cleanDomain}/v1`
-        ].slice(0, Math.floor(Math.random() * 10) + 4),
-
-        certificates: [
-          `CN=${cleanDomain}, O=Example Organization, C=US`,
-          `CN=*.${cleanDomain}, O=Example Organization, C=US`,
-          `CN=www.${cleanDomain}, O=Wildcard Certificate, C=US`
-        ].slice(0, Math.floor(Math.random() * 3) + 1),
-
+        modules: {
+          'DNS Records': { findings: generateFindings('DNS A Record', 3) },
+          'WHOIS Data': { findings: generateFindings('WHOIS Information', 2) },
+          'SSL Certificate': { findings: generateFindings('SSL/TLS Certificate', 2) },
+          'Email Addresses': { findings: generateFindings('Email Address', 5) },
+          'Social Media': { findings: generateFindings('Social Media Profile', 4) },
+          'Breach Data': { findings: generateFindings('Data Breach Record', 1) },
+          'Vulnerabilities': { findings: generateFindings('CVE', 2) },
+          'Subdomains': { findings: generateFindings('Subdomain', 8) },
+          'IP Intelligence': { findings: generateFindings('IP Geolocation', 2) }
+        },
+        summary: {
+          total_findings: 0,
+          high_confidence: 0,
+          medium_confidence: 0,
+          low_confidence: 0
+        },
         metadata: {
-          domain: cleanDomain,
-          source: source,
+          target: cleanTarget,
+          scan_type: scanType,
           timestamp: new Date().toISOString(),
-          total_results: 0
+          modules_used: Object.keys({
+            'DNS Records': true,
+            'WHOIS Data': true,
+            'SSL Certificate': true,
+            'Email Addresses': true,
+            'Social Media': true,
+            'Breach Data': true,
+            'Vulnerabilities': true,
+            'Subdomains': true,
+            'IP Intelligence': true
+          })
         }
       };
 
-      // Calculate total results
-      mockResults.metadata.total_results = 
-        mockResults.emails.length +
-        mockResults.subdomains.length +
-        mockResults.ips.length +
-        mockResults.urls.length +
-        mockResults.certificates.length;
+      // Calculate summary statistics
+      let totalFindings = 0;
+      let highConfidence = 0;
+      let mediumConfidence = 0;
+      let lowConfidence = 0;
+
+      Object.values(mockResults.modules).forEach(module => {
+        module.findings.forEach(finding => {
+          totalFindings++;
+          if (finding.confidence === 'High') highConfidence++;
+          else if (finding.confidence === 'Medium') mediumConfidence++;
+          else lowConfidence++;
+        });
+      });
+
+      mockResults.summary = {
+        total_findings: totalFindings,
+        high_confidence: highConfidence,
+        medium_confidence: mediumConfidence,
+        low_confidence: lowConfidence
+      };
 
       res.json(mockResults);
     } catch (error) {
-      console.error('theHarvester error:', error);
+      console.error('SpiderFoot error:', error);
       res.status(500).json({ 
-        error: 'OSINT harvest failed',
-        emails: [],
-        subdomains: [],
-        ips: [],
-        urls: [],
-        certificates: [],
+        error: 'OSINT scan failed',
+        modules: {},
+        summary: {
+          total_findings: 0,
+          high_confidence: 0,
+          medium_confidence: 0,
+          low_confidence: 0
+        },
         metadata: {
-          domain: req.body.domain || 'unknown',
-          source: req.body.source || 'all',
+          target: req.body.target || 'unknown',
+          scan_type: req.body.scanType || 'footprint',
           timestamp: new Date().toISOString(),
-          total_results: 0
+          modules_used: []
         }
       });
     }
