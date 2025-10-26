@@ -115,13 +115,10 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     const newX = e.clientX - dragOffset.x;
     const newY = e.clientY - dragOffset.y;
 
-    // Boundary constraints to keep response on screen
-    const maxX = window.innerWidth - 400; // Assuming max width of 400px for response
-    const maxY = window.innerHeight - 200; // Assuming max height of 200px for response
-    
+    // No boundary constraints - allow unlimited movement
     setPosition({
-      x: Math.max(0, Math.min(newX, maxX)),
-      y: Math.max(0, Math.min(newY, maxY))
+      x: newX,
+      y: newY
     });
   }, [isDragging, dragOffset]);
 
