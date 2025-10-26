@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 export function MatrixRain() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>();
-  const [isEnabled, setIsEnabled] = useState(true);
+  const [isEnabled, setIsEnabled] = useState(false);
 
   useEffect(() => {
     // Expose toggle function globally
