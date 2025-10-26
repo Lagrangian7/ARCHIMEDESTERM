@@ -1,4 +1,4 @@
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Terminal as TerminalIcon, Shield } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Terminal as TerminalIcon, Shield, Search } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from '@/components/Terminal';
+import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
+import { SshwiftyInterface } from './SshwiftyInterface';
+import { TheHarvester } from './TheHarvester';
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
@@ -27,13 +30,13 @@ interface VoiceControlsProps {
   unreadCount: number;
 }
 
-export function VoiceControls({ 
-  onVoiceInput, 
-  currentMode, 
-  switchMode, 
-  switchTheme, 
-  setShowWebamp, 
-  user, 
+export function VoiceControls({
+  onVoiceInput,
+  currentMode,
+  switchMode,
+  switchTheme,
+  setShowWebamp,
+  user,
   isAuthenticated,
   setShowProfile,
   setShowUpload,
@@ -109,6 +112,8 @@ export function VoiceControls({
     console.log('Voice test - speaking with voice:', selectedVoice, voices[selectedVoice]?.name);
     speak(randomPhrase);
   };
+
+  const [showTheHarvester, setShowTheHarvester] = useState(false);
 
   return (
     <div className="voice-controls p-2 md:p-3 border-b border-terminal-subtle flex flex-wrap md:flex-nowrap items-center justify-between gap-2 text-sm relative z-10">
@@ -239,22 +244,22 @@ export function VoiceControls({
                 </TooltipContent>
               </Tooltip>
 
-              {/* Privacy Button */}
+              {/* Privacy Button - now launches theHarvester */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => setShowPrivacyEncoder(true)}
+                    onClick={() => setShowTheHarvester(true)}
                     variant="outline"
                     size="sm"
                     className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
-                    data-testid="button-privacy"
-                    aria-label="Privacy"
+                    data-testid="button-the-harvester"
+                    aria-label="theHarvester"
                   >
-                    <Shield size={16} />
+                    <Search size={16} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>Privacy</p>
+                  <p>theHarvester</p>
                 </TooltipContent>
               </Tooltip>
             </>
@@ -305,7 +310,7 @@ export function VoiceControls({
           data-testid="button-theme-toggle"
           aria-label="Switch Theme"
         >
-          <img 
+          <img
             src={cubesIcon}
             alt="Theme Switcher"
             width="24"
@@ -314,6 +319,24 @@ export function VoiceControls({
           />
         </button>
       </div>
-    </div>
+
+      {showPrivacyEncoder && (
+        <EncodeDecodeOverlay onClose={() => setShowPrivacyEncoder(false)} />
+      )}
+
+      {/* Sshwifty Modal */}
+      {showSshwifty && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl h-[80vh] bg-terminal-bg border-2 border-terminal-highlight rounded-lg overflow-hidden">
+            <SshwiftyInterface onClose={() => setShowSshwifty(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* theHarvester Modal */}
+      {showTheHarvester && (
+        <TheHarvester onClose={() => setShowTheHarvester(false)} />
+      )}
+    </>
   );
 }
