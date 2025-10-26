@@ -323,8 +323,14 @@ export function VoiceControls({
 
       {/* Sshwifty Modal */}
       {showSshwifty && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="w-full max-w-4xl h-[80vh] bg-terminal-bg border-2 border-terminal-highlight rounded-lg overflow-hidden">
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setShowSshwiftyLocal(false)}
+        >
+          <div 
+            className="w-full max-w-4xl h-[80vh] bg-terminal-bg border-2 border-terminal-highlight rounded-lg overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
             <SshwiftyInterface onClose={() => setShowSshwiftyLocal(false)} />
           </div>
         </div>
