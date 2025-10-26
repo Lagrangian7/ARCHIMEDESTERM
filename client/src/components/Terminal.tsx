@@ -362,17 +362,6 @@ export function Terminal() {
     }
   };
 
-  // Handle command processing results, including new actions
-  useEffect(() => {
-    const lastEntry = entries[entries.length - 1];
-    if (lastEntry && lastEntry.type === 'response' && lastEntry.action) {
-      if (lastEntry.action === 'open_theharvester') {
-        setShowTheHarvester(true);
-      }
-      // Add other action handlers here as needed
-    }
-  }, [entries]);
-
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`}>
