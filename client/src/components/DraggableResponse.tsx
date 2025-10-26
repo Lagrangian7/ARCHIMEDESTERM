@@ -161,7 +161,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
             showFloating ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
           } ${isDragging ? 'scale-105' : ''}`}>
             {/* Response Container with terminal styling */}
-            <div className={`relative max-w-md p-4 rounded-lg border-2 border-terminal-highlight/30 bg-terminal-bg/90 backdrop-blur-sm transition-all duration-200 ${
+            <div className={`relative max-w-md p-4 rounded-lg border-2 border-terminal-highlight/30 bg-terminal-bg/95 backdrop-blur-md transition-all duration-200 ${
               isDragging ? 'shadow-2xl shadow-terminal-highlight/20 border-terminal-highlight/50' : ''
             }`}>
               {/* Header */}
