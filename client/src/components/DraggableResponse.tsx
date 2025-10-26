@@ -98,12 +98,14 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
   useEffect(() => {
     if (isTyping && !position && responseElementRef.current) {
       const rect = responseElementRef.current.getBoundingClientRect();
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const terminalOutput = document.querySelector('.terminal-output');
+      const scrollTop = terminalOutput?.scrollTop || 0;
       
       // Position the bubble near the response, slightly offset to the right
+      // Using offsetTop for absolute positioning relative to the terminal-output container
       setPosition({
-        x: Math.min(rect.left + 20, window.innerWidth - 400), // Keep within viewport
-        y: rect.top + scrollTop + 10 // Account for scroll position
+        x: Math.min(300, window.innerWidth - 420), // Keep within viewport
+        y: responseElementRef.current.offsetTop + 10 // Position relative to container
       });
     }
   }, [isTyping, position]);
@@ -142,20 +144,33 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
 
     e.preventDefault();
     e.stopPropagation();
+    
+    const terminalOutput = document.querySelector('.terminal-output');
+    if (!terminalOutput) return;
+
+    const rect = terminalOutput.getBoundingClientRect();
+    const scrollTop = terminalOutput.scrollTop;
+
     setIsDragging(true);
     setDragOffset({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
+      x: e.clientX - rect.left - position.x,
+      y: e.clientY - rect.top + scrollTop - position.y
     });
   }, [position]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
 
-    const newX = e.clientX - dragOffset.x;
-    const newY = e.clientY - dragOffset.y;
+    const terminalOutput = document.querySelector('.terminal-output');
+    if (!terminalOutput) return;
 
-    // No boundary constraints - allow unlimited movement
+    const rect = terminalOutput.getBoundingClientRect();
+    const scrollTop = terminalOutput.scrollTop;
+
+    // Calculate position relative to the terminal-output container
+    const newX = e.clientX - rect.left - dragOffset.x;
+    const newY = e.clientY - rect.top + scrollTop - dragOffset.y;
+
     setPosition({
       x: newX,
       y: newY
@@ -197,7 +212,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
       {/* Floating draggable version when typing */}
       {showFloating && position && (
         <div 
-          className="fixed z-50 cursor-move"
+          className="absolute z-50 cursor-move"
           style={{
             left: position.x,
             top: position.y,
