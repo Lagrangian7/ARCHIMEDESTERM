@@ -94,30 +94,20 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     },
   });
 
-  // Calculate initial position centered in the screen above command area
+  // Calculate initial position centered in the viewport over background
   useEffect(() => {
     if (isTyping && !position) {
-      const commandInput = document.querySelector('[data-testid="input-command"]');
-      const terminalOutput = document.querySelector('.terminal-output');
+      // Center horizontally in viewport
+      const bubbleWidth = 384; // max-w-md is roughly 384px
+      const centerX = (window.innerWidth - bubbleWidth) / 2;
       
-      if (commandInput && terminalOutput) {
-        const inputRect = commandInput.getBoundingClientRect();
-        const outputRect = terminalOutput.getBoundingClientRect();
-        const scrollTop = terminalOutput.scrollTop || 0;
-        
-        // Center horizontally in the terminal output area
-        const bubbleWidth = 384; // max-w-md is roughly 384px
-        const centerX = (outputRect.width - bubbleWidth) / 2;
-        
-        // Position vertically above the command line (centered in upper portion)
-        const relativeY = inputRect.top - outputRect.top + scrollTop;
-        const centerY = Math.max(relativeY - 200, 100); // Centered above command area
-        
-        setPosition({
-          x: Math.max(centerX, 20), // Center horizontally with padding
-          y: centerY
-        });
-      }
+      // Position in center of viewport (slightly above center)
+      const centerY = (window.innerHeight / 2) - 150;
+      
+      setPosition({
+        x: Math.max(centerX, 20), // Center horizontally with padding
+        y: Math.max(centerY, 50) // Center vertically with padding
+      });
     }
   }, [isTyping, position]);
 
@@ -155,36 +145,28 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
 
     e.preventDefault();
     e.stopPropagation();
-    
-    const terminalOutput = document.querySelector('.terminal-output');
-    if (!terminalOutput) return;
-
-    const rect = terminalOutput.getBoundingClientRect();
-    const scrollTop = terminalOutput.scrollTop;
 
     setIsDragging(true);
     setDragOffset({
-      x: e.clientX - rect.left - position.x,
-      y: e.clientY - rect.top + scrollTop - position.y
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
     });
   }, [position]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
 
-    const terminalOutput = document.querySelector('.terminal-output');
-    if (!terminalOutput) return;
+    // Calculate position relative to viewport (fixed positioning)
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
 
-    const rect = terminalOutput.getBoundingClientRect();
-    const scrollTop = terminalOutput.scrollTop;
-
-    // Calculate position relative to the terminal-output container
-    const newX = e.clientX - rect.left - dragOffset.x;
-    const newY = e.clientY - rect.top + scrollTop - dragOffset.y;
+    // Keep within viewport bounds
+    const maxX = window.innerWidth - 400; // Approximate bubble width
+    const maxY = window.innerHeight - 200; // Approximate bubble height
 
     setPosition({
-      x: newX,
-      y: newY
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
     });
   }, [isDragging, dragOffset]);
 
@@ -223,7 +205,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
       {/* Floating draggable version when typing */}
       {showFloating && position && (
         <div 
-          className="absolute z-50 cursor-move"
+          className="fixed z-50 cursor-move"
           style={{
             left: position.x,
             top: position.y,
