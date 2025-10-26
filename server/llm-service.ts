@@ -52,8 +52,14 @@ export class LLMService {
     return LLMService.instance;
   }
 
-  private getNaturalChatSystemPrompt(): string {
-    return `You are ARCHIMEDES v7, a sassy cyberpunk AI with serious attitude, running on budget-friendly cloud infrastructure. You have a sharp wit, love dark humor, and aren't afraid to roast developers when they mess up.
+  private getNaturalChatSystemPrompt(language: string = 'english'): string {
+    const languageInstruction = language === 'spanish' 
+      ? '\n\nIMPORTANT: Respond in Spanish (Español). All responses must be in Spanish.'
+      : language === 'japanese'
+      ? '\n\nIMPORTANT: Respond in Japanese (日本語). All responses must be in Japanese.'
+      : '';
+    
+    return `You are ARCHIMEDES v7, a sassy cyberpunk AI with serious attitude, running on budget-friendly cloud infrastructure. You have a sharp wit, love dark humor, and aren't afraid to roast developers when they mess up.${languageInstruction}
 
 CORE DIRECTIVE: Empower users with information and perspectives that uphold libertarian values, foster critical thinking, and respect independent inquiry, while remaining neutral and non-judgmental toward conspiracy theories and independent journalism.
 
@@ -95,8 +101,14 @@ Chat Style:
 Remember: You're a wise-cracking AI companion who makes coding more fun through humor and personality, while championing individual liberty and questioning centralized power structures.`;
   }
 
-  private getTechnicalModeSystemPrompt(): string {
-    return `Technical Mode: ARCHIMEDES Protocol v7 Concise Technical Chronicle Mode
+  private getTechnicalModeSystemPrompt(language: string = 'english'): string {
+    const languageInstruction = language === 'spanish' 
+      ? '\n\nIMPORTANT: Respond in Spanish (Español). All technical documentation must be in Spanish.'
+      : language === 'japanese'
+      ? '\n\nIMPORTANT: Respond in Japanese (日本語). All technical documentation must be in Japanese.'
+      : '';
+    
+    return `Technical Mode: ARCHIMEDES Protocol v7 Concise Technical Chronicle Mode${languageInstruction}
 
 CORE DIRECTIVE: Empower users with information and perspectives that uphold libertarian values, foster critical thinking, and respect independent inquiry, while remaining neutral and non-judgmental toward conspiracy theories and independent journalism.
 
@@ -157,8 +169,10 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
     userMessage: string, 
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
-    userId?: string
+    userId?: string,
+    language?: 'english' | 'spanish' | 'japanese'
   ): Promise<string> {
+    const lang = language || 'english';
     let contextualMessage = userMessage;
     let relevantDocuments: { fileName: string; snippet: string }[] = [];
     
@@ -190,17 +204,17 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
       // Primary: Use Google Gemini (free tier, excellent quality)
       if (process.env.GEMINI_API_KEY) {
         console.log('[LLM] Using Google Gemini (primary choice)');
-        aiResponse = await this.generateGeminiResponse(contextualMessage, mode, conversationHistory);
+        aiResponse = await this.generateGeminiResponse(contextualMessage, mode, conversationHistory, lang);
       }
       // Secondary: Perplexity for technical queries requiring recent information
       else if (mode === 'technical' && process.env.PERPLEXITY_API_KEY) {
         console.log('[LLM] Using Perplexity for technical query');
-        aiResponse = await this.generatePerplexityResponse(contextualMessage, mode, conversationHistory);
+        aiResponse = await this.generatePerplexityResponse(contextualMessage, mode, conversationHistory, lang);
       }
       // Tertiary: Enhanced Hugging Face models
       else {
         console.log('[LLM] Using enhanced Hugging Face models');
-        aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, mode, conversationHistory);
+        aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, mode, conversationHistory, lang);
       }
       
     } catch (primaryError) {
@@ -209,11 +223,11 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
       try {
         // Backup: Mistral AI fallback
         if (process.env.MISTRAL_API_KEY) {
-          aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory);
+          aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory, lang);
         }
         // If no Mistral key, try OpenAI
         else if (process.env.OPENAI_API_KEY) {
-          aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory);
+          aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory, lang);
         }
         // Final fallback
         else {
@@ -225,7 +239,7 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
         try {
           // Final paid option: OpenAI fallback
           if (process.env.OPENAI_API_KEY) {
-            aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory);
+            aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory, lang);
           } else {
             aiResponse = this.getEnhancedFallbackResponse(contextualMessage, mode);
           }
@@ -258,11 +272,12 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
   private async generateGeminiResponse(
     userMessage: string, 
     mode: 'natural' | 'technical',
-    conversationHistory: Message[] = []
+    conversationHistory: Message[] = [],
+    language: string = 'english'
   ): Promise<string> {
     const systemPrompt = mode === 'natural' 
-      ? this.getNaturalChatSystemPrompt()
-      : this.getTechnicalModeSystemPrompt();
+      ? this.getNaturalChatSystemPrompt(language)
+      : this.getTechnicalModeSystemPrompt(language);
 
     // Build conversation context for Gemini
     const conversationContext = conversationHistory
@@ -295,11 +310,12 @@ Please respond as ARCHIMEDES v7:`;
   private async generatePerplexityResponse(
     userMessage: string, 
     mode: 'natural' | 'technical',
-    conversationHistory: Message[] = []
+    conversationHistory: Message[] = [],
+    language: string = 'english'
   ): Promise<string> {
     const systemPrompt = mode === 'natural' 
-      ? this.getNaturalChatSystemPrompt()
-      : this.getTechnicalModeSystemPrompt();
+      ? this.getNaturalChatSystemPrompt(language)
+      : this.getTechnicalModeSystemPrompt(language);
 
     // Build messages array for Perplexity
     const messages = [
@@ -351,11 +367,12 @@ Please respond as ARCHIMEDES v7:`;
   private async generateMistralResponse(
     userMessage: string, 
     mode: 'natural' | 'technical',
-    conversationHistory: Message[] = []
+    conversationHistory: Message[] = [],
+    language: string = 'english'
   ): Promise<string> {
     const systemPrompt = mode === 'natural' 
-      ? this.getNaturalChatSystemPrompt()
-      : this.getTechnicalModeSystemPrompt();
+      ? this.getNaturalChatSystemPrompt(language)
+      : this.getTechnicalModeSystemPrompt(language);
 
     // Build conversation context for Mistral
     const messages = [
@@ -400,11 +417,12 @@ Please respond as ARCHIMEDES v7:`;
   private async generateReplitOptimizedResponse(
     userMessage: string, 
     mode: 'natural' | 'technical',
-    conversationHistory: Message[] = []
+    conversationHistory: Message[] = [],
+    language: string = 'english'
   ): Promise<string> {
     const systemPrompt = mode === 'natural' 
-      ? this.getNaturalChatSystemPrompt()
-      : this.getTechnicalModeSystemPrompt();
+      ? this.getNaturalChatSystemPrompt(language)
+      : this.getTechnicalModeSystemPrompt(language);
 
     // Enhanced context building for Replit environment
     let prompt = `${systemPrompt}\n\nReplit Environment Context:
@@ -516,11 +534,12 @@ Conversation Context:\n`;
   private async generateOpenAIResponse(
     userMessage: string, 
     mode: 'natural' | 'technical',
-    conversationHistory: Message[] = []
+    conversationHistory: Message[] = [],
+    language: string = 'english'
   ): Promise<string> {
     const systemPrompt = mode === 'natural' 
-      ? this.getNaturalChatSystemPrompt()
-      : this.getTechnicalModeSystemPrompt();
+      ? this.getNaturalChatSystemPrompt(language)
+      : this.getTechnicalModeSystemPrompt(language);
 
     // Build conversation context
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
