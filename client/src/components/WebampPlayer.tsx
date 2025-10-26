@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import Webamp from 'webamp/butterchurn';
+import { useEffect, useRef, lazy, Suspense } from 'react';
+const Webamp = lazy(() => import('webamp').then(module => ({ default: module.default })));
 import nDimensionsTheme from '@assets/n-Dimensions (Main Theme)_1758647261911.mp3';
 import fortressTrack from '@assets/fortress_1759293202674.mp3';
 import modeTrack from '@assets/mode_1759293195149.mp3';
@@ -11,7 +11,7 @@ interface WebampPlayerProps {
 }
 
 export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
-  const webampRef = useRef<Webamp | null>(null);
+  const webampRef = useRef<any | null>(null); // Use 'any' for lazy loaded component
   const containerRef = useRef<HTMLDivElement>(null);
   const initializingRef = useRef<boolean>(false);
 
@@ -41,7 +41,7 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
 
     // Check if Webamp is already initialized or initializing
     if (webampRef.current || initializingRef.current) return;
-    
+
     initializingRef.current = true;
 
     const initWebamp = async () => {
@@ -52,7 +52,7 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
           const docsResponse = await fetch('/api/knowledge/documents', { credentials: 'include' });
           if (docsResponse.ok) {
             const documents = await docsResponse.json();
-            
+
             // Filter for audio files
             knowledgeBaseTracks = documents
               .filter((doc: any) => doc.mimeType && doc.mimeType.startsWith('audio/'))
@@ -108,12 +108,12 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
             },
             ...knowledgeBaseTracks // Add knowledge base MP3s
           ],
-          
+
           // Custom default skin
           initialSkin: {
             url: "/default-skin.wsz"
           },
-          
+
           // Initial window layout with Milkdrop visualizer
           windowLayout: {
             main: { position: { top: 20, left: 20 } },
@@ -124,7 +124,7 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
             },
             milkdrop: { position: { top: 20, left: 300 }, size: [275, 455] }
           },
-          
+
           // Available skins
           availableSkins: [
             {
@@ -317,7 +317,7 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
           await webamp.renderWhenReady(container);
           webampRef.current = webamp;
           console.log('Webamp initialized successfully');
-          
+
           // Auto-play the track
           webamp.play();
         }
@@ -342,15 +342,17 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
   if (!isOpen) return null;
 
   return (
-    <div 
-      ref={containerRef}
-      id="webamp-container"
-      className="fixed inset-0"
-      style={{ 
-        zIndex: 10000,
-        pointerEvents: 'none'
-      }}
-      data-testid="webamp-container"
-    />
+    <Suspense fallback={<div>Loading Webamp...</div>}>
+      <div
+        ref={containerRef}
+        id="webamp-container"
+        className="fixed inset-0"
+        style={{
+          zIndex: 10000,
+          pointerEvents: 'none'
+        }}
+        data-testid="webamp-container"
+      />
+    </Suspense>
   );
 }

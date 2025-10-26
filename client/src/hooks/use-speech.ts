@@ -141,11 +141,11 @@ export function useSpeechSynthesis() {
     isEnabledRef.current = isEnabled;
   }, [isEnabled]);
 
-  const speak = useCallback((text: string) => {
-    if (!isEnabledRef.current || !('speechSynthesis' in window)) {
-      console.warn('Speech synthesis disabled or not supported');
-      return;
-    }
+  const speak = useCallback(async (text: string) => {
+    if (!text || text.trim() === '') return;
+
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
 
     // Debounce speech calls
     if (speechTimeout) {
@@ -188,7 +188,7 @@ export function useSpeechSynthesis() {
           .replace(/[─━│┃┄┅┆┇┈┉┊┋]/g, '') // All line styles
           .replace(/[└┘┌┐├┤┬┴┼]/g, '') // Light box corners/intersections
           .replace(/[€£¥¢§¶†‡•…‰′″‴]/g, '') // Remove currency and special symbols
-          .replace(/[⌐⌠⌡°∙·√ⁿ²]/g, '') // Remove mathematical drawing chars
+          .replace(/[⌐⌠⌡°∙√ⁿ²]/g, '') // Remove mathematical drawing chars
           .replace(/[▬▭▮▯▰▱]/g, '') // Remove horizontal bars
           // Remove any remaining unicode digits that look like "8288", "8289", etc.
           .replace(/\b\d{4}\b/g, (match) => {

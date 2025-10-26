@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message } from '@shared/schema';
@@ -69,9 +69,9 @@ export function useTerminal(onUploadCommand?: () => void) {
   });
 
   const weatherMutation = useMutation({
-    mutationFn: async ({ location, coordinates }: { 
+    mutationFn: async ({ location, coordinates }: {
       location?: string;
-      coordinates?: { lat: number; lon: number } 
+      coordinates?: { lat: number; lon: number }
     }) => {
       let endpoint = '/api/weather';
       const params = new URLSearchParams();
@@ -267,7 +267,7 @@ export function useTerminal(onUploadCommand?: () => void) {
 Total Results: ${data.total_results}
 Search Time: ${new Date(data.search_time).toLocaleTimeString()}
 
-${data.results.map((result: any) => 
+${data.results.map((result: any) =>
   `${result.rank}. ${result.title}
    🔗 ${result.url}
    📄 ${result.description}
@@ -305,8 +305,8 @@ Use the URLs above to access the full articles and information.`;
     setEntries(prev => {
       const newEntries = [...prev, entry];
       // Keep only the last MAX_ENTRIES to prevent memory issues
-      return newEntries.length > MAX_ENTRIES 
-        ? newEntries.slice(-MAX_ENTRIES) 
+      return newEntries.length > MAX_ENTRIES
+        ? newEntries.slice(-MAX_ENTRIES)
         : newEntries;
     });
 
@@ -517,7 +517,7 @@ Use the URLs above to access the full articles and information.`;
 
     // Handle built-in terminal commands
     if (cmd === 'help') {
-      // Open interactive help menu instead of static text  
+      // Open interactive help menu instead of static text
       addEntry('system', 'Opening interactive help menu... (Use F1 key for quick access)');
 
       // Trigger the help menu
@@ -837,7 +837,7 @@ You can also chat naturally or ask technical questions.`);
     }
 
     if (cmd === 'history') {
-      const historyText = commandHistory.length > 0 
+      const historyText = commandHistory.length > 0
         ? commandHistory.slice(0, 10).map((cmd, i) => `${i + 1}. ${cmd}`).join('\n')
         : 'No command history available.';
       addEntry('system', `Recent Commands:\n${historyText}`);
@@ -927,7 +927,7 @@ You can also chat naturally or ask technical questions.`);
             addEntry('system', 'No documents found. Use "upload" to add documents to your knowledge base.');
           } else {
             const docList = documents
-              .map((doc: any, index: number) => 
+              .map((doc: any, index: number) =>
                 `${index + 1}. ${doc.originalName} (${doc.fileSize} bytes) - ${doc.summary || 'No summary'}`
               )
               .join('\n');
@@ -999,9 +999,9 @@ You can also chat naturally or ask technical questions.`);
       const minutes = Math.floor((sessionDuration % 3600) / 60);
       const seconds = sessionDuration % 60;
 
-      const timeString = hours > 0 
+      const timeString = hours > 0
         ? `${hours}h ${minutes}m ${seconds}s`
-        : minutes > 0 
+        : minutes > 0
           ? `${minutes}m ${seconds}s`
           : `${seconds}s`;
 
@@ -1048,7 +1048,7 @@ You can also chat naturally or ask technical questions.`);
 
     if (cmd === 'preview' || cmd === 'run' || cmd.startsWith('preview ') || cmd.startsWith('run ')) {
       // Check if user pasted code after the command
-      const pastedCode = cmd.startsWith('preview ') 
+      const pastedCode = cmd.startsWith('preview ')
         ? command.substring('preview '.length).trim()
         : cmd.startsWith('run ')
           ? command.substring('run '.length).trim()
@@ -1059,7 +1059,7 @@ You can also chat naturally or ask technical questions.`);
         if (pastedCode.includes('import ') || pastedCode.includes('def ') || pastedCode.includes('print(')) {
           setIsTyping(true);
           addEntry('system', '🐍 Executing Python code...');
-          
+
           fetch('/api/execute/python', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1098,7 +1098,7 @@ You can also chat naturally or ask technical questions.`);
       if (pythonMatch && pythonMatch[1]) {
         setIsTyping(true);
         addEntry('system', '🐍 Executing Python code...');
-        
+
         fetch('/api/execute/python', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1242,8 +1242,8 @@ You can also chat naturally or ask technical questions.`);
       setIsTyping(true);
       addEntry('system', `Searching knowledge base for: "${query}"`);
 
-      fetch(`/api/knowledge/search?q=${encodeURIComponent(query)}`, { 
-        credentials: 'include' 
+      fetch(`/api/knowledge/search?q=${encodeURIComponent(query)}`, {
+        credentials: 'include'
       })
         .then(async (res) => {
           setIsTyping(false);
@@ -1297,9 +1297,9 @@ Documents: ${documents.map((doc: any) => doc.originalName).join(', ')}`;
   Total Chunks: ${stats.totalChunks}
 
 Recent Documents:
-${stats.recentDocuments.length > 0 
-  ? stats.recentDocuments.map((doc: any, i: number) => 
-      `  ${i + 1}. ${doc.originalName} (uploaded ${new Date(doc.uploadedAt).toLocaleDateString()})`)
+${stats.recentDocuments.length > 0
+  ? stats.recentDocuments.map((doc: any, i: number) =>
+    `  ${i + 1}. ${doc.originalName} (uploaded ${new Date(doc.uploadedAt).toLocaleDateString()})`)
     .join('\n')
   : '  No documents yet'
 }
@@ -1325,7 +1325,7 @@ Basic Commands:
   books popular [limit] - Show most downloaded books (default: 20)
   books search <query> - Search books by title or author
   books info <id> - Get detailed information and download links
-  books author <name> - Find all books by a specific author  
+  books author <name> - Find all books by a specific author
   books topic <topic> - Find books by subject/topic
 
 Advanced Search:
@@ -1337,7 +1337,7 @@ Examples:
   books popular 10
   books search pride prejudice
   books search shakespeare lang:en
-  books search dickens year:1800-1870  
+  books search dickens year:1800-1870
   books author "Mark Twain"
   books topic children
   books info 1342
@@ -1840,7 +1840,7 @@ Powered by Wolfram Alpha Full Results API`);
             const resultSummary = data.pods
               .filter((pod: any) => pod.plaintext || (pod.subpods && pod.subpods.length > 0))
               .map((pod: any) => {
-                const content = pod.subpods 
+                const content = pod.subpods
                   ? pod.subpods.map((sp: any) => sp.plaintext).filter(Boolean).join('\n')
                   : pod.plaintext;
                 return `${pod.title}: ${content}`;
@@ -1956,7 +1956,7 @@ Powered by Wolfram Alpha Full Results API`);
 
       // Simulate ping by attempting a basic connectivity test
       const startTime = Date.now();
-      fetch(`/api/ping/${encodeURIComponent(host)}`, { 
+      fetch(`/api/ping/${encodeURIComponent(host)}`, {
         method: 'GET',
         signal: AbortSignal.timeout(5000) // 5 second timeout
       })
@@ -1991,7 +1991,7 @@ Powered by Wolfram Alpha Full Results API`);
 
           const bbsList = systems
             .slice(0, 10) // Show first 10
-            .map((bbs, index) => 
+            .map((bbs, index) =>
               `${index + 1}. ${bbs.name} - ${bbs.host}:${bbs.port}
      Location: ${bbs.location || 'Unknown'}
      Software: ${bbs.software || 'Unknown'}
@@ -2031,7 +2031,7 @@ Powered by Wolfram Alpha Full Results API`);
           }
 
           const searchResults = systems
-            .map((bbs, index) => 
+            .map((bbs, index) =>
               `${index + 1}. ${bbs.name} - ${bbs.host}:${bbs.port}
      Location: ${bbs.location || 'Unknown'}
      Description: ${bbs.description || 'No description available'}
@@ -2062,7 +2062,7 @@ Powered by Wolfram Alpha Full Results API`);
           }
 
           const popularList = systems
-            .map((bbs, index) => 
+            .map((bbs, index) =>
               `${index + 1}. ${bbs.name} - ${bbs.host}:${bbs.port}
      Connections: ${bbs.totalConnections || 0}
      Location: ${bbs.location || 'Unknown'}
@@ -2099,7 +2099,7 @@ Powered by Wolfram Alpha Full Results API`);
           }
 
           const favoritesList = systems
-            .map((bbs: any, index: number) => 
+            .map((bbs: any, index: number) =>
               `${index + 1}. ${bbs.name} - ${bbs.host}:${bbs.port}
      Location: ${bbs.location || 'Unknown'}
      Connect: telnet ${bbs.host} ${bbs.port}`
@@ -2184,16 +2184,16 @@ Powered by Wolfram Alpha Full Results API`);
     // Radio Garden streaming commands
     if (cmd === 'radio') {
       // Show radio help when just "radio" is typed
-      const helpText = 
-        `📻 RADIO GARDEN - Global Live Radio Streams\\n\\n` +
-        `Available Commands:\\n` +
-        `radio play        - Open radio interface\\n` +
-        `radio stop        - Stop current stream\\n` +
-        `radio search <q>  - Search for stations\\n` +
-        `radio random      - Get random station\\n` +
-        `radio countries   - List countries\\n` +
-        `radio volume <n>  - Set volume (0-100)\\n` +
-        `radio status      - Check status\\n\\n` +
+      const helpText =
+        `📻 RADIO GARDEN - Global Live Radio Streams\n\n` +
+        `Available Commands:\n` +
+        `radio play        - Open radio interface\n` +
+        `radio stop        - Stop current stream\n` +
+        `radio search <q>  - Search for stations\n` +
+        `radio random      - Get random station\n` +
+        `radio countries   - List countries\n` +
+        `radio volume <n>  - Set volume (0-100)\n` +
+        `radio status      - Check status\n\n` +
         `💡 Radio Garden provides access to thousands of live stations worldwide`;
       addEntry('system', helpText);
       return;

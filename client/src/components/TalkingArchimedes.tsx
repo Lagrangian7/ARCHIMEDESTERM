@@ -105,6 +105,7 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
             loop
             muted
             playsInline
+            preload="metadata"
             className="w-full h-full object-cover pointer-events-none"
           />
           

@@ -29,15 +29,19 @@ import { parse } from 'cookie';
 import signature from 'cookie-signature';
 import { getSession } from './replitAuth';
 import { archimedesBotService } from './archimedes-bot-service';
+import compression from "compression";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+
+  // Enable gzip compression
+  app.use(compression());
 
   // Initialize Archimedes AI bot
   await archimedesBotService.initializeBot();
 
   // Create a reference for the chat WebSocket server (will be initialized later)
   let chatWss: WebSocketServer | null = null;
-  
+
   // Rate limiting for WebSocket messages
   const messageRateLimits = new Map<string, { count: number; resetTime: number }>();
   const MESSAGE_RATE_LIMIT = 50; // messages per minute
@@ -2037,7 +2041,7 @@ function windowResized() {
       path: url.pathname,
       method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; ARCHIMEDES-Radio/1.0)',
+        'User-Agent': 'ARCHIMEDES-Radio/1.0',
         'Accept': 'audio/*',
         'Connection': 'keep-alive'
       }
@@ -3203,7 +3207,7 @@ function windowResized() {
 
       // Execute Python with timeout and resource limits
       const execPromise = promisify(exec);
-      
+
       try {
         const { stdout, stderr } = await execPromise(
           `timeout 10s python3 "${tmpFile}"`,
@@ -5310,7 +5314,7 @@ function windowResized() {
     });
 
     ws.on('close', async (code: number, reason: Buffer) => {
-      console.log('[Chat WS] Client disconnected - Code:', code, 'Reason:', reason.toString() || 'No reason', 'Had userId:', !!ws.userId);
+      console.log('Chat WebSocket client disconnected - Code:', code, 'Reason:', reason.toString() || 'No reason', 'Had userId:', !!ws.userId);
 
       if (ws.userId) {
         try {
