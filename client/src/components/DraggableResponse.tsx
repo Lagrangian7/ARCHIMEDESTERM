@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, ReactNode } from 'react';
+import { useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { Save } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -14,10 +14,11 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
   const { toast } = useToast();
 
   // Drag state management
-  const [position, setPosition] = useState({ x: 100, y: 100 }); // Default position
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null); // Null until calculated
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [showFloating, setShowFloating] = useState(isTyping); // Start visible if already typing
+  const responseElementRef = useRef<HTMLDivElement>(null);
 
   // Extract text content from ReactNode
   const extractTextContent = (node: ReactNode): string => {
@@ -92,6 +93,20 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
       });
     },
   });
+
+  // Calculate initial position based on the response element's location
+  useEffect(() => {
+    if (isTyping && !position && responseElementRef.current) {
+      const rect = responseElementRef.current.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // Position the bubble near the response, slightly offset to the right
+      setPosition({
+        x: Math.min(rect.left + 20, window.innerWidth - 400), // Keep within viewport
+        y: rect.top + scrollTop + 10 // Account for scroll position
+      });
+    }
+  }, [isTyping, position]);
 
   // Show floating version when typing starts, keep visible until saved
   useEffect(() => {
@@ -172,12 +187,15 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
   return (
     <>
       {/* Original response in place (hidden when typing to avoid duplication) */}
-      <div className={`${isTyping ? 'opacity-0 pointer-events-none' : ''}`}>
+      <div 
+        ref={responseElementRef}
+        className={`${isTyping ? 'opacity-0 pointer-events-none' : ''}`}
+      >
         {children}
       </div>
 
       {/* Floating draggable version when typing */}
-      {showFloating && (
+      {showFloating && position && (
         <div 
           className="fixed z-50 cursor-move"
           style={{
