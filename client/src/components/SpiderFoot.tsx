@@ -105,7 +105,7 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-terminal-highlight/30">
+        <div className="flex items-center justify-between p-4 border-b border-terminal-highlight/30 relative z-10 bg-terminal-bg">
           <h2 className="text-xl font-bold text-terminal-highlight font-mono">
             🕷️ SpiderFoot OSINT
           </h2>
@@ -114,7 +114,7 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
               e.stopPropagation();
               handleClose();
             }}
-            className="text-terminal-highlight hover:bg-terminal-highlight/10 p-2 rounded transition-colors cursor-pointer"
+            className="text-terminal-highlight hover:bg-terminal-highlight/10 p-2 rounded transition-colors cursor-pointer relative z-20"
             type="button"
           >
             <X className="w-5 h-5" />
@@ -122,7 +122,7 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
         </div>
 
         {/* Scan Form */}
-        <div className="p-4 border-b border-terminal-highlight/30">
+        <div className="p-4 border-b border-terminal-highlight/30 relative z-10 bg-terminal-bg">
           <div className="flex gap-3 mb-3">
             <Input
               value={target}
