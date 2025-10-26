@@ -673,7 +673,7 @@ You can also chat naturally or ask technical questions.`);
         {
           id: crypto.randomUUID(),
           type: 'system',
-          content: "Welcome to ARCHIMEDES v7.",
+          content: "Initialized",
           timestamp: new Date().toISOString(),
         },
       ]);
