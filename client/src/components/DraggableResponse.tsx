@@ -21,7 +21,12 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
 
   // Extract text content from ReactNode
   const extractTextContent = (node: ReactNode): string => {
-    if (typeof node === 'string') return node;
+    if (typeof node === 'string') {
+      // If it's HTML string, create a temporary div to extract text
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = node;
+      return tempDiv.textContent || tempDiv.innerText || node;
+    }
     if (typeof node === 'number') return String(node);
     if (Array.isArray(node)) return node.map(extractTextContent).join('');
     if (node && typeof node === 'object' && 'props' in node) {
@@ -34,7 +39,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
   const saveMutation = useMutation({
     mutationFn: async () => {
       const textContent = extractTextContent(children);
-      if (!textContent.trim()) {
+      if (!textContent || !textContent.trim()) {
         throw new Error('No content to save');
       }
 
