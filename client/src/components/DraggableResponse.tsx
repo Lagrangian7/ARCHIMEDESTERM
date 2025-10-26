@@ -93,25 +93,13 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     },
   });
 
-  // Show floating version when typing starts, keep visible until double-clicked
+  // Show floating version when typing starts, keep visible until saved
   useEffect(() => {
     if (isTyping) {
       setShowFloating(true);
     }
-    // No auto-hide - bubbles stay until double-clicked
+    // No auto-hide - bubbles stay until saved via button or double-click
   }, [isTyping]);
-
-  // Ensure bubble shows even if typing state changes too quickly
-  useEffect(() => {
-    // If we have content and not currently typing, ensure bubble is shown
-    if (!isTyping && children && !showFloating) {
-      // Small delay to ensure content is ready
-      const timer = setTimeout(() => {
-        setShowFloating(true);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isTyping, children, showFloating]);
 
   // Double-click handler to save and dismiss the bubble
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
