@@ -8,9 +8,10 @@ import serpentTrack from '@assets/serpent_1759431415420.mp3';
 interface WebampPlayerProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpen?: () => void;
 }
 
-export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
+export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerProps) {
   const webampRef = useRef<Webamp | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const initializingRef = useRef<boolean>(false);
@@ -337,6 +338,11 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
 
           // Auto-play the track
           webamp.play();
+          
+          // Notify parent that Webamp is open and playing
+          if (onOpen) {
+            onOpen();
+          }
         }
       } catch (error) {
         console.error('Failed to initialize Webamp:', error);

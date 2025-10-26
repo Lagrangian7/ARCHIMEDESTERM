@@ -730,9 +730,9 @@ export function Terminal() {
         isOpen={showWebamp}
         onClose={() => {
           setShowWebamp(false);
-          setIsWebampOpen(false); // Set isWebampOpen to false when Webamp is closed
+          setIsWebampOpen(false);
         }}
-        onOpen={() => setIsWebampOpen(true)} // Set isWebampOpen to true when Webamp is opened
+        onOpen={() => setIsWebampOpen(true)}
       />
 
       {/* AJ Video Player */}
