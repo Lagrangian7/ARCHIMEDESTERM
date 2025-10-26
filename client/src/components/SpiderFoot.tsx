@@ -102,7 +102,16 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
     >
       <div
         className="bg-terminal-bg border-2 border-terminal-highlight rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          // Only stop propagation if clicking on the background, not on interactive elements
+          if (e.target === e.currentTarget) {
+            e.stopPropagation();
+          }
+        }}
+        onMouseDown={(e) => {
+          // Prevent the overlay click from closing when clicking inside the modal
+          e.stopPropagation();
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-terminal-highlight/30">
