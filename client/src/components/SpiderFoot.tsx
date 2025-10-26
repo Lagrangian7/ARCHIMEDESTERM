@@ -108,17 +108,18 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
           <h2 className="text-xl font-bold text-terminal-highlight font-mono">
             🕷️ SpiderFoot OSINT
           </h2>
-          <Button
+          <button
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               handleClose();
             }}
-            variant="ghost"
-            size="sm"
-            className="text-terminal-highlight hover:bg-terminal-highlight/10"
+            className="text-terminal-highlight hover:bg-terminal-highlight/10 p-2 rounded transition-colors cursor-pointer z-[10000]"
+            style={{ pointerEvents: 'auto' }}
+            type="button"
           >
             <X className="w-5 h-5" />
-          </Button>
+          </button>
         </div>
 
         {/* Scan Form */}
