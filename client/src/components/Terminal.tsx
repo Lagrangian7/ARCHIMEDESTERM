@@ -430,9 +430,10 @@ export function Terminal() {
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
               backgroundSize: 'contain',
-              opacity: 0.18,
+              opacity: 0.08,
               maxWidth: '600px',
               margin: '0 auto',
+              willChange: 'auto',
             }}
           />
           <ScrollArea className="h-full" ref={scrollAreaRef}>

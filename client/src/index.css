@@ -188,7 +188,7 @@
   --terminal-orange: hsl(195 100% 65%);
 }
 
-/* Logo pulsating glow animation */
+/* Matrix Rain Background Effect - Optimized */
 @keyframes logoGlow {
   0%, 100% { 
     box-shadow: 0 0 8px var(--terminal-logo-green), 
@@ -203,6 +203,17 @@
                 0 0 64px var(--terminal-logo-green);
     opacity: 1;
   }
+}
+
+/* Performance optimizations */
+.terminal-container,
+.terminal-output,
+.matrix-rain,
+.terminal-watermark {
+  will-change: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: subpixel-antialiased;
 }
 
 .dark {
