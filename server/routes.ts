@@ -2467,11 +2467,11 @@ function windowResized() {
       const conversationHistory = Array.isArray(conversation?.messages) ? conversation.messages as Message[] : [];
 
       // Generate AI response using LLM with knowledge base integration
-      const response = await llmService.chat(
+      const response = await llmService.generateResponse(
         message,
-        conversationHistory,
-        user,
         mode || 'natural',
+        conversationHistory,
+        user.id,
         language || 'english' // Pass language to LLM service
       );
 
