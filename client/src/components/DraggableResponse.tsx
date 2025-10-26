@@ -17,7 +17,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
   const [position, setPosition] = useState({ x: 100, y: 100 }); // Default position
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [showFloating, setShowFloating] = useState(false);
+  const [showFloating, setShowFloating] = useState(isTyping); // Start visible if already typing
 
   // Extract text content from ReactNode
   const extractTextContent = (node: ReactNode): string => {
@@ -98,6 +98,18 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     }
     // No auto-hide - bubbles stay until double-clicked
   }, [isTyping]);
+
+  // Ensure bubble shows even if typing state changes too quickly
+  useEffect(() => {
+    // If we have content and not currently typing, ensure bubble is shown
+    if (!isTyping && children && !showFloating) {
+      // Small delay to ensure content is ready
+      const timer = setTimeout(() => {
+        setShowFloating(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isTyping, children, showFloating]);
 
   // Double-click handler to dismiss the bubble and save to knowledge base
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
