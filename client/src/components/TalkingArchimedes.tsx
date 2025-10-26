@@ -97,10 +97,8 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
       onTouchStart={handleTouchStart}
       data-testid="talking-archimedes-draggable"
     >
-      <div className={`relative transition-all duration-300 ${
-        shouldShow ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-      }`}>
-        <div className="relative w-48 h-48 rounded-full overflow-hidden border-2 border-terminal-highlight/20 bg-terminal-bg/70 backdrop-blur-sm">
+      <div className={`relative ${shouldShow ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="relative w-32 h-32 rounded-full overflow-hidden border border-terminal-highlight/20 bg-terminal-bg">
           <video 
             src={archimedesVideo2}
             autoPlay
@@ -111,7 +109,7 @@ export function TalkingArchimedes({ isTyping, isSpeaking, currentMessage }: Talk
           />
           
           {/* Drag indicator */}
-          <div className="absolute top-2 right-2 text-terminal-subtle text-xs opacity-50 pointer-events-none" title="Drag to move">
+          <div className="absolute top-1 right-1 text-terminal-subtle text-xs opacity-50 pointer-events-none" title="Drag to move">
             ⋮⋮
           </div>
         </div>
