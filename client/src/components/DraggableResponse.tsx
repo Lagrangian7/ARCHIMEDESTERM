@@ -71,12 +71,17 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     // No auto-hide - bubbles stay until double-clicked
   }, [isTyping]);
 
-  // Double-click handler to dismiss the bubble
+  // Double-click handler to dismiss the bubble and save to knowledge base
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Save to knowledge base before dismissing
+    saveMutation.mutate();
+    
+    // Dismiss the bubble
     setShowFloating(false);
-  }, []);
+  }, [saveMutation]);
 
   // Drag functionality - similar to RadioCharacter
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
