@@ -17,7 +17,6 @@ import { MatrixRain } from './MatrixRain';
 import { RadioCharacter } from './RadioCharacter';
 import { DraggableResponse } from './DraggableResponse';
 import { ChatInterface } from './ChatInterface';
-import { PuzzleScreensaver } from './PuzzleScreensaver';
 import { LinkifiedText } from '@/lib/linkify';
 import { SshwiftyInterface } from './SshwiftyInterface';
 import { MudClient } from './MudClient';
@@ -128,20 +127,10 @@ export function Terminal() {
     localStorage.setItem('terminal-theme', nextTheme);
   };
 
-  // Screensaver state
-  const [screensaverActive, setScreensaverActive] = useState(false);
-
   // Radio streaming controls - direct playback without modal
   const [isRadioPlaying, setIsRadioPlaying] = useState(false);
   const [radioStatus, setRadioStatus] = useState('Radio ready');
   const audioRef = useRef<HTMLAudioElement>(null);
-
-  // Activity tracker for screensaver (5 minutes = 300,000ms)
-  const { forceActive } = useActivityTracker({
-    inactivityTimeout: 5 * 60 * 1000, // 5 minutes
-    onInactive: () => setScreensaverActive(true),
-    onActive: () => setScreensaverActive(false)
-  });
 
   // Set radio volume on mount
   useEffect(() => {
@@ -775,15 +764,6 @@ export function Terminal() {
       <EncodeDecodeOverlay 
         isOpen={showPrivacyEncoder}
         onClose={() => setShowPrivacyEncoder(false)}
-      />
-
-      {/* Puzzle Screensaver */}
-      <PuzzleScreensaver 
-        isActive={screensaverActive}
-        onExit={() => {
-          setScreensaverActive(false);
-          forceActive();
-        }}
       />
 
       {/* Code Preview */}
