@@ -109,7 +109,10 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
             🕷️ SpiderFoot OSINT
           </h2>
           <Button
-            onClick={handleClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleClose();
+            }}
             variant="ghost"
             size="sm"
             className="text-terminal-highlight hover:bg-terminal-highlight/10"
