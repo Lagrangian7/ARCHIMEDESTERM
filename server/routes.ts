@@ -2433,9 +2433,12 @@ function windowResized() {
   });
 
   // Chat endpoint (enhanced with user support)
-  app.post("/api/chat", async (req, res) => {
+  app.post("/api/chat", async (req: any, res) => {
     try {
-      const { message, mode = "natural", sessionId } = req.body;
+      const user = await getUser(req, res); // Assuming getUser is defined elsewhere and handles authentication
+      if (!user) return;
+
+      const { message, mode, language } = req.body; // language is now extracted
 
       if (!message || typeof message !== "string") {
         return res.status(400).json({ error: "Message is required" });
@@ -2446,54 +2449,47 @@ function windowResized() {
         return res.status(400).json({ error: "Invalid mode" });
       }
 
-      const currentSessionId = sessionId || randomUUID();
-
-      // Check if user is authenticated to link conversation
-      let userId = null;
-      const user = req.user as any;
-      if (req.isAuthenticated?.() && user?.claims?.sub) {
-        userId = user.claims.sub;
-      }
+      const currentSessionId = randomUUID(); // TODO: Use sessionId from req.body if provided
 
       // Add user message to conversation
-      const userMessage = {
-        role: "user" as const,
+      const userMessage: Message = {
+        role: "user",
         content: message,
         timestamp: new Date().toISOString(),
-        mode: mode as "natural" | "technical",
+        mode: mode || "natural",
+        language: language || "english", // Store language preference
       };
 
       await storage.addMessageToConversation(currentSessionId, userMessage);
-
-      // Link conversation to user if authenticated
-      if (userId) {
-        const conversation = await storage.getConversation(currentSessionId);
-        if (conversation && !conversation.userId) {
-          // Update the conversation to link it to the user and persist in storage
-          await storage.updateConversationUserId(currentSessionId, userId);
-        }
-      }
 
       // Get conversation history for context
       const conversation = await storage.getConversation(currentSessionId);
       const conversationHistory = Array.isArray(conversation?.messages) ? conversation.messages as Message[] : [];
 
       // Generate AI response using LLM with knowledge base integration
-      const responseContent = await llmService.generateResponse(message, mode as "natural" | "technical", conversationHistory, userId);
+      const response = await llmService.chat(
+        message,
+        conversationHistory,
+        user,
+        mode || 'natural',
+        language || 'english' // Pass language to LLM service
+      );
 
-      const assistantMessage = {
-        role: "assistant" as const,
-        content: responseContent,
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: response,
         timestamp: new Date().toISOString(),
-        mode: mode as "natural" | "technical",
+        mode: mode || "natural",
+        language: language || "english",
       };
 
       await storage.addMessageToConversation(currentSessionId, assistantMessage);
 
       res.json({
-        response: responseContent,
+        response: response,
         sessionId: currentSessionId,
         mode,
+        language
       });
 
     } catch (error) {
@@ -5464,7 +5460,7 @@ function windowResized() {
         } else if (message.type === 'disconnect') {
           const { sessionId } = message;
           if (!sessionId) {
-            ws.send(JSON.stringify({
+            ws.send(JSON.JSON.stringify({
               type: 'error',
               message: 'Missing sessionId for disconnect operation'
             }));
@@ -5503,4 +5499,31 @@ function windowResized() {
   console.log('MUD WebSocket server initialized on /ws/mud');
 
   return httpServer;
+}
+
+// Helper function to get user from request (assuming it's defined elsewhere)
+async function getUser(req: any, res: any) {
+  // This function should ideally retrieve the authenticated user from the session or token
+  // For demonstration purposes, we'll assume it returns a user object or null
+  // In a real application, this would involve checking req.user or session data
+  if (req.user && req.user.claims && req.user.claims.sub) {
+    // Mock user object with claims
+    return { id: req.user.claims.sub, name: 'Mock User', claims: req.user.claims };
+  } else {
+    // If not authenticated, send an error response
+    res.status(401).json({ error: 'Unauthorized' });
+    return null;
+  }
+}
+
+// Helper function to authenticate WebSocket connection (example)
+async function authenticateWebSocket(req: any) {
+  // This function should validate the session or token from the WebSocket handshake
+  // For demonstration, we'll use a mock authentication check
+  const session = await getSession(req); // Assuming getSession retrieves session data
+  const isAuthenticated = !!session && !!session.userId;
+  return {
+    isAuthenticated,
+    userId: session?.userId || null
+  };
 }

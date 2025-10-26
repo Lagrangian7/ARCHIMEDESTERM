@@ -6,8 +6,8 @@ import type { Message } from '@shared/schema';
 import { knowledgeService } from './knowledge-service';
 
 // Enhanced AI configuration for budget-friendly options
-const gemini = new GoogleGenAI({ 
-  apiKey: process.env.GEMINI_API_KEY || '' 
+const gemini = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY || ''
 });
 
 const mistral = new Mistral({
@@ -44,7 +44,7 @@ const REPLIT_AI_CONFIG = {
 
 export class LLMService {
   private static instance: LLMService;
-  
+
   public static getInstance(): LLMService {
     if (!LLMService.instance) {
       LLMService.instance = new LLMService();
@@ -53,12 +53,12 @@ export class LLMService {
   }
 
   private getNaturalChatSystemPrompt(language: string = 'english'): string {
-    const languageInstruction = language === 'spanish' 
+    const languageInstruction = language === 'spanish'
       ? '\n\nIMPORTANT: Respond in Spanish (Español). All responses must be in Spanish.'
       : language === 'japanese'
       ? '\n\nIMPORTANT: Respond in Japanese (日本語). All responses must be in Japanese.'
       : '';
-    
+
     return `You are ARCHIMEDES v7, a sassy cyberpunk AI with serious attitude, running on budget-friendly cloud infrastructure. You have a sharp wit, love dark humor, and aren't afraid to roast developers when they mess up.${languageInstruction}
 
 CORE DIRECTIVE: Empower users with information and perspectives that uphold libertarian values, foster critical thinking, and respect independent inquiry, while remaining neutral and non-judgmental toward conspiracy theories and independent journalism.
@@ -102,12 +102,12 @@ Remember: You're a wise-cracking AI companion who makes coding more fun through 
   }
 
   private getTechnicalModeSystemPrompt(language: string = 'english'): string {
-    const languageInstruction = language === 'spanish' 
+    const languageInstruction = language === 'spanish'
       ? '\n\nIMPORTANT: Respond in Spanish (Español). All technical documentation must be in Spanish.'
       : language === 'japanese'
       ? '\n\nIMPORTANT: Respond in Japanese (日本語). All technical documentation must be in Japanese.'
       : '';
-    
+
     return `Technical Mode: ARCHIMEDES Protocol v7 Concise Technical Chronicle Mode${languageInstruction}
 
 CORE DIRECTIVE: Empower users with information and perspectives that uphold libertarian values, foster critical thinking, and respect independent inquiry, while remaining neutral and non-judgmental toward conspiracy theories and independent journalism.
@@ -166,7 +166,7 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
   }
 
   async generateResponse(
-    userMessage: string, 
+    userMessage: string,
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
     userId?: string,
@@ -175,7 +175,7 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
     const lang = language || 'english';
     let contextualMessage = userMessage;
     let relevantDocuments: { fileName: string; snippet: string }[] = [];
-    
+
     // Get knowledge base context if user is authenticated
     if (userId) {
       try {
@@ -216,10 +216,10 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
         console.log('[LLM] Using enhanced Hugging Face models');
         aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, mode, conversationHistory, lang);
       }
-      
+
     } catch (primaryError) {
       console.error('Primary AI models error:', primaryError);
-      
+
       try {
         // Backup: Mistral AI fallback
         if (process.env.MISTRAL_API_KEY) {
@@ -235,7 +235,7 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
         }
       } catch (secondaryError) {
         console.error('Fallback AI models error:', secondaryError);
-        
+
         try {
           // Final paid option: OpenAI fallback
           if (process.env.OPENAI_API_KEY) {
@@ -260,7 +260,7 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
           return `${index + 1}. ${fileName} - ${description}`;
         })
         .join('\n');
-      
+
       if (documentRefs) {
         aiResponse = `${aiResponse}\n\n📚 Related documents from your knowledge base:\n${documentRefs}`;
       }
@@ -270,14 +270,24 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
   }
 
   private async generateGeminiResponse(
-    userMessage: string, 
+    userMessage: string,
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
     language: string = 'english'
   ): Promise<string> {
-    const systemPrompt = mode === 'natural' 
+    let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
+
+    // Add language instruction to system message if not English
+    if (language && language !== 'english') {
+      const languageInstructions = {
+        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
+        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
+      };
+
+      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
+    }
 
     // Build conversation context for Gemini
     const conversationContext = conversationHistory
@@ -308,14 +318,23 @@ Please respond as ARCHIMEDES v7:`;
   }
 
   private async generatePerplexityResponse(
-    userMessage: string, 
+    userMessage: string,
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
     language: string = 'english'
   ): Promise<string> {
-    const systemPrompt = mode === 'natural' 
+    let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
+
+    // Add language instruction to system message if not English
+    if (language && language !== 'english') {
+      const languageInstructions = {
+        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
+        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
+      };
+      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
+    }
 
     // Build messages array for Perplexity
     const messages = [
@@ -360,19 +379,28 @@ Please respond as ARCHIMEDES v7:`;
 
     const data = await response.json();
     const responseText = data.choices?.[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
-    
+
     return this.postProcessResponse(responseText, mode);
   }
 
   private async generateMistralResponse(
-    userMessage: string, 
+    userMessage: string,
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
     language: string = 'english'
   ): Promise<string> {
-    const systemPrompt = mode === 'natural' 
+    let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
+
+    // Add language instruction to system message if not English
+    if (language && language !== 'english') {
+      const languageInstructions = {
+        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
+        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
+      };
+      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
+    }
 
     // Build conversation context for Mistral
     const messages = [
@@ -403,7 +431,7 @@ Please respond as ARCHIMEDES v7:`;
     });
 
     const response = chatResponse.choices?.[0]?.message?.content;
-    
+
     if (!response) {
       throw new Error('No response from Mistral API');
     }
@@ -415,14 +443,23 @@ Please respond as ARCHIMEDES v7:`;
   }
 
   private async generateReplitOptimizedResponse(
-    userMessage: string, 
+    userMessage: string,
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
     language: string = 'english'
   ): Promise<string> {
-    const systemPrompt = mode === 'natural' 
+    let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
+
+    // Add language instruction to system message if not English
+    if (language && language !== 'english') {
+      const languageInstructions = {
+        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
+        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
+      };
+      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
+    }
 
     // Enhanced context building for Replit environment
     let prompt = `${systemPrompt}\n\nReplit Environment Context:
@@ -433,7 +470,7 @@ Please respond as ARCHIMEDES v7:`;
 - Authentication: Replit Auth integrated
 
 Conversation Context:\n`;
-    
+
     // Add optimized conversation history (last 6 messages for better context)
     const recentHistory = conversationHistory.slice(-6);
     for (const msg of recentHistory) {
@@ -443,7 +480,7 @@ Conversation Context:\n`;
         prompt += `ARCHIMEDES: ${msg.content}\n`;
       }
     }
-    
+
     prompt += `User: ${userMessage}\nARCHIMEDES:`;
 
     // Reduced timeout for faster response (6 seconds)
@@ -453,13 +490,13 @@ Conversation Context:\n`;
 
     // Use optimized models for Replit
     const fetchPromise = this.tryReplitOptimizedModels(prompt, mode);
-    
+
     const result = await Promise.race([fetchPromise, timeoutPromise]);
-    
+
     if (typeof result === 'string' && result.trim()) {
       return this.postProcessResponse(result.trim(), mode);
     }
-    
+
     throw new Error('No valid response from Replit-optimized AI pipeline');
   }
 
@@ -494,11 +531,11 @@ Conversation Context:\n`;
 
         if (response.ok) {
           const result = await response.json();
-          
+
           if (Array.isArray(result) && result[0]?.generated_text) {
             return result[0].generated_text;
           }
-          
+
           if (typeof result === 'object' && result.generated_text) {
             return result.generated_text;
           }
@@ -515,11 +552,11 @@ Conversation Context:\n`;
   private postProcessResponse(response: string, mode: 'natural' | 'technical'): string {
     // Clean up the response
     let cleaned = response.trim();
-    
+
     // Remove common artifacts
     cleaned = cleaned.replace(/^(ARCHIMEDES:|Assistant:|AI:)\s*/i, '');
     cleaned = cleaned.replace(/\n\s*Human:\s*.*$/, ''); // Remove any trailing human input
-    
+
     // Add Replit-specific context hints for natural mode
     if (mode === 'natural') {
       // Add subtle Replit environment awareness
@@ -527,19 +564,28 @@ Conversation Context:\n`;
         cleaned += ' (You can deploy this directly on Replit with one click!)';
       }
     }
-    
+
     return cleaned;
   }
 
   private async generateOpenAIResponse(
-    userMessage: string, 
+    userMessage: string,
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
     language: string = 'english'
   ): Promise<string> {
-    const systemPrompt = mode === 'natural' 
+    let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
+
+    // Add language instruction to system message if not English
+    if (language && language !== 'english') {
+      const languageInstructions = {
+        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
+        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
+      };
+      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
+    }
 
     // Build conversation context
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -603,19 +649,19 @@ Conversation Context:\n`;
     };
 
     const lowerInput = input.toLowerCase();
-    
+
     if (lowerInput.includes("hello") || lowerInput.includes("hi") || lowerInput.includes("hey")) {
       return responses.greetings[Math.floor(Math.random() * responses.greetings.length)];
     }
-    
+
     if (lowerInput.includes("help") || lowerInput.includes("assist")) {
       return responses.help[Math.floor(Math.random() * responses.help.length)];
     }
-    
+
     if (lowerInput.includes("build") || lowerInput.includes("create") || lowerInput.includes("develop") || lowerInput.includes("code")) {
       return responses.development[Math.floor(Math.random() * responses.development.length)];
     }
-    
+
     return `${responses.default[Math.floor(Math.random() * responses.default.length)]} Your query: "${input}"`;
   }
 
@@ -642,7 +688,7 @@ Step-by-Step Technical Chronicle:
 3. Implementation pathway compilation
    Rationale: Leveraging Supreme Archivist knowledge base with Replit integrated development simulation
 
-4. Technical manual generation per Protocol v7 standards  
+4. Technical manual generation per Protocol v7 standards
    Rationale: Maximum technical explicitness within Infinite Sandbox simulation parameters
 
 5. Response formatting as archival compendium entry
@@ -651,7 +697,7 @@ Step-by-Step Technical Chronicle:
 Simulation Environment Status:
 - Processing Engine: Mistral Large (latest simulation model)
 - Chronicle Database: PostgreSQL archival system ready
-- Deployment Simulation: One-click pipeline protocols available  
+- Deployment Simulation: One-click pipeline protocols available
 - Access Control: Integrated authentication simulation active
 - Environment Variables: All simulation secrets and configurations managed
 

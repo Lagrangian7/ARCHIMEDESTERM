@@ -51,9 +51,11 @@ export function useTerminal(onUploadCommand?: () => void) {
 
   const chatMutation = useMutation({
     mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' }) => {
+      const language = localStorage.getItem('ai-language') || 'english';
       const response = await apiRequest('POST', '/api/chat', {
         message,
         mode,
+        language, // Pass the selected language to the API
         sessionId,
       });
       return response.json();
@@ -650,9 +652,7 @@ Session & Productivity:
 
 Code Execution:
   preview / run - Execute and preview code from last AI response
-  preview <code> - Execute and preview your pasted HTML/CSS/JS code
-
-You can also chat naturally or ask technical questions.`);
+  preview <code> - Execute and preview your pasted HTML/CSS/JS code`);
       return;
     }
 
@@ -823,6 +823,41 @@ You can also chat naturally or ask technical questions.`);
         addEntry('error', 'Invalid mode. Use "natural" or "technical"');
         return;
       }
+    }
+
+    // Language switching commands
+    if (cmd === 'lang' || cmd === 'language') {
+      const currentLang = localStorage.getItem('ai-language') || 'english';
+      addEntry('system', `Current language: ${currentLang}\n\nAvailable languages:\n  - english\n  - spanish (español)\n  - japanese (日本語)\n\nUsage: lang <language>\nExample: lang spanish`);
+      return;
+    }
+
+    if (cmd.startsWith('lang ') || cmd.startsWith('language ')) {
+      const langCmd = cmd.startsWith('lang ') ? cmd.substring(5) : cmd.substring(9);
+      const language = langCmd.trim().toLowerCase();
+
+      const validLanguages = ['english', 'spanish', 'español', 'japanese', '日本語'];
+
+      if (!validLanguages.includes(language)) {
+        addEntry('error', `Invalid language: ${language}\n\nSupported languages:\n  - english\n  - spanish (español)\n  - japanese (日本語)`);
+        return;
+      }
+
+      // Normalize language names
+      let normalizedLang = language;
+      if (language === 'español') normalizedLang = 'spanish';
+      if (language === '日本語') normalizedLang = 'japanese';
+
+      localStorage.setItem('ai-language', normalizedLang);
+
+      const confirmations = {
+        english: 'Language set to English. AI responses will now be in English.',
+        spanish: 'Idioma configurado a Español. Las respuestas de IA ahora serán en español.',
+        japanese: '言語を日本語に設定しました。AI応答は日本語になります。'
+      };
+
+      addEntry('system', confirmations[normalizedLang as keyof typeof confirmations]);
+      return;
     }
 
     if (cmd === 'status') {
