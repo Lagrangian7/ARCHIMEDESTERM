@@ -109,13 +109,8 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
             🕷️ SpiderFoot OSINT
           </h2>
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleClose();
-            }}
-            className="text-terminal-highlight hover:bg-terminal-highlight/10 p-2 rounded transition-colors cursor-pointer z-[10000]"
-            style={{ pointerEvents: 'auto' }}
+            onClick={handleClose}
+            className="text-terminal-highlight hover:bg-terminal-highlight/10 p-2 rounded transition-colors cursor-pointer"
             type="button"
           >
             <X className="w-5 h-5" />
