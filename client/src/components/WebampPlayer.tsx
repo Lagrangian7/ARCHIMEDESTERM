@@ -69,6 +69,15 @@ export default function WebampPlayer({ isOpen, onClose }: WebampPlayerProps) {
         }
 
         const webamp = new Webamp({
+          enableHotkeys: true,
+          
+          // Enable Milkdrop visualizer
+          __butterchurnOptions: {
+            importButterchurn: () => import('butterchurn'),
+            getPresets: () => import('butterchurn-presets').then(presets => presets.default.getPresets()),
+            butterchurnOpen: true
+          },
+          
           initialTracks: [
             {
               metaData: {
