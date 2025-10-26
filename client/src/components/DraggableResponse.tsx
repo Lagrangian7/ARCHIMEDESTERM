@@ -25,11 +25,19 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
       // If it's HTML string, create a temporary div to extract text
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = node;
-      return tempDiv.textContent || tempDiv.innerText || node;
+      const textContent = tempDiv.textContent || tempDiv.innerText || '';
+      return textContent.trim();
     }
     if (typeof node === 'number') return String(node);
     if (Array.isArray(node)) return node.map(extractTextContent).join('');
     if (node && typeof node === 'object' && 'props' in node) {
+      // Handle dangerouslySetInnerHTML case
+      if (node.props && node.props.dangerouslySetInnerHTML && node.props.dangerouslySetInnerHTML.__html) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = node.props.dangerouslySetInnerHTML.__html;
+        const textContent = tempDiv.textContent || tempDiv.innerText || '';
+        return textContent.trim();
+      }
       return extractTextContent(node.props.children);
     }
     return '';
@@ -38,16 +46,31 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
   // Save to knowledge base mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const textContent = extractTextContent(children);
+      // Try to extract text content
+      let textContent = extractTextContent(children);
+      
+      // If extraction failed, try to get it directly from the rendered DOM element
       if (!textContent || !textContent.trim()) {
-        throw new Error('No content to save');
+        const floatingDiv = document.querySelector(`[data-testid="draggable-response-${entryId}"]`);
+        if (floatingDiv) {
+          const contentDiv = floatingDiv.querySelector('[data-no-drag]')?.parentElement?.querySelector('div');
+          if (contentDiv) {
+            textContent = contentDiv.textContent || contentDiv.innerText || '';
+          }
+        }
+      }
+      
+      // Final validation
+      if (!textContent || !textContent.trim()) {
+        console.error('Failed to extract content from children:', children);
+        throw new Error('Unable to extract text content from response. Please try again.');
       }
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const filename = `archimedes-response-${timestamp}.txt`;
 
       const response = await apiRequest('POST', '/api/documents/save-text', {
-        content: textContent,
+        content: textContent.trim(),
         filename: filename,
       });
       return response.json();
