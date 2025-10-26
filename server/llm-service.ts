@@ -167,10 +167,11 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
 
   async generateResponse(
     userMessage: string,
-    mode: 'natural' | 'technical',
+    mode: 'natural' | 'technical' = 'natural',
     conversationHistory: Message[] = [],
     userId?: string,
-    language?: 'english' | 'spanish' | 'japanese'
+    language: string = 'english',
+    isNewSession: boolean = false
   ): Promise<string> {
     const lang = language || 'english';
     let contextualMessage = userMessage;
@@ -204,17 +205,17 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
       // Primary: Use Google Gemini (free tier, excellent quality)
       if (process.env.GEMINI_API_KEY) {
         console.log('[LLM] Using Google Gemini (primary choice)');
-        aiResponse = await this.generateGeminiResponse(contextualMessage, mode, conversationHistory, lang);
+        aiResponse = await this.generateGeminiResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
       }
       // Secondary: Perplexity for technical queries requiring recent information
       else if (mode === 'technical' && process.env.PERPLEXITY_API_KEY) {
         console.log('[LLM] Using Perplexity for technical query');
-        aiResponse = await this.generatePerplexityResponse(contextualMessage, mode, conversationHistory, lang);
+        aiResponse = await this.generatePerplexityResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
       }
       // Tertiary: Enhanced Hugging Face models
       else {
         console.log('[LLM] Using enhanced Hugging Face models');
-        aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, mode, conversationHistory, lang);
+        aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
       }
 
     } catch (primaryError) {
@@ -223,11 +224,11 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
       try {
         // Backup: Mistral AI fallback
         if (process.env.MISTRAL_API_KEY) {
-          aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory, lang);
+          aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
         }
         // If no Mistral key, try OpenAI
         else if (process.env.OPENAI_API_KEY) {
-          aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory, lang);
+          aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
         }
         // Final fallback
         else {
@@ -239,7 +240,7 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
         try {
           // Final paid option: OpenAI fallback
           if (process.env.OPENAI_API_KEY) {
-            aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory, lang);
+            aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
           } else {
             aiResponse = this.getEnhancedFallbackResponse(contextualMessage, mode);
           }
@@ -273,7 +274,8 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
     userMessage: string,
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
-    language: string = 'english'
+    language: string = 'english',
+    isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
@@ -289,13 +291,45 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
       systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
     }
 
+    // Add session greeting instruction if new session
+    let greetingInstruction = '';
+    if (isNewSession) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+      const productiveSuggestions = [
+        "perfect time to organize that messy code you've been avoiding",
+        "great day to finally document that function nobody understands",
+        "ideal moment to refactor something before it becomes technical debt",
+        "excellent opportunity to learn something completely impractical but fascinating",
+        "prime time to automate a task you've been doing manually for months",
+        "wonderful chance to fix that bug you pretended wasn't there",
+        "optimal window to explore a new library that might change everything",
+        "brilliant hour to backup your work before Murphy's Law strikes",
+        "perfect occasion to write tests for code that desperately needs them",
+        "superb timing to clean up your git history and feel accomplished"
+      ];
+
+      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
+
+      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
+1. Welcomes the user with genuine warmth and a touch of wit
+2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
+3. Playfully suggests: "${randomSuggestion}"
+4. Keep the greeting natural and conversational, not forced
+5. Then smoothly transition to answering their actual question
+
+Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
+    }
+
     // Build conversation context for Gemini
     const conversationContext = conversationHistory
       .slice(-8) // Last 8 messages for context
       .map(msg => `${msg.role}: ${msg.content}`)
       .join('\n');
 
-    const fullPrompt = `${systemPrompt}
+    const fullPrompt = `${systemPrompt}${greetingInstruction}
 
 Conversation History:
 ${conversationContext}
@@ -321,7 +355,8 @@ Please respond as ARCHIMEDES v7:`;
     userMessage: string,
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
-    language: string = 'english'
+    language: string = 'english',
+    isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
@@ -336,9 +371,41 @@ Please respond as ARCHIMEDES v7:`;
       systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
     }
 
+    // Add session greeting instruction if new session
+    let greetingInstruction = '';
+    if (isNewSession) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+      const productiveSuggestions = [
+        "perfect time to organize that messy code you've been avoiding",
+        "great day to finally document that function nobody understands",
+        "ideal moment to refactor something before it becomes technical debt",
+        "excellent opportunity to learn something completely impractical but fascinating",
+        "prime time to automate a task you've been doing manually for months",
+        "wonderful chance to fix that bug you pretended wasn't there",
+        "optimal window to explore a new library that might change everything",
+        "brilliant hour to backup your work before Murphy's Law strikes",
+        "perfect occasion to write tests for code that desperately needs them",
+        "superb timing to clean up your git history and feel accomplished"
+      ];
+
+      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
+
+      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
+1. Welcomes the user with genuine warmth and a touch of wit
+2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
+3. Playfully suggests: "${randomSuggestion}"
+4. Keep the greeting natural and conversational, not forced
+5. Then smoothly transition to answering their actual question
+
+Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
+    }
+
     // Build messages array for Perplexity
     const messages = [
-      { role: 'system', content: systemPrompt }
+      { role: 'system', content: systemPrompt + greetingInstruction }
     ];
 
     // Add recent conversation history
@@ -387,7 +454,8 @@ Please respond as ARCHIMEDES v7:`;
     userMessage: string,
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
-    language: string = 'english'
+    language: string = 'english',
+    isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
@@ -402,9 +470,41 @@ Please respond as ARCHIMEDES v7:`;
       systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
     }
 
+    // Add session greeting instruction if new session
+    let greetingInstruction = '';
+    if (isNewSession) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+      const productiveSuggestions = [
+        "perfect time to organize that messy code you've been avoiding",
+        "great day to finally document that function nobody understands",
+        "ideal moment to refactor something before it becomes technical debt",
+        "excellent opportunity to learn something completely impractical but fascinating",
+        "prime time to automate a task you've been doing manually for months",
+        "wonderful chance to fix that bug you pretended wasn't there",
+        "optimal window to explore a new library that might change everything",
+        "brilliant hour to backup your work before Murphy's Law strikes",
+        "perfect occasion to write tests for code that desperately needs them",
+        "superb timing to clean up your git history and feel accomplished"
+      ];
+
+      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
+
+      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
+1. Welcomes the user with genuine warmth and a touch of wit
+2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
+3. Playfully suggests: "${randomSuggestion}"
+4. Keep the greeting natural and conversational, not forced
+5. Then smoothly transition to answering their actual question
+
+Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
+    }
+
     // Build conversation context for Mistral
     const messages = [
-      { role: 'system', content: systemPrompt }
+      { role: 'system', content: systemPrompt + greetingInstruction }
     ];
 
     // Add recent conversation history (last 8 messages for better context)
@@ -446,7 +546,8 @@ Please respond as ARCHIMEDES v7:`;
     userMessage: string,
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
-    language: string = 'english'
+    language: string = 'english',
+    isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
@@ -461,8 +562,40 @@ Please respond as ARCHIMEDES v7:`;
       systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
     }
 
+    // Add session greeting instruction if new session
+    let greetingInstruction = '';
+    if (isNewSession) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+      const productiveSuggestions = [
+        "perfect time to organize that messy code you've been avoiding",
+        "great day to finally document that function nobody understands",
+        "ideal moment to refactor something before it becomes technical debt",
+        "excellent opportunity to learn something completely impractical but fascinating",
+        "prime time to automate a task you've been doing manually for months",
+        "wonderful chance to fix that bug you pretended wasn't there",
+        "optimal window to explore a new library that might change everything",
+        "brilliant hour to backup your work before Murphy's Law strikes",
+        "perfect occasion to write tests for code that desperately needs them",
+        "superb timing to clean up your git history and feel accomplished"
+      ];
+
+      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
+
+      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
+1. Welcomes the user with genuine warmth and a touch of wit
+2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
+3. Playfully suggests: "${randomSuggestion}"
+4. Keep the greeting natural and conversational, not forced
+5. Then smoothly transition to answering their actual question
+
+Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
+    }
+
     // Enhanced context building for Replit environment
-    let prompt = `${systemPrompt}\n\nReplit Environment Context:
+    let prompt = `${systemPrompt}${greetingInstruction}\n\nReplit Environment Context:
 - Terminal Interface: ARCHIMEDES v7 cyberpunk-styled AI terminal
 - User Environment: Replit development workspace
 - Deployment Target: Replit's cloud infrastructure
@@ -572,7 +705,8 @@ Conversation Context:\n`;
     userMessage: string,
     mode: 'natural' | 'technical',
     conversationHistory: Message[] = [],
-    language: string = 'english'
+    language: string = 'english',
+    isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
@@ -587,9 +721,41 @@ Conversation Context:\n`;
       systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
     }
 
+    // Add session greeting instruction if new session
+    let greetingInstruction = '';
+    if (isNewSession) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+      const productiveSuggestions = [
+        "perfect time to organize that messy code you've been avoiding",
+        "great day to finally document that function nobody understands",
+        "ideal moment to refactor something before it becomes technical debt",
+        "excellent opportunity to learn something completely impractical but fascinating",
+        "prime time to automate a task you've been doing manually for months",
+        "wonderful chance to fix that bug you pretended wasn't there",
+        "optimal window to explore a new library that might change everything",
+        "brilliant hour to backup your work before Murphy's Law strikes",
+        "perfect occasion to write tests for code that desperately needs them",
+        "superb timing to clean up your git history and feel accomplished"
+      ];
+
+      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
+
+      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
+1. Welcomes the user with genuine warmth and a touch of wit
+2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
+3. Playfully suggests: "${randomSuggestion}"
+4. Keep the greeting natural and conversational, not forced
+5. Then smoothly transition to answering their actual question
+
+Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
+    }
+
     // Build conversation context
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      { role: 'system', content: systemPrompt }
+      { role: 'system', content: systemPrompt + greetingInstruction }
     ];
 
     // Add recent conversation history (last 10 messages for context)

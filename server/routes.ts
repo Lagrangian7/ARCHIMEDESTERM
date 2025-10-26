@@ -2466,13 +2466,17 @@ function windowResized() {
       const conversation = await storage.getConversation(currentSessionId);
       const conversationHistory = Array.isArray(conversation?.messages) ? conversation.messages as Message[] : [];
 
+      // Check if this is a new session (no history yet)
+      const isNewSession = conversationHistory.length === 0;
+      
       // Generate AI response using LLM with knowledge base integration
       const response = await llmService.generateResponse(
         message,
         mode || 'natural',
         conversationHistory,
         user.id,
-        language || 'english' // Pass language to LLM service
+        language || 'english', // Pass language to LLM service
+        isNewSession // Pass new session flag
       );
 
       const assistantMessage: Message = {
