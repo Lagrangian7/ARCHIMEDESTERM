@@ -47,6 +47,13 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState('');
 
+  const handleClose = () => {
+    setResults(null);
+    setError('');
+    setTarget('');
+    onClose();
+  };
+
   const handleScan = async () => {
     if (!target.trim()) {
       setError('Please enter a target');
@@ -88,15 +95,21 @@ export function SpiderFoot({ onClose }: SpiderFootProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-      <div className="bg-terminal-bg border-2 border-terminal-highlight rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
+    <div 
+      className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
+      onClick={handleClose}
+    >
+      <div 
+        className="bg-terminal-bg border-2 border-terminal-highlight rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-terminal-highlight/30">
           <h2 className="text-xl font-bold text-terminal-highlight font-mono">
             🕷️ SpiderFoot OSINT
           </h2>
           <Button
-            onClick={onClose}
+            onClick={handleClose}
             variant="ghost"
             size="sm"
             className="text-terminal-highlight hover:bg-terminal-highlight/10"
