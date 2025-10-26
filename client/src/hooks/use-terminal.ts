@@ -766,8 +766,6 @@ You can also chat naturally or ask technical questions.`);
         backgroundAudio.currentTime = 0;
         setBackgroundAudio(null);
         addEntry('system', '🔇 Background music stopped.');
-      } else {
-        addEntry('system', 'No background music is currently playing.');
       }
       return;
     }
