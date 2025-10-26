@@ -1,4 +1,4 @@
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Radio, Terminal as TerminalIcon, Shield } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Terminal as TerminalIcon, Shield } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -218,28 +218,7 @@ export function VoiceControls({
                 </TooltipContent>
               </Tooltip>
 
-              {/* Radio Button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={toggleRadio}
-                    variant="outline"
-                    size="sm"
-                    className={`transition-colors min-h-[44px] min-w-[44px] p-2 ${
-                      isRadioPlaying 
-                        ? 'bg-terminal-highlight border-terminal-highlight text-terminal-bg' 
-                        : 'bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg'
-                    }`}
-                    data-testid="button-radio"
-                    aria-label={isRadioPlaying ? 'Stop Radio' : 'Radio'}
-                  >
-                    <Radio size={16} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>{isRadioPlaying ? 'Stop Radio' : 'Radio'}</p>
-                </TooltipContent>
-              </Tooltip>
+              {/* Radio button removed - Webamp now controls animated character */}
 
               {/* SSH/Telnet Button */}
               <Tooltip>

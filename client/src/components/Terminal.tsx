@@ -114,6 +114,7 @@ export function Terminal() {
   const [showPrivacyEncoder, setShowPrivacyEncoder] = useState(false);
   const [showWebamp, setShowWebamp] = useState(false);
   const [showAJVideo, setShowAJVideo] = useState(false);
+  const [isWebampOpen, setIsWebampOpen] = useState(false); // State to track if Webamp is open
 
   // Theme management
   const themes = ['commodore64', 'green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized'];
@@ -127,17 +128,9 @@ export function Terminal() {
     localStorage.setItem('terminal-theme', nextTheme);
   };
 
-  // Radio streaming controls - direct playback without modal
-  const [isRadioPlaying, setIsRadioPlaying] = useState(false);
-  const [radioStatus, setRadioStatus] = useState('Radio ready');
-  const audioRef = useRef<HTMLAudioElement>(null);
+  // Radio character is now controlled by Webamp state
+  // No separate radio audio functionality
 
-  // Set radio volume on mount
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = 0.7; // Set volume to 70% (decreased by 30%)
-    }
-  }, []);
   const [visibleEntries, setVisibleEntries] = useState(Math.min(entries.length, 15));
   const inputRef = useRef<HTMLInputElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -181,7 +174,7 @@ export function Terminal() {
     if (!showContinuePrompt) {
       scrollToBottom();
     }
-    
+
     // Trigger MathJax typesetting for any new mathematical content
     if (window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise().catch((err: any) => {
@@ -337,30 +330,6 @@ export function Terminal() {
     }, 100);
   };
 
-  // Direct radio toggle function
-  const toggleRadio = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isRadioPlaying) {
-      audio.pause();
-      setRadioStatus('Radio stopped');
-    } else {
-      // Use the working SomaFM stream directly
-      audio.src = 'https://ice6.somafm.com/live-128-mp3';
-      audio.volume = 0.7; // Set volume to 30% (decreased by 30% from 100%)
-      setRadioStatus('Connecting to radio...');
-
-      try {
-        await audio.play();
-        setRadioStatus('Radio playing');
-      } catch (error) {
-        console.error('Radio play failed:', error);
-        setRadioStatus('Radio connection failed');
-      }
-    }
-  };
-
   // Launch SPACEWAR game
   const launchSpacewars = () => {
     try {
@@ -407,15 +376,12 @@ export function Terminal() {
             switchMode={switchMode}
             switchTheme={switchTheme}
             setShowWebamp={setShowWebamp}
+            setIsWebampOpen={setIsWebampOpen} // Pass down the state setter
             user={user}
             isAuthenticated={isAuthenticated}
             setShowProfile={setShowProfile}
             setShowUpload={setShowUpload}
             setShowChat={setShowChat}
-            toggleRadio={toggleRadio}
-            isRadioPlaying={isRadioPlaying}
-            setShowSshwifty={setShowSshwifty}
-            setShowPrivacyEncoder={setShowPrivacyEncoder}
             unreadCount={unreadCount}
           />
         </div>
@@ -703,20 +669,6 @@ export function Terminal() {
           }}
         />
       )}
-      {/* Hidden radio audio element */}
-      <audio
-        ref={audioRef}
-        crossOrigin="anonymous"
-        preload="metadata"
-        onPlay={() => setIsRadioPlaying(true)}
-        onPause={() => setIsRadioPlaying(false)}
-        onError={() => {
-          setIsRadioPlaying(false);
-          setRadioStatus('Radio connection failed');
-        }}
-        onLoadStart={() => setRadioStatus('Connecting to radio...')}
-        onCanPlay={() => setRadioStatus('Radio connected')}
-      />
 
       {/* Talking Archimedes Character */}
       <TalkingArchimedes 
@@ -728,10 +680,8 @@ export function Terminal() {
       {/* Thinking Animation - shows during AI processing, before typing starts */}
       <ThinkingAnimation isThinking={isLoading && !isTyping && !isSpeaking} />
 
-      {/* Radio Character - appears when radio is playing */}
-      <RadioCharacter 
-        isRadioPlaying={isRadioPlaying}
-      />
+      {/* Animated Archimedes Character - appears when Webamp is playing */}
+      <RadioCharacter isRadioPlaying={isWebampOpen} />
 
       {/* Chat Interface */}
       {isAuthenticated && showChat && (
@@ -778,7 +728,11 @@ export function Terminal() {
       {/* Webamp Music Player */}
       <WebampPlayer 
         isOpen={showWebamp}
-        onClose={() => setShowWebamp(false)}
+        onClose={() => {
+          setShowWebamp(false);
+          setIsWebampOpen(false); // Set isWebampOpen to false when Webamp is closed
+        }}
+        onOpen={() => setIsWebampOpen(true)} // Set isWebampOpen to true when Webamp is opened
       />
 
       {/* AJ Video Player */}
