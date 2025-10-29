@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo, lazy, Suspense } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -8,24 +8,27 @@ import { UserProfile } from './UserProfile';
 import { ConversationHistory } from './ConversationHistory';
 import { DocumentUpload } from './DocumentUpload';
 import { DocumentsList } from './DocumentsList';
-import ZorkGame from './ZorkGame';
-import { DTMFDecoder } from './DTMFDecoder';
-import { HelpMenu } from './HelpMenu';
+// Lazy load heavy components to improve initial load time
+const ZorkGame = lazy(() => import('./ZorkGame'));
+const DTMFDecoder = lazy(() => import('./DTMFDecoder').then(m => ({ default: m.DTMFDecoder })));
+const HelpMenu = lazy(() => import('./HelpMenu').then(m => ({ default: m.HelpMenu })));
+const ChatInterface = lazy(() => import('./ChatInterface').then(m => ({ default: m.ChatInterface })));
+const SshwiftyInterface = lazy(() => import('./SshwiftyInterface').then(m => ({ default: m.SshwiftyInterface })));
+const MudClient = lazy(() => import('./MudClient').then(m => ({ default: m.MudClient })));
+const TheHarvester = lazy(() => import('./TheHarvester').then(m => ({ default: m.TheHarvester })));
+const SpiderFoot = lazy(() => import('./SpiderFoot').then(m => ({ default: m.SpiderFoot })));
+const EncodeDecodeOverlay = lazy(() => import('./EncodeDecodeOverlay').then(m => ({ default: m.EncodeDecodeOverlay })));
+const CodePreview = lazy(() => import('./CodePreview').then(m => ({ default: m.CodePreview })));
+const WebampPlayer = lazy(() => import('./WebampPlayer'));
+const AJVideoPopup = lazy(() => import('./AJVideoPopup'));
+
+// Keep lightweight components as regular imports
 import { TalkingArchimedes } from './TalkingArchimedes';
 import { ThinkingAnimation } from './ThinkingAnimation';
 import { MatrixRain } from './MatrixRain';
 import { RadioCharacter } from './RadioCharacter';
 import { DraggableResponse } from './DraggableResponse';
-import { ChatInterface } from './ChatInterface';
 import { LinkifiedText } from '@/lib/linkify';
-import { SshwiftyInterface } from './SshwiftyInterface';
-import { MudClient } from './MudClient';
-import { TheHarvester } from './TheHarvester';
-import { SpiderFoot } from './SpiderFoot';
-import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
-import { CodePreview } from './CodePreview';
-import WebampPlayer from './WebampPlayer';
-import AJVideoPopup from './AJVideoPopup';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -352,11 +355,11 @@ export function Terminal() {
     }
   };
 
-  const formatTimestamp = (timestamp: string) => {
+  const formatTimestamp = useCallback((timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
-  };
+  }, []);
 
-  const getEntryClassName = (type: string, mode?: string) => {
+  const getEntryClassName = useCallback((type: string, mode?: string) => {
     switch (type) {
       case 'command':
         return 'text-terminal-highlight';
@@ -369,7 +372,7 @@ export function Terminal() {
       default:
         return 'text-terminal-text';
     }
-  };
+  }, []);
 
   // Handle command processing results, including new actions
   useEffect(() => {
@@ -665,32 +668,38 @@ export function Terminal() {
 
 
       {showZork && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
-          <div className="w-full h-full max-w-4xl max-h-full">
-            <ZorkGame 
-              onClose={() => setShowZork(false)}
-            />
+        <Suspense fallback={<div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50"><div className="text-terminal-text">Loading...</div></div>}>
+          <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+            <div className="w-full h-full max-w-4xl max-h-full">
+              <ZorkGame 
+                onClose={() => setShowZork(false)}
+              />
+            </div>
           </div>
-        </div>
+        </Suspense>
       )}
 
 
       {showDTMF && (
-        <DTMFDecoder onClose={() => setShowDTMF(false)} />
+        <Suspense fallback={null}>
+          <DTMFDecoder onClose={() => setShowDTMF(false)} />
+        </Suspense>
       )}
 
       {showHelpMenu && (
-        <HelpMenu 
-          onClose={() => setShowHelpMenu(false)}
-          onSelectCommand={(command) => {
-            setInput(command);
-            // Optionally auto-execute the command
-            setTimeout(() => {
-              processCommand(command);
-              setInput('');
-            }, 100);
-          }}
-        />
+        <Suspense fallback={null}>
+          <HelpMenu 
+            onClose={() => setShowHelpMenu(false)}
+            onSelectCommand={(command) => {
+              setInput(command);
+              // Optionally auto-execute the command
+              setTimeout(() => {
+                processCommand(command);
+                setInput('');
+              }, 100);
+            }}
+          />
+        </Suspense>
       )}
 
       {/* Talking Archimedes Character */}
@@ -708,66 +717,92 @@ export function Terminal() {
 
       {/* Chat Interface */}
       {isAuthenticated && showChat && (
-        <ChatInterface 
-          isOpen={true}
-          onClose={() => setShowChat(false)}
-        />
+        <Suspense fallback={null}>
+          <ChatInterface 
+            isOpen={true}
+            onClose={() => setShowChat(false)}
+          />
+        </Suspense>
       )}
 
       {/* Sshwifty Interface */}
       {showSshwifty && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="w-[90vw] h-[80vh] bg-terminal-bg border border-terminal-highlight rounded-lg overflow-hidden">
-            <SshwiftyInterface onClose={() => setShowSshwifty(false)} />
+        <Suspense fallback={null}>
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+            <div className="w-[90vw] h-[80vh] bg-terminal-bg border border-terminal-highlight rounded-lg overflow-hidden">
+              <SshwiftyInterface onClose={() => setShowSshwifty(false)} />
+            </div>
           </div>
-        </div>
+        </Suspense>
       )}
 
       {/* MUD Client */}
-      <MudClient 
-        isOpen={showMud}
-        onClose={() => setShowMud(false)}
-      />
+      {showMud && (
+        <Suspense fallback={null}>
+          <MudClient 
+            isOpen={showMud}
+            onClose={() => setShowMud(false)}
+          />
+        </Suspense>
+      )}
 
       {/* theHarvester OSINT Tool */}
       {showTheHarvester && (
-        <TheHarvester onClose={() => setShowTheHarvester(false)} />
+        <Suspense fallback={null}>
+          <TheHarvester onClose={() => setShowTheHarvester(false)} />
+        </Suspense>
       )}
 
       {/* SpiderFoot OSINT Tool */}
       {showSpiderFoot && (
-        <SpiderFoot onClose={() => setShowSpiderFoot(false)} />
+        <Suspense fallback={null}>
+          <SpiderFoot onClose={() => setShowSpiderFoot(false)} />
+        </Suspense>
       )}
 
       {/* Privacy Encoder */}
-      <EncodeDecodeOverlay 
-        isOpen={showPrivacyEncoder}
-        onClose={() => setShowPrivacyEncoder(false)}
-      />
+      {showPrivacyEncoder && (
+        <Suspense fallback={null}>
+          <EncodeDecodeOverlay 
+            isOpen={showPrivacyEncoder}
+            onClose={() => setShowPrivacyEncoder(false)}
+          />
+        </Suspense>
+      )}
 
       {/* Code Preview */}
       {previewCode && (
-        <CodePreview 
-          code={previewCode}
-          onClose={() => setPreviewCode(null)}
-        />
+        <Suspense fallback={null}>
+          <CodePreview 
+            code={previewCode}
+            onClose={() => setPreviewCode(null)}
+          />
+        </Suspense>
       )}
 
       {/* Webamp Music Player */}
-      <WebampPlayer 
-        isOpen={showWebamp}
-        onClose={() => {
-          setShowWebamp(false);
-          setIsWebampOpen(false);
-        }}
-        onOpen={() => setIsWebampOpen(true)}
-      />
+      {showWebamp && (
+        <Suspense fallback={null}>
+          <WebampPlayer 
+            isOpen={showWebamp}
+            onClose={() => {
+              setShowWebamp(false);
+              setIsWebampOpen(false);
+            }}
+            onOpen={() => setIsWebampOpen(true)}
+          />
+        </Suspense>
+      )}
 
       {/* AJ Video Player */}
-      <AJVideoPopup 
-        isOpen={showAJVideo}
-        onClose={() => setShowAJVideo(false)}
-      />
+      {showAJVideo && (
+        <Suspense fallback={null}>
+          <AJVideoPopup 
+            isOpen={showAJVideo}
+            onClose={() => setShowAJVideo(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

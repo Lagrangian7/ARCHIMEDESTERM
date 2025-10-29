@@ -10,7 +10,7 @@ interface DraggableResponseProps {
   entryId: string;
 }
 
-export function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
+export const DraggableResponse = memo(function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
   const { toast } = useToast();
 
   // Drag state management
@@ -258,6 +258,6 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
       )}
     </>
   );
-}
+});
 
 export default DraggableResponse;
