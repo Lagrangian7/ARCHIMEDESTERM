@@ -126,7 +126,10 @@ export function Terminal() {
   const [isWebampOpen, setIsWebampOpen] = useState(false); // State to track if Webamp is open
 
   // Theme management
-  const themes = ['commodore64', 'green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized'];
+  const themes = [
+    'commodore64', 'green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized',
+    'cyberpunk', 'forest', 'ocean', 'sunset', 'neon', 'vintage', 'arctic', 'amber', 'hacker', 'royal'
+  ];
   const [currentTheme, setCurrentTheme] = useState<string>(themes[0]);
 
   // Switch theme function
