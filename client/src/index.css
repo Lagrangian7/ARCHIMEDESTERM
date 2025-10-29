@@ -206,25 +206,14 @@
 }
 
 /* Performance optimizations */
-.terminal-container {
-  contain: layout style paint;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-.terminal-output {
-  contain: layout style;
+.terminal-container,
+.terminal-output,
+.matrix-rain,
+.terminal-watermark {
+  will-change: auto;
   transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-font-smoothing: subpixel-antialiased;
-}
-
-.matrix-rain,
-.terminal-watermark {
-  will-change: transform, opacity;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  contain: layout style paint;
 }
 
 .dark {
@@ -295,7 +284,6 @@
     background: var(--terminal-bg);
     border: 2px solid var(--terminal-subtle);
     box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
-    contain: layout style paint;
   }
 
   .voice-controls {

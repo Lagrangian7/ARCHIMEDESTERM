@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 export function MatrixRain() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>();
-  const [isEnabled, setIsEnabled] = useState(false); // Matrix rain is OFF by default
+  const [isEnabled, setIsEnabled] = useState(false);
 
   useEffect(() => {
     // Expose toggle function globally
@@ -21,7 +21,7 @@ export function MatrixRain() {
     if (!isEnabled) {
       const canvas = canvasRef.current;
       if (canvas) {
-        const ctx = canvas.getContext('2d', { alpha: false });
+        const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
@@ -32,7 +32,7 @@ export function MatrixRain() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // Respect user's motion preferences

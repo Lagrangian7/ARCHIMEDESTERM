@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, ReactNode, memo } from 'react';
+import { useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { Save } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -10,7 +10,7 @@ interface DraggableResponseProps {
   entryId: string;
 }
 
-export const DraggableResponse = memo(function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
+export function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
   const { toast } = useToast();
 
   // Drag state management
@@ -100,10 +100,10 @@ export const DraggableResponse = memo(function DraggableResponse({ children, isT
       // Center horizontally in viewport
       const bubbleWidth = 384; // max-w-md is roughly 384px
       const centerX = (window.innerWidth - bubbleWidth) / 2;
-
+      
       // Position in center of viewport (slightly above center)
       const centerY = (window.innerHeight / 2) - 150;
-
+      
       setPosition({
         x: Math.max(centerX, 20), // Center horizontally with padding
         y: Math.max(centerY, 50) // Center vertically with padding
@@ -258,6 +258,6 @@ export const DraggableResponse = memo(function DraggableResponse({ children, isT
       )}
     </>
   );
-});
+}
 
 export default DraggableResponse;

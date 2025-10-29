@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo, memo, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -8,27 +8,24 @@ import { UserProfile } from './UserProfile';
 import { ConversationHistory } from './ConversationHistory';
 import { DocumentUpload } from './DocumentUpload';
 import { DocumentsList } from './DocumentsList';
-// Lazy load heavy components to improve initial load time
-const ZorkGame = lazy(() => import('./ZorkGame'));
-const DTMFDecoder = lazy(() => import('./DTMFDecoder').then(m => ({ default: m.DTMFDecoder })));
-const HelpMenu = lazy(() => import('./HelpMenu').then(m => ({ default: m.HelpMenu })));
-const ChatInterface = lazy(() => import('./ChatInterface').then(m => ({ default: m.ChatInterface })));
-const SshwiftyInterface = lazy(() => import('./SshwiftyInterface').then(m => ({ default: m.SshwiftyInterface })));
-const MudClient = lazy(() => import('./MudClient').then(m => ({ default: m.MudClient })));
-const TheHarvester = lazy(() => import('./TheHarvester').then(m => ({ default: m.TheHarvester })));
-const SpiderFoot = lazy(() => import('./SpiderFoot').then(m => ({ default: m.SpiderFoot })));
-const EncodeDecodeOverlay = lazy(() => import('./EncodeDecodeOverlay').then(m => ({ default: m.EncodeDecodeOverlay })));
-const CodePreview = lazy(() => import('./CodePreview').then(m => ({ default: m.CodePreview })));
-const WebampPlayer = lazy(() => import('./WebampPlayer'));
-const AJVideoPopup = lazy(() => import('./AJVideoPopup'));
-
-// Keep lightweight components as regular imports
+import ZorkGame from './ZorkGame';
+import { DTMFDecoder } from './DTMFDecoder';
+import { HelpMenu } from './HelpMenu';
 import { TalkingArchimedes } from './TalkingArchimedes';
 import { ThinkingAnimation } from './ThinkingAnimation';
 import { MatrixRain } from './MatrixRain';
 import { RadioCharacter } from './RadioCharacter';
 import { DraggableResponse } from './DraggableResponse';
+import { ChatInterface } from './ChatInterface';
 import { LinkifiedText } from '@/lib/linkify';
+import { SshwiftyInterface } from './SshwiftyInterface';
+import { MudClient } from './MudClient';
+import { TheHarvester } from './TheHarvester';
+import { SpiderFoot } from './SpiderFoot';
+import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
+import { CodePreview } from './CodePreview';
+import WebampPlayer from './WebampPlayer';
+import AJVideoPopup from './AJVideoPopup';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -355,11 +352,11 @@ export function Terminal() {
     }
   };
 
-  const formatTimestamp = useCallback((timestamp: string) => {
+  const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
-  }, []);
+  };
 
-  const getEntryClassName = useCallback((type: string, mode?: string) => {
+  const getEntryClassName = (type: string, mode?: string) => {
     switch (type) {
       case 'command':
         return 'text-terminal-highlight';
@@ -372,7 +369,7 @@ export function Terminal() {
       default:
         return 'text-terminal-text';
     }
-  }, []);
+  };
 
   // Handle command processing results, including new actions
   useEffect(() => {
@@ -414,22 +411,20 @@ export function Terminal() {
 
         {/* Terminal Output - Scrollable middle section */}
         <div className="flex-1 min-h-0 relative">
-          {/* Watermark Background - only show when there are entries */}
-          {entries.length > 0 && (
-            <div 
-              className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 terminal-watermark"
-              style={{
-                backgroundImage: `url(${watermarkImage})`,
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                backgroundSize: 'contain',
-                opacity: 0.08,
-                maxWidth: '600px',
-                margin: '0 auto',
-                willChange: 'auto',
-              }}
-            />
-          )}
+          {/* Watermark Background */}
+          <div 
+            className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 terminal-watermark"
+            style={{
+              backgroundImage: `url(${watermarkImage})`,
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: 'contain',
+              opacity: 0.08,
+              maxWidth: '600px',
+              margin: '0 auto',
+              willChange: 'auto',
+            }}
+          />
           <ScrollArea className="h-full" ref={scrollAreaRef}>
             <div 
               ref={outputRef}
@@ -670,38 +665,32 @@ export function Terminal() {
 
 
       {showZork && (
-        <Suspense fallback={<div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50"><div className="text-terminal-text">Loading...</div></div>}>
-          <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
-            <div className="w-full h-full max-w-4xl max-h-full">
-              <ZorkGame 
-                onClose={() => setShowZork(false)}
-              />
-            </div>
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+          <div className="w-full h-full max-w-4xl max-h-full">
+            <ZorkGame 
+              onClose={() => setShowZork(false)}
+            />
           </div>
-        </Suspense>
+        </div>
       )}
 
 
       {showDTMF && (
-        <Suspense fallback={null}>
-          <DTMFDecoder onClose={() => setShowDTMF(false)} />
-        </Suspense>
+        <DTMFDecoder onClose={() => setShowDTMF(false)} />
       )}
 
       {showHelpMenu && (
-        <Suspense fallback={null}>
-          <HelpMenu 
-            onClose={() => setShowHelpMenu(false)}
-            onSelectCommand={(command) => {
-              setInput(command);
-              // Optionally auto-execute the command
-              setTimeout(() => {
-                processCommand(command);
-                setInput('');
-              }, 100);
-            }}
-          />
-        </Suspense>
+        <HelpMenu 
+          onClose={() => setShowHelpMenu(false)}
+          onSelectCommand={(command) => {
+            setInput(command);
+            // Optionally auto-execute the command
+            setTimeout(() => {
+              processCommand(command);
+              setInput('');
+            }, 100);
+          }}
+        />
       )}
 
       {/* Talking Archimedes Character */}
@@ -719,92 +708,66 @@ export function Terminal() {
 
       {/* Chat Interface */}
       {isAuthenticated && showChat && (
-        <Suspense fallback={null}>
-          <ChatInterface 
-            isOpen={true}
-            onClose={() => setShowChat(false)}
-          />
-        </Suspense>
+        <ChatInterface 
+          isOpen={true}
+          onClose={() => setShowChat(false)}
+        />
       )}
 
       {/* Sshwifty Interface */}
       {showSshwifty && (
-        <Suspense fallback={null}>
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-            <div className="w-[90vw] h-[80vh] bg-terminal-bg border border-terminal-highlight rounded-lg overflow-hidden">
-              <SshwiftyInterface onClose={() => setShowSshwifty(false)} />
-            </div>
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div className="w-[90vw] h-[80vh] bg-terminal-bg border border-terminal-highlight rounded-lg overflow-hidden">
+            <SshwiftyInterface onClose={() => setShowSshwifty(false)} />
           </div>
-        </Suspense>
+        </div>
       )}
 
       {/* MUD Client */}
-      {showMud && (
-        <Suspense fallback={null}>
-          <MudClient 
-            isOpen={showMud}
-            onClose={() => setShowMud(false)}
-          />
-        </Suspense>
-      )}
+      <MudClient 
+        isOpen={showMud}
+        onClose={() => setShowMud(false)}
+      />
 
       {/* theHarvester OSINT Tool */}
       {showTheHarvester && (
-        <Suspense fallback={null}>
-          <TheHarvester onClose={() => setShowTheHarvester(false)} />
-        </Suspense>
+        <TheHarvester onClose={() => setShowTheHarvester(false)} />
       )}
 
       {/* SpiderFoot OSINT Tool */}
       {showSpiderFoot && (
-        <Suspense fallback={null}>
-          <SpiderFoot onClose={() => setShowSpiderFoot(false)} />
-        </Suspense>
+        <SpiderFoot onClose={() => setShowSpiderFoot(false)} />
       )}
 
       {/* Privacy Encoder */}
-      {showPrivacyEncoder && (
-        <Suspense fallback={null}>
-          <EncodeDecodeOverlay 
-            isOpen={showPrivacyEncoder}
-            onClose={() => setShowPrivacyEncoder(false)}
-          />
-        </Suspense>
-      )}
+      <EncodeDecodeOverlay 
+        isOpen={showPrivacyEncoder}
+        onClose={() => setShowPrivacyEncoder(false)}
+      />
 
       {/* Code Preview */}
       {previewCode && (
-        <Suspense fallback={null}>
-          <CodePreview 
-            code={previewCode}
-            onClose={() => setPreviewCode(null)}
-          />
-        </Suspense>
+        <CodePreview 
+          code={previewCode}
+          onClose={() => setPreviewCode(null)}
+        />
       )}
 
       {/* Webamp Music Player */}
-      {showWebamp && (
-        <Suspense fallback={null}>
-          <WebampPlayer 
-            isOpen={showWebamp}
-            onClose={() => {
-              setShowWebamp(false);
-              setIsWebampOpen(false);
-            }}
-            onOpen={() => setIsWebampOpen(true)}
-          />
-        </Suspense>
-      )}
+      <WebampPlayer 
+        isOpen={showWebamp}
+        onClose={() => {
+          setShowWebamp(false);
+          setIsWebampOpen(false);
+        }}
+        onOpen={() => setIsWebampOpen(true)}
+      />
 
       {/* AJ Video Player */}
-      {showAJVideo && (
-        <Suspense fallback={null}>
-          <AJVideoPopup 
-            isOpen={showAJVideo}
-            onClose={() => setShowAJVideo(false)}
-          />
-        </Suspense>
-      )}
+      <AJVideoPopup 
+        isOpen={showAJVideo}
+        onClose={() => setShowAJVideo(false)}
+      />
     </div>
   );
 }

@@ -751,7 +751,7 @@ Code Execution:
     }
 
     if (cmd === 'play our song') {
-      addEntry('system', '🎵 Launching Webamp...\n\nOpening music player.');
+      addEntry('system', '🎵 Launching Webamp...\n\nOpening music player with Milkdrop visualizer.');
 
       const openWebamp = (window as any).openWebamp;
       if (openWebamp) {
@@ -785,7 +785,7 @@ Code Execution:
     }
 
     if (cmd === 'webamp') {
-      addEntry('system', '🎵 Launching Webamp music player...');
+      addEntry('system', '🎵 Launching Webamp music player with Milkdrop visualizer...\n\nControls:\n- ESC to close\n- SPACE/← → for preset navigation\n- H for hard cut\n- R to toggle preset cycling\n\nLoading...');
 
       const openWebamp = (window as any).openWebamp;
       if (openWebamp) {
@@ -1899,8 +1899,8 @@ Powered by Wolfram Alpha Full Results API`);
                   pod.subpods.forEach((subpod: any) => {
                     // Render image if available
                     if (subpod.img && subpod.img.src) {
-                      formatted += `<div style="margin: 10px 0; text-align: center; background-color: #2a2a2a; padding: 10px; border-radius: 4px;">`;
-                      formatted += `<img src="${subpod.img.src}" alt="${subpod.img.alt || 'Wolfram Alpha result'}" style="max-width: 100%; height: auto; border: 1px solid var(--terminal-subtle); background-color: #393939;" />`;
+                      formatted += `<div style="margin: 10px 0; text-align: center; background-color: rgba(0, 0, 0, 0.3); padding: 10px;">`;
+                      formatted += `<img src="${subpod.img.src}" alt="${subpod.img.alt || 'Wolfram Alpha result'}" style="max-width: 100%; height: auto; border: 1px solid var(--terminal-subtle); background-color: rgba(0, 0, 0, 0.3);" />`;
                       formatted += `</div>`;
                     }
 
