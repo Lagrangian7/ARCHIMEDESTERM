@@ -680,24 +680,7 @@ const helpMenuItems: HelpMenuItem[] = [
     description: 'Show recent command history',
     command: 'history',
     icon: <TerminalIcon size={16} />
-  },
-  {
-    id: 'matrix',
-    category: 'Visual Effects',
-    title: 'Matrix Rain',
-    description: 'Toggle Matrix-style falling characters background effect',
-    command: 'matrix',
-    icon: <TerminalIcon size={16} />
-  },
-  {
-    id: 'milkdrop',
-    category: 'Visual Effects',
-    title: 'MilkDrop Visualizer',
-    description: 'Psychedelic music visualizer background (use "milkdrop" for options)',
-    command: 'milkdrop on',
-    example: 'milkdrop on  or  milkdrop opacity 50',
-    icon: <TerminalIcon size={16} />
-  },
+  }
 ];
 
 export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
