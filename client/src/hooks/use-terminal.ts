@@ -1899,8 +1899,8 @@ Powered by Wolfram Alpha Full Results API`);
                   pod.subpods.forEach((subpod: any) => {
                     // Render image if available
                     if (subpod.img && subpod.img.src) {
-                      formatted += `<div style="margin: 10px 0; text-align: center; background-color: rgba(0, 0, 0, 0.3); padding: 10px;">`;
-                      formatted += `<img src="${subpod.img.src}" alt="${subpod.img.alt || 'Wolfram Alpha result'}" style="max-width: 100%; height: auto; border: 1px solid var(--terminal-subtle); background-color: rgba(0, 0, 0, 0.3);" />`;
+                      formatted += `<div style="margin: 10px 0; text-align: center; background-color: #2a2a2a; padding: 10px; border-radius: 4px;">`;
+                      formatted += `<img src="${subpod.img.src}" alt="${subpod.img.alt || 'Wolfram Alpha result'}" style="max-width: 100%; height: auto; border: 1px solid var(--terminal-subtle); background-color: #393939;" />`;
                       formatted += `</div>`;
                     }
 
