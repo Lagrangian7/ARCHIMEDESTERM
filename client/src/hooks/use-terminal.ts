@@ -2774,7 +2774,7 @@ Powered by Wolfram Alpha Full Results API`);
       const scanType = parts[2] || 'footprint';
 
       addEntry('system', `🕷️ Launching SpiderFoot for target: ${target}\n\nOpening OSINT automation interface...`);
-      
+
       // Trigger SpiderFoot modal to open
       setTimeout(() => {
         const openSpiderFoot = (window as any).openSpiderFoot;
