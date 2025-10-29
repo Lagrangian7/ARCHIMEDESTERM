@@ -49,6 +49,11 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [currentMode, setCurrentMode] = useState<'natural' | 'technical'>('natural');
   const [isTyping, setIsTyping] = useState(false);
   const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
+  const [isMatrixRainEnabled, setIsMatrixRainEnabled] = useState(false);
+  const [isWebampOpen, setIsWebampOpen] = useState(false);
+  const [isMilkdropEnabled, setIsMilkdropEnabled] = useState(false);
+  const [milkdropOpacity, setMilkdropOpacity] = useState(0.3);
+
 
   const chatMutation = useMutation({
     mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' }) => {
@@ -638,6 +643,8 @@ Games:
 System Commands:
   privacy - Activate matrix rain privacy screen (type "QWERTY" to unlock)
   xx - Activate screensaver manually
+  matrix - Toggle matrix rain visualizer
+  milkdrop - Control MilkDrop visualizer (on, off, opacity)
 
 Knowledge Base Commands:
   docs - List your uploaded documents
@@ -683,16 +690,47 @@ Code Execution:
       return;
     }
 
-    if (cmd === 'rain') {
-      const toggleMatrixRain = (window as any).toggleMatrixRain;
-      if (toggleMatrixRain) {
-        const isEnabled = toggleMatrixRain();
-        addEntry('system', `Matrix rain ${isEnabled ? 'enabled' : 'disabled'}`);
+    // Handle matrix rain command
+    if (cmd === 'matrix') {
+      const newMatrixState = !(window as any).toggleMatrixRain?.() ?? !isMatrixRainEnabled;
+      setIsMatrixRainEnabled(newMatrixState);
+      addEntry('system', `Matrix rain ${newMatrixState ? 'enabled' : 'disabled'}`);
+      return;
+    }
+
+    // Handle milkdrop visualizer commands
+    if (cmd.startsWith('milkdrop')) {
+      const args = cmd.split(' ').slice(1); // Get arguments after 'milkdrop'
+
+      if (args.length === 0) {
+        addEntry('system', 'MilkDrop Visualizer Commands:');
+        addEntry('system', '  milkdrop on              - Enable MilkDrop background');
+        addEntry('system', '  milkdrop off             - Disable MilkDrop background');
+        addEntry('system', '  milkdrop opacity <0-100> - Set opacity (default: 30)');
+        addEntry('system', '');
+        addEntry('system', `Status: ${isMilkdropEnabled ? 'enabled' : 'disabled'}`);
+        addEntry('system', `Opacity: ${Math.round(milkdropOpacity * 100)}%`);
+      } else if (args[0] === 'on') {
+        setIsMilkdropEnabled(true);
+        addEntry('system', 'MilkDrop visualizer background enabled');
+        addEntry('system', 'Note: This may impact performance. Use "milkdrop off" to disable.');
+      } else if (args[0] === 'off') {
+        setIsMilkdropEnabled(false);
+        addEntry('system', 'MilkDrop visualizer background disabled');
+      } else if (args[0] === 'opacity') {
+        const opacityValue = parseInt(args[1]);
+        if (isNaN(opacityValue) || opacityValue < 0 || opacityValue > 100) {
+          addEntry('error', 'Error: Opacity must be a number between 0 and 100');
+        } else {
+          setMilkdropOpacity(opacityValue / 100);
+          addEntry('system', `MilkDrop opacity set to ${opacityValue}%`);
+        }
       } else {
-        addEntry('error', 'Matrix rain control not available');
+        addEntry('error', 'Unknown milkdrop command. Use "milkdrop" for help.');
       }
       return;
     }
+
 
     if (cmd === 'privacy') {
       addEntry('system', 'Privacy screen activated! Matrix rain overlay is now protecting your screen. Type "QWERTY" to unlock and return to normal view.');
@@ -2868,5 +2906,12 @@ Powered by Wolfram Alpha Full Results API`);
     isLoading: chatMutation.isPending,
     previewCode,
     setPreviewCode,
+    isMatrixRainEnabled,
+    isWebampOpen,
+    setIsWebampOpen,
+    isMilkdropEnabled,
+    milkdropOpacity,
+    conversationHistory: [], // Placeholder, assuming this might be used elsewhere
+    clearConversationHistory: () => {}, // Placeholder
   };
 }
