@@ -414,20 +414,22 @@ export function Terminal() {
 
         {/* Terminal Output - Scrollable middle section */}
         <div className="flex-1 min-h-0 relative">
-          {/* Watermark Background */}
-          <div 
-            className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 terminal-watermark"
-            style={{
-              backgroundImage: `url(${watermarkImage})`,
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: 'contain',
-              opacity: 0.08,
-              maxWidth: '600px',
-              margin: '0 auto',
-              willChange: 'auto',
-            }}
-          />
+          {/* Watermark Background - only show when there are entries */}
+          {entries.length > 0 && (
+            <div 
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 terminal-watermark"
+              style={{
+                backgroundImage: `url(${watermarkImage})`,
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: 'contain',
+                opacity: 0.08,
+                maxWidth: '600px',
+                margin: '0 auto',
+                willChange: 'auto',
+              }}
+            />
+          )}
           <ScrollArea className="h-full" ref={scrollAreaRef}>
             <div 
               ref={outputRef}
