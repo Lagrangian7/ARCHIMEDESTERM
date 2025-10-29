@@ -517,7 +517,7 @@ const helpMenuItems: HelpMenuItem[] = [
     id: 'webamp',
     category: 'Media & Entertainment',
     title: 'Webamp Player',
-    description: 'Launch Webamp music player with Milkdrop visualizer',
+    description: 'Launch Webamp music player',
     command: 'webamp',
     icon: <Radio size={16} />
   },

@@ -388,8 +388,8 @@ export function Terminal() {
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`}>
-        {/* Matrix Rain Background Effect */}
-        <MatrixRain />
+        {/* Background Effects */}
+        {isMatrixRainEnabled && <MatrixRain />}
 
         {/* Voice Controls - Fixed at top */}
         <div className="flex-shrink-0">

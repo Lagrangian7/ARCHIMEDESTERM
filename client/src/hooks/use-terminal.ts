@@ -751,7 +751,7 @@ Code Execution:
     }
 
     if (cmd === 'play our song') {
-      addEntry('system', '🎵 Launching Webamp...\n\nOpening music player with Milkdrop visualizer.');
+      addEntry('system', '🎵 Launching Webamp...\n\nOpening music player.');
 
       const openWebamp = (window as any).openWebamp;
       if (openWebamp) {
@@ -785,7 +785,7 @@ Code Execution:
     }
 
     if (cmd === 'webamp') {
-      addEntry('system', '🎵 Launching Webamp music player with Milkdrop visualizer...\n\nControls:\n- ESC to close\n- SPACE/← → for preset navigation\n- H for hard cut\n- R to toggle preset cycling\n\nLoading...');
+      addEntry('system', '🎵 Launching Webamp music player...');
 
       const openWebamp = (window as any).openWebamp;
       if (openWebamp) {
