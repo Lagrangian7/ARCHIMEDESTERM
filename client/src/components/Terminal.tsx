@@ -467,7 +467,10 @@ export function Terminal() {
                     </div>
                   )}
                   {(entry.type === 'system' || entry.type === 'error') && (
-                    <div className="whitespace-pre-wrap">{entry.content}</div>
+                    <div 
+                      className="whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{ __html: entry.content }}
+                    />
                   )}
                 </div>
               ))}

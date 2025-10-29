@@ -383,6 +383,11 @@
     text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
   }
 
+  .retro-cycle {
+    animation: colorCycle 4s linear infinite;
+    font-weight: bold;
+  }
+
   /* Telnet container with glitchy border */
   .telnet-container {
     position: relative;
@@ -427,6 +432,17 @@
 @keyframes blink {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
+}
+
+@keyframes colorCycle {
+  0% { color: #00FF41; text-shadow: 0 0 10px #00FF41; }
+  14% { color: #00BFFF; text-shadow: 0 0 10px #00BFFF; }
+  28% { color: #FF1493; text-shadow: 0 0 10px #FF1493; }
+  42% { color: #FFD700; text-shadow: 0 0 10px #FFD700; }
+  56% { color: #FF4500; text-shadow: 0 0 10px #FF4500; }
+  70% { color: #9370DB; text-shadow: 0 0 10px #9370DB; }
+  84% { color: #00CED1; text-shadow: 0 0 10px #00CED1; }
+  100% { color: #00FF41; text-shadow: 0 0 10px #00FF41; }
 }
 
 @keyframes typing {
