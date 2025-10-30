@@ -98,6 +98,7 @@ export function Terminal() {
     (window as any).openPrivacyEncoder = () => setShowPrivacyEncoder(true);
     (window as any).openWebamp = () => setShowWebamp(true);
     (window as any).openAJVideo = () => setShowAJVideo(true);
+    (window as any).openSpacewars = () => setShowSpacewars(true);
   }, []);
 
   const { speak, isSpeaking } = useSpeech();
@@ -123,6 +124,7 @@ export function Terminal() {
   const [showWebamp, setShowWebamp] = useState(false);
   const [showAJVideo, setShowAJVideo] = useState(false);
   const [isWebampOpen, setIsWebampOpen] = useState(false); // State to track if Webamp is open
+  const [showSpacewars, setShowSpacewars] = useState(false);
 
   // Theme management
   const themes = [
@@ -343,17 +345,9 @@ export function Terminal() {
     }, 100);
   };
 
-  // Launch SPACEWAR game
+  // Launch SPACEWAR game in iframe
   const launchSpacewars = () => {
-    try {
-      const gameWindow = window.open('/spacewar.html?v=' + Date.now(), '_blank', 'width=1200,height=800,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no');
-      if (!gameWindow) {
-        // If popup was blocked, show a message
-        console.warn('Popup blocked - SPACEWAR game could not open');
-      }
-    } catch (error) {
-      console.error('Error launching SPACEWAR:', error);
-    }
+    setShowSpacewars(true);
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -779,6 +773,29 @@ export function Terminal() {
         isOpen={showAJVideo}
         onClose={() => setShowAJVideo(false)}
       />
+
+      {/* SPACEWAR Game */}
+      {showSpacewars && (
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+          <div className="relative w-[95vw] h-[90vh] max-w-[1400px] border-2 border-terminal-highlight rounded-lg overflow-hidden">
+            <Button
+              onClick={() => setShowSpacewars(false)}
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 z-10 text-terminal-highlight hover:bg-terminal-highlight hover:text-terminal-bg"
+              data-testid="close-spacewars"
+            >
+              ✕ Close
+            </Button>
+            <iframe
+              src={`/spacewar.html?v=${Date.now()}`}
+              className="w-full h-full border-none"
+              title="SPACEWAR Game"
+              data-testid="spacewars-iframe"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
