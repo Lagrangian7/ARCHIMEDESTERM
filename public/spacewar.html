@@ -77,7 +77,7 @@ function getRandomInvaderColor() {
     color(0, 0, 255),      // Blue
     color(255, 255, 0)     // Yellow
   ];
-  
+
   // Return a random color from the four primary colors
   return colors[floor(random(colors.length))];
 }
@@ -86,7 +86,7 @@ function generateRandomCity() {
   backgroundInvaders = [];
   // Random number of buildings/structures (between 8-20)
   let numBuildings = floor(random(8, 21));
-  
+
   for (let i = 0; i < numBuildings; i++) {
     backgroundInvaders.push({
       x: random(-400, 400),           // Random X position
@@ -229,7 +229,7 @@ function getRectangularPosition(t, spread) {
   let perimeter = 2 * (baseRectWidth * spread + baseRectHeight * spread);
   let dist = t * perimeter;
   let x, y;
-  
+
   if (dist < baseRectWidth * spread) {
     x = -(baseRectWidth * spread) / 2 + dist;
     y = -(baseRectHeight * spread) / 2;
@@ -264,7 +264,7 @@ function getCombinedPosition(t, spread) {
 
 function draw() {
   background(0);
-  
+
   if (frameCount % ufoSpawnInterval === 0) {
     spawnUfo();
   }
@@ -606,7 +606,7 @@ function draw() {
   for (let i = invaders.length - 1; i >= 0; i--) {
     let invader = invaders[i];
     let x, y;
-    
+
     if (invader.pattern === 'wheel') {
       x = cos(invader.angle) * (baseWheelRadius * spread);
       y = sin(invader.angle) * (baseWheelRadius * spread);
@@ -627,7 +627,7 @@ function draw() {
       y = pos.y;
       invader.t = (invader.t + speed / 10) % 1;
     }
-    
+
     invader.noiseT += 0.01;
     let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
     let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
@@ -650,7 +650,7 @@ function draw() {
       x += avoidX;
       y += avoidY;
     }
-    
+
     if (random() < invaderFireProbability) {
       invaderLasers.push({
         x: x,
@@ -658,7 +658,7 @@ function draw() {
         vy: 3
       });
     }
-    
+
     push();
     translate(x, y);
     // Use invader's pattern color for glow with transparency
@@ -760,10 +760,10 @@ function draw() {
   text(`Score: ${score}`, -width / 2 + 20, -height / 2 + 40);
   text(`Level: ${level}`, -width / 2 + 20, -height / 2 + 70);
   text(`Invaders: ${invaders.length}`, -width / 2 + 20, -height / 2 + 100);
-  
+
   if (invaders.length === 0) {
     level++;
-    
+
     // Game ends at level 42
     if (level >= 42) {
       fill(0, 255, 0);
@@ -777,10 +777,10 @@ function draw() {
       noLoop(); // Stop the game
       return;
     }
-    
+
     // Generate new random city layout for each level
     generateRandomCity();
-    
+
     if (level <= 4) {
       pattern = 'wheel';
     } else if (level <= 8) {
