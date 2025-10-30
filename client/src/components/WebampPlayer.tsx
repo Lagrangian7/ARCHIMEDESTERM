@@ -88,14 +88,216 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
           },
           
           initialTracks: [
+            // Soma FM Stations
             {
               metaData: {
                 artist: "SOMA FM",
-                title: "Groove Salad - Live Stream"
+                title: "Groove Salad - Ambient downtempo electronica"
               },
-              url: "https://ice6.somafm.com/live-128-mp3",
+              url: "https://ice6.somafm.com/groovesalad-128-mp3",
               duration: 240
             },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Drone Zone - Atmospheric ambient space music"
+              },
+              url: "https://ice6.somafm.com/dronezone-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Lush - Sensuous & lush electronic"
+              },
+              url: "https://ice6.somafm.com/lush-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Secret Agent - Downtempo lounge & soundtrack"
+              },
+              url: "https://ice6.somafm.com/secretagent-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "DEF CON Radio - Music for Hacking"
+              },
+              url: "https://ice6.somafm.com/defcon-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Space Station Soma - Spacemusic"
+              },
+              url: "https://ice6.somafm.com/spacestation-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Beat Blender - Electronic beats"
+              },
+              url: "https://ice6.somafm.com/beatblender-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Indie Pop Rocks - Indie & alternative rock"
+              },
+              url: "https://ice6.somafm.com/indiepop-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Boot Liquor - Country, folk & bluegrass"
+              },
+              url: "https://ice6.somafm.com/bootliquor-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Illinois Street Lounge - Classic cocktail jazz"
+              },
+              url: "https://ice6.somafm.com/illstreet-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Suburbs of Goa - Psychedelic trance"
+              },
+              url: "https://ice6.somafm.com/suburbsofgoa-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Underground 80s - New wave & post-punk"
+              },
+              url: "https://ice6.somafm.com/u80s-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Folk Forward - Alt-folk & indie rock"
+              },
+              url: "https://ice6.somafm.com/folkfwd-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Seven Inch Soul - Vintage soul & funk"
+              },
+              url: "https://ice6.somafm.com/7soul-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Black Rock FM - From Burning Man"
+              },
+              url: "https://ice6.somafm.com/brfm-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Sonic Universe - Transcendent electronica"
+              },
+              url: "https://ice6.somafm.com/sonicuniverse-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "ThistleRadio - Celtic & world music"
+              },
+              url: "https://ice6.somafm.com/thistle-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Heavyweight Reggae - Roots & dub reggae"
+              },
+              url: "https://ice6.somafm.com/reggae-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Digitalis - Downtempo & chill electronic"
+              },
+              url: "https://ice6.somafm.com/digitalis-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Metal Detector - Heavy metal & hard rock"
+              },
+              url: "https://ice6.somafm.com/metal-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Mission Control - Celebrating NASA"
+              },
+              url: "https://ice6.somafm.com/missioncontrol-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Cliqhop IDM - Intelligent dance music"
+              },
+              url: "https://ice6.somafm.com/cliqhop-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Dub Step Beyond - Dubstep & bass music"
+              },
+              url: "https://ice6.somafm.com/dubstep-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Left Coast 70s - Mellow album rock"
+              },
+              url: "https://ice6.somafm.com/left-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Deep Space One - Deep ambient electronic"
+              },
+              url: "https://ice6.somafm.com/deepspaceone-128-mp3",
+              duration: 240
+            },
+            {
+              metaData: {
+                artist: "SOMA FM",
+                title: "Fluid - Electronica & downtempo grooves"
+              },
+              url: "https://ice6.somafm.com/fluid-128-mp3",
+              duration: 240
+            },
+            // SPACEWAR Tracks
             {
               metaData: {
                 artist: "SPACEWAR",
