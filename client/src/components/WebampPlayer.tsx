@@ -371,7 +371,9 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
       className="fixed inset-0"
       style={{
         zIndex: 10000,
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        animation: 'none',
+        transition: 'none'
       }}
       data-testid="webamp-container"
     />
