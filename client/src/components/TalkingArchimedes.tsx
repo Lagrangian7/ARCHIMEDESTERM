@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import archimedesVideo2 from '@assets/wally talking_1757885507158.mp4';
 
@@ -6,12 +5,13 @@ interface TalkingArchimedesProps {
   isTyping: boolean;
   isSpeaking: boolean;
   currentMessage?: string;
+  onClose?: () => void; // Added onClose prop
 }
 
-export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isSpeaking }: TalkingArchimedesProps) {
+export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isSpeaking, onClose }: TalkingArchimedesProps) {
   const shouldShow = isTyping || isSpeaking;
   const videoRef = useRef<HTMLVideoElement>(null);
-  
+
   // Drag state management - use refs to avoid re-renders during drag
   const positionRef = useRef({ x: window.innerWidth - 250, y: 16 });
   const [position, setPosition] = useState(positionRef.current);
@@ -85,7 +85,7 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
     document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('touchmove', handleTouchMove, { passive: true });
     document.addEventListener('touchend', handleMouseUp);
-    
+
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -97,7 +97,7 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
   if (!shouldShow) return null;
 
   return (
-    <div 
+    <div
       className="fixed z-40 cursor-move"
       style={{
         left: position.x,
@@ -110,7 +110,7 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
       data-testid="talking-archimedes-draggable"
     >
       <div className="relative w-32 h-32 rounded-full overflow-hidden border border-terminal-highlight/20 bg-terminal-bg">
-        <video 
+        <video
           ref={videoRef}
           src={archimedesVideo2}
           loop
@@ -119,7 +119,7 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
           preload="none"
           className="w-full h-full object-cover pointer-events-none"
         />
-        
+
         {/* Drag indicator */}
         <div className="absolute top-1 right-1 text-terminal-subtle text-xs opacity-50 pointer-events-none" title="Drag to move">
           ⋮⋮
