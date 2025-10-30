@@ -2256,20 +2256,13 @@ Powered by Wolfram Alpha Full Results API`);
     }
 
     if (cmd === 'spacewars') {
-      addEntry('system', 'Launching SPACEWAR in new window...');
-      try {
-        const gameWindow = window.open('/spacewar.html?v=' + Date.now(), '_blank', 'width=1200,height=800,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no');
-        if (gameWindow) {
-          addEntry('system', 'SPACEWAR game launched successfully! Defend against the alien invasion!');
-        } else {
-          addEntry('error', 'Popup blocked! Please:');
-          addEntry('system', '1. Allow popups for this site (check address bar for popup blocker icon)');
-          addEntry('system', '2. Or manually open: ' + window.location.origin + '/spacewar.html?v=' + Date.now());
-          addEntry('system', '3. Try holding Ctrl while running the command');
-        }
-      } catch (error) {
-        addEntry('error', 'Error launching SPACEWAR: ' + (error as Error).message);
-        addEntry('system', 'Manual link: ' + window.location.origin + '/spacewar.html?v=' + Date.now());
+      addEntry('system', 'Launching SPACEWAR...');
+      const openSpacewars = (window as any).openSpacewars;
+      if (openSpacewars) {
+        openSpacewars();
+        addEntry('system', 'SPACEWAR game launched! Defend against the alien invasion!');
+      } else {
+        addEntry('error', 'SPACEWAR game not available. Please ensure the game component is loaded.');
       }
       return;
     }
