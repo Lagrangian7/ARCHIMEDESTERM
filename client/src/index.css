@@ -463,6 +463,17 @@
   --terminal-orange: hsl(60 100% 60%);
 }
 
+.theme-rainbow-cycle {
+  --terminal-bg: hsl(0 0% 0%);
+  --terminal-text: hsl(118 100% 63%);
+  --terminal-highlight: hsl(200 100% 70%);
+  --terminal-subtle: hsl(280 40% 20%);
+  --terminal-subtle-rgb: 51, 31, 82;
+  --terminal-logo-green: hsl(320 100% 65%);
+  --terminal-bright-green: hsl(180 100% 60%);
+  --terminal-orange: hsl(50 100% 60%);
+}
+
 /* Matrix Rain Background Effect - Optimized */
 @keyframes logoGlow {
   0%, 100% { 
@@ -661,6 +672,21 @@
   .retro-cycle {
     animation: colorCycle 4s linear infinite;
     font-weight: bold;
+  }
+
+  /* Rainbow cycle theme - apply color cycling to all text */
+  .theme-rainbow-cycle .terminal-output,
+  .theme-rainbow-cycle .terminal-text,
+  .theme-rainbow-cycle input,
+  .theme-rainbow-cycle .text-terminal-text,
+  .theme-rainbow-cycle .text-terminal-highlight {
+    animation: colorCycle 4s linear infinite;
+    font-weight: bold;
+  }
+
+  .theme-rainbow-cycle .typing-indicator,
+  .theme-rainbow-cycle .cursor-blink {
+    animation: colorCycle 4s linear infinite, blink 1s infinite;
   }
 
   /* Telnet container with glitchy border */
@@ -1444,4 +1470,9 @@
 
 .theme-spectrum .terminal-watermark {
   filter: brightness(0) saturate(100%) invert(56%) sepia(91%) saturate(4838%) hue-rotate(337deg) brightness(102%) contrast(101%);
+}
+
+.theme-rainbow-cycle .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(67%) sepia(100%) saturate(4838%) hue-rotate(285deg) brightness(102%) contrast(101%);
+  animation: colorCycle 4s linear infinite;
 }

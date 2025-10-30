@@ -130,7 +130,7 @@ export function Terminal() {
     'commodore64', 'green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized',
     'cyberpunk', 'forest', 'ocean', 'sunset', 'neon', 'vintage', 'arctic', 'amber', 'hacker', 'royal',
     'vaporwave', 'desert', 'toxic', 'crimson', 'lavender', 'emerald', 'midnight', 'sakura', 'copper', 'plasma',
-    'atari', 'nes', 'gameboy', 'arcade', 'spectrum'
+    'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
   ];
   const [currentTheme, setCurrentTheme] = useState<string>(themes[0]);
 
