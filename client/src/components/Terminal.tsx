@@ -395,6 +395,24 @@ export function Terminal() {
         {/* Matrix Rain Background Effect */}
         <MatrixRain />
 
+        {/* Consolidated Grid and Watermark Layer */}
+        <div 
+          className="fixed inset-0 pointer-events-none z-[1]"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, rgba(var(--terminal-subtle-rgb), 0.3) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(var(--terminal-subtle-rgb), 0.3) 1px, transparent 1px),
+              url(${watermarkImage})
+            `,
+            backgroundSize: '20px 20px, 20px 20px, 400px auto',
+            backgroundPosition: '0 0, 0 0, center center',
+            backgroundRepeat: 'repeat, repeat, no-repeat',
+            opacity: 0.15,
+            filter: 'brightness(0.7) contrast(1.2)',
+            mixBlendMode: 'screen'
+          }}
+        />
+
         {/* Voice Controls - Fixed at top */}
         <div className="flex-shrink-0">
           <VoiceControls 
