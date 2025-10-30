@@ -53,7 +53,6 @@ export const LogoIcon = () => (
       backgroundColor: 'var(--terminal-logo-green)',
       border: '2px solid var(--terminal-logo-orange)',
       borderRadius: '6px',
-      animation: 'logoGlow 1.5s ease-in-out infinite',
       boxShadow: '0 0 8px var(--terminal-logo-green), 0 0 16px var(--terminal-logo-green)'
     }}
   />

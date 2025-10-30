@@ -478,15 +478,7 @@
 @keyframes logoGlow {
   0%, 100% { 
     box-shadow: 0 0 8px var(--terminal-logo-green), 
-                0 0 16px var(--terminal-logo-green),
-                0 0 24px var(--terminal-logo-green);
-    opacity: 0.9;
-  }
-  50% { 
-    box-shadow: 0 0 16px var(--terminal-logo-green), 
-                0 0 32px var(--terminal-logo-green),
-                0 0 48px var(--terminal-logo-green),
-                0 0 64px var(--terminal-logo-green);
+                0 0 16px var(--terminal-logo-green);
     opacity: 1;
   }
 }
@@ -583,12 +575,10 @@
 
   .rgb-theme-icon {
     filter: brightness(1.8) contrast(1.6) drop-shadow(0 0 16px var(--terminal-highlight)) drop-shadow(0 0 24px var(--terminal-highlight));
-    animation: rgbGlow 2s ease-in-out infinite alternate;
   }
 
   .rgb-theme-icon:hover {
     filter: brightness(2.2) contrast(1.8) drop-shadow(0 0 20px var(--terminal-highlight)) drop-shadow(0 0 32px var(--terminal-highlight));
-    animation: rgbGlow 1s ease-in-out infinite alternate;
   }
 
   .command-history {
@@ -789,11 +779,8 @@
 }
 
 @keyframes rgbGlow {
-  from {
+  0%, 100% {
     filter: brightness(1.8) contrast(1.6) drop-shadow(0 0 16px var(--terminal-highlight)) drop-shadow(0 0 24px var(--terminal-highlight));
-  }
-  to {
-    filter: brightness(2.4) contrast(2.0) drop-shadow(0 0 24px var(--terminal-highlight)) drop-shadow(0 0 40px var(--terminal-highlight));
   }
 }
 
