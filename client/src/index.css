@@ -298,6 +298,116 @@
   --terminal-orange: hsl(320 70% 60%);
 }
 
+.theme-vaporwave {
+  --terminal-bg: hsl(300 60% 8%);
+  --terminal-text: hsl(330 100% 75%);
+  --terminal-highlight: hsl(180 100% 70%);
+  --terminal-subtle: hsl(300 50% 18%);
+  --terminal-subtle-rgb: 58, 23, 58;
+  --terminal-logo-green: hsl(180 100% 70%);
+  --terminal-bright-green: hsl(330 100% 75%);
+  --terminal-orange: hsl(270 100% 70%);
+}
+
+.theme-desert {
+  --terminal-bg: hsl(30 40% 12%);
+  --terminal-text: hsl(40 85% 65%);
+  --terminal-highlight: hsl(20 90% 60%);
+  --terminal-subtle: hsl(30 50% 22%);
+  --terminal-subtle-rgb: 71, 56, 28;
+  --terminal-logo-green: hsl(20 90% 60%);
+  --terminal-bright-green: hsl(40 85% 65%);
+  --terminal-orange: hsl(10 95% 55%);
+}
+
+.theme-toxic {
+  --terminal-bg: hsl(0 0% 5%);
+  --terminal-text: hsl(80 100% 50%);
+  --terminal-highlight: hsl(65 100% 45%);
+  --terminal-subtle: hsl(80 60% 15%);
+  --terminal-subtle-rgb: 41, 61, 15;
+  --terminal-logo-green: hsl(65 100% 45%);
+  --terminal-bright-green: hsl(80 100% 50%);
+  --terminal-orange: hsl(50 100% 50%);
+}
+
+.theme-crimson {
+  --terminal-bg: hsl(0 40% 8%);
+  --terminal-text: hsl(350 100% 70%);
+  --terminal-highlight: hsl(15 100% 65%);
+  --terminal-subtle: hsl(0 50% 18%);
+  --terminal-subtle-rgb: 73, 23, 23;
+  --terminal-logo-green: hsl(15 100% 65%);
+  --terminal-bright-green: hsl(350 100% 70%);
+  --terminal-orange: hsl(30 100% 60%);
+}
+
+.theme-lavender {
+  --terminal-bg: hsl(270 40% 10%);
+  --terminal-text: hsl(290 70% 75%);
+  --terminal-highlight: hsl(310 80% 70%);
+  --terminal-subtle: hsl(270 50% 20%);
+  --terminal-subtle-rgb: 51, 26, 77;
+  --terminal-logo-green: hsl(310 80% 70%);
+  --terminal-bright-green: hsl(290 70% 75%);
+  --terminal-orange: hsl(330 75% 65%);
+}
+
+.theme-emerald {
+  --terminal-bg: hsl(160 50% 8%);
+  --terminal-text: hsl(140 80% 60%);
+  --terminal-highlight: hsl(165 90% 65%);
+  --terminal-subtle: hsl(160 60% 18%);
+  --terminal-subtle-rgb: 18, 58, 49;
+  --terminal-logo-green: hsl(165 90% 65%);
+  --terminal-bright-green: hsl(140 80% 60%);
+  --terminal-orange: hsl(120 75% 55%);
+}
+
+.theme-midnight {
+  --terminal-bg: hsl(220 60% 6%);
+  --terminal-text: hsl(210 90% 65%);
+  --terminal-highlight: hsl(200 100% 70%);
+  --terminal-subtle: hsl(220 70% 16%);
+  --terminal-subtle-rgb: 12, 20, 69;
+  --terminal-logo-green: hsl(200 100% 70%);
+  --terminal-bright-green: hsl(210 90% 65%);
+  --terminal-orange: hsl(190 85% 60%);
+}
+
+.theme-sakura {
+  --terminal-bg: hsl(340 30% 12%);
+  --terminal-text: hsl(320 80% 75%);
+  --terminal-highlight: hsl(0 85% 70%);
+  --terminal-subtle: hsl(340 40% 22%);
+  --terminal-subtle-rgb: 71, 38, 56;
+  --terminal-logo-green: hsl(0 85% 70%);
+  --terminal-bright-green: hsl(320 80% 75%);
+  --terminal-orange: hsl(10 90% 65%);
+}
+
+.theme-copper {
+  --terminal-bg: hsl(20 40% 10%);
+  --terminal-text: hsl(30 75% 60%);
+  --terminal-highlight: hsl(25 85% 65%);
+  --terminal-subtle: hsl(20 50% 20%);
+  --terminal-subtle-rgb: 64, 40, 26;
+  --terminal-logo-green: hsl(25 85% 65%);
+  --terminal-bright-green: hsl(30 75% 60%);
+  --terminal-orange: hsl(15 90% 55%);
+}
+
+.theme-plasma {
+  --terminal-bg: hsl(0 0% 3%);
+  --terminal-text: hsl(290 100% 70%);
+  --terminal-highlight: hsl(340 100% 65%);
+  --terminal-subtle: hsl(290 70% 15%);
+  --terminal-subtle-rgb: 77, 15, 77;
+  --terminal-logo-green: hsl(340 100% 65%);
+  --terminal-bright-green: hsl(290 100% 70%);
+  --terminal-orange: hsl(20 100% 60%);
+}
+
 /* Matrix Rain Background Effect - Optimized */
 @keyframes logoGlow {
   0%, 100% { 
@@ -1219,4 +1329,44 @@
 
 .theme-royal .terminal-watermark {
   filter: brightness(0) saturate(100%) invert(62%) sepia(95%) saturate(4838%) hue-rotate(265deg) brightness(102%) contrast(101%);
+}
+
+.theme-vaporwave .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(67%) sepia(100%) saturate(4838%) hue-rotate(285deg) brightness(102%) contrast(101%);
+}
+
+.theme-desert .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(70%) sepia(90%) saturate(1430%) hue-rotate(346deg) brightness(104%) contrast(101%);
+}
+
+.theme-toxic .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(72%) sepia(100%) saturate(3430%) hue-rotate(39deg) brightness(96%) contrast(101%);
+}
+
+.theme-crimson .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(58%) sepia(92%) saturate(4838%) hue-rotate(337deg) brightness(102%) contrast(101%);
+}
+
+.theme-lavender .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(64%) sepia(85%) saturate(4838%) hue-rotate(275deg) brightness(102%) contrast(101%);
+}
+
+.theme-emerald .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(72%) sepia(88%) saturate(1430%) hue-rotate(119deg) brightness(98%) contrast(88%);
+}
+
+.theme-midnight .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(68%) sepia(98%) saturate(1523%) hue-rotate(169deg) brightness(102%) contrast(101%);
+}
+
+.theme-sakura .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(64%) sepia(85%) saturate(4838%) hue-rotate(295deg) brightness(102%) contrast(101%);
+}
+
+.theme-copper .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(69%) sepia(85%) saturate(1265%) hue-rotate(346deg) brightness(104%) contrast(101%);
+}
+
+.theme-plasma .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(62%) sepia(100%) saturate(4838%) hue-rotate(285deg) brightness(102%) contrast(101%);
 }
