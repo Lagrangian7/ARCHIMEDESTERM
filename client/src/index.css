@@ -408,6 +408,61 @@
   --terminal-orange: hsl(20 100% 60%);
 }
 
+.theme-atari {
+  --terminal-bg: hsl(30 50% 10%);
+  --terminal-text: hsl(50 100% 65%);
+  --terminal-highlight: hsl(10 100% 60%);
+  --terminal-subtle: hsl(30 60% 20%);
+  --terminal-subtle-rgb: 82, 51, 20;
+  --terminal-logo-green: hsl(10 100% 60%);
+  --terminal-bright-green: hsl(50 100% 65%);
+  --terminal-orange: hsl(30 100% 55%);
+}
+
+.theme-nes {
+  --terminal-bg: hsl(220 60% 12%);
+  --terminal-text: hsl(0 100% 65%);
+  --terminal-highlight: hsl(200 100% 70%);
+  --terminal-subtle: hsl(220 70% 22%);
+  --terminal-subtle-rgb: 20, 36, 87;
+  --terminal-logo-green: hsl(200 100% 70%);
+  --terminal-bright-green: hsl(0 100% 65%);
+  --terminal-orange: hsl(120 80% 60%);
+}
+
+.theme-gameboy {
+  --terminal-bg: hsl(80 20% 15%);
+  --terminal-text: hsl(80 60% 60%);
+  --terminal-highlight: hsl(90 70% 75%);
+  --terminal-subtle: hsl(80 30% 25%);
+  --terminal-subtle-rgb: 51, 64, 45;
+  --terminal-logo-green: hsl(90 70% 75%);
+  --terminal-bright-green: hsl(80 60% 60%);
+  --terminal-orange: hsl(70 80% 50%);
+}
+
+.theme-arcade {
+  --terminal-bg: hsl(0 0% 0%);
+  --terminal-text: hsl(190 100% 60%);
+  --terminal-highlight: hsl(320 100% 65%);
+  --terminal-subtle: hsl(190 60% 20%);
+  --terminal-subtle-rgb: 20, 61, 72;
+  --terminal-logo-green: hsl(320 100% 65%);
+  --terminal-bright-green: hsl(190 100% 60%);
+  --terminal-orange: hsl(60 100% 60%);
+}
+
+.theme-spectrum {
+  --terminal-bg: hsl(0 0% 0%);
+  --terminal-text: hsl(0 100% 70%);
+  --terminal-highlight: hsl(240 100% 70%);
+  --terminal-subtle: hsl(0 60% 20%);
+  --terminal-subtle-rgb: 82, 20, 20;
+  --terminal-logo-green: hsl(240 100% 70%);
+  --terminal-bright-green: hsl(0 100% 70%);
+  --terminal-orange: hsl(60 100% 60%);
+}
+
 /* Matrix Rain Background Effect - Optimized */
 @keyframes logoGlow {
   0%, 100% { 
@@ -1369,4 +1424,24 @@
 
 .theme-plasma .terminal-watermark {
   filter: brightness(0) saturate(100%) invert(62%) sepia(100%) saturate(4838%) hue-rotate(285deg) brightness(102%) contrast(101%);
+}
+
+.theme-atari .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(71%) sepia(97%) saturate(1265%) hue-rotate(346deg) brightness(104%) contrast(101%);
+}
+
+.theme-nes .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(56%) sepia(91%) saturate(4838%) hue-rotate(337deg) brightness(102%) contrast(101%);
+}
+
+.theme-gameboy .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(76%) sepia(28%) saturate(1430%) hue-rotate(59deg) brightness(98%) contrast(88%);
+}
+
+.theme-arcade .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(67%) sepia(100%) saturate(4838%) hue-rotate(285deg) brightness(102%) contrast(101%);
+}
+
+.theme-spectrum .terminal-watermark {
+  filter: brightness(0) saturate(100%) invert(56%) sepia(91%) saturate(4838%) hue-rotate(337deg) brightness(102%) contrast(101%);
 }
