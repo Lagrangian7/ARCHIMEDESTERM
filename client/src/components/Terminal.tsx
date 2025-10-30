@@ -776,8 +776,8 @@ export function Terminal() {
 
       {/* SPACEWAR Game */}
       {showSpacewars && (
-        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
-          <div className="relative w-[95vw] h-[90vh] max-w-[1400px] border-2 border-terminal-highlight rounded-lg overflow-hidden">
+        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div className="relative w-[800px] h-[600px] border-2 border-terminal-highlight rounded-lg overflow-hidden shadow-2xl pointer-events-auto" style={{ backgroundColor: 'black' }}>
             <Button
               onClick={() => setShowSpacewars(false)}
               variant="ghost"
