@@ -94,20 +94,38 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     },
   });
 
-  // Calculate initial position centered in the viewport over background
+  // Track mouse position for bubble placement
+  const mousePositionRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      mousePositionRef.current = { x: e.clientX, y: e.clientY };
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Calculate initial position near mouse cursor in visible viewport
   useEffect(() => {
     if (!position) {
-      // Center horizontally in viewport
       const bubbleWidth = 384; // max-w-md is roughly 384px
-      const centerX = (window.innerWidth - bubbleWidth) / 2;
+      const bubbleHeight = 200; // estimated height
+      const offset = 40; // offset from cursor
       
-      // Position in center of viewport (slightly above center)
-      const centerY = (window.innerHeight / 2) - 150;
+      // Start near mouse position
+      let x = mousePositionRef.current.x + offset;
+      let y = mousePositionRef.current.y - offset;
       
-      setPosition({
-        x: Math.max(centerX, 20), // Center horizontally with padding
-        y: Math.max(centerY, 50) // Center vertically with padding
-      });
+      // Keep within viewport bounds with padding
+      const padding = 20;
+      const maxX = window.innerWidth - bubbleWidth - padding;
+      const maxY = window.innerHeight - bubbleHeight - padding;
+      
+      x = Math.max(padding, Math.min(x, maxX));
+      y = Math.max(padding, Math.min(y, maxY));
+      
+      setPosition({ x, y });
     }
   }, [position]);
 
