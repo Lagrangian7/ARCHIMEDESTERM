@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Terminal, Wifi, ExternalLink } from 'lucide-react';
+import { Terminal, Wifi, X } from 'lucide-react';
 
 interface SshwiftyInterfaceProps {
   onClose?: () => void;
@@ -14,6 +14,7 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
   const [host, setHost] = useState('');
   const [port, setPort] = useState('');
   const [user, setUser] = useState('');
+  const [iframeUrl, setIframeUrl] = useState<string | null>(null);
 
   const handleConnect = () => {
     if (!host || !port) {
@@ -33,8 +34,7 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
       sshwiftyUrl = `/sshwifty?type=ssh&host=${encodeURIComponent(host)}&port=${port}&user=${encodeURIComponent(user)}`;
     }
 
-    // Open Sshwifty in a new window
-    window.open(sshwiftyUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
+    setIframeUrl(sshwiftyUrl);
   };
 
   const handleQuickConnect = (quickHost: string, quickPort: string, type: 'telnet' | 'ssh' = 'telnet', quickUser?: string) => {
@@ -51,8 +51,44 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
       sshwiftyUrl = `/sshwifty?type=ssh&host=${encodeURIComponent(quickHost)}&port=${quickPort}&user=${encodeURIComponent(useUser)}`;
     }
     
-    window.open(sshwiftyUrl, '_blank', 'width=1200,height=800,resizable=yes,scrollbars=yes');
+    setIframeUrl(sshwiftyUrl);
   };
+
+  const handleCloseIframe = () => {
+    setIframeUrl(null);
+  };
+
+  // If iframe is open, show full-screen iframe view
+  if (iframeUrl) {
+    return (
+      <div className="fixed inset-0 z-50 bg-terminal-bg flex flex-col">
+        {/* Iframe Header */}
+        <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-terminal-highlight/30">
+          <div className="flex items-center space-x-2">
+            <Terminal className="w-5 h-5 text-terminal-highlight" />
+            <h3 className="text-terminal-text text-lg font-bold">
+              {connectionType.toUpperCase()} - {host}:{port}
+            </h3>
+          </div>
+          <Button
+            onClick={handleCloseIframe}
+            variant="ghost"
+            size="sm"
+            className="text-terminal-highlight hover:bg-terminal-highlight/10"
+          >
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+        
+        {/* Iframe */}
+        <iframe
+          src={iframeUrl}
+          className="flex-1 w-full border-none"
+          title={`${connectionType} connection to ${host}:${port}`}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-terminal-bg border-2 border-terminal-highlight p-6">
@@ -69,7 +105,7 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
             size="sm"
             className="border-terminal-subtle hover:bg-terminal-subtle"
           >
-            Close
+            <X className="w-5 h-5" />
           </Button>
         )}
       </div>
@@ -130,7 +166,7 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
           className="w-full bg-terminal-highlight text-black hover:bg-terminal-highlight/80"
           disabled={!host || !port || (connectionType === 'ssh' && !user)}
         >
-          <ExternalLink className="w-4 h-4 mr-2" />
+          <Terminal className="w-4 h-4 mr-2" />
           Connect
         </Button>
       </div>
