@@ -32,6 +32,8 @@ export function getSession() {
     },
     tableName: 'sessions',
     createTableIfMissing: true,
+    ttl: sessionTtl / 1000, // PostgreSQL store expects TTL in seconds
+    pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
   });
   
   store.on('error', (err) => {
@@ -41,13 +43,15 @@ export function getSession() {
   return session({
     store,
     secret: process.env.SESSION_SECRET!,
-    resave: false,
-    saveUninitialized: false,
+    resave: false, // Don't save session if unmodified
+    saveUninitialized: false, // Don't create session until something stored
+    rolling: true, // Reset expiration on every response
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: sessionTtl,
       sameSite: 'lax',
+      path: '/',
     },
   });
 }
@@ -142,7 +146,10 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
 
   const now = Math.floor(Date.now() / 1000);
-  if (now <= user.expires_at) {
+  // Refresh token proactively if it will expire in the next 5 minutes
+  const shouldRefresh = user.expires_at - now < 300;
+  
+  if (now <= user.expires_at && !shouldRefresh) {
     return next();
   }
 
@@ -156,8 +163,17 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     const config = await getOidcConfig();
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     updateUserSession(user, tokenResponse);
+    
+    // Ensure session is saved after token refresh
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+      }
+    });
+    
     return next();
   } catch (error) {
+    console.error('Token refresh error:', error);
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
