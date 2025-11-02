@@ -1303,7 +1303,7 @@ Code Execution:
       return;
     }
 
-    if (cmd === 'save' || cmd === 'save-response') {
+    if (cmd === 'save' || cmd === 'save-response' || cmd.startsWith('save ')) {
       // Find the last response entry
       const lastResponse = [...entries].reverse().find(entry => entry.type === 'response');
 
@@ -1312,11 +1312,24 @@ Code Execution:
         return;
       }
 
+      // Extract custom filename if provided
+      let customFilename = '';
+      if (cmd.startsWith('save ')) {
+        customFilename = cmd.substring(5).trim();
+      }
+
       setIsTyping(true);
       addEntry('system', '💾 Saving response to knowledge base...');
 
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const filename = `archimedes-response-${timestamp}.txt`;
+      // Generate filename
+      let filename: string;
+      if (customFilename) {
+        // Add .txt extension if not present
+        filename = customFilename.endsWith('.txt') ? customFilename : `${customFilename}.txt`;
+      } else {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        filename = `archimedes-response-${timestamp}.txt`;
+      }
 
       fetch('/api/documents/save-text', {
         method: 'POST',

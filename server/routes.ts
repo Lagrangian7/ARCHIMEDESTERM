@@ -2126,7 +2126,7 @@ function windowResized() {
   }
 
   // Auth routes
-  app.get('/api/auth/user', async (req: any, res) => {
+  app.get('/api/auth/user', async (req, res) => {
     try {
       // Check if user is authenticated
       if (!req.isAuthenticated?.() || !req.user?.claims?.sub) {
@@ -2665,14 +2665,17 @@ function windowResized() {
         return res.status(400).json({ error: "Content is too large (max 5MB)" });
       }
 
-      // Generate a unique filename
-      const uniqueFilename = `${randomUUID()}-${filename}`;
+      // Ensure filename ends with .txt if not already provided
+      let finalFilename = filename;
+      if (!finalFilename.toLowerCase().endsWith('.txt')) {
+        finalFilename += '.txt';
+      }
 
       // Process the document
       const document = await knowledgeService.processDocument(content, {
         userId,
-        fileName: uniqueFilename,
-        originalName: filename,
+        fileName: `${randomUUID()}-${finalFilename}`,
+        originalName: finalFilename,
         fileSize: Buffer.byteLength(content, 'utf8').toString(),
         mimeType: 'text/plain',
       });
@@ -2736,6 +2739,54 @@ function windowResized() {
     }
   });
 
+  // Rename a specific document
+  app.patch("/api/documents/:documentId/rename", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { documentId } = req.params;
+      const { newName } = req.body;
+
+      if (!newName || typeof newName !== 'string' || newName.trim().length === 0) {
+        return res.status(400).json({ error: "Valid document name is required" });
+      }
+
+      const document = await storage.getDocument(documentId);
+
+      if (!document || document.userId !== userId) {
+        return res.status(404).json({ error: "Document not found or unauthorized" });
+      }
+
+      const updatedDocument = await storage.updateDocument(documentId, {
+        originalName: newName.trim()
+      });
+
+      res.json({ success: true, document: updatedDocument });
+    } catch (error) {
+      console.error("Rename document error:", error);
+      res.status(500).json({ error: "Failed to rename document" });
+    }
+  });
+
+
+  // Delete a specific document
+  app.delete("/api/documents/:documentId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { documentId } = req.params;
+
+      const success = await knowledgeService.deleteDocument(documentId, userId);
+
+      if (!success) {
+        return res.status(404).json({ error: "Document not found or unauthorized" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete document error:", error);
+      res.status(500).json({ error: "Failed to delete document" });
+    }
+  });
+
   // Get document by filename for read command
   app.get("/api/documents/read/:filename", isAuthenticated, async (req: any, res) => {
     try {
@@ -2760,24 +2811,6 @@ function windowResized() {
         error: "Failed to read document",
         formatted: "❌ Failed to read document. Please try again."
       });
-    }
-  });
-
-  // Delete document
-  app.delete("/api/documents/:id", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const documentId = req.params.id;
-
-      const success = await knowledgeService.deleteDocument(documentId, userId);
-      if (!success) {
-        return res.status(404).json({ error: "Document not found" });
-      }
-
-      res.json({ message: "Document deleted successfully" });
-    } catch (error) {
-      console.error("Delete document error:", error);
-      res.status(500).json({ error: "Failed to delete document" });
     }
   });
 

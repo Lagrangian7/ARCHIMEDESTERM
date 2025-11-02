@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { 
   File, 
   Trash2, 
@@ -10,7 +11,8 @@ import {
   Search, 
   Calendar, 
   FileText,
-  HardDrive
+  HardDrive,
+  Edit2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -33,6 +35,8 @@ interface DocumentsListProps {
 
 export function DocumentsList({ onClose }: DocumentsListProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [newName, setNewName] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +64,29 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
       toast({
         title: "Delete Failed",
         description: error.message || "Failed to delete document.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Rename document mutation
+  const renameMutation = useMutation({
+    mutationFn: async ({ documentId, newName }: { documentId: string; newName: string }) => {
+      return apiRequest('PATCH', `/api/documents/${documentId}/rename`, { newName });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Document Renamed",
+        description: "Document name has been updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      setRenamingId(null);
+      setNewName('');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Rename Failed",
+        description: error.message || "Failed to rename document.",
         variant: "destructive",
       });
     },
@@ -94,6 +121,28 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
     if (window.confirm(`Are you sure you want to delete "${fileName}"? This action cannot be undone.`)) {
       deleteMutation.mutate(documentId);
     }
+  };
+
+  const handleRenameStart = (documentId: string, currentName: string) => {
+    setRenamingId(documentId);
+    setNewName(currentName);
+  };
+
+  const handleRenameSubmit = (documentId: string) => {
+    if (!newName.trim()) {
+      toast({
+        title: "Invalid Name",
+        description: "Document name cannot be empty.",
+        variant: "destructive",
+      });
+      return;
+    }
+    renameMutation.mutate({ documentId, newName: newName.trim() });
+  };
+
+  const handleRenameCancel = () => {
+    setRenamingId(null);
+    setNewName('');
   };
 
   // Memoize filtered documents to prevent unnecessary recalculations
@@ -228,14 +277,54 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
                       <File className="flex-shrink-0" style={{ color: 'var(--terminal-text)' }} size={16} />
-                      <h3 
-                        className="font-semibold truncate" 
-                        style={{ color: 'var(--terminal-text)' }}
-                        title={document.originalName}
-                        data-testid={`text-document-name-${document.id}`}
-                      >
-                        {document.originalName}
-                      </h3>
+                      {renamingId === document.id ? (
+                        <div className="flex items-center space-x-2 flex-1">
+                          <Input
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleRenameSubmit(document.id);
+                              } else if (e.key === 'Escape') {
+                                handleRenameCancel();
+                              }
+                            }}
+                            autoFocus
+                            className="text-sm h-7"
+                            style={{
+                              backgroundColor: 'var(--terminal-bg)',
+                              borderColor: 'var(--terminal-highlight)',
+                              color: 'var(--terminal-text)'
+                            }}
+                          />
+                          <Button
+                            onClick={() => handleRenameSubmit(document.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-terminal-highlight"
+                            disabled={renameMutation.isPending}
+                          >
+                            ✓
+                          </Button>
+                          <Button
+                            onClick={handleRenameCancel}
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-terminal-text"
+                          >
+                            ✕
+                          </Button>
+                        </div>
+                      ) : (
+                        <h3 
+                          className="font-semibold truncate" 
+                          style={{ color: 'var(--terminal-text)' }}
+                          title={document.originalName}
+                          data-testid={`text-document-name-${document.id}`}
+                        >
+                          {document.originalName}
+                        </h3>
+                      )}
                     </div>
 
                     <div className="flex items-center space-x-4 text-xs mb-2" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
@@ -293,11 +382,22 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
 
                   <div className="flex items-center space-x-2 ml-4 flex-shrink-0">
                     <Button
+                      onClick={() => handleRenameStart(document.id, document.originalName)}
+                      variant="ghost"
+                      size="sm"
+                      className="hover:bg-terminal-highlight/20 p-1 h-8 w-8"
+                      style={{ color: 'var(--terminal-text)' }}
+                      disabled={renamingId !== null || deleteMutation.isPending}
+                      data-testid={`button-rename-${document.id}`}
+                    >
+                      <Edit2 size={14} />
+                    </Button>
+                    <Button
                       onClick={() => handleDelete(document.id, document.originalName)}
                       variant="ghost"
                       size="sm"
                       className="text-red-400 hover:text-red-300 hover:bg-red-900/20 p-1 h-8 w-8"
-                      disabled={deleteMutation.isPending}
+                      disabled={deleteMutation.isPending || renamingId !== null}
                       data-testid={`button-delete-${document.id}`}
                     >
                       <Trash2 size={14} />

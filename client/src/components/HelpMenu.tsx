@@ -29,7 +29,7 @@ const helpMenuItems: HelpMenuItem[] = [
   },
   {
     id: 'clear',
-    category: 'Basic Commands', 
+    category: 'Basic Commands',
     title: 'Clear Terminal',
     description: 'Clear all output from the terminal screen',
     command: 'clear',
@@ -239,7 +239,7 @@ const helpMenuItems: HelpMenuItem[] = [
   },
   {
     id: 'stop',
-    category: 'Basic Commands', 
+    category: 'Basic Commands',
     title: 'Stop Speech',
     description: 'Stop speech synthesis immediately and await next command',
     command: 'stop',
@@ -651,7 +651,8 @@ const helpMenuItems: HelpMenuItem[] = [
     title: 'Save Response',
     description: 'Save the last AI response to your knowledge base',
     command: 'save',
-    icon: <Upload size={16} />
+    example: 'save my-notes (auto-adds .txt)',
+    icon: <TerminalIcon size={16} />
   },
 
   // Chat
@@ -700,8 +701,8 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
       const containerRect = container.getBoundingClientRect();
       const itemRect = item.getBoundingClientRect();
 
-      const isItemVisible = 
-        itemRect.top >= containerRect.top && 
+      const isItemVisible =
+        itemRect.top >= containerRect.top &&
         itemRect.bottom <= containerRect.bottom;
 
       if (!isItemVisible) {
@@ -816,10 +817,10 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
         {/* Instructions */}
         <div className="px-4 py-2 bg-terminal-bg/50 border-b border-terminal-subtle/50">
           <div className="text-sm text-terminal-text/80 font-mono">
-            ⌨️ <span className="text-terminal-highlight">↑↓</span> navigate • 
-            <span className="text-terminal-highlight">PgUp/PgDn</span> jump • 
-            <span className="text-terminal-highlight">Home/End</span> first/last • 
-            <span className="text-terminal-highlight">Enter</span> select • 
+            ⌨️ <span className="text-terminal-highlight">↑↓</span> navigate •
+            <span className="text-terminal-highlight">PgUp/PgDn</span> jump •
+            <span className="text-terminal-highlight">Home/End</span> first/last •
+            <span className="text-terminal-highlight">Enter</span> select •
             <span className="text-terminal-highlight">Esc</span> close
           </div>
         </div>
@@ -831,7 +832,7 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
               ALL COMMANDS (A-Z) - {sortedItems.length} total
             </h3>
           </div>
-          <div 
+          <div
             ref={scrollContainerRef}
             className="overflow-y-auto flex-1 scrollbar-thin scrollbar-track-terminal-bg scrollbar-thumb-terminal-highlight/50"
           >
@@ -841,8 +842,8 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
                   ref={index === selectedIndex ? selectedItemRef : null}
                   onClick={() => handleItemSelect(item)}
                   className={`p-4 cursor-pointer border-b border-terminal-subtle/20 transition-all duration-150 ${
-                    index === selectedIndex 
-                      ? 'bg-terminal-highlight text-terminal-bg' 
+                    index === selectedIndex
+                      ? 'bg-terminal-highlight text-terminal-bg'
                       : 'text-terminal-text hover:bg-terminal-subtle/30'
                   }`}
                 >
@@ -855,8 +856,8 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
                         <h4 className="font-semibold text-sm">{item.title}</h4>
                         {item.command && (
                           <code className={`text-xs px-2 py-1 rounded font-mono ${
-                            index === selectedIndex 
-                              ? 'bg-terminal-bg/20 text-terminal-bg/80' 
+                            index === selectedIndex
+                              ? 'bg-terminal-bg/20 text-terminal-bg/80'
                               : 'bg-terminal-subtle/30 text-terminal-highlight'
                           }`}>
                             {item.command}
@@ -885,7 +886,7 @@ export function HelpMenu({ onClose, onSelectCommand }: HelpMenuProps) {
         {/* Footer */}
         <div className="p-3 border-t border-terminal-subtle bg-terminal-bg/50 flex-shrink-0">
           <div className="text-xs text-terminal-text/60 font-mono text-center">
-            ARCHIMEDES v7 Interactive Help System • 
+            ARCHIMEDES v7 Interactive Help System •
             Item {selectedIndex + 1} of {sortedItems.length}
           </div>
         </div>
