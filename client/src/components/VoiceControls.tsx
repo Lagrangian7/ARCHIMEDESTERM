@@ -155,6 +155,20 @@ export function VoiceControls({
       </div>
 
       <div className="flex items-center gap-1.5 md:gap-3 flex-wrap">
+        {/* Login Status Indicator */}
+        <div className="flex items-center gap-2 px-2 py-1 rounded border" style={{
+          borderColor: isAuthenticated ? 'var(--terminal-highlight)' : 'rgba(var(--terminal-subtle-rgb), 0.3)',
+          backgroundColor: isAuthenticated ? 'rgba(var(--terminal-highlight-rgb), 0.1)' : 'rgba(var(--terminal-subtle-rgb), 0.05)'
+        }}>
+          <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'animate-pulse' : ''}`} style={{
+            backgroundColor: isAuthenticated ? 'var(--terminal-highlight)' : 'rgba(var(--terminal-subtle-rgb), 0.5)',
+            boxShadow: isAuthenticated ? '0 0 4px var(--terminal-highlight)' : 'none'
+          }} />
+          <span className="text-xs font-mono" style={{ color: 'var(--terminal-text)' }}>
+            {isAuthenticated ? (user?.email || 'Logged In') : 'Guest'}
+          </span>
+        </div>
+
         <TooltipProvider>
           {isAuthenticated && (
             <>
