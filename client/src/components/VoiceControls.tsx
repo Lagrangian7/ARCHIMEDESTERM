@@ -120,8 +120,8 @@ export function VoiceControls({
           <h1 className="font-bold terminal-text terminal-glow text-xs md:text-[15px] whitespace-nowrap" data-testid="text-title">
             ARCHIMEDES <span className="text-[8px] md:text-[10px]">v7</span>
           </h1>
-          <div className="text-xs md:text-sm text-white truncate">
-            <span className="hidden sm:inline">アルキメデス</span>
+          <div className="text-xs md:text-sm truncate">
+            <span className="hidden sm:inline retro-cycle">アルキメデス</span>
             {user && (
               <span className="ml-1 md:ml-2 text-green-300">
                 | {user.firstName || user.email?.split('@')[0] || 'User'}
