@@ -27,19 +27,19 @@ export function useTerminal(onUploadCommand?: () => void) {
     {
       id: '1',
       type: 'system',
-      content: '<span class="retro-cycle">ARCHIMEDES AI Terminal v7.0 - Initialized</span>',
+      content: 'ARCHIMEDES AI Terminal v7.0 - Initialized',
       timestamp: new Date().toISOString(),
     },
     {
       id: '2',
       type: 'system',
-      content: '<span class="retro-cycle">System Status: ONLINE | Voice Synthesis: READY | Mode: NATURAL CHAT</span>',
+      content: 'System Status: ONLINE | Voice Synthesis: READY | Mode: NATURAL CHAT',
       timestamp: new Date().toISOString(),
     },
     {
       id: '3',
       type: 'system',
-      content: '<span class="retro-cycle">Archimedes v7 Online</span>',
+      content: 'Archimedes v7 Online',
       timestamp: new Date().toISOString(),
     },
   ]);
@@ -664,19 +664,19 @@ Code Execution:
         {
           id: crypto.randomUUID(),
           type: 'system',
-          content: '<span class="retro-cycle">ARCHIMEDES AI Terminal v7.0 - Initialized</span>',
+          content: 'ARCHIMEDES AI Terminal v7.0 - Initialized',
           timestamp: new Date().toISOString(),
         },
         {
           id: crypto.randomUUID(),
           type: 'system',
-          content: '<span class="retro-cycle">System Status: ONLINE | Voice Synthesis: READY | Mode: NATURAL CHAT</span>',
+          content: 'System Status: ONLINE | Voice Synthesis: READY | Mode: NATURAL CHAT',
           timestamp: new Date().toISOString(),
         },
         {
           id: crypto.randomUUID(),
           type: 'system',
-          content: '<span class="retro-cycle">Archimedes v7 Online</span>',
+          content: 'Archimedes v7 Online',
           timestamp: new Date().toISOString(),
         },
       ]);
