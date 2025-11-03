@@ -2737,7 +2737,7 @@ function windowResized() {
       const userId = req.user.claims.sub;
       const documents = await storage.getUserDocuments(userId);
 
-      // Return limited info for list view
+      // Return limited info for list view including mimeType and objectPath for audio files
       const documentsInfo = documents.map(doc => ({
         id: doc.id,
         originalName: doc.originalName,
@@ -2746,6 +2746,8 @@ function windowResized() {
         keywords: doc.keywords,
         uploadedAt: doc.uploadedAt,
         lastAccessedAt: doc.lastAccessedAt,
+        mimeType: doc.mimeType,
+        objectPath: doc.objectPath,
       }));
 
       res.json(documentsInfo);
