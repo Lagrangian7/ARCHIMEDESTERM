@@ -127,13 +127,14 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
       }
 
       // Validate file size (5MB for text files, 15MB for audio files)
-      const maxSize = file.type.startsWith('audio/') ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
-      const maxSizeLabel = file.type.startsWith('audio/') ? '15MB' : '5MB';
+      const isAudioFile = file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a)$/i);
+      const maxSize = isAudioFile ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
+      const maxSizeLabel = isAudioFile ? '15MB' : '5MB';
       
       if (file.size > maxSize) {
         toast({
           title: "File Too Large",
-          description: `${file.name}: File must be smaller than ${maxSizeLabel}.`,
+          description: `${file.name}: File must be smaller than ${maxSizeLabel}. Current size: ${formatFileSize(file.size)}`,
           variant: "destructive",
         });
         continue;
