@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -24,24 +23,24 @@ function Router() {
 function App() {
   const [showSplash, setShowSplash] = useState(true);
 
-  const handleSplashComplete = useCallback(() => {
-    sessionStorage.setItem('splashShown', 'true');
-    setShowSplash(false);
-  }, []);
-
   useEffect(() => {
     // Check if splash has been shown in this session
     const splashShown = sessionStorage.getItem('splashShown');
     if (splashShown) {
       setShowSplash(false);
     } else {
-      // Auto-dismiss splash after 3 seconds
+      // Auto-dismiss splash after 3 seconds if user doesn't interact
       const timeout = setTimeout(() => {
         handleSplashComplete();
       }, 3000);
       return () => clearTimeout(timeout);
     }
-  }, [handleSplashComplete]);
+  }, []);
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem('splashShown', 'true');
+    setShowSplash(false);
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
