@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,7 +55,9 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
     setIframeUrl(sshwiftyUrl);
   };
 
-  const handleCloseIframe = () => {
+  const handleCloseIframe = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIframeUrl(null);
   };
 
@@ -75,6 +78,7 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
             variant="ghost"
             size="sm"
             className="text-terminal-highlight hover:bg-terminal-highlight/10"
+            type="button"
           >
             <X className="w-5 h-5" />
           </Button>

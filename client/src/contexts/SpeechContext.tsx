@@ -1,4 +1,5 @@
-import { createContext, useContext, ReactNode } from 'react';
+
+import { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 
 interface SpeechContextType {
@@ -19,6 +20,20 @@ const SpeechContext = createContext<SpeechContextType | undefined>(undefined);
 
 export function SpeechProvider({ children }: { children: ReactNode }) {
   const speechSynthesis = useSpeechSynthesis();
+  const { voicesLoaded, isEnabled, speak } = speechSynthesis;
+
+  useEffect(() => {
+    // Only announce once when speech is ready
+    const hasAnnounced = sessionStorage.getItem('archimedes_announced');
+    if (voicesLoaded && isEnabled && !hasAnnounced) {
+      sessionStorage.setItem('archimedes_announced', 'true');
+      // Small delay to ensure everything is loaded
+      const timer = setTimeout(() => {
+        speak("Archimedes v7 online");
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [voicesLoaded, isEnabled, speak]);
   
   return (
     <SpeechContext.Provider value={speechSynthesis}>

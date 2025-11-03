@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
@@ -28,6 +29,12 @@ function App() {
     const splashShown = sessionStorage.getItem('splashShown');
     if (splashShown) {
       setShowSplash(false);
+    } else {
+      // Auto-dismiss splash after 3 seconds
+      const timeout = setTimeout(() => {
+        handleSplashComplete();
+      }, 3000);
+      return () => clearTimeout(timeout);
     }
   }, []);
 
