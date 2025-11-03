@@ -53,22 +53,30 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
           const docsResponse = await fetch('/api/documents', { credentials: 'include' });
           if (docsResponse.ok) {
             const documents = await docsResponse.json();
+            
+            console.log('All documents fetched:', documents);
 
             // Filter for audio files
             knowledgeBaseTracks = documents
-              .filter((doc: any) => doc.mimeType && doc.mimeType.startsWith('audio/'))
+              .filter((doc: any) => {
+                const isAudio = doc.mimeType && doc.mimeType.startsWith('audio/');
+                console.log(`Document ${doc.originalName}: mimeType=${doc.mimeType}, isAudio=${isAudio}`);
+                return isAudio;
+              })
               .map((doc: any) => ({
                 metaData: {
                   artist: "Uploaded Music",
                   title: doc.originalName.replace(/\.[^/.]+$/, "") // Remove extension
                 },
-                url: `/api/documents/${doc.id}/download`
+                url: `/api/knowledge/documents/${doc.id}/download`
               }));
             
-            console.log(`Loaded ${knowledgeBaseTracks.length} MP3 files from uploads`);
+            console.log(`✅ Loaded ${knowledgeBaseTracks.length} MP3 files from uploads:`, knowledgeBaseTracks);
+          } else {
+            console.error('Failed to fetch documents:', docsResponse.status, docsResponse.statusText);
           }
         } catch (error) {
-          console.warn('Could not load uploaded audio files:', error);
+          console.error('❌ Error loading uploaded audio files:', error);
         }
 
         const webamp = new Webamp({
