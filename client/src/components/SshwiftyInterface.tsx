@@ -61,9 +61,9 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
   // If iframe is open, show full-screen iframe view
   if (iframeUrl) {
     return (
-      <div className="fixed inset-0 z-50 bg-terminal-bg flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="fixed inset-0 z-50 bg-terminal-bg flex flex-col">
         {/* Iframe Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-terminal-highlight/30" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-terminal-highlight/30">
           <div className="flex items-center space-x-2">
             <Terminal className="w-5 h-5 text-terminal-highlight" />
             <h3 className="text-terminal-text text-lg font-bold">
@@ -71,10 +71,7 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
             </h3>
           </div>
           <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCloseIframe();
-            }}
+            onClick={handleCloseIframe}
             variant="ghost"
             size="sm"
             className="text-terminal-highlight hover:bg-terminal-highlight/10"
