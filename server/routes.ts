@@ -2896,7 +2896,7 @@ function windowResized() {
       if (document.objectPath && document.mimeType && document.mimeType.startsWith('audio/')) {
         const { ObjectStorageService } = await import("./objectStorage");
         const objectStorageService = new ObjectStorageService();
-        
+
         try {
           const objectFile = await objectStorageService.getObjectEntityFile(document.objectPath);
           await objectStorageService.downloadObject(objectFile, res, 86400); // Cache for 24 hours
@@ -4857,7 +4857,7 @@ function windowResized() {
       formatted += `├─ UUID: ${actor.uuid}\n`;
       formatted += `├─\n`;
       formatted += `├─ Description:\n`;
-      formatted += `├─```
+      formatted += `├─\`\`\`
       formatted += `├─ ${actor.description}\n`;
       formatted += `├─\n`;
 
