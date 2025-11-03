@@ -125,17 +125,18 @@ export const useChat = (options?: { enableWebSocket?: boolean }) => {
     return await response.json();
   }, []);
 
-  // Poll for new messages every 2 seconds when chat is active
+  // Poll for new messages only when chat interface is actually open
   useEffect(() => {
-    if (!enableWebSocket) return; // Only poll when WebSocket would be enabled
+    // Don't poll if WebSocket is disabled or user isn't authenticated
+    if (!enableWebSocket || !user?.id) return;
     
     const interval = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
       refetchUnreadCount();
-    }, 2000); // Poll every 2 seconds
+    }, 5000); // Reduced frequency to 5 seconds
     
     return () => clearInterval(interval);
-  }, [enableWebSocket, queryClient, refetchUnreadCount]);
+  }, [enableWebSocket, queryClient, refetchUnreadCount, user?.id]);
 
   // WebSocket connection management with improved reliability
   useEffect(() => {

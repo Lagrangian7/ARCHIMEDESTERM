@@ -21,7 +21,8 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [totalWords, setTotalWords] = useState(0);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
 
-  const MAX_ENTRIES = 500; // Limit terminal history to prevent memory issues
+  const MAX_ENTRIES = 100; // Reduced limit to prevent memory issues
+  const CLEANUP_THRESHOLD = 120; // Start cleanup when exceeding this
 
   const [entries, setEntries] = useState<TerminalEntry[]>([
     {
@@ -306,11 +307,20 @@ Use the URLs above to access the full articles and information.`;
       mode,
     };
     setEntries(prev => {
-      const newEntries = [...prev, entry];
-      // Keep only the last MAX_ENTRIES to prevent memory issues
-      return newEntries.length > MAX_ENTRIES
-        ? newEntries.slice(-MAX_ENTRIES)
-        : newEntries;
+      let newEntries = [...prev, entry];
+      
+      // Aggressive cleanup when threshold exceeded
+      if (newEntries.length > CLEANUP_THRESHOLD) {
+        // Keep only last MAX_ENTRIES, discarding older ones
+        newEntries = newEntries.slice(-MAX_ENTRIES);
+        
+        // Force garbage collection hint by clearing references
+        if (typeof globalThis.gc === 'function') {
+          setTimeout(() => globalThis.gc(), 100);
+        }
+      }
+      
+      return newEntries;
     });
 
     // Track word count for session analytics

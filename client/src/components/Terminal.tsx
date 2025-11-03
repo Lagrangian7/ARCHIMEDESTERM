@@ -258,7 +258,7 @@ export function Terminal() {
     }
   }, [entries, speak, speechEnabled]);
 
-  // Handle typing animation for new response entries
+  // Handle typing animation for new response entries with cleanup
   useEffect(() => {
     const lastEntry = entries[entries.length - 1];
 
@@ -280,9 +280,30 @@ export function Terminal() {
         });
       }, typingDuration + 500); // Animation duration + 500ms buffer
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        // Cleanup typing entry if component unmounts
+        setTypingEntries(prev => {
+          const next = new Set(prev);
+          next.delete(lastEntry.id);
+          return next;
+        });
+      };
     }
   }, [entries, isTyping]);
+
+  // Periodic cleanup of old typing entries (safety net)
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      setTypingEntries(prev => {
+        if (prev.size === 0) return prev;
+        // Clear all typing entries older than 10 seconds
+        return new Set();
+      });
+    }, 10000); // Every 10 seconds
+
+    return () => clearInterval(cleanupInterval);
+  }, []);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // F1 key opens help menu

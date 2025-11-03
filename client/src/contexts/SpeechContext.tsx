@@ -22,19 +22,33 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
   const speechSynthesis = useSpeechSynthesis();
   const { voicesLoaded, isEnabled, speak } = speechSynthesis;
   const hasAnnouncedRef = useRef(false);
+  const announcementTimerRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    // Only announce once when speech is ready - use ref to prevent re-announcement
+    // Clear any existing timer
+    if (announcementTimerRef.current) {
+      clearTimeout(announcementTimerRef.current);
+    }
+
+    // Only announce once when speech is ready - use both ref AND sessionStorage
     const hasAnnounced = sessionStorage.getItem('archimedes_announced');
     if (voicesLoaded && isEnabled && !hasAnnounced && !hasAnnouncedRef.current) {
       hasAnnouncedRef.current = true;
       sessionStorage.setItem('archimedes_announced', 'true');
+      
       // Small delay to ensure everything is loaded
-      const timer = setTimeout(() => {
+      announcementTimerRef.current = setTimeout(() => {
         speak("Archimedes v7 online");
+        announcementTimerRef.current = undefined;
       }, 500);
-      return () => clearTimeout(timer);
     }
+
+    return () => {
+      if (announcementTimerRef.current) {
+        clearTimeout(announcementTimerRef.current);
+        announcementTimerRef.current = undefined;
+      }
+    };
   }, [voicesLoaded, isEnabled, speak]);
   
   return (
