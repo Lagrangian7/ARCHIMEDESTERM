@@ -43,12 +43,12 @@ export function getSession() {
   return session({
     store,
     secret: process.env.SESSION_SECRET!,
-    resave: false, // Don't save session if unmodified
+    resave: true, // Save session on every request to extend expiration
     saveUninitialized: false, // Don't create session until something stored
     rolling: true, // Reset expiration on every response
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Set to false for Replit environment
       maxAge: sessionTtl,
       sameSite: 'lax',
       path: '/',
@@ -146,8 +146,8 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   }
 
   const now = Math.floor(Date.now() / 1000);
-  // Refresh token proactively if it will expire in the next 5 minutes
-  const shouldRefresh = user.expires_at - now < 300;
+  // Refresh token proactively if it will expire in the next 30 minutes
+  const shouldRefresh = user.expires_at - now < 1800;
   
   if (now <= user.expires_at && !shouldRefresh) {
     return next();
