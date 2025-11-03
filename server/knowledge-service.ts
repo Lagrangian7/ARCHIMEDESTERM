@@ -8,7 +8,7 @@ export class KnowledgeService {
   /**
    * Process and store a text document, splitting it into searchable chunks
    */
-  async processDocument(content: string, metadata: {
+  async processDocument(content: string | null, metadata: {
     userId: string | null;
     fileName: string;
     originalName: string;
@@ -19,9 +19,12 @@ export class KnowledgeService {
     // Check if this is an audio file
     const isAudioFile = metadata.mimeType.startsWith('audio/');
     
+    // For audio files, use empty string as content (database requires non-null)
+    const documentContent = isAudioFile ? '' : (content || '');
+    
     // Extract keywords and generate summary (skip for audio files)
-    const keywords = isAudioFile ? [metadata.originalName.replace(/\.(mp3|wav|ogg|m4a)$/i, '')] : this.extractKeywords(content);
-    const summary = isAudioFile ? `Audio file: ${metadata.originalName}` : this.generateSummary(content);
+    const keywords = isAudioFile ? [metadata.originalName.replace(/\.(mp3|wav|ogg|m4a)$/i, '')] : this.extractKeywords(documentContent);
+    const summary = isAudioFile ? `Audio file: ${metadata.originalName}` : this.generateSummary(documentContent);
 
     // Create document record
     const document = await storage.createDocument({
@@ -30,7 +33,7 @@ export class KnowledgeService {
       originalName: metadata.originalName,
       fileSize: metadata.fileSize,
       mimeType: metadata.mimeType,
-      content,
+      content: documentContent,
       summary,
       keywords,
       objectPath: metadata.objectPath,
