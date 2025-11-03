@@ -33,31 +33,31 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
       files.forEach(file => {
         formData.append('files', file);
       });
-      
+
       const response = await fetch('/api/documents/upload', {
         method: 'POST',
         body: formData,
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Upload failed');
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
       const successCount = data.totalUploaded || 0;
       const errorCount = data.totalErrors || 0;
-      
+
       toast({
         title: successCount > 0 ? "Documents Uploaded" : "Upload Failed",
-        description: errorCount > 0 
+        description: errorCount > 0
           ? `${successCount} documents uploaded successfully, ${errorCount} failed.`
           : `${successCount} document${successCount !== 1 ? 's' : ''} successfully processed and added to your knowledge base.`,
         variant: errorCount > 0 && successCount === 0 ? "destructive" : "default",
       });
-      
+
       // Show specific errors if any
       if (data.errors && data.errors.length > 0) {
         data.errors.forEach((error: any) => {
@@ -68,16 +68,16 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
           });
         });
       }
-      
+
       setSelectedFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      
+
       // Invalidate document queries
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
       queryClient.invalidateQueries({ queryKey: ['/api/knowledge/stats'] });
-      
+
       // Call onUploadComplete for each successfully uploaded document
       if (data.documents && data.documents.length > 0) {
         data.documents.forEach((doc: DocumentInfo) => {
@@ -95,8 +95,8 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
   });
 
   const handleFilesSelect = (files: FileList | File[]) => {
-    const allowedTypes = ['text/plain', 'text/markdown', 'text/csv', 'application/json', 'text/html', 'text/xml'];
-    const allowedExtensions = /\.(txt|md|json|csv|html|xml)$/i;
+    const allowedTypes = ['text/plain', 'text/markdown', 'text/csv', 'application/json', 'text/html', 'text/xml', 'audio/mpeg', 'audio/mp3'];
+    const allowedExtensions = /\.(txt|md|json|csv|html|xml|mp3)$/i;
     const validFiles: File[] = [];
     const fileArray = Array.from(files);
 
@@ -120,7 +120,7 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
       if (!allowedTypes.includes(file.type) && !allowedExtensions.test(file.name)) {
         toast({
           title: "Invalid File Type",
-          description: `${file.name}: Only text files are allowed (TXT, MD, JSON, CSV, HTML, XML).`,
+          description: `${file.name}: Only text and audio files are allowed (TXT, MD, JSON, CSV, HTML, XML, MP3).`,
           variant: "destructive",
         });
         continue;
@@ -147,7 +147,7 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    
+
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       handleFilesSelect(files);
@@ -220,7 +220,7 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
                 Clear All
               </Button>
             </div>
-            
+
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {selectedFiles.map((file, index) => (
                 <Card key={`${file.name}-${index}`} className="bg-background/50" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)' }}>
@@ -293,7 +293,7 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
                 Drag & drop text files here, or click to browse
               </p>
               <p className="text-sm" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
-                Supports: TXT, MD, JSON, CSV, HTML, XML (max 5MB each, up to 10 files)
+                Supports: TXT, MD, JSON, CSV, HTML, XML, MP3 (max 5MB each, up to 10 files)
               </p>
             </div>
             <Button
@@ -313,7 +313,7 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
         type="file"
         multiple
         className="hidden"
-        accept=".txt,.md,.json,.csv,.html,.xml"
+        accept=".txt,.md,.json,.csv,.html,.xml,.mp3"
         onChange={handleFileInputChange}
         data-testid="file-input"
       />
@@ -326,7 +326,7 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
             <span>Upload failed. Please try again.</span>
           </div>
         )}
-        
+
         {uploadMutation.isSuccess && (
           <div className="flex items-center space-x-2 text-sm" style={{ color: 'var(--terminal-text)' }} data-testid="success-message">
             <CheckCircle className="h-4 w-4" />
