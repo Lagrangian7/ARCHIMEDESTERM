@@ -132,6 +132,13 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
   // Always show floating version for responses, keep visible until saved
   useEffect(() => {
     setShowFloating(true);
+
+    // Auto-dismiss after 60 seconds to prevent screen clutter
+    const dismissTimer = setTimeout(() => {
+      setShowFloating(false);
+    }, 60000); // 60 seconds
+
+    return () => clearTimeout(dismissTimer);
   }, []);
 
   // Double-click handler to save and dismiss the bubble
