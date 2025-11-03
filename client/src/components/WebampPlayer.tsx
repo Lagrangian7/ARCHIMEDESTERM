@@ -53,7 +53,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
           const docsResponse = await fetch('/api/documents', { credentials: 'include' });
           if (docsResponse.ok) {
             const documents = await docsResponse.json();
-            
+
             console.log('📁 All documents fetched:', documents);
 
             // Filter for audio files that have object storage paths
@@ -61,19 +61,15 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
               .filter((doc: any) => {
                 const isAudio = doc.mimeType && doc.mimeType.startsWith('audio/');
                 const hasObjectPath = doc.objectPath && doc.objectPath.length > 0;
-                console.log(`📄 ${doc.originalName}: mimeType=${doc.mimeType}, isAudio=${isAudio}, hasObjectPath=${hasObjectPath}, objectPath=${doc.objectPath}`);
+                console.log(`📄 ${doc.originalName}: mimeType=${doc.mimeType}, isAudio=${isAudio}, hasObjectPath=${hasObjectPath}, objectPath=${doc.objectPath}, id=${doc.id}`);
                 return isAudio && hasObjectPath;
               })
               .map((doc: any) => {
-                // Construct the proper URL for the audio file
-                // If objectPath starts with /objects/, use it directly
-                // Otherwise, use the document download endpoint
-                const audioUrl = doc.objectPath.startsWith('/objects/') 
-                  ? doc.objectPath 
-                  : `/api/knowledge/documents/${doc.id}/download`;
-                
+                // Use the object storage path directly - it's already a full path like /objects/bucket/file
+                const audioUrl = doc.objectPath;
+
                 console.log(`🎵 Adding track: ${doc.originalName}, URL: ${audioUrl}`);
-                
+
                 return {
                   metaData: {
                     artist: "Uploaded Music",
@@ -82,9 +78,9 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
                   url: audioUrl
                 };
               });
-            
+
             console.log(`🎵 Loaded ${knowledgeBaseTracks.length} MP3 files with object paths:`, knowledgeBaseTracks);
-            
+
             if (documents.filter((doc: any) => doc.mimeType && doc.mimeType.startsWith('audio/')).length > knowledgeBaseTracks.length) {
               console.warn('⚠️ Some audio files are missing object storage paths and will not be loaded');
             }
@@ -97,7 +93,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
 
         const webamp = new Webamp({
           enableHotkeys: true,
-          
+
           // Enable Milkdrop visualizer
           __butterchurnOptions: {
             importButterchurn: () => import('butterchurn'),
@@ -112,7 +108,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             },
             butterchurnOpen: true
           },
-          
+
           initialTracks: [
             // Soma FM Stations
             {
@@ -566,7 +562,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
 
           // Auto-play the track
           webamp.play();
-          
+
           // Notify parent that Webamp is open and playing
           if (onOpen) {
             onOpen();
