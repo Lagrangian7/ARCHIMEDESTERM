@@ -51,6 +51,16 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Announce when speech is ready (only once)
+  useEffect(() => {
+    const hasAnnounced = sessionStorage.getItem('archimedes_announced');
+    if (voicesLoaded && isEnabled && !hasAnnounced) {
+      sessionStorage.setItem('archimedes_announced', 'true');
+      speak("Archimedes v7 online");
+    }
+  }, [voicesLoaded, isEnabled]);
+
+
   // Merge custom speak and stop with the ones from useSpeechSynthesis
   const contextValue = {
     ...speechSynthesis,
