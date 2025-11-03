@@ -43,7 +43,7 @@ export class SshwiftyService {
       socket.on('create-terminal', (data: any) => {
         try {
           const { type, host, port, user } = data;
-          
+
           if (type === 'telnet') {
             // Spawn telnet process
             terminalProcess = spawn('telnet', [host, port.toString()], {
@@ -120,7 +120,7 @@ export class SshwiftyService {
     // Serve a basic terminal interface
     app.get('/sshwifty', (req, res) => {
       const { host, port, user, type } = req.query;
-      
+
       const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -138,7 +138,7 @@ export class SshwiftyService {
             font-family: 'Courier New', monospace;
             overflow: hidden;
         }
-        
+
         .header {
             background: #1a1a1a;
             color: #00FF41;
@@ -148,16 +148,16 @@ export class SshwiftyService {
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .connection-info {
             font-size: 14px;
         }
-        
+
         .controls {
             display: flex;
             gap: 10px;
         }
-        
+
         .btn {
             background: #333;
             border: 1px solid #00FF41;
@@ -166,22 +166,22 @@ export class SshwiftyService {
             cursor: pointer;
             font-size: 12px;
         }
-        
+
         .btn:hover {
             background: #00FF41;
             color: #000;
         }
-        
+
         #terminal-container {
             height: calc(100vh - 60px);
             padding: 10px;
         }
-        
+
         #terminal {
             width: 100%;
             height: 100%;
         }
-        
+
         .status {
             position: absolute;
             top: 70px;
@@ -193,7 +193,7 @@ export class SshwiftyService {
             border-radius: 4px;
             z-index: 1000;
         }
-        
+
         .hidden {
             display: none;
         }
@@ -207,16 +207,16 @@ export class SshwiftyService {
             ${user ? user + '@' : ''}${host || 'localhost'}:${port || (type === 'ssh' ? '22' : '23')}
         </div>
         <div class="controls">
-            <button class="btn" onclick="connect()">Connect</button>
-            <button class="btn" onclick="disconnect()">Disconnect</button>
-            <button class="btn" onclick="window.close()">Close</button>
+            <button class="btn" onclick="connect(event)">Connect</button>
+            <button class="btn" onclick="disconnect(event)">Disconnect</button>
+            <button class="btn" onclick="closeWindow(event)">Close</button>
         </div>
     </div>
-    
+
     <div id="status" class="status">
         <div>Ready to connect. Click "Connect" to establish connection.</div>
     </div>
-    
+
     <div id="terminal-container">
         <div id="terminal"></div>
     </div>
@@ -224,12 +224,12 @@ export class SshwiftyService {
     <script src="https://unpkg.com/@xterm/xterm@5.5.0/lib/xterm.js"></script>
     <script src="https://unpkg.com/@xterm/addon-fit@0.10.0/lib/addon-fit.js"></script>
     <script src="https://unpkg.com/socket.io-client@4/dist/socket.io.js"></script>
-    
+
     <script>
         let terminal;
         let socket;
         let connected = false;
-        
+
         const urlParams = new URLSearchParams(window.location.search);
         const connectionConfig = {
             type: urlParams.get('type') || 'ssh',
@@ -237,7 +237,7 @@ export class SshwiftyService {
             port: parseInt(urlParams.get('port')) || (urlParams.get('type') === 'telnet' ? 23 : 22),
             user: urlParams.get('user') || ''
         };
-        
+
         function initializeTerminal() {
             terminal = new Terminal({
                 theme: {
@@ -251,91 +251,108 @@ export class SshwiftyService {
                 fontSize: 14,
                 cursorBlink: true
             });
-            
+
             const fitAddon = new FitAddon.FitAddon();
             terminal.loadAddon(fitAddon);
-            
+
             terminal.open(document.getElementById('terminal'));
             fitAddon.fit();
-            
+
             window.addEventListener('resize', () => {
                 fitAddon.fit();
             });
-            
+
             terminal.onData((data) => {
                 if (connected && socket) {
                     socket.emit('terminal-input', data);
                 }
             });
-            
+
             return fitAddon;
         }
-        
+
         function showStatus(message, isError = false) {
             const status = document.getElementById('status');
             status.innerHTML = '<div>' + message + '</div>';
             status.classList.remove('hidden');
-            
+
             if (!isError) {
                 setTimeout(() => {
                     status.classList.add('hidden');
                 }, 3000);
             }
         }
-        
+
         function connect() {
             if (connected) {
                 showStatus('Already connected', true);
                 return;
             }
-            
+
             showStatus('Connecting to ' + connectionConfig.host + ':' + connectionConfig.port + '...');
-            
+
             socket = io(window.location.origin, {
                 path: '/socket.io/sshwifty'
             });
-            
+
             socket.on('connect', () => {
                 socket.emit('create-terminal', connectionConfig);
             });
-            
+
             socket.on('terminal-ready', () => {
                 connected = true;
                 showStatus('Connected successfully!');
                 terminal.focus();
             });
-            
+
             socket.on('terminal-output', (data) => {
                 terminal.write(data);
             });
-            
+
             socket.on('terminal-exit', (data) => {
                 connected = false;
-                showStatus('Connection closed (exit code: ' + data.code + ')', true);
+                showStatus('Connection closed. Exit code: ' + data.code, true);
             });
-            
+
             socket.on('terminal-error', (data) => {
                 showStatus('Error: ' + data.message, true);
             });
-            
+
             socket.on('disconnect', () => {
                 connected = false;
                 showStatus('Disconnected from server', true);
             });
         }
-        
-        function disconnect() {
+
+        function disconnect(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
             if (socket) {
                 socket.disconnect();
-                connected = false;
-                showStatus('Disconnected');
+                socket = null;
             }
+            connected = false;
+            terminal.clear();
+            showStatus('Disconnected');
         }
-        
+
+        function closeWindow(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            disconnect();
+            window.close();
+        }
+
         // Initialize terminal on page load
         window.addEventListener('load', () => {
             const fitAddon = initializeTerminal();
-            
+
             // Auto-connect if parameters are provided
             if (connectionConfig.host && connectionConfig.port) {
                 setTimeout(connect, 500);
@@ -344,7 +361,7 @@ export class SshwiftyService {
     </script>
 </body>
 </html>`;
-      
+
       res.send(html);
     });
 
