@@ -125,7 +125,6 @@ export function Terminal() {
   const [showAJVideo, setShowAJVideo] = useState(false);
   const [isWebampOpen, setIsWebampOpen] = useState(false); // State to track if Webamp is open
   const [showSpacewars, setShowSpacewars] = useState(false);
-  const lastSpokenIdRef = useRef<string>('');
 
   // Theme management
   const themes = useMemo(() => [
@@ -250,16 +249,13 @@ export function Terminal() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
-  // Auto-speak responses and system messages - only speak new entries once
+  // Auto-speak responses and system messages
   useEffect(() => {
     const lastEntry = entries[entries.length - 1];
-    if (lastEntry && 
-        (lastEntry.type === 'response' || lastEntry.type === 'system') &&
-        lastEntry.id !== lastSpokenIdRef.current) {
-      lastSpokenIdRef.current = lastEntry.id;
+    if (lastEntry && (lastEntry.type === 'response' || lastEntry.type === 'system')) {
       speak(lastEntry.content);
     }
-  }, [entries]);
+  }, [entries, speak]);
 
   // Handle typing animation for new response entries
   const typingEntriesSet = useMemo(() => typingEntries, [typingEntries]); // Memoize the set for dependency array

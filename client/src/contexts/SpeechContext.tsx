@@ -22,13 +22,8 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
   const lastSpokenRef = useRef<string>('');
   const speechTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const speak = useCallback((text: string, options: { voice?: number; rate?: number; pitch?: number; onEnd?: () => void } = {}) => {
-    if (!text || text.trim() === '') return;
-
-    // Cancel any ongoing speech before starting new speech
-    if (speechSynthesis.speaking) {
-      speechSynthesis.cancel();
-    }
+  const speak = useCallback((text: string, interruptCurrent = false) => {
+    if (!text.trim()) return;
 
     // Prevent duplicate speech within 500ms
     if (lastSpokenRef.current === text && speechTimeoutRef.current) {
@@ -41,8 +36,15 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
       lastSpokenRef.current = '';
     }, 500);
 
-    speechSynthesis.speak(text, options);
-  }, [speechSynthesis]); // Removed interruptCurrent from dependencies
+    if (speechSynthesis.isSpeaking && !interruptCurrent) {
+      // Add to queue if not interrupting
+      // For simplicity, this example doesn't implement a full queue,
+      // but a more robust solution would manage a queue here.
+      // For now, we just prevent immediate duplicates and let the next call handle it.
+    } else {
+      speechSynthesis.speak(text);
+    }
+  }, [speechSynthesis, interruptCurrent]); // Added interruptCurrent to dependencies
 
   useEffect(() => {
     return () => {
@@ -50,16 +52,6 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
       clearTimeout(speechTimeoutRef.current);
     };
   }, []);
-
-  // Announce when speech is ready (only once)
-  useEffect(() => {
-    const hasAnnounced = sessionStorage.getItem('archimedes_announced');
-    if (voicesLoaded && isEnabled && !hasAnnounced) {
-      sessionStorage.setItem('archimedes_announced', 'true');
-      speak("Archimedes v7 online");
-    }
-  }, [voicesLoaded, isEnabled]);
-
 
   // Merge custom speak and stop with the ones from useSpeechSynthesis
   const contextValue = {
