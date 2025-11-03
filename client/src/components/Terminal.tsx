@@ -485,7 +485,12 @@ export function Terminal() {
                       <MemoizedDraggableResponse
                         isTyping={typingEntriesSet.has(entry.id)}
                         entryId={entry.id}
-                        onBubbleRendered={() => setBubbleRendered(true)} // Pass the callback
+                        onBubbleRendered={() => {
+                          // Only set bubbleRendered for the latest entry
+                          if (entry.id === entries[entries.length - 1]?.id) {
+                            setBubbleRendered(true);
+                          }
+                        }}
                       >
                         <div
                           className={`ml-4 mt-1 ${
@@ -734,9 +739,8 @@ export function Terminal() {
       <MemoizedTalkingArchimedes
         isTyping={isTyping}
         isSpeaking={isSpeaking}
+        bubbleRendered={bubbleRendered}
         currentMessage={entries.length > 0 ? entries[entries.length - 1]?.content : undefined}
-        // Only show Archimedes talking if the bubble has rendered and we are not typing
-        isTalking={bubbleRendered && !isTyping}
       />
 
       {/* Thinking Animation - shows during AI processing, before typing starts */}

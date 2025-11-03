@@ -128,11 +128,9 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
       
       setPosition({ x, y });
       
-      // Notify parent after bubble is positioned and visible
-      // Wait for the fade-in animation to complete (300ms)
-      setTimeout(() => {
-        onBubbleRendered?.();
-      }, 350);
+      // Notify parent immediately after bubble is positioned
+      // Don't wait for animation - the talking animation can start right away
+      onBubbleRendered?.();
     }
   }, [position, onBubbleRendered]);
 
