@@ -1,37 +1,29 @@
 import express, { type Request, Response, NextFunction } from "express";
+import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Enable gzip compression for all responses
+app.use(compression());
+
+app.use(express.json({ limit: '1mb' })); // Add size limit
+app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 
 app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+  // Only log in development and only for API routes
+  if (app.get("env") === "development" && req.path.startsWith("/api")) {
+    const start = Date.now();
+    
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      // Only log slow requests or errors
+      if (duration > 100 || res.statusCode >= 400) {
+        log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
       }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
-  });
+    });
+  }
 
   next();
 });

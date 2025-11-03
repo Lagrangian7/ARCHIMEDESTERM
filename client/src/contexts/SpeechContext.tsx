@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode, useCallback, useEffect, useRef } from 'react';
 import { useSpeechSynthesis } from '@/hooks/use-speech';
 
 interface SpeechContextType {
@@ -19,9 +19,53 @@ const SpeechContext = createContext<SpeechContextType | undefined>(undefined);
 
 export function SpeechProvider({ children }: { children: ReactNode }) {
   const speechSynthesis = useSpeechSynthesis();
-  
+  const lastSpokenRef = useRef<string>('');
+  const speechTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const speak = useCallback((text: string, interruptCurrent = false) => {
+    if (!text.trim()) return;
+
+    // Prevent duplicate speech within 500ms
+    if (lastSpokenRef.current === text && speechTimeoutRef.current) {
+      return;
+    }
+
+    lastSpokenRef.current = text;
+    clearTimeout(speechTimeoutRef.current);
+    speechTimeoutRef.current = setTimeout(() => {
+      lastSpokenRef.current = '';
+    }, 500);
+
+    if (speechSynthesis.isSpeaking && !interruptCurrent) {
+      // Add to queue if not interrupting
+      // For simplicity, this example doesn't implement a full queue,
+      // but a more robust solution would manage a queue here.
+      // For now, we just prevent immediate duplicates and let the next call handle it.
+    } else {
+      speechSynthesis.speak(text);
+    }
+  }, [speechSynthesis, interruptCurrent]); // Added interruptCurrent to dependencies
+
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+      clearTimeout(speechTimeoutRef.current);
+    };
+  }, []);
+
+  // Merge custom speak and stop with the ones from useSpeechSynthesis
+  const contextValue = {
+    ...speechSynthesis,
+    speak,
+    stop: () => {
+      speechSynthesis.stop();
+      lastSpokenRef.current = ''; // Clear last spoken on stop
+      clearTimeout(speechTimeoutRef.current);
+    },
+  };
+
   return (
-    <SpeechContext.Provider value={speechSynthesis}>
+    <SpeechContext.Provider value={contextValue}>
       {children}
     </SpeechContext.Provider>
   );
