@@ -796,6 +796,18 @@ Code Execution:
       return;
     }
 
+    if (cmd === 'garden') {
+      addEntry('system', '🌍 Launching Radio Garden - Explore live radio stations from around the world...');
+
+      const openRadioGarden = (window as any).openRadioGarden;
+      if (openRadioGarden) {
+        openRadioGarden();
+      } else {
+        addEntry('error', 'Radio Garden interface not available. Please ensure the system is loaded.');
+      }
+      return;
+    }
+
     if (cmd === 'aj') {
       addEntry('system', '📺 Launching AJ video player...');
 
