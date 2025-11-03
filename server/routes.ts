@@ -2600,7 +2600,9 @@ function windowResized() {
               else if (ext === 'm4a') mimeType = 'audio/mp4';
               else mimeType = 'audio/mpeg'; // default
             }
-            
+
+            console.log(`📝 Creating audio document: ${file.originalname} with mimeType: ${mimeType}`);
+
             // Create document with metadata - mimeType is crucial for Webamp detection
             const document = await knowledgeService.processDocument(null, {
               userId,
@@ -2610,6 +2612,9 @@ function windowResized() {
               mimeType: mimeType,
               objectPath: null // Will be set by separate PUT request
             });
+
+            console.log(`✅ Document created with ID: ${document.id}, mimeType: ${document.mimeType}`);
+
             return {
               type: 'success',
               document: {
@@ -2617,6 +2622,7 @@ function windowResized() {
                 originalName: document.originalName,
                 fileSize: document.fileSize,
                 mimeType: document.mimeType, // Include mimeType in response
+                objectPath: document.objectPath,
                 summary: document.summary,
                 keywords: document.keywords,
                 uploadedAt: document.uploadedAt,
