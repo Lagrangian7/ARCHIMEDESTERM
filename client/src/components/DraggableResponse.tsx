@@ -8,7 +8,6 @@ interface DraggableResponseProps {
   children: ReactNode;
   isTyping: boolean;
   entryId: string;
-  onBubbleRendered?: () => void;
 }
 
 export function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
@@ -127,12 +126,8 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
       y = Math.max(padding, Math.min(y, maxY));
       
       setPosition({ x, y });
-      
-      // Notify parent immediately after bubble is positioned
-      // Don't wait for animation - the talking animation can start right away
-      onBubbleRendered?.();
     }
-  }, [position, onBubbleRendered]);
+  }, [position]);
 
   // Always show floating version for responses, keep visible until saved
   useEffect(() => {
