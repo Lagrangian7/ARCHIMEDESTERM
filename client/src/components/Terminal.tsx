@@ -26,6 +26,7 @@ import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { CodePreview } from './CodePreview';
 import WebampPlayer from './WebampPlayer';
 import AJVideoPopup from './AJVideoPopup';
+import { MusicUpload } from './MusicUpload'; // Import the new MusicUpload component
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -109,7 +110,7 @@ export function Terminal() {
   const [showProfile, setShowProfile] = useState(false);
   const [showConversationHistory, setShowConversationHistory] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
-  const [uploadTab, setUploadTab] = useState<'upload' | 'list'>('list');
+  const [uploadTab, setUploadTab] = useState<'upload' | 'list' | 'music'>('list'); // Added 'music' tab
   const [typingEntries, setTypingEntries] = useState<Set<string>>(new Set());
   const [showZork, setShowZork] = useState(false);
   const [showDTMF, setShowDTMF] = useState(false);
@@ -396,6 +397,7 @@ export function Terminal() {
   const MemoizedConversationHistory = useMemo(() => memo(ConversationHistory), []);
   const MemoizedDocumentsList = useMemo(() => memo(DocumentsList), []);
   const MemoizedDocumentUpload = useMemo(() => memo(DocumentUpload), []);
+  const MemoizedMusicUpload = useMemo(() => memo(MusicUpload), []); // Memoized MusicUpload
   const MemoizedZorkGame = useMemo(() => memo(ZorkGame), []);
   const MemoizedDTMFDecoder = useMemo(() => memo(DTMFDecoder), []);
   const MemoizedHelpMenu = useMemo(() => memo(HelpMenu), []);
@@ -685,18 +687,49 @@ export function Terminal() {
                 <span className="hidden sm:inline">⬆️ Upload New</span>
                 <span className="sm:hidden">⬆️ Upload</span>
               </Button>
+              {/* New Music Upload Tab */}
+              <Button
+                onClick={() => setUploadTab('music')}
+                variant={uploadTab === 'music' ? 'default' : 'ghost'}
+                size="sm"
+                className="text-xs md:text-sm"
+                style={uploadTab === 'music'
+                  ? {
+                      backgroundColor: 'var(--terminal-highlight)',
+                      color: 'var(--terminal-bg)',
+                      borderBottom: '2px solid var(--terminal-highlight)',
+                      borderRadius: '0.375rem 0.375rem 0 0'
+                    }
+                  : {
+                      color: 'var(--terminal-text)',
+                      borderBottom: '2px solid transparent'
+                    }
+                }
+                data-testid="tab-upload-music"
+              >
+                <span className="hidden sm:inline">🎵 Upload Music</span>
+                <span className="sm:hidden">🎵 Music</span>
+              </Button>
             </div>
 
             {/* Tab Content */}
             {uploadTab === 'list' ? (
               <MemoizedDocumentsList onClose={() => setShowUpload(false)} />
-            ) : (
+            ) : uploadTab === 'upload' ? (
               <MemoizedDocumentUpload
                 onUploadComplete={(document) => {
                   // Switch to documents list to show the uploaded file
                   setUploadTab('list');
                   // Add success entry to terminal
                   processCommand(`Echo: Document "${document.originalName}" uploaded successfully! Switching to documents view.`);
+                }}
+              />
+            ) : (
+              // Music Upload Tab Content
+              <MemoizedMusicUpload
+                onUploadComplete={(music) => {
+                  // Optionally switch to a music list tab or show a success message
+                  processCommand(`Echo: Music file "${music.name}" uploaded successfully and added to Webamp playlist.`);
                 }}
               />
             )}
