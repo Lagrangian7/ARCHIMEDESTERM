@@ -137,10 +137,10 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
   useEffect(() => {
     setShowFloating(true);
 
-    // Auto-dismiss after 60 seconds to prevent screen clutter
+    // Auto-dismiss after 3 minutes to prevent screen clutter
     const dismissTimer = setTimeout(() => {
       setShowFloating(false);
-    }, 60000); // 60 seconds
+    }, 180000); // 3 minutes
 
     return () => clearTimeout(dismissTimer);
   }, []);
