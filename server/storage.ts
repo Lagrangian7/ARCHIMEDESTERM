@@ -841,7 +841,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserDocuments(userId: string): Promise<Document[]> {
-    return await db.select().from(documents).where(eq(documents.userId, userId)).orderBy(desc(documents.uploadedAt));
+    const docs = await db.select().from(documents).where(eq(documents.userId, userId)).orderBy(desc(documents.uploadedAt));
+    // Ensure all fields are returned including mimeType and objectPath
+    return docs.map(doc => ({
+      ...doc,
+      mimeType: doc.mimeType || null,
+      objectPath: doc.objectPath || null
+    }));
   }
 
   async getDocument(id: string): Promise<Document | undefined> {

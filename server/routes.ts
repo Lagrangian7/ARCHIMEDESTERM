@@ -1848,6 +1848,42 @@ function keyPressed() {
   if (keyCode === 32 || keyCode === 13) {
     gamePaused = !gamePaused;
 
+  // Fix mimeType for existing audio files
+  app.post("/api/documents/fix-audio-mimetypes", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const documents = await storage.getUserDocuments(userId);
+      
+      let fixedCount = 0;
+      for (const doc of documents) {
+        // Check if it's an audio file by extension but missing mimeType
+        if (doc.originalName.match(/\.(mp3|wav|ogg|m4a)$/i) && !doc.mimeType) {
+          const ext = doc.originalName.toLowerCase().split('.').pop();
+          let mimeType = 'audio/mpeg';
+          
+          if (ext === 'mp3') mimeType = 'audio/mpeg';
+          else if (ext === 'wav') mimeType = 'audio/wav';
+          else if (ext === 'ogg') mimeType = 'audio/ogg';
+          else if (ext === 'm4a') mimeType = 'audio/mp4';
+          
+          await storage.updateDocument(doc.id, { mimeType });
+          fixedCount++;
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Fixed ${fixedCount} audio file(s)`,
+        fixedCount 
+      });
+    } catch (error) {
+      console.error("Fix audio mimetypes error:", error);
+      res.status(500).json({ error: "Failed to fix audio mimetypes" });
+    }
+  });
+
+
+
     // Also pause/unpause background music
     if (gamePaused) {
       if (backgroundMusic && !backgroundMusic.paused) {
@@ -2589,13 +2625,25 @@ function windowResized() {
 
           // If it's an audio file, create metadata record with proper mimeType
           if (isAudioFile) {
+            // Determine proper MIME type
+            let mimeType = file.mimetype;
+            if (!mimeType || mimeType === 'application/octet-stream') {
+              // Fallback to extension-based detection
+              const ext = file.originalname.toLowerCase().split('.').pop();
+              if (ext === 'mp3') mimeType = 'audio/mpeg';
+              else if (ext === 'wav') mimeType = 'audio/wav';
+              else if (ext === 'ogg') mimeType = 'audio/ogg';
+              else if (ext === 'm4a') mimeType = 'audio/mp4';
+              else mimeType = 'audio/mpeg'; // default
+            }
+            
             // Create document with metadata - mimeType is crucial for Webamp detection
             const document = await knowledgeService.processDocument(null, {
               userId,
               fileName: `${randomUUID()}-${file.originalname}`,
               originalName: file.originalname,
               fileSize: file.size.toString(),
-              mimeType: file.mimetype || 'audio/mpeg', // Ensure mimeType is set
+              mimeType: mimeType,
               objectPath: null // Will be set by separate PUT request
             });
             return {
