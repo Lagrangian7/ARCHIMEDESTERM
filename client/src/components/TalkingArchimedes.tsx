@@ -22,7 +22,7 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
   // Only update position when dragging stops, not during drag
   const [isVisible, setIsVisible] = useState(false);
 
-  // Optimize video playback with delay and memory management
+  // Optimize video playback with delay for speech to become audible
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -32,30 +32,13 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
     if (shouldShow) {
       // Delay showing the animation until speech is actually audible (300ms)
       showTimeout = setTimeout(() => {
-        if (!isVisible) {
-          setIsVisible(true);
-          // Load the video source only when needed
-          if (!video.src) {
-            video.src = archimedesVideo2;
-            video.load();
-          }
-        }
+        if (!isVisible) setIsVisible(true);
         video.play().catch(() => {});
       }, 300);
     } else {
       video.pause();
       video.currentTime = 0;
       setIsVisible(false);
-      
-      // Unload video after a delay to free memory
-      const unloadTimeout = setTimeout(() => {
-        if (video && !shouldShow) {
-          video.src = '';
-          video.load(); // This releases the video buffer
-        }
-      }, 1000);
-
-      return () => clearTimeout(unloadTimeout);
     }
 
     return () => {
@@ -162,6 +145,7 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
       <div className="relative w-32 h-32 rounded-full overflow-hidden border border-terminal-highlight/20 bg-terminal-bg">
         <video
           ref={videoRef}
+          src={archimedesVideo2}
           loop
           muted
           playsInline
