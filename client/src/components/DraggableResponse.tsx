@@ -8,9 +8,10 @@ interface DraggableResponseProps {
   children: ReactNode;
   isTyping: boolean;
   entryId: string;
+  onBubbleRendered?: () => void;
 }
 
-export function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
+export function DraggableResponse({ children, isTyping, entryId, onBubbleRendered }: DraggableResponseProps) {
   const { toast } = useToast();
 
   // Drag state management
@@ -126,8 +127,11 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
       y = Math.max(padding, Math.min(y, maxY));
 
       setPosition({ x, y });
+      
+      // Notify parent that bubble is positioned and ready
+      onBubbleRendered?.();
     }
-  }, [position]);
+  }, [position, onBubbleRendered]);
 
   // Always show floating version for responses, keep visible until saved
   useEffect(() => {

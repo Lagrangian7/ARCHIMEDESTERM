@@ -126,6 +126,7 @@ export function Terminal() {
   const [isWebampOpen, setIsWebampOpen] = useState(false); // State to track if Webamp is open
   const [showSpacewars, setShowSpacewars] = useState(false);
   const lastSpokenIdRef = useRef<string>('');
+  const [bubbleRendered, setBubbleRendered] = useState(false);
 
   // Theme management
   const themes = useMemo(() => [
@@ -268,6 +269,8 @@ export function Terminal() {
 
     // If the last entry is a response and we're not currently typing (meaning it's a new response)
     if (lastEntry && lastEntry.type === 'response' && !isTyping) {
+      // Reset bubble rendered state for new response
+      setBubbleRendered(false);
       // Add the entry to typing animations
       setTypingEntries(prev => new Set(prev).add(lastEntry.id));
 
@@ -482,6 +485,12 @@ export function Terminal() {
                       <MemoizedDraggableResponse
                         isTyping={typingEntriesSet.has(entry.id)}
                         entryId={entry.id}
+                        onBubbleRendered={() => {
+                          // Only set for the latest entry
+                          if (entry.id === entries[entries.length - 1]?.id) {
+                            setBubbleRendered(true);
+                          }
+                        }}
                       >
                         <div
                           className={`ml-4 mt-1 ${
@@ -728,7 +737,7 @@ export function Terminal() {
 
       {/* Talking Archimedes Character */}
       <MemoizedTalkingArchimedes
-        isTyping={isTyping}
+        isTyping={isTyping && bubbleRendered}
         isSpeaking={isSpeaking}
         currentMessage={entries.length > 0 ? entries[entries.length - 1]?.content : undefined}
       />
