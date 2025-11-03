@@ -101,7 +101,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     const handleMouseMove = (e: MouseEvent) => {
       mousePositionRef.current = { x: e.clientX, y: e.clientY };
     };
-    
+
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
@@ -112,19 +112,19 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
       const bubbleWidth = 384; // max-w-md is roughly 384px
       const bubbleHeight = 200; // estimated height
       const offset = 40; // offset from cursor
-      
+
       // Start near mouse position
       let x = mousePositionRef.current.x + offset;
       let y = mousePositionRef.current.y - offset;
-      
+
       // Keep within viewport bounds with padding
       const padding = 20;
       const maxX = window.innerWidth - bubbleWidth - padding;
       const maxY = window.innerHeight - bubbleHeight - padding;
-      
+
       x = Math.max(padding, Math.min(x, maxX));
       y = Math.max(padding, Math.min(y, maxY));
-      
+
       setPosition({ x, y });
     }
   }, [position]);

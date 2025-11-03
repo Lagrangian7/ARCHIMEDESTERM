@@ -22,29 +22,20 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
   // Only update position when dragging stops, not during drag
   const [isVisible, setIsVisible] = useState(false);
 
-  // Optimize video playback with delay for speech to become audible
+  // Show animation immediately when typing or speaking starts
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    let showTimeout: NodeJS.Timeout;
-
     if (shouldShow) {
-      // Delay showing the animation until speech is actually audible (300ms)
-      showTimeout = setTimeout(() => {
-        if (!isVisible) setIsVisible(true);
-        video.play().catch(() => {});
-      }, 300);
+      setIsVisible(true);
+      video.play().catch(() => {});
     } else {
       video.pause();
       video.currentTime = 0;
       setIsVisible(false);
     }
-
-    return () => {
-      if (showTimeout) clearTimeout(showTimeout);
-    };
-  }, [shouldShow, isVisible]);
+  }, [shouldShow]);
 
   // Optimized drag handlers using direct DOM manipulation
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
