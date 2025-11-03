@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Terminal as TerminalIcon, Shield, Search } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Terminal as TerminalIcon, Shield, Search, FileText } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ interface VoiceControlsProps {
   setShowUpload: (show: boolean) => void;
   setShowChat: (show: boolean) => void;
   unreadCount: number;
+  setShowNotepad: (show: boolean) => void;
 }
 
 export function VoiceControls({
@@ -40,7 +41,8 @@ export function VoiceControls({
   setShowProfile,
   setShowUpload,
   setShowChat,
-  unreadCount
+  unreadCount,
+  setShowNotepad
 }: VoiceControlsProps) {
   const { toast } = useToast();
   const {
@@ -191,6 +193,25 @@ export function VoiceControls({
                 </TooltipContent>
               </Tooltip>
 
+              {/* Notepad Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowNotepad(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
+                    data-testid="button-notepad"
+                    aria-label="Notepad"
+                  >
+                    <FileText size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <p>Notepad</p>
+                </TooltipContent>
+              </Tooltip>
+
               {/* Upload Button */}
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -337,11 +358,11 @@ export function VoiceControls({
 
       {/* Sshwifty Modal */}
       {showSshwifty && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
           onClick={() => setShowSshwiftyLocal(false)}
         >
-          <div 
+          <div
             className="w-full max-w-4xl h-[80vh] bg-terminal-bg border-2 border-terminal-highlight rounded-lg overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
