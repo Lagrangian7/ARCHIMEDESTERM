@@ -207,9 +207,9 @@ export class SshwiftyService {
             ${user ? user + '@' : ''}${host || 'localhost'}:${port || (type === 'ssh' ? '22' : '23')}
         </div>
         <div class="controls">
-            <button class="btn" onclick="connect(event)">Connect</button>
-            <button class="btn" onclick="disconnect(event)">Disconnect</button>
-            <button class="btn" onclick="closeWindow(event)">Close</button>
+            <button class="btn" onclick="return connect(event)">Connect</button>
+            <button class="btn" onclick="return disconnect(event)">Disconnect</button>
+            <button class="btn" onclick="return closeWindow(event)">Close</button>
         </div>
     </div>
 
@@ -283,7 +283,12 @@ export class SshwiftyService {
             }
         }
 
-        function connect() {
+        function connect(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
             if (connected) {
                 showStatus('Already connected', true);
                 return;
@@ -322,6 +327,8 @@ export class SshwiftyService {
                 connected = false;
                 showStatus('Disconnected from server', true);
             });
+
+            return false;
         }
 
         function disconnect(e) {
@@ -337,6 +344,7 @@ export class SshwiftyService {
             connected = false;
             terminal.clear();
             showStatus('Disconnected');
+            return false;
         }
 
         function closeWindow(e) {
@@ -345,8 +353,9 @@ export class SshwiftyService {
                 e.stopPropagation();
             }
 
-            disconnect();
+            disconnect(null);
             window.close();
+            return false;
         }
 
         // Initialize terminal on page load
