@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, ReactNode } from 'react';
-import { Save } from 'lucide-react';
+import { Save, Copy } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -145,6 +145,48 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     return () => clearTimeout(dismissTimer);
   }, []);
 
+  // Copy handler to copy text to clipboard
+  const handleCopy = useCallback(() => {
+    // Try to extract text content
+    let textContent = extractTextContent(children);
+
+    // If extraction failed, try to get it directly from the rendered DOM element
+    if (!textContent || !textContent.trim()) {
+      const floatingDiv = document.querySelector(`[data-testid="draggable-response-${entryId}"]`);
+      if (floatingDiv) {
+        const contentDiv = floatingDiv.querySelector('[data-no-drag]')?.parentElement?.querySelector('div');
+        if (contentDiv) {
+          textContent = contentDiv.textContent || contentDiv.innerText || '';
+        }
+      }
+    }
+
+    if (!textContent || !textContent.trim()) {
+      toast({
+        title: 'Copy Failed',
+        description: 'Unable to extract text content from response',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(textContent.trim())
+      .then(() => {
+        toast({
+          title: 'Copied!',
+          description: 'Response copied to clipboard',
+        });
+      })
+      .catch((error) => {
+        toast({
+          title: 'Copy Failed',
+          description: error.message || 'Failed to copy to clipboard',
+          variant: 'destructive',
+        });
+      });
+  }, [children, entryId, toast, extractTextContent]);
+
   // Double-click handler to save and dismiss the bubble
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -252,6 +294,23 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
 
               {/* Action buttons */}
               <div className="absolute top-2 right-2 flex items-center gap-2" data-no-drag>
+                {/* Copy button */}
+                <button
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCopy();
+                  }}
+                  className="text-terminal-highlight hover:text-terminal-bright-green transition-colors cursor-pointer p-1 z-10"
+                  title="Copy to clipboard"
+                  data-testid={`copy-response-${entryId}`}
+                >
+                  <Copy className="w-6 h-6" />
+                </button>
+
                 {/* Save button */}
                 <button
                   onMouseDown={(e) => {
