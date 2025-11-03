@@ -2587,17 +2587,16 @@ function windowResized() {
           // Determine if the file is an audio file (based on mimetype or extension)
           const isAudioFile = file.mimetype.startsWith('audio/') || file.originalname.match(/\.(mp3|wav|ogg|m4a)$/i);
 
-          // If it's an audio file, skip storing binary content directly in the database
+          // If it's an audio file, create metadata record with proper mimeType
           if (isAudioFile) {
-            // We only store metadata for audio files, the actual content will be in object storage
-            const document = await knowledgeService.processDocument(null, { // Pass null for content
+            // Create document with metadata - mimeType is crucial for Webamp detection
+            const document = await knowledgeService.processDocument(null, {
               userId,
               fileName: `${randomUUID()}-${file.originalname}`,
               originalName: file.originalname,
               fileSize: file.size.toString(),
-              mimeType: file.mimetype,
-              // Object storage path will be set later via a separate PUT request
-              objectPath: null 
+              mimeType: file.mimetype || 'audio/mpeg', // Ensure mimeType is set
+              objectPath: null // Will be set by separate PUT request
             });
             return {
               type: 'success',
@@ -2605,8 +2604,9 @@ function windowResized() {
                 id: document.id,
                 originalName: document.originalName,
                 fileSize: document.fileSize,
-                summary: document.summary, // Summary might be null if content is not processed
-                keywords: document.keywords, // Keywords might be null
+                mimeType: document.mimeType, // Include mimeType in response
+                summary: document.summary,
+                keywords: document.keywords,
                 uploadedAt: document.uploadedAt,
               }
             };

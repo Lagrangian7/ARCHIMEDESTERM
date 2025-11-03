@@ -18,25 +18,25 @@ export class KnowledgeService {
   }): Promise<Document> {
     // Check if this is an audio file
     const isAudioFile = metadata.mimeType.startsWith('audio/');
-    
+
     // For audio files, use empty string as content (database requires non-null)
     const documentContent = isAudioFile ? '' : (content || '');
-    
+
     // Extract keywords and generate summary (skip for audio files)
     const keywords = isAudioFile ? [metadata.originalName.replace(/\.(mp3|wav|ogg|m4a)$/i, '')] : this.extractKeywords(documentContent);
     const summary = isAudioFile ? `Audio file: ${metadata.originalName}` : this.generateSummary(documentContent);
 
-    // Create document record
+    // Create document record with proper metadata
     const document = await storage.createDocument({
-      userId: metadata.userId,
+      userId: metadata.userId || null,
       fileName: metadata.fileName,
       originalName: metadata.originalName,
       fileSize: metadata.fileSize,
-      mimeType: metadata.mimeType,
-      content: documentContent,
-      summary,
-      keywords,
-      objectPath: metadata.objectPath,
+      mimeType: metadata.mimeType || 'application/octet-stream', // Preserve mimeType
+      objectPath: metadata.objectPath || null, // Preserve objectPath
+      content: content || '',
+      summary: summary || `Audio file: ${metadata.originalName}`,
+      keywords: keywords || [metadata.originalName.replace(/\.[^/.]+$/, '')],
     });
 
     // Split content into chunks for better search (skip for audio files)
@@ -52,7 +52,7 @@ export class KnowledgeService {
    */
   private async createKnowledgeChunks(documentId: string, content: string): Promise<void> {
     const chunks = this.chunkText(content);
-    
+
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
       await storage.createKnowledgeChunk({
@@ -73,7 +73,7 @@ export class KnowledgeService {
 
     while (startIndex < text.length) {
       let endIndex = startIndex + this.CHUNK_SIZE;
-      
+
       // If we're not at the end, try to break at word boundary
       if (endIndex < text.length) {
         const lastSpace = text.lastIndexOf(' ', endIndex);
@@ -83,7 +83,7 @@ export class KnowledgeService {
       }
 
       chunks.push(text.slice(startIndex, endIndex).trim());
-      
+
       // Move start position with overlap
       startIndex = Math.max(startIndex + this.CHUNK_SIZE - this.CHUNK_OVERLAP, endIndex);
     }
@@ -135,7 +135,7 @@ export class KnowledgeService {
       .filter(s => s.length > 20);
 
     if (sentences.length === 0) return content.slice(0, 200);
-    
+
     const summary = sentences.slice(0, 3).join('. ').trim();
     return summary.length > 200 ? summary.slice(0, 200) + '...' : summary;
   }
@@ -173,18 +173,18 @@ export class KnowledgeService {
     const queryLower = query.toLowerCase();
     const contentLower = content.toLowerCase();
     const index = contentLower.indexOf(queryLower);
-    
+
     if (index === -1) return '';
 
     const start = Math.max(0, index - 100);
     const end = Math.min(content.length, index + query.length + 100);
-    
+
     let snippet = content.slice(start, end);
-    
+
     // Add ellipsis if we truncated
     if (start > 0) snippet = '...' + snippet;
     if (end < content.length) snippet = snippet + '...';
-    
+
     return snippet;
   }
 
@@ -193,7 +193,7 @@ export class KnowledgeService {
    */
   async getContextualKnowledge(userId: string, query: string, limit: number = 3): Promise<string> {
     const searchResults = await this.searchKnowledge(userId, query);
-    
+
     if (searchResults.relevantContent.length === 0) {
       return '';
     }
@@ -230,7 +230,7 @@ export class KnowledgeService {
   }> {
     const documents = await storage.getUserDocuments(userId);
     const totalSizeBytes = documents.reduce((sum, doc) => sum + parseInt(doc.fileSize), 0);
-    
+
     let totalChunks = 0;
     for (const doc of documents) {
       const chunks = await storage.getDocumentChunks(doc.id);
