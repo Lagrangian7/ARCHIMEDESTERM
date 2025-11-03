@@ -4875,7 +4875,6 @@ function windowResized() {
       formatted += `├─ UUID: ${actor.uuid}\n`;
       formatted += `├─\n`;
       formatted += `├─ Description:\n`;
-      formatted += `├─\`\`\`
       formatted += `├─ ${actor.description}\n`;
       formatted += `├─\n`;
 
