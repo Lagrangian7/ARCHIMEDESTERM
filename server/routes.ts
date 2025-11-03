@@ -2891,14 +2891,19 @@ function windowResized() {
       }
 
       // If it's an audio file with object storage path, stream it
-      if (document.objectPath && document.mimeType.startsWith('audio/')) {
+      if (document.objectPath && document.mimeType && document.mimeType.startsWith('audio/')) {
         const { ObjectStorageService } = await import("./objectStorage");
         const objectStorageService = new ObjectStorageService();
-        const objectFile = await objectStorageService.getObjectEntityFile(document.objectPath);
-
-        await objectStorageService.downloadObject(objectFile, res, 86400); // Cache for 24 hours
+        
+        try {
+          const objectFile = await objectStorageService.getObjectEntityFile(document.objectPath);
+          await objectStorageService.downloadObject(objectFile, res, 86400); // Cache for 24 hours
+        } catch (error) {
+          console.error("Error accessing object storage:", error);
+          res.status(404).json({ error: "Audio file not found in storage" });
+        }
       } else {
-        res.status(400).json({ error: "Document is not downloadable" });
+        res.status(400).json({ error: "Document is not downloadable or not an audio file" });
       }
     } catch (error) {
       console.error("Error downloading document:", error);

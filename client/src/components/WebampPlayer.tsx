@@ -64,13 +64,24 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
                 console.log(`📄 ${doc.originalName}: mimeType=${doc.mimeType}, isAudio=${isAudio}, hasObjectPath=${hasObjectPath}, objectPath=${doc.objectPath}`);
                 return isAudio && hasObjectPath;
               })
-              .map((doc: any) => ({
-                metaData: {
-                  artist: "Uploaded Music",
-                  title: doc.originalName.replace(/\.[^/.]+$/, "") // Remove extension
-                },
-                url: doc.objectPath // Use the object storage path directly
-              }));
+              .map((doc: any) => {
+                // Construct the proper URL for the audio file
+                // If objectPath starts with /objects/, use it directly
+                // Otherwise, use the document download endpoint
+                const audioUrl = doc.objectPath.startsWith('/objects/') 
+                  ? doc.objectPath 
+                  : `/api/knowledge/documents/${doc.id}/download`;
+                
+                console.log(`🎵 Adding track: ${doc.originalName}, URL: ${audioUrl}`);
+                
+                return {
+                  metaData: {
+                    artist: "Uploaded Music",
+                    title: doc.originalName.replace(/\.[^/.]+$/, "") // Remove extension
+                  },
+                  url: audioUrl
+                };
+              });
             
             console.log(`🎵 Loaded ${knowledgeBaseTracks.length} MP3 files with object paths:`, knowledgeBaseTracks);
             
