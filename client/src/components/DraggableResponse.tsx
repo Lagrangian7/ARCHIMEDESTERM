@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import { useState, useEffect, useCallback, useRef, ReactNode, useMemo, memo } from 'react';
 import { Save } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -10,7 +10,7 @@ interface DraggableResponseProps {
   entryId: string;
 }
 
-export function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
+export const DraggableResponse = memo(function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
   const { toast } = useToast();
 
   // Drag state management
@@ -20,46 +20,36 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
   const [showFloating, setShowFloating] = useState(isTyping); // Start visible if already typing
   const responseElementRef = useRef<HTMLDivElement>(null);
 
-  // Extract text content from ReactNode
-  const extractTextContent = (node: ReactNode): string => {
-    if (typeof node === 'string') {
-      // If it's HTML string, create a temporary div to extract text
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = node;
-      const textContent = tempDiv.textContent || tempDiv.innerText || '';
-      return textContent.trim();
-    }
-    if (typeof node === 'number') return String(node);
-    if (Array.isArray(node)) return node.map(extractTextContent).join('');
-    if (node && typeof node === 'object' && 'props' in node) {
-      // Handle dangerouslySetInnerHTML case
-      if (node.props && node.props.dangerouslySetInnerHTML && node.props.dangerouslySetInnerHTML.__html) {
+  // Memoize text extraction to avoid repeated processing
+  const extractedText = useMemo(() => {
+    const extractTextContent = (node: ReactNode): string => {
+      if (typeof node === 'string') {
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = node.props.dangerouslySetInnerHTML.__html;
+        tempDiv.innerHTML = node;
         const textContent = tempDiv.textContent || tempDiv.innerText || '';
         return textContent.trim();
       }
-      return extractTextContent(node.props.children);
-    }
-    return '';
-  };
+      if (typeof node === 'number') return String(node);
+      if (Array.isArray(node)) return node.map(extractTextContent).join('');
+      if (node && typeof node === 'object' && 'props' in node) {
+        if (node.props && node.props.dangerouslySetInnerHTML && node.props.dangerouslySetInnerHTML.__html) {
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = node.props.dangerouslySetInnerHTML.__html;
+          const textContent = tempDiv.textContent || tempDiv.innerText || '';
+          return textContent.trim();
+        }
+        return extractTextContent(node.props.children);
+      }
+      return '';
+    };
+    return extractTextContent(children);
+  }, [children]);
 
   // Save to knowledge base mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      // Try to extract text content
-      let textContent = extractTextContent(children);
-
-      // If extraction failed, try to get it directly from the rendered DOM element
-      if (!textContent || !textContent.trim()) {
-        const floatingDiv = document.querySelector(`[data-testid="draggable-response-${entryId}"]`);
-        if (floatingDiv) {
-          const contentDiv = floatingDiv.querySelector('[data-no-drag]')?.parentElement?.querySelector('div');
-          if (contentDiv) {
-            textContent = contentDiv.textContent || contentDiv.innerText || '';
-          }
-        }
-      }
+      // Use pre-extracted text
+      let textContent = extractedText;
 
       // Final validation
       if (!textContent || !textContent.trim()) {
@@ -129,9 +119,16 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     }
   }, [position]);
 
-  // Always show floating version for responses, keep visible until saved
+  // Show floating version and auto-dismiss after 30 seconds
   useEffect(() => {
     setShowFloating(true);
+    
+    // Auto-dismiss after 30 seconds to prevent accumulation
+    const dismissTimer = setTimeout(() => {
+      setShowFloating(false);
+    }, 30000);
+    
+    return () => clearTimeout(dismissTimer);
   }, []);
 
   // Double-click handler to save and dismiss the bubble
@@ -277,5 +274,7 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
     </>
   );
 }
+
+});
 
 export default DraggableResponse;
