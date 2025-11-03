@@ -2584,37 +2584,64 @@ function windowResized() {
       // Process files in parallel for better performance
       const fileProcessingPromises = req.files.map(async (file: any) => {
         try {
-          // Convert buffer to string
-          const content = file.buffer.toString('utf8');
+          // Determine if the file is an audio file (based on mimetype or extension)
+          const isAudioFile = file.mimetype.startsWith('audio/') || file.originalname.match(/\.(mp3|wav|ogg|m4a)$/i);
 
-          if (content.length === 0) {
-            return { type: 'error', file: file.originalname, error: "File is empty" };
-          }
+          // If it's an audio file, skip storing binary content directly in the database
+          if (isAudioFile) {
+            // We only store metadata for audio files, the actual content will be in object storage
+            const document = await knowledgeService.processDocument(null, { // Pass null for content
+              userId,
+              fileName: `${randomUUID()}-${file.originalname}`,
+              originalName: file.originalname,
+              fileSize: file.size.toString(),
+              mimeType: file.mimetype,
+              // Object storage path will be set later via a separate PUT request
+              objectPath: null 
+            });
+            return {
+              type: 'success',
+              document: {
+                id: document.id,
+                originalName: document.originalName,
+                fileSize: document.fileSize,
+                summary: document.summary, // Summary might be null if content is not processed
+                keywords: document.keywords, // Keywords might be null
+                uploadedAt: document.uploadedAt,
+              }
+            };
+          } else {
+            // For non-audio files, process as before
+            const content = file.buffer.toString('utf8');
 
-          if (content.length > 5000000) { // 5MB text limit to match frontend
-            return { type: 'error', file: file.originalname, error: "File content is too large (max 5MB)" };
-          }
-
-          // Process the document
-          const document = await knowledgeService.processDocument(content, {
-            userId,
-            fileName: `${randomUUID()}-${file.originalname}`,
-            originalName: file.originalname,
-            fileSize: file.size.toString(),
-            mimeType: file.mimetype,
-          });
-
-          return {
-            type: 'success',
-            document: {
-              id: document.id,
-              originalName: document.originalName,
-              fileSize: document.fileSize,
-              summary: document.summary,
-              keywords: document.keywords,
-              uploadedAt: document.uploadedAt,
+            if (content.length === 0) {
+              return { type: 'error', file: file.originalname, error: "File is empty" };
             }
-          };
+
+            if (content.length > 5000000) { // 5MB text limit to match frontend
+              return { type: 'error', file: file.originalname, error: "File content is too large (max 5MB)" };
+            }
+
+            const document = await knowledgeService.processDocument(content, {
+              userId,
+              fileName: `${randomUUID()}-${file.originalname}`,
+              originalName: file.originalname,
+              fileSize: file.size.toString(),
+              mimeType: file.mimetype,
+            });
+
+            return {
+              type: 'success',
+              document: {
+                id: document.id,
+                originalName: document.originalName,
+                fileSize: document.fileSize,
+                summary: document.summary,
+                keywords: document.keywords,
+                uploadedAt: document.uploadedAt,
+              }
+            };
+          }
         } catch (fileError) {
           console.error(`Error processing file ${file.originalname}:`, fileError);
           return { type: 'error', file: file.originalname, error: "Failed to process file" };
@@ -2631,12 +2658,14 @@ function windowResized() {
             errors.push({ file: result.value.file, error: result.value.error });
           }
         } else {
-          errors.push({ file: 'Unknown', error: "Processing failed" });
+          // Handle unexpected errors during Promise.allSettled
+          console.error("Unexpected error in Promise.allSettled:", result);
+          errors.push({ file: 'Unknown', error: "Processing failed due to an unexpected error" });
         }
       });
 
       res.json({ 
-        message: `Successfully uploaded ${results.length} of ${req.files.length} documents`,
+        message: `Successfully processed ${results.length} of ${req.files.length} files`,
         documents: results,
         errors: errors,
         totalUploaded: results.length,
@@ -4821,6 +4850,7 @@ function windowResized() {
       formatted += `├─ UUID: ${actor.uuid}\n`;
       formatted += `├─\n`;
       formatted += `├─ Description:\n`;
+      formatted += `├─```
       formatted += `├─ ${actor.description}\n`;
       formatted += `├─\n`;
 

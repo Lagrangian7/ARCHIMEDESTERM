@@ -16,9 +16,12 @@ export class KnowledgeService {
     mimeType: string;
     objectPath?: string;
   }): Promise<Document> {
-    // Extract keywords and generate summary
-    const keywords = this.extractKeywords(content);
-    const summary = this.generateSummary(content);
+    // Check if this is an audio file
+    const isAudioFile = metadata.mimeType.startsWith('audio/');
+    
+    // Extract keywords and generate summary (skip for audio files)
+    const keywords = isAudioFile ? [metadata.originalName.replace(/\.(mp3|wav|ogg|m4a)$/i, '')] : this.extractKeywords(content);
+    const summary = isAudioFile ? `Audio file: ${metadata.originalName}` : this.generateSummary(content);
 
     // Create document record
     const document = await storage.createDocument({
@@ -34,7 +37,7 @@ export class KnowledgeService {
     });
 
     // Split content into chunks for better search (skip for audio files)
-    if (!metadata.mimeType.startsWith('audio/')) {
+    if (!isAudioFile) {
       await this.createKnowledgeChunks(document.id, content);
     }
 
