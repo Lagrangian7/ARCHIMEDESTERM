@@ -5557,14 +5557,20 @@ async function getUser(req: any, res: any) {
   }
 }
 
-// Helper function to authenticate WebSocket connection (example)
+// Helper function to authenticate WebSocket connection
 async function authenticateWebSocket(req: any) {
-  // This function should validate the session or token from the WebSocket handshake
-  // For demonstration, we'll use a mock authentication check
-  const session = await getSession(req); // Assuming getSession retrieves session data
-  const isAuthenticated = !!session && !!session.userId;
-  return {
-    isAuthenticated,
-    userId: session?.userId || null
-  };
+  try {
+    const session = await getSession(req);
+    const isAuthenticated = !!session && !!session.userId;
+    return {
+      isAuthenticated,
+      userId: session?.userId || null
+    };
+  } catch (error) {
+    console.error('WebSocket authentication error:', error);
+    return {
+      isAuthenticated: false,
+      userId: null
+    };
+  }
 }

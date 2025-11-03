@@ -250,12 +250,13 @@ export function Terminal() {
   }, []);
 
   // Auto-speak responses and system messages
+  const { isEnabled: speechEnabled } = useSpeech();
   useEffect(() => {
     const lastEntry = entries[entries.length - 1];
-    if (lastEntry && (lastEntry.type === 'response' || lastEntry.type === 'system')) {
+    if (lastEntry && (lastEntry.type === 'response' || lastEntry.type === 'system') && speechEnabled) {
       speak(lastEntry.content);
     }
-  }, [entries, speak]);
+  }, [entries, speak, speechEnabled]);
 
   // Handle typing animation for new response entries
   useEffect(() => {

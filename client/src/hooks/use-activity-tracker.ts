@@ -15,7 +15,7 @@ export function useActivityTracker(options: ActivityTrackerOptions) {
   const resetActivity = useCallback(() => {
     const now = Date.now();
     setLastActivity(now);
-    
+
     if (!isActiveRef.current) {
       setIsActive(true);
       isActiveRef.current = true;
@@ -74,7 +74,7 @@ export function useActivityTracker(options: ActivityTrackerOptions) {
       events.forEach(event => {
         document.removeEventListener(event, handleActivity, true);
       });
-      
+
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
