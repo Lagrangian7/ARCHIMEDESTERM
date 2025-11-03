@@ -40,11 +40,11 @@ import watermarkImage from '@assets/archi watermark_1761255886679.png';
 
 // Logo Component
 export const LogoIcon = memo(() => (
-  <img 
-    src={logoImage} 
-    alt="ARCHIMEDES Logo" 
-    width="32" 
-    height="32" 
+  <img
+    src={logoImage}
+    alt="ARCHIMEDES Logo"
+    width="32"
+    height="32"
     className="logo-icon"
     style={{
       display: 'block',
@@ -125,6 +125,7 @@ export function Terminal() {
   const [showAJVideo, setShowAJVideo] = useState(false);
   const [isWebampOpen, setIsWebampOpen] = useState(false); // State to track if Webamp is open
   const [showSpacewars, setShowSpacewars] = useState(false);
+  const [bubbleRendered, setBubbleRendered] = useState(false); // Track when response bubble is rendered
   const lastSpokenIdRef = useRef<string>('');
 
   // Theme management
@@ -253,7 +254,7 @@ export function Terminal() {
   // Auto-speak responses and system messages - only speak new entries once
   useEffect(() => {
     const lastEntry = entries[entries.length - 1];
-    if (lastEntry && 
+    if (lastEntry &&
         (lastEntry.type === 'response' || lastEntry.type === 'system') &&
         lastEntry.id !== lastSpokenIdRef.current) {
       lastSpokenIdRef.current = lastEntry.id;
@@ -282,6 +283,8 @@ export function Terminal() {
           next.delete(lastEntry.id);
           return next;
         });
+        // Reset bubbleRendered state after the typing animation finishes
+        setBubbleRendered(false);
       }, typingDuration + 500); // Animation duration + 500ms buffer
 
       return () => clearTimeout(timer);
@@ -418,7 +421,7 @@ export function Terminal() {
         <MemoizedMatrixRain />
 
         {/* Consolidated Grid and Watermark Layer */}
-        <div 
+        <div
           className="fixed inset-0 pointer-events-none z-[1]"
           style={{
             backgroundImage: `
@@ -437,7 +440,7 @@ export function Terminal() {
 
         {/* Voice Controls - Fixed at top */}
         <div className="flex-shrink-0">
-          <VoiceControls 
+          <VoiceControls
             onVoiceInput={handleVoiceInput}
             currentMode={currentMode}
             switchMode={switchMode}
@@ -456,7 +459,7 @@ export function Terminal() {
         {/* Terminal Output - Scrollable middle section */}
         <div className="flex-1 min-h-0 relative">
           <ScrollArea className="h-full" ref={scrollAreaRef}>
-            <div 
+            <div
               ref={outputRef}
               className="terminal-output p-2 md:p-4 font-mono text-xs md:text-sm leading-relaxed relative z-10"
               data-testid="terminal-output"
@@ -479,11 +482,12 @@ export function Terminal() {
                       <div className="text-terminal-highlight">
                         ARCHIMEDES v7 {entry.mode === 'technical' ? '(Technical Mode)' : '(Natural Chat Mode)'}:
                       </div>
-                      <MemoizedDraggableResponse 
-                        isTyping={typingEntriesSet.has(entry.id)} 
+                      <MemoizedDraggableResponse
+                        isTyping={typingEntriesSet.has(entry.id)}
                         entryId={entry.id}
+                        onBubbleRendered={() => setBubbleRendered(true)} // Pass the callback
                       >
-                        <div 
+                        <div
                           className={`ml-4 mt-1 ${
                             typingEntriesSet.has(entry.id) ? 'typing' : 'whitespace-pre-wrap'
                           }`}
@@ -497,7 +501,7 @@ export function Terminal() {
                     </div>
                   )}
                   {(entry.type === 'system' || entry.type === 'error') && (
-                    <div 
+                    <div
                       className="whitespace-pre-wrap"
                       dangerouslySetInnerHTML={{ __html: entry.content }}
                     />
@@ -601,7 +605,7 @@ export function Terminal() {
 
       {showConversationHistory && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-          <MemoizedConversationHistory 
+          <MemoizedConversationHistory
             onClose={() => setShowConversationHistory(false)}
             onLoadConversation={loadConversation}
           />
@@ -637,16 +641,16 @@ export function Terminal() {
                 variant={uploadTab === 'list' ? 'default' : 'ghost'}
                 size="sm"
                 className="text-xs md:text-sm"
-                style={uploadTab === 'list' 
-                  ? { 
-                      backgroundColor: 'var(--terminal-highlight)', 
-                      color: 'var(--terminal-bg)', 
-                      borderBottom: '2px solid var(--terminal-highlight)', 
-                      borderRadius: '0.375rem 0.375rem 0 0' 
-                    } 
-                  : { 
-                      color: 'var(--terminal-text)', 
-                      borderBottom: '2px solid transparent' 
+                style={uploadTab === 'list'
+                  ? {
+                      backgroundColor: 'var(--terminal-highlight)',
+                      color: 'var(--terminal-bg)',
+                      borderBottom: '2px solid var(--terminal-highlight)',
+                      borderRadius: '0.375rem 0.375rem 0 0'
+                    }
+                  : {
+                      color: 'var(--terminal-text)',
+                      borderBottom: '2px solid transparent'
                     }
                 }
                 data-testid="tab-documents-list"
@@ -659,16 +663,16 @@ export function Terminal() {
                 variant={uploadTab === 'upload' ? 'default' : 'ghost'}
                 size="sm"
                 className="text-xs md:text-sm"
-                style={uploadTab === 'upload' 
-                  ? { 
-                      backgroundColor: 'var(--terminal-highlight)', 
-                      color: 'var(--terminal-bg)', 
-                      borderBottom: '2px solid var(--terminal-highlight)', 
-                      borderRadius: '0.375rem 0.375rem 0 0' 
-                    } 
-                  : { 
-                      color: 'var(--terminal-text)', 
-                      borderBottom: '2px solid transparent' 
+                style={uploadTab === 'upload'
+                  ? {
+                      backgroundColor: 'var(--terminal-highlight)',
+                      color: 'var(--terminal-bg)',
+                      borderBottom: '2px solid var(--terminal-highlight)',
+                      borderRadius: '0.375rem 0.375rem 0 0'
+                    }
+                  : {
+                      color: 'var(--terminal-text)',
+                      borderBottom: '2px solid transparent'
                     }
                 }
                 data-testid="tab-upload-documents"
@@ -682,7 +686,7 @@ export function Terminal() {
             {uploadTab === 'list' ? (
               <MemoizedDocumentsList onClose={() => setShowUpload(false)} />
             ) : (
-              <MemoizedDocumentUpload 
+              <MemoizedDocumentUpload
                 onUploadComplete={(document) => {
                   // Switch to documents list to show the uploaded file
                   setUploadTab('list');
@@ -700,7 +704,7 @@ export function Terminal() {
       {showZork && (
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
           <div className="w-full h-full max-w-4xl max-h-full">
-            <MemoizedZorkGame 
+            <MemoizedZorkGame
               onClose={() => setShowZork(false)}
             />
           </div>
@@ -713,7 +717,7 @@ export function Terminal() {
       )}
 
       {showHelpMenu && (
-        <MemoizedHelpMenu 
+        <MemoizedHelpMenu
           onClose={() => setShowHelpMenu(false)}
           onSelectCommand={(command) => {
             setInput(command);
@@ -727,10 +731,12 @@ export function Terminal() {
       )}
 
       {/* Talking Archimedes Character */}
-      <MemoizedTalkingArchimedes 
+      <MemoizedTalkingArchimedes
         isTyping={isTyping}
         isSpeaking={isSpeaking}
         currentMessage={entries.length > 0 ? entries[entries.length - 1]?.content : undefined}
+        // Only show Archimedes talking if the bubble has rendered and we are not typing
+        isTalking={bubbleRendered && !isTyping}
       />
 
       {/* Thinking Animation - shows during AI processing, before typing starts */}
@@ -741,7 +747,7 @@ export function Terminal() {
 
       {/* Chat Interface */}
       {isAuthenticated && showChat && (
-        <MemoizedChatInterface 
+        <MemoizedChatInterface
           isOpen={true}
           onClose={() => setShowChat(false)}
         />
@@ -757,7 +763,7 @@ export function Terminal() {
       )}
 
       {/* MUD Client */}
-      <MudClient 
+      <MudClient
         isOpen={showMud}
         onClose={() => setShowMud(false)}
       />
@@ -773,21 +779,21 @@ export function Terminal() {
       )}
 
       {/* Privacy Encoder */}
-      <EncodeDecodeOverlay 
+      <EncodeDecodeOverlay
         isOpen={showPrivacyEncoder}
         onClose={() => setShowPrivacyEncoder(false)}
       />
 
       {/* Code Preview */}
       {previewCode && (
-        <CodePreview 
+        <CodePreview
           code={previewCode}
           onClose={() => setPreviewCode(null)}
         />
       )}
 
       {/* Webamp Music Player */}
-      <WebampPlayer 
+      <WebampPlayer
         isOpen={showWebamp}
         onClose={() => {
           setShowWebamp(false);
@@ -797,7 +803,7 @@ export function Terminal() {
       />
 
       {/* AJ Video Player */}
-      <AJVideoPopup 
+      <AJVideoPopup
         isOpen={showAJVideo}
         onClose={() => setShowAJVideo(false)}
       />

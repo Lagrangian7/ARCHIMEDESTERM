@@ -5,12 +5,13 @@ import archimedesVideo2 from '@assets/wally talking_1757885507158.mp4';
 interface TalkingArchimedesProps {
   isTyping: boolean;
   isSpeaking: boolean;
+  bubbleRendered: boolean;
   currentMessage?: string;
   onClose?: () => void;
 }
 
-export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isSpeaking }: TalkingArchimedesProps) {
-  const shouldShow = isTyping || isSpeaking;
+export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isSpeaking, bubbleRendered }: TalkingArchimedesProps) {
+  const shouldShow = (isTyping || isSpeaking) && bubbleRendered;
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -27,24 +28,14 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
     const video = videoRef.current;
     if (!video) return;
 
-    let showTimeout: NodeJS.Timeout;
-
     if (shouldShow) {
-      // Wait for response bubble to be rendered before showing animation
-      // This gives time for the bubble's position calculation and fade-in (600ms total)
-      showTimeout = setTimeout(() => {
-        if (!isVisible) setIsVisible(true);
-        video.play().catch(() => {});
-      }, 600);
+      if (!isVisible) setIsVisible(true);
+      video.play().catch(() => {});
     } else {
       video.pause();
       video.currentTime = 0;
       setIsVisible(false);
     }
-
-    return () => {
-      if (showTimeout) clearTimeout(showTimeout);
-    };
   }, [shouldShow, isVisible]);
 
   // Optimized drag handlers using direct DOM manipulation
@@ -163,7 +154,8 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
 }, (prevProps, nextProps) => {
   // Custom comparison to prevent unnecessary re-renders
   return prevProps.isTyping === nextProps.isTyping && 
-         prevProps.isSpeaking === nextProps.isSpeaking;
+         prevProps.isSpeaking === nextProps.isSpeaking &&
+         prevProps.bubbleRendered === nextProps.bubbleRendered;
 });
 
 export default TalkingArchimedes;

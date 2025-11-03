@@ -8,6 +8,7 @@ interface DraggableResponseProps {
   children: ReactNode;
   isTyping: boolean;
   entryId: string;
+  onBubbleRendered?: () => void;
 }
 
 export function DraggableResponse({ children, isTyping, entryId }: DraggableResponseProps) {
@@ -126,8 +127,14 @@ export function DraggableResponse({ children, isTyping, entryId }: DraggableResp
       y = Math.max(padding, Math.min(y, maxY));
       
       setPosition({ x, y });
+      
+      // Notify parent after bubble is positioned and visible
+      // Wait for the fade-in animation to complete (300ms)
+      setTimeout(() => {
+        onBubbleRendered?.();
+      }, 350);
     }
-  }, [position]);
+  }, [position, onBubbleRendered]);
 
   // Always show floating version for responses, keep visible until saved
   useEffect(() => {
