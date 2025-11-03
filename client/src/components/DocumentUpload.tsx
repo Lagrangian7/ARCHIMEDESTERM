@@ -126,11 +126,12 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
         continue;
       }
 
-      // Validate file size (5MB for text files, 15MB for audio files)
-      const isAudioFile = file.type.startsWith('audio/') || file.name.match(/\.(mp3|wav|ogg|m4a)$/i);
-      const maxSize = isAudioFile ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
-      const maxSizeLabel = isAudioFile ? '15MB' : '5MB';
-      
+      // Validate file size (5MB for text files, 25MB for audio files)
+      const isAudioFile = file.type.startsWith('audio/') || 
+                          file.name.toLowerCase().match(/\.(mp3|wav|ogg|m4a)$/);
+      const maxSize = isAudioFile ? 25 * 1024 * 1024 : 5 * 1024 * 1024;
+      const maxSizeLabel = isAudioFile ? '25MB' : '5MB';
+
       if (file.size > maxSize) {
         toast({
           title: "File Too Large",
@@ -297,7 +298,7 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
                 Drag & drop text files here, or click to browse
               </p>
               <p className="text-sm" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
-                Supports: TXT, MD, JSON, CSV, HTML, XML (max 5MB), MP3 (max 15MB) - up to 10 files
+                Supports: TXT, MD, JSON, CSV, HTML, XML (max 5MB), MP3 (max 25MB) - up to 10 files
               </p>
             </div>
             <Button

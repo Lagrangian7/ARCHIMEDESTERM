@@ -35,7 +35,7 @@ interface ObjectUploaderProps {
  */
 export function ObjectUploader({
   maxNumberOfFiles = 10,
-  maxFileSize = 15728640, // 15MB default for audio files
+  maxFileSize = 26214400, // 25MB default for audio files
   onGetUploadParameters,
   onComplete,
   buttonClassName,

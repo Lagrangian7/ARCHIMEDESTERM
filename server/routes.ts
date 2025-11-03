@@ -2524,7 +2524,7 @@ function windowResized() {
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 15 * 1024 * 1024, // 15MB limit for audio files
+      fileSize: 25 * 1024 * 1024, // 25MB limit for audio files
     },
     fileFilter: (req, file, cb) => {
       // Allow text and audio files
