@@ -207,9 +207,9 @@ export class SshwiftyService {
             ${user ? user + '@' : ''}${host || 'localhost'}:${port || (type === 'ssh' ? '22' : '23')}
         </div>
         <div class="controls">
-            <button class="btn" onclick="return connect(event)">Connect</button>
-            <button class="btn" onclick="return disconnect(event)">Disconnect</button>
-            <button class="btn" onclick="return closeWindow(event)">Close</button>
+            <button class="btn" onclick="event.stopPropagation(); event.preventDefault(); connect(event); return false;">Connect</button>
+            <button class="btn" onclick="event.stopPropagation(); event.preventDefault(); disconnect(event); return false;">Disconnect</button>
+            <button class="btn" onclick="event.stopPropagation(); event.preventDefault(); closeWindow(event); return false;">Close</button>
         </div>
     </div>
 

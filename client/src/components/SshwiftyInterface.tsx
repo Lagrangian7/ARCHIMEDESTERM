@@ -23,7 +23,7 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
     }
 
     let sshwiftyUrl = '';
-    
+
     if (connectionType === 'telnet') {
       sshwiftyUrl = `/sshwifty?type=telnet&host=${encodeURIComponent(host)}&port=${port}`;
     } else {
@@ -42,7 +42,7 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
     setHost(quickHost);
     setPort(quickPort);
     if (quickUser) setUser(quickUser);
-    
+
     let sshwiftyUrl = '';
     if (type === 'telnet') {
       sshwiftyUrl = `/sshwifty?type=telnet&host=${encodeURIComponent(quickHost)}&port=${quickPort}`;
@@ -50,7 +50,7 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
       const useUser = quickUser || user || 'user';
       sshwiftyUrl = `/sshwifty?type=ssh&host=${encodeURIComponent(quickHost)}&port=${quickPort}&user=${encodeURIComponent(useUser)}`;
     }
-    
+
     setIframeUrl(sshwiftyUrl);
   };
 
@@ -79,7 +79,7 @@ export function SshwiftyInterface({ onClose }: SshwiftyInterfaceProps) {
             <X className="w-5 h-5" />
           </Button>
         </div>
-        
+
         {/* Iframe */}
         <iframe
           src={iframeUrl}
