@@ -16,22 +16,84 @@ export function MusicUpload() {
 
   const uploadMutation = useMutation({
     mutationFn: async (files: File[]) => {
-      const formData = new FormData();
-      files.forEach(file => {
-        formData.append('files', file);
-      });
-
-      const response = await fetch('/api/documents/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Upload failed');
+      const uploadedDocs = [];
+      
+      for (const file of files) {
+        try {
+          // Step 1: Get object storage upload URL
+          const uploadUrlResponse = await fetch('/api/objects/upload', {
+            method: 'POST',
+            credentials: 'include',
+          });
+          
+          if (!uploadUrlResponse.ok) {
+            throw new Error('Failed to get upload URL');
+          }
+          
+          const { uploadURL } = await uploadUrlResponse.json();
+          
+          // Step 2: Upload file to object storage
+          const uploadResponse = await fetch(uploadURL, {
+            method: 'PUT',
+            body: file,
+            headers: {
+              'Content-Type': file.type,
+            },
+          });
+          
+          if (!uploadResponse.ok) {
+            throw new Error('Failed to upload file to storage');
+          }
+          
+          const objectURL = uploadResponse.url;
+          
+          // Step 3: Create document metadata
+          const formData = new FormData();
+          formData.append('files', file);
+          
+          const docResponse = await fetch('/api/documents/upload', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include',
+          });
+          
+          if (!docResponse.ok) {
+            throw new Error('Failed to create document record');
+          }
+          
+          const docResult = await docResponse.json();
+          const documentId = docResult.documents?.[0]?.id;
+          
+          if (!documentId) {
+            throw new Error('No document ID returned');
+          }
+          
+          // Step 4: Link object storage to document
+          const linkResponse = await fetch(`/api/documents/${documentId}/object`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ objectURL }),
+            credentials: 'include',
+          });
+          
+          if (!linkResponse.ok) {
+            throw new Error('Failed to link object storage');
+          }
+          
+          uploadedDocs.push(docResult.documents[0]);
+        } catch (error) {
+          console.error(`Error uploading ${file.name}:`, error);
+          throw error;
+        }
       }
-
-      return response.json();
+      
+      return {
+        documents: uploadedDocs,
+        totalUploaded: uploadedDocs.length,
+        totalErrors: files.length - uploadedDocs.length,
+      };
     },
     onSuccess: (data) => {
       const successCount = data.totalUploaded || 0;

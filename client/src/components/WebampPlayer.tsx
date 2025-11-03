@@ -54,26 +54,31 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
           if (docsResponse.ok) {
             const documents = await docsResponse.json();
             
-            console.log('All documents fetched:', documents);
+            console.log('📁 All documents fetched:', documents);
 
-            // Filter for audio files
+            // Filter for audio files that have object storage paths
             knowledgeBaseTracks = documents
               .filter((doc: any) => {
                 const isAudio = doc.mimeType && doc.mimeType.startsWith('audio/');
-                console.log(`Document ${doc.originalName}: mimeType=${doc.mimeType}, isAudio=${isAudio}`);
-                return isAudio;
+                const hasObjectPath = doc.objectPath && doc.objectPath.length > 0;
+                console.log(`📄 ${doc.originalName}: mimeType=${doc.mimeType}, isAudio=${isAudio}, hasObjectPath=${hasObjectPath}, objectPath=${doc.objectPath}`);
+                return isAudio && hasObjectPath;
               })
               .map((doc: any) => ({
                 metaData: {
                   artist: "Uploaded Music",
                   title: doc.originalName.replace(/\.[^/.]+$/, "") // Remove extension
                 },
-                url: `/api/knowledge/documents/${doc.id}/download`
+                url: doc.objectPath // Use the object storage path directly
               }));
             
-            console.log(`✅ Loaded ${knowledgeBaseTracks.length} MP3 files from uploads:`, knowledgeBaseTracks);
+            console.log(`🎵 Loaded ${knowledgeBaseTracks.length} MP3 files with object paths:`, knowledgeBaseTracks);
+            
+            if (documents.filter((doc: any) => doc.mimeType && doc.mimeType.startsWith('audio/')).length > knowledgeBaseTracks.length) {
+              console.warn('⚠️ Some audio files are missing object storage paths and will not be loaded');
+            }
           } else {
-            console.error('Failed to fetch documents:', docsResponse.status, docsResponse.statusText);
+            console.error('❌ Failed to fetch documents:', docsResponse.status, docsResponse.statusText);
           }
         } catch (error) {
           console.error('❌ Error loading uploaded audio files:', error);
