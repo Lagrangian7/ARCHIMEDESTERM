@@ -7,11 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
-interface MusicUploadProps {
-  onUploadComplete?: (fileName: string, fileUrl: string) => void;
-}
-
-export function MusicUpload({ onUploadComplete }: MusicUploadProps) {
+export function MusicUpload() {
   const [dragOver, setDragOver] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,15 +50,22 @@ export function MusicUpload({ onUploadComplete }: MusicUploadProps) {
         fileInputRef.current.value = '';
       }
 
+      // Invalidate documents query to trigger refresh in other components
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
 
-      // Call onUploadComplete for each uploaded MP3
+      // Notify user to refresh Webamp if it's open
       if (data.documents && data.documents.length > 0) {
-        data.documents.forEach((doc: any) => {
-          if (doc.originalName.toLowerCase().endsWith('.mp3')) {
-            onUploadComplete?.(doc.originalName, `/api/documents/${doc.id}/download`);
-          }
-        });
+        const mp3Count = data.documents.filter((doc: any) => 
+          doc.mimeType && doc.mimeType.startsWith('audio/')
+        ).length;
+        
+        if (mp3Count > 0) {
+          toast({
+            title: "Music Added",
+            description: `${mp3Count} track${mp3Count !== 1 ? 's' : ''} uploaded. Close and reopen Webamp to see new tracks in the playlist.`,
+            variant: "default",
+          });
+        }
       }
     },
     onError: (error: Error) => {

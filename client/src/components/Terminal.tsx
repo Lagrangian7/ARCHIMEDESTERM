@@ -726,12 +726,7 @@ export function Terminal() {
               />
             ) : (
               // Music Upload Tab Content
-              <MemoizedMusicUpload
-                onUploadComplete={(music) => {
-                  // Optionally switch to a music list tab or show a success message
-                  processCommand(`Echo: Music file "${music.name}" uploaded successfully and added to Webamp playlist.`);
-                }}
-              />
+              <MemoizedMusicUpload />
             )}
           </div>
         </div>

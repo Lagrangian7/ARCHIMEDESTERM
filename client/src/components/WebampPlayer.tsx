@@ -50,7 +50,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
         // Fetch MP3s from knowledge base
         let knowledgeBaseTracks: any[] = [];
         try {
-          const docsResponse = await fetch('/api/knowledge/documents', { credentials: 'include' });
+          const docsResponse = await fetch('/api/documents', { credentials: 'include' });
           if (docsResponse.ok) {
             const documents = await docsResponse.json();
 
@@ -59,14 +59,16 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
               .filter((doc: any) => doc.mimeType && doc.mimeType.startsWith('audio/'))
               .map((doc: any) => ({
                 metaData: {
-                  artist: "Knowledge Base",
+                  artist: "Uploaded Music",
                   title: doc.originalName.replace(/\.[^/.]+$/, "") // Remove extension
                 },
-                url: `/api/knowledge/documents/${doc.id}/download`
+                url: `/api/documents/${doc.id}/download`
               }));
+            
+            console.log(`Loaded ${knowledgeBaseTracks.length} MP3 files from uploads`);
           }
         } catch (error) {
-          console.warn('Could not load knowledge base audio files:', error);
+          console.warn('Could not load uploaded audio files:', error);
         }
 
         const webamp = new Webamp({
