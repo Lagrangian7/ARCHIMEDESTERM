@@ -39,7 +39,7 @@ import archyLogo from '@assets/archy111_1760233943010.jpeg';
 import watermarkImage from '@assets/archi watermark_1761255886679.png';
 
 // Logo Component
-export const LogoIcon = memo(() => (
+export const LogoIcon = () => (
   <img 
     src={logoImage} 
     alt="ARCHIMEDES Logo" 
@@ -56,7 +56,7 @@ export const LogoIcon = memo(() => (
       boxShadow: '0 0 8px var(--terminal-logo-green), 0 0 16px var(--terminal-logo-green)'
     }}
   />
-));
+);
 
 export function Terminal() {
   const {
@@ -127,21 +127,21 @@ export function Terminal() {
   const [showSpacewars, setShowSpacewars] = useState(false);
 
   // Theme management
-  const themes = useMemo(() => [
+  const themes = [
     'commodore64', 'green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized',
     'cyberpunk', 'forest', 'ocean', 'sunset', 'neon', 'vintage', 'arctic', 'amber', 'hacker', 'royal',
     'vaporwave', 'desert', 'toxic', 'crimson', 'lavender', 'emerald', 'midnight', 'sakura', 'copper', 'plasma',
     'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
-  ], []);
+  ];
   const [currentTheme, setCurrentTheme] = useState<string>(themes[0]);
 
   // Switch theme function
-  const switchTheme = useCallback(() => {
+  const switchTheme = () => {
     const currentIndex = themes.indexOf(currentTheme);
     const nextTheme = themes[(currentIndex + 1) % themes.length];
     setCurrentTheme(nextTheme);
     localStorage.setItem('terminal-theme', nextTheme);
-  }, [themes, currentTheme]);
+  };
 
   // Radio character is now controlled by Webamp state
   // No separate radio audio functionality
@@ -205,7 +205,7 @@ export function Terminal() {
     }
   }, [isTyping, scrollToBottom]);
 
-  const handleContinue = useCallback(() => {
+  const handleContinue = () => {
     setVisibleEntries(Math.min(visibleEntries + 10, entries.length)); // Show 10 more entries
     setShowContinuePrompt(false);
 
@@ -213,9 +213,9 @@ export function Terminal() {
     setTimeout(() => {
       scrollToBottom();
     }, 50);
-  }, [entries.length, visibleEntries, scrollToBottom]);
+  };
 
-  const handleShowAll = useCallback(() => {
+  const handleShowAll = () => {
     setVisibleEntries(entries.length);
     setShowContinuePrompt(false);
 
@@ -223,7 +223,7 @@ export function Terminal() {
     setTimeout(() => {
       scrollToBottom();
     }, 50);
-  }, [entries.length, scrollToBottom]);
+  };
 
   // Focus input on mount and clicks
   useEffect(() => {
@@ -258,7 +258,6 @@ export function Terminal() {
   }, [entries, speak]);
 
   // Handle typing animation for new response entries
-  const typingEntriesSet = useMemo(() => typingEntries, [typingEntries]); // Memoize the set for dependency array
   useEffect(() => {
     const lastEntry = entries[entries.length - 1];
 
@@ -284,7 +283,7 @@ export function Terminal() {
     }
   }, [entries, isTyping]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     // F1 key opens help menu
     if (e.key === 'F1') {
       e.preventDefault();
@@ -334,9 +333,9 @@ export function Terminal() {
       e.preventDefault();
       // Auto-complete logic could go here
     }
-  }, [input, isLoading, processCommand, getHistoryCommand, showContinuePrompt, handleContinue, entries.length, scrollToBottom]);
+  };
 
-  const handleVoiceInput = useCallback((transcript: string) => {
+  const handleVoiceInput = (transcript: string) => {
     setInput(transcript);
     setTimeout(() => {
       if (transcript.trim()) {
@@ -344,18 +343,18 @@ export function Terminal() {
         setInput('');
       }
     }, 100);
-  }, [processCommand]);
+  };
 
   // Launch SPACEWAR game in iframe
-  const launchSpacewars = useCallback(() => {
+  const launchSpacewars = () => {
     setShowSpacewars(true);
-  }, []);
+  };
 
-  const formatTimestamp = useCallback((timestamp: string) => {
+  const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
-  }, []);
+  };
 
-  const getEntryClassName = useCallback((type: string, mode?: string) => {
+  const getEntryClassName = (type: string, mode?: string) => {
     switch (type) {
       case 'command':
         return 'text-terminal-highlight';
@@ -368,7 +367,7 @@ export function Terminal() {
       default:
         return 'text-terminal-text';
     }
-  }, []);
+  };
 
   // Handle command processing results, including new actions
   useEffect(() => {
@@ -384,34 +383,11 @@ export function Terminal() {
     }
   }, [entries]);
 
-  // Memoize components that don't change often
-  const MemoizedUserProfile = useMemo(() => memo(UserProfile), []);
-  const MemoizedConversationHistory = useMemo(() => memo(ConversationHistory), []);
-  const MemoizedDocumentsList = useMemo(() => memo(DocumentsList), []);
-  const MemoizedDocumentUpload = useMemo(() => memo(DocumentUpload), []);
-  const MemoizedZorkGame = useMemo(() => memo(ZorkGame), []);
-  const MemoizedDTMFDecoder = useMemo(() => memo(DTMFDecoder), []);
-  const MemoizedHelpMenu = useMemo(() => memo(HelpMenu), []);
-  const MemoizedChatInterface = useMemo(() => memo(ChatInterface), []);
-  const MemoizedSshwiftyInterface = useMemo(() => memo(SshwiftyInterface), []);
-  const MemoizedMudClient = useMemo(() => memo(MudClient), []);
-  const MemoizedTheHarvester = useMemo(() => memo(TheHarvester), []);
-  const MemoizedSpiderFoot = useMemo(() => memo(SpiderFoot), []);
-  const MemoizedEncodeDecodeOverlay = useMemo(() => memo(EncodeDecodeOverlay), []);
-  const MemoizedCodePreview = useMemo(() => memo(CodePreview), []);
-  const MemoizedWebampPlayer = useMemo(() => memo(WebampPlayer), []);
-  const MemoizedAJVideoPopup = useMemo(() => memo(AJVideoPopup), []);
-  const MemoizedTalkingArchimedes = useMemo(() => memo(TalkingArchimedes), []);
-  const MemoizedThinkingAnimation = useMemo(() => memo(ThinkingAnimation), []);
-  const MemoizedMatrixRain = useMemo(() => memo(MatrixRain), []);
-  const MemoizedRadioCharacter = useMemo(() => memo(RadioCharacter), []);
-  const MemoizedDraggableResponse = useMemo(() => memo(DraggableResponse), []);
-
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`}>
         {/* Matrix Rain Background Effect */}
-        <MemoizedMatrixRain />
+        <MatrixRain />
 
         {/* Consolidated Grid and Watermark Layer */}
         <div 
@@ -475,21 +451,21 @@ export function Terminal() {
                       <div className="text-terminal-highlight">
                         ARCHIMEDES v7 {entry.mode === 'technical' ? '(Technical Mode)' : '(Natural Chat Mode)'}:
                       </div>
-                      <MemoizedDraggableResponse 
-                        isTyping={typingEntriesSet.has(entry.id)} 
+                      <DraggableResponse 
+                        isTyping={typingEntries.has(entry.id)} 
                         entryId={entry.id}
                       >
                         <div 
                           className={`ml-4 mt-1 ${
-                            typingEntriesSet.has(entry.id) ? 'typing' : 'whitespace-pre-wrap'
+                            typingEntries.has(entry.id) ? 'typing' : 'whitespace-pre-wrap'
                           }`}
-                          style={typingEntriesSet.has(entry.id) ? {
+                          style={typingEntries.has(entry.id) ? {
                             '--steps': entry.content.length,
                             '--type-dur': `${Math.min(3000, Math.max(800, entry.content.length * 30))}ms`
                           } as React.CSSProperties : undefined}
                           dangerouslySetInnerHTML={{ __html: entry.content }}
                         />
-                      </MemoizedDraggableResponse>
+                      </DraggableResponse>
                     </div>
                   )}
                   {(entry.type === 'system' || entry.type === 'error') && (
@@ -591,13 +567,13 @@ export function Terminal() {
       {/* Modal Overlays */}
       {showProfile && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-          <MemoizedUserProfile onClose={() => setShowProfile(false)} />
+          <UserProfile onClose={() => setShowProfile(false)} />
         </div>
       )}
 
       {showConversationHistory && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-          <MemoizedConversationHistory 
+          <ConversationHistory 
             onClose={() => setShowConversationHistory(false)}
             onLoadConversation={loadConversation}
           />
@@ -676,9 +652,9 @@ export function Terminal() {
 
             {/* Tab Content */}
             {uploadTab === 'list' ? (
-              <MemoizedDocumentsList onClose={() => setShowUpload(false)} />
+              <DocumentsList onClose={() => setShowUpload(false)} />
             ) : (
-              <MemoizedDocumentUpload 
+              <DocumentUpload 
                 onUploadComplete={(document) => {
                   // Switch to documents list to show the uploaded file
                   setUploadTab('list');
@@ -696,7 +672,7 @@ export function Terminal() {
       {showZork && (
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
           <div className="w-full h-full max-w-4xl max-h-full">
-            <MemoizedZorkGame 
+            <ZorkGame 
               onClose={() => setShowZork(false)}
             />
           </div>
@@ -705,11 +681,11 @@ export function Terminal() {
 
 
       {showDTMF && (
-        <MemoizedDTMFDecoder onClose={() => setShowDTMF(false)} />
+        <DTMFDecoder onClose={() => setShowDTMF(false)} />
       )}
 
       {showHelpMenu && (
-        <MemoizedHelpMenu 
+        <HelpMenu 
           onClose={() => setShowHelpMenu(false)}
           onSelectCommand={(command) => {
             setInput(command);
@@ -723,21 +699,21 @@ export function Terminal() {
       )}
 
       {/* Talking Archimedes Character */}
-      <MemoizedTalkingArchimedes 
+      <TalkingArchimedes 
         isTyping={isTyping}
         isSpeaking={isSpeaking}
         currentMessage={entries.length > 0 ? entries[entries.length - 1]?.content : undefined}
       />
 
       {/* Thinking Animation - shows during AI processing, before typing starts */}
-      <MemoizedThinkingAnimation isThinking={isLoading && !isTyping && !isSpeaking} />
+      <ThinkingAnimation isThinking={isLoading && !isTyping && !isSpeaking} />
 
       {/* Animated Archimedes Character - appears when Webamp is playing */}
       <RadioCharacter isRadioPlaying={isWebampOpen} />
 
       {/* Chat Interface */}
       {isAuthenticated && showChat && (
-        <MemoizedChatInterface 
+        <ChatInterface 
           isOpen={true}
           onClose={() => setShowChat(false)}
         />
@@ -747,7 +723,7 @@ export function Terminal() {
       {showSshwifty && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
           <div className="w-[90vw] h-[80vh] bg-terminal-bg border border-terminal-highlight rounded-lg overflow-hidden">
-            <MemoizedSshwiftyInterface onClose={() => setShowSshwifty(false)} />
+            <SshwiftyInterface onClose={() => setShowSshwifty(false)} />
           </div>
         </div>
       )}

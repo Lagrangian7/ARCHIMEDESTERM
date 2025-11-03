@@ -2,21 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Performance optimizations */
-* {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Use GPU acceleration for animations */
-.terminal-glow,
-.retro-cycle,
-.terminal-scanline {
-  will-change: opacity, transform;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
 /* Hamburg Symbols Font */
 @font-face {
   font-family: 'Hamburg Symbols';

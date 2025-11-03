@@ -127,21 +127,11 @@ export const reducer = (state: State, action: Action): State => {
 }
 
 const listeners: Array<(state: State) => void> = []
-const MAX_TOASTS = 5;
 
 let memoryState: State = { toasts: [] }
 
 function dispatch(action: Action) {
   memoryState = reducer(memoryState, action)
-  
-  // Limit number of toasts to prevent memory issues
-  if (memoryState.toasts.length > MAX_TOASTS) {
-    memoryState = {
-      ...memoryState,
-      toasts: memoryState.toasts.slice(-MAX_TOASTS)
-    };
-  }
-  
   listeners.forEach((listener) => {
     listener(memoryState)
   })

@@ -28,12 +28,6 @@ function App() {
     const splashShown = sessionStorage.getItem('splashShown');
     if (splashShown) {
       setShowSplash(false);
-    } else {
-      // Auto-dismiss splash after 3 seconds if user doesn't interact
-      const timeout = setTimeout(() => {
-        handleSplashComplete();
-      }, 3000);
-      return () => clearTimeout(timeout);
     }
   }, []);
 
