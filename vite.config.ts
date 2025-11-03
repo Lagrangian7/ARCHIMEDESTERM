@@ -30,10 +30,9 @@ export default defineConfig({
   },
   server: {
     host: "0.0.0.0",
-    allowedHosts: [
-      ".replit.dev",
-      ".repl.co",
-    ],
+    hmr: {
+      clientPort: 443,
+    },
     fs: {
       strict: true,
       deny: ["**/.*"],
