@@ -273,8 +273,6 @@ export const DraggableResponse = memo(function DraggableResponse({ children, isT
       )}
     </>
   );
-}
-
 });
 
 export default DraggableResponse;
