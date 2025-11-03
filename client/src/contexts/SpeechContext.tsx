@@ -22,8 +22,13 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
   const lastSpokenRef = useRef<string>('');
   const speechTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const speak = useCallback((text: string, interruptCurrent = false) => {
-    if (!text.trim()) return;
+  const speak = useCallback((text: string, options: { voice?: number; rate?: number; pitch?: number; onEnd?: () => void } = {}) => {
+    if (!text || text.trim() === '') return;
+
+    // Cancel any ongoing speech before starting new speech
+    if (speechSynthesis.speaking) {
+      speechSynthesis.cancel();
+    }
 
     // Prevent duplicate speech within 500ms
     if (lastSpokenRef.current === text && speechTimeoutRef.current) {
@@ -36,15 +41,8 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
       lastSpokenRef.current = '';
     }, 500);
 
-    if (speechSynthesis.isSpeaking && !interruptCurrent) {
-      // Add to queue if not interrupting
-      // For simplicity, this example doesn't implement a full queue,
-      // but a more robust solution would manage a queue here.
-      // For now, we just prevent immediate duplicates and let the next call handle it.
-    } else {
-      speechSynthesis.speak(text);
-    }
-  }, [speechSynthesis, interruptCurrent]); // Added interruptCurrent to dependencies
+    speechSynthesis.speak(text, options);
+  }, [speechSynthesis]); // Removed interruptCurrent from dependencies
 
   useEffect(() => {
     return () => {
