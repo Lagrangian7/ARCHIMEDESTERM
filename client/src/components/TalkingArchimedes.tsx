@@ -22,7 +22,7 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
   // Only update position when dragging stops, not during drag
   const [isVisible, setIsVisible] = useState(false);
 
-  // Optimize video playback with delay for speech to become audible
+  // Optimize video playback with delay until response bubble is rendered
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -30,11 +30,12 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
     let showTimeout: NodeJS.Timeout;
 
     if (shouldShow) {
-      // Delay showing the animation until speech is actually audible (300ms)
+      // Wait for response bubble to be rendered before showing animation
+      // This gives time for the bubble's position calculation and fade-in (600ms total)
       showTimeout = setTimeout(() => {
         if (!isVisible) setIsVisible(true);
         video.play().catch(() => {});
-      }, 300);
+      }, 600);
     } else {
       video.pause();
       video.currentTime = 0;
