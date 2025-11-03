@@ -2524,10 +2524,10 @@ function windowResized() {
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 5 * 1024 * 1024, // 5MB limit
+      fileSize: 15 * 1024 * 1024, // 15MB limit for audio files
     },
     fileFilter: (req, file, cb) => {
-      // Only allow text files
+      // Allow text and audio files
       const allowedTypes = [
         'text/plain',
         'text/markdown',
@@ -2535,12 +2535,17 @@ function windowResized() {
         'application/json',
         'text/html',
         'text/xml',
+        'audio/mpeg',
+        'audio/mp3',
+        'audio/wav',
+        'audio/ogg',
+        'audio/m4a',
       ];
 
-      if (allowedTypes.includes(file.mimetype) || file.originalname.match(/\.(txt|md|json|csv|html|xml)$/i)) {
+      if (allowedTypes.includes(file.mimetype) || file.originalname.match(/\.(txt|md|json|csv|html|xml|mp3|wav|ogg|m4a)$/i)) {
         cb(null, true);
       } else {
-        cb(new Error('Only text files are allowed'));
+        cb(new Error('Only text and audio files are allowed'));
       }
     }
   });
