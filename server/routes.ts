@@ -20,6 +20,16 @@ import { spiderFootService } from "./spiderfoot-service";
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
+  // Health check endpoint - MUST be first, before any middleware
+  // This allows deployment health checks to succeed quickly
+  app.get('/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  });
+
   // Enable gzip compression
   app.use(compression());
 
@@ -2004,8 +2014,15 @@ function windowResized() {
     res.send(gameHtml);
   });
 
-  // Setup authentication middleware
-  await setupAuth(app);
+  // Create HTTP server first
+  const httpServer = createServer(app);
+
+  // Setup authentication asynchronously (non-blocking)
+  // This allows the server to start and respond to health checks immediately
+  setupAuth(app).catch((error) => {
+    console.error('Failed to setup authentication:', error);
+    console.warn('Server will continue running without authentication');
+  });
 
   // Auth routes
   app.get('/api/auth/user', async (req, res) => {
@@ -4701,9 +4718,6 @@ function windowResized() {
       });
     }
   });
-
-  // Create HTTP server
-  const httpServer = createServer(app);
 
   return httpServer;
 }

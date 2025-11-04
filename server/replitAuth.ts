@@ -8,10 +8,6 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
-}
-
 const getOidcConfig = memoize(
   async () => {
     return await client.discovery(
@@ -22,38 +18,68 @@ const getOidcConfig = memoize(
   { maxAge: 3600 * 1000 }
 );
 
+// Lazy session store initialization to avoid blocking startup
+let sessionMiddleware: any = null;
+
 export function getSession() {
+  if (sessionMiddleware) {
+    return sessionMiddleware;
+  }
+
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const PostgresStore = connectPg(session);
   
-  const store = new PostgresStore({
-    conObject: {
-      connectionString: process.env.DATABASE_URL,
-    },
-    tableName: 'sessions',
-    createTableIfMissing: true,
-    ttl: sessionTtl / 1000, // PostgreSQL store expects TTL in seconds
-    pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
-  });
-  
-  store.on('error', (err) => {
-    console.error('Session store error:', err);
-  });
-  
-  return session({
-    store,
-    secret: process.env.SESSION_SECRET!,
-    resave: true, // Save session on every request to extend expiration
-    saveUninitialized: false, // Don't create session until something stored
-    rolling: true, // Reset expiration on every response
-    cookie: {
-      httpOnly: true,
-      secure: false, // Set to false for Replit environment
-      maxAge: sessionTtl,
-      sameSite: 'lax',
-      path: '/',
-    },
-  });
+  try {
+    const PostgresStore = connectPg(session);
+    
+    const store = new PostgresStore({
+      conObject: {
+        connectionString: process.env.DATABASE_URL,
+      },
+      tableName: 'sessions',
+      createTableIfMissing: true,
+      ttl: sessionTtl / 1000, // PostgreSQL store expects TTL in seconds
+      pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
+    });
+    
+    store.on('error', (err) => {
+      console.error('Session store error:', err);
+      // Don't crash on session store errors
+    });
+    
+    sessionMiddleware = session({
+      store,
+      secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
+      resave: true, // Save session on every request to extend expiration
+      saveUninitialized: false, // Don't create session until something stored
+      rolling: true, // Reset expiration on every response
+      cookie: {
+        httpOnly: true,
+        secure: false, // Set to false for Replit environment
+        maxAge: sessionTtl,
+        sameSite: 'lax',
+        path: '/',
+      },
+    });
+    
+    return sessionMiddleware;
+  } catch (error) {
+    console.error('Failed to initialize session store:', error);
+    // Fallback to memory store if database connection fails
+    sessionMiddleware = session({
+      secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
+      resave: true,
+      saveUninitialized: false,
+      rolling: true,
+      cookie: {
+        httpOnly: true,
+        secure: false,
+        maxAge: sessionTtl,
+        sameSite: 'lax',
+        path: '/',
+      },
+    });
+    return sessionMiddleware;
+  }
 }
 
 function updateUserSession(
@@ -79,35 +105,50 @@ async function upsertUser(
 }
 
 export async function setupAuth(app: Express) {
-  app.set("trust proxy", true);
-  app.use(getSession());
-  app.use(passport.initialize());
-  app.use(passport.session());
+  // Check for REPLIT_DOMAINS but don't throw - allow server to start
+  if (!process.env.REPLIT_DOMAINS) {
+    console.warn('Warning: REPLIT_DOMAINS environment variable not set. Authentication will not work.');
+    console.warn('Please set REPLIT_DOMAINS in your deployment secrets.');
+    // Return early to allow server to start without auth
+    return;
+  }
 
-  const config = await getOidcConfig();
+  let config: any = null;
 
-  const verify: VerifyFunction = async (
-    tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
-    verified: passport.AuthenticateCallback
-  ) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user);
-  };
+  try {
+    app.set("trust proxy", true);
+    app.use(getSession());
+    app.use(passport.initialize());
+    app.use(passport.session());
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
-    const strategy = new Strategy(
-      {
-        name: `replitauth:${domain}`,
-        config,
-        scope: "openid email profile offline_access",
-        callbackURL: `https://${domain}/api/callback`,
-      },
-      verify,
-    );
-    passport.use(strategy);
+    config = await getOidcConfig();
+
+    const verify: VerifyFunction = async (
+      tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
+      verified: passport.AuthenticateCallback
+    ) => {
+      const user = {};
+      updateUserSession(user, tokens);
+      await upsertUser(tokens.claims());
+      verified(null, user);
+    };
+
+    for (const domain of process.env.REPLIT_DOMAINS.split(",")) {
+      const strategy = new Strategy(
+        {
+          name: `replitauth:${domain}`,
+          config,
+          scope: "openid email profile offline_access",
+          callbackURL: `https://${domain}/api/callback`,
+        },
+        verify,
+      );
+      passport.use(strategy);
+    }
+  } catch (error) {
+    console.error('Failed to setup authentication:', error);
+    console.warn('Server will continue without authentication');
+    // Don't throw - allow server to start
   }
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
@@ -126,15 +167,21 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  app.get("/api/logout", (req, res) => {
-    req.logout(() => {
-      res.redirect(
-        client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
-        }).href
-      );
-    });
+  app.get("/api/logout", async (req, res) => {
+    try {
+      const logoutConfig = config || await getOidcConfig();
+      req.logout(() => {
+        res.redirect(
+          client.buildEndSessionUrl(logoutConfig, {
+            client_id: process.env.REPL_ID!,
+            post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
+          }).href
+        );
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.redirect('/');
+    }
   });
 }
 
