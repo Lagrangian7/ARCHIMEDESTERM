@@ -139,8 +139,8 @@ export function Terminal() {
     'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>(() => {
-    // Load theme from localStorage or default to greyscale
-    return localStorage.getItem('terminal-theme') || themes[4];
+    // Load theme from localStorage or default to spectrum
+    return localStorage.getItem('terminal-theme') || 'spectrum';
   });
 
   // Switch theme function
