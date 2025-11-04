@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from '@/components/Terminal';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
@@ -152,14 +152,28 @@ export function VoiceControls({
   const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
   const [showSshwifty, setShowSshwiftyLocal] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [selectedThemeIndex, setSelectedThemeIndex] = useState(0);
 
-  const handleThemeSelect = (themeClass: string) => {
+  const handleThemeSelect = (themeClass: string, index: number) => {
     // Find the theme and apply it
     const currentThemeClasses = THEMES.map(t => t.class);
     document.documentElement.classList.remove(...currentThemeClasses);
     document.documentElement.classList.add(themeClass);
-    // Delay closing to prevent flash
-    setTimeout(() => setShowThemeMenu(false), 100);
+    setSelectedThemeIndex(index);
+    setShowThemeMenu(false);
+  };
+
+  const handleThemeKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedThemeIndex((prev) => (prev > 0 ? prev - 1 : THEMES.length - 1));
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedThemeIndex((prev) => (prev < THEMES.length - 1 ? prev + 1 : 0));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      handleThemeSelect(THEMES[selectedThemeIndex].class, selectedThemeIndex);
+    }
   };
 
   return (
@@ -324,61 +338,89 @@ export function VoiceControls({
         </Button>
 
         {/* Theme Selector */}
-        <Popover open={showThemeMenu} onOpenChange={setShowThemeMenu}>
-          <PopoverTrigger asChild>
-            <button
-              className="cursor-pointer p-2 rounded transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px] flex items-center justify-center bg-transparent border-none"
-              data-testid="button-theme-toggle"
-              aria-label="Select Theme"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-            >
-              <img
-                src={cubesIcon}
-                alt="Theme Selector"
-                width="24"
-                height="24"
-                className="rgb-theme-icon"
-              />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent 
-            className="w-80 max-h-96 overflow-y-auto bg-terminal-bg border-terminal-highlight p-4 z-50"
-            align="end"
-            sideOffset={8}
-            onOpenAutoFocus={(e) => e.preventDefault()}
+        <Button
+          onClick={() => setShowThemeMenu(true)}
+          variant="outline"
+          size="sm"
+          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
+          data-testid="button-theme-toggle"
+          aria-label="Select Theme"
+        >
+          <img
+            src={cubesIcon}
+            alt="Theme Selector"
+            width="24"
+            height="24"
+            className="rgb-theme-icon"
+          />
+        </Button>
+
+        {/* Theme Selector Dialog */}
+        <Dialog open={showThemeMenu} onOpenChange={setShowThemeMenu}>
+          <DialogContent 
+            className="w-full max-w-3xl h-[80vh] flex flex-col border rounded-lg overflow-hidden"
+            style={{
+              backgroundColor: 'var(--terminal-bg)',
+              borderColor: 'var(--terminal-subtle)'
+            }}
+            onKeyDown={handleThemeKeyDown}
           >
-            <div className="space-y-2">
-              <h3 className="text-terminal-text font-bold text-sm mb-3">Select Theme</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {THEMES.map((theme) => (
+            <DialogHeader className="p-3 border-b" style={{ borderColor: 'var(--terminal-subtle)' }}>
+              <DialogTitle className="text-lg font-bold font-mono flex items-center gap-2" style={{ color: 'var(--terminal-text)' }}>
+                <img src={cubesIcon} alt="Themes" width="20" height="20" />
+                THEME SELECTOR
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {THEMES.map((theme, index) => (
                   <button
                     key={theme.class}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleThemeSelect(theme.class);
+                    onClick={() => handleThemeSelect(theme.class, index)}
+                    onMouseEnter={() => setSelectedThemeIndex(index)}
+                    className={`flex items-center gap-3 p-3 rounded border transition-all text-left ${
+                      selectedThemeIndex === index 
+                        ? 'border-terminal-highlight bg-terminal-highlight/20 scale-105' 
+                        : 'border-terminal-subtle hover:border-terminal-highlight hover:bg-terminal-highlight/10'
+                    }`}
+                    style={{
+                      borderColor: selectedThemeIndex === index ? 'var(--terminal-highlight)' : 'var(--terminal-subtle)',
+                      backgroundColor: selectedThemeIndex === index ? 'rgba(var(--terminal-highlight-rgb), 0.2)' : 'transparent'
                     }}
-                    className="flex items-center gap-2 p-2 rounded border border-terminal-subtle hover:border-terminal-highlight hover:bg-terminal-highlight/10 transition-colors text-left"
                   >
                     <div className="flex gap-1 flex-shrink-0">
                       {theme.colors.map((color, idx) => (
                         <div
                           key={idx}
-                          className="w-4 h-4 rounded-sm border border-terminal-subtle"
-                          style={{ backgroundColor: color }}
+                          className="w-6 h-6 rounded border"
+                          style={{ 
+                            backgroundColor: color,
+                            borderColor: 'var(--terminal-subtle)'
+                          }}
                         />
                       ))}
                     </div>
-                    <span className="text-terminal-text text-xs flex-1 truncate">{theme.name}</span>
+                    <span className="font-mono text-sm flex-1" style={{ color: 'var(--terminal-text)' }}>
+                      {theme.name}
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
-          </PopoverContent>
-        </Popover>
+
+            <div 
+              className="p-3 border-t text-xs font-mono"
+              style={{ 
+                borderColor: 'var(--terminal-subtle)',
+                color: 'var(--terminal-text)',
+                opacity: 0.7
+              }}
+            >
+              Use arrow keys ↑↓ to navigate, Enter to select, or click a theme
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {showPrivacyEncoder && (
