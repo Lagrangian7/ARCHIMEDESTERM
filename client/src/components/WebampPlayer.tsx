@@ -356,15 +356,12 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             url: "/default-skin.wsz"
           },
 
-          // Initial window layout with Milkdrop visualizer
+          // Initial window layout - minimized and centered in voice control area
           windowLayout: {
-            main: { position: { top: 20, left: 20 } },
-            equalizer: { position: { top: 20, left: 580 } },
-            playlist: { 
-              position: { top: 480, left: 20 },
-              size: { extraHeight: 4, extraWidth: 0 } 
-            },
-            milkdrop: { position: { top: 20, left: 300 }, size: [275, 455] }
+            main: { position: { top: 60, left: window.innerWidth / 2 - 137.5 } }, // Center the 275px wide player
+            equalizer: { closed: true }, // Start minimized
+            playlist: { closed: true }, // Start minimized
+            milkdrop: { closed: true } // Start minimized
           },
 
           // Available skins
