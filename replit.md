@@ -1,6 +1,6 @@
 # Overview
 
-This is an ARCHIMEDES v7 AI Terminal application - expanded from a cyberpunk-styled AI interface into a comprehensive retro computing portal that combines the original terminal functionality (dual AI modes, voice synthesis, authentication, knowledge base) with a complete telehack.com-style system featuring real web telnet connectivity to live BBS systems, vintage network simulation, ANSI terminal emulation, and a curated directory of active telnet boards with addresses and historical phone numbers.
+This is an ARCHIMEDES v7 AI Terminal application - a cyberpunk-styled AI interface featuring dual AI modes, voice synthesis (HAL 9000 voice simulation), authentication, knowledge base, and terminal-based interaction with the Archimedes assistant. The application provides a retro computing aesthetic with phosphor display effects, scanlines, and authentic terminal features.
 
 # User Preferences
 
@@ -15,15 +15,11 @@ Preferred communication style: Simple, everyday language.
 - **Styling**: Tailwind CSS with custom terminal-themed color palette (electric green #00FF41, deep black #0D1117)
 - **State Management**: React Query (TanStack Query) for server state, React hooks for local state
 - **Terminal Interface**: Custom terminal component with phosphor display aesthetic, scanlines, and authentic terminal features
-- **Telnet Client**: Full-screen modal with ANSI terminal emulation, WebSocket-based real-time connectivity to BBS systems
-- **Network Commands**: Integrated telnet, ping, bbs-list, and BBS discovery commands in main terminal
 - **Music Player**: Webamp integration with butterchurn Milkdrop visualizer, launchable via "webamp" command, "play our song" command, or cassette tape icon in header
 
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js server
-- **API Design**: RESTful API with chat endpoint (`/api/chat`) and comprehensive BBS directory endpoints
-- **WebSocket Server**: Real-time telnet proxy server on `/ws/telnet` for live BBS connections
-- **Network Services**: Telnet proxy, BBS service, and network connectivity testing
+- **API Design**: RESTful API with AI chat endpoint (`/api/chat`) for terminal-based interactions with Archimedes AI assistant
 - **Academic Search**: Semantic Scholar API integration for academic paper search (FREE, no API key required)
 - **Wolfram Alpha**: Full Results API integration for computational queries, math solving, data lookup, and knowledge queries with enhanced graphical and mathematical rendering
   - Graphics rendering: Images from Wolfram Alpha (plots, diagrams) rendered as HTML <img> tags
@@ -36,7 +32,6 @@ Preferred communication style: Simple, everyday language.
 ## Data Storage Solutions
 - **Database**: PostgreSQL with Drizzle ORM (DatabaseStorage implementation)
 - **Schema**: Users table for authentication, conversations table with JSONB message storage, documents table for knowledge base
-- **BBS Directory**: Comprehensive tables for BBS systems, categories, connection logs, and user favorites
 - **Document Persistence**: All uploaded documents and saved AI responses persist in PostgreSQL per user
 - **Session Management**: UUID-based session tracking for conversation persistence
 

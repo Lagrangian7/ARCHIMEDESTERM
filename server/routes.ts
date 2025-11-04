@@ -10,22 +10,12 @@ import { llmService } from "./llm-service";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { weatherService } from "./weather-service";
 import { knowledgeService } from "./knowledge-service";
-import { BbsService } from "./bbs-service";
 import { gutendxService } from "./gutendx-service";
 import { marketstackService } from "./marketstack-service";
 import { radioGardenService } from "./radio-garden-service";
 import { scholarService } from "./scholar-service";
 import multer from "multer";
 import { z } from "zod";
-import WebSocket, { WebSocketServer } from 'ws';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { promises as dns } from 'dns';
-import session from 'express-session';
-import { parse } from 'cookie';
-import signature from 'cookie-signature';
-import { getSession } from './replitAuth';
-import { archimedesBotService } from './archimedes-bot-service';
 import compression from "compression";
 import { spiderFootService } from "./spiderfoot-service";
 
@@ -33,17 +23,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Enable gzip compression
   app.use(compression());
-
-  // Initialize Archimedes AI bot
-  await archimedesBotService.initializeBot();
-
-  // Rate limiting for WebSocket messages
-  const messageRateLimits = new Map<string, { count: number; resetTime: number }>();
-  const MESSAGE_RATE_LIMIT = 50; // messages per minute
-  const RATE_LIMIT_WINDOW = 60000; // 1 minute in ms
-
-  // Declare WebSocket servers that will be initialized later
-  let chatWss: WebSocketServer;
 
   // Serve attached assets (for soundtrack and other user files)
   app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
@@ -2110,18 +2089,6 @@ function windowResized() {
   // Setup authentication middleware
   await setupAuth(app);
 
-  // Initialize services
-  const bbsService = new BbsService();
-
-  // Initialize starter data
-  try {
-    await bbsService.initializeStarterData();
-    await bbsService.initializeVirtualSystems();
-    console.log("✅ BBS service initialized successfully");
-  } catch (error) {
-    console.error("⚠️  BBS service initialization failed, continuing without initial data:", error instanceof Error ? error.message : String(error));
-  }
-
   // Auth routes
   app.get('/api/auth/user', async (req, res) => {
     try {
@@ -2213,8 +2180,11 @@ function windowResized() {
   // Chat endpoint (enhanced with user support)
   app.post("/api/chat", async (req, res) => {
     try {
-      const user = await getUser(req, res); // Assuming getUser is defined elsewhere and handles authentication
-      if (!user) return;
+      // Check authentication
+      if (!req.isAuthenticated?.() || !req.user?.claims?.sub) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const user = { id: req.user.claims.sub, name: req.user.claims.name || 'User', claims: req.user.claims };
 
       const { message, mode, language } = req.body; // language is now extracted
 
@@ -3328,78 +3298,6 @@ function windowResized() {
       console.error("Scholar paper details error:", error);
       const message = error instanceof Error ? error.message : "Failed to get paper details";
       res.status(500).json({ error: message });
-    }
-  });
-
-
-  // BBS Directory API endpoints
-  app.get("/api/bbs/systems", async (req, res) => {
-    try {
-      const category = req.query.category as string;
-      const search = req.query.search as string;
-
-      let systems;
-      if (search) {
-        systems = await bbsService.searchBbsSystems(search);
-      } else if (category) {
-        systems = await bbsService.getBbsByCategory(category);
-      } else {
-        systems = await bbsService.getAllBbsSystems();
-      }
-
-      res.json(systems);
-    } catch (error) {
-      console.error("BBS systems error:", error);
-      res.status(500).json({ error: "Failed to fetch BBS systems" });
-    }
-  });
-
-  app.get("/api/bbs/popular", async (req, res) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 10;
-      const systems = await bbsService.getPopularBbsSystems(limit);
-      res.json(systems);
-    } catch (error) {
-      console.error("Popular BBS error:", error);
-      res.status(500).json({ error: "Failed to fetch popular BBS systems" });
-    }
-  });
-
-  app.get("/api/bbs/favorites", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const favorites = await bbsService.getUserFavorites(userId);
-      res.json(favorites);
-    } catch (error) {
-      console.error("BBS favorites error:", error);
-      res.status(500).json({ error: "Failed to fetch favorites" });
-    }
-  });
-
-  app.post("/api/bbs/favorites", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { bbsId, nickname } = req.body;
-
-      if (!bbsId) {
-        return res.status(400).json({ error: "BBS ID is required" });
-      }
-
-      await bbsService.addToFavorites(userId, bbsId, nickname);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Add favorite error:", error);
-      res.status(500).json({ error: "Failed to add favorite" });
-    }
-  });
-
-  app.get("/api/bbs/virtual-systems", async (req, res) => {
-    try {
-      const systems = await bbsService.getVirtualSystems();
-      res.json(systems);
-    } catch (error) {
-      console.error("Virtual systems error:", error);
-      res.status(500).json({ error: "Failed to fetch virtual systems" });
     }
   });
 
@@ -5016,332 +4914,8 @@ function windowResized() {
     }
   });
 
-  // Chat system API endpoints
-
-  // Get online users
-  app.get("/api/chat/online-users", isAuthenticated, async (req: any, res) => {
-    try {
-      const onlineUsers = await storage.getOnlineUsers();
-      res.json(onlineUsers);
-    } catch (error) {
-      console.error("Get online users error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // Get user's direct chats
-  app.get("/api/chat/conversations", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const chats = await storage.getUserDirectChats(userId);
-      res.json(chats);
-    } catch (error) {
-      console.error("Get direct chats error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // Start or get existing direct chat
-  app.post("/api/chat/conversations", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { otherUserId } = req.body;
-
-      if (!otherUserId || otherUserId === userId) {
-        return res.status(400).json({ error: "Invalid other user ID" });
-      }
-
-      const chat = await storage.getOrCreateDirectChat(userId, otherUserId);
-      res.json(chat);
-    } catch (error) {
-      console.error("Create direct chat error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // Get messages for a specific chat
-  app.get("/api/chat/conversations/:chatId/messages", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { chatId } = req.params;
-      const { limit = 50 } = req.query;
-
-      // Verify user has access to this chat
-      const userChats = await storage.getUserDirectChats(userId);
-      const hasAccess = userChats.some(chat => chat.id === chatId);
-
-      if (!hasAccess) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-
-      const messages = await storage.getChatMessages(chatId, parseInt(limit));
-      res.json(messages);
-    } catch (error) {
-      console.error("Get chat messages error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // Send a message
-  app.post("/api/chat/messages", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const { chatId, content, toUserId } = req.body;
-
-      if (!content || !chatId || !toUserId) {
-        return res.status(400).json({ error: "Missing required fields" });
-      }
-
-      // Verify user has access to this chat
-      const userChats = await storage.getUserDirectChats(userId);
-      const hasAccess = userChats.some(chat => chat.id === chatId);
-
-      if (!hasAccess) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-
-      const message = await storage.sendMessage({
-        chatId,
-        fromUserId: userId,
-        toUserId,
-        content,
-        messageType: "text",
-        isRead: false,
-        isDelivered: false,
-      });
-
-      // Emit message via WebSocket to connected users
-      if (chatWss) {
-        chatWss.clients.forEach((client: any) => {
-          if (client.readyState === WebSocket.OPEN &&
-              (client.userId === userId || client.userId === toUserId)) {
-            client.send(JSON.stringify({
-              type: 'message',
-              data: message
-            }));
-          }
-        });
-      }
-
-      // Check if message was sent to Archimedes bot
-      if (archimedesBotService.isBot(toUserId)) {
-        // Get conversation history for context
-        const messages = await storage.getChatMessages(chatId, 20);
-
-        // Generate AI response
-        const aiResponse = await archimedesBotService.generateResponse(content, messages);
-
-        // Send bot response after a brief delay to simulate typing
-        setTimeout(async () => {
-          try {
-            const botMessage = await storage.sendMessage({
-              chatId,
-              fromUserId: archimedesBotService.getBotId(),
-              toUserId: userId,
-              content: aiResponse,
-              messageType: "text",
-              isRead: false,
-              isDelivered: true,
-            });
-
-            // Emit bot message via WebSocket
-            if (chatWss) {
-              chatWss.clients.forEach((client: any) => {
-                if (client.readyState === WebSocket.OPEN &&
-                    (client.userId === userId || client.userId === archimedesBotService.getBotId())) {
-                  client.send(JSON.stringify({
-                    type: 'message',
-                    data: botMessage
-                  }));
-                }
-              });
-            }
-          } catch (error) {
-            console.error('Error sending bot message:', error);
-          }
-        }, 1000); // 1 second delay
-      }
-
-      res.json(message);
-    } catch (error) {
-      console.error("Send message error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // Mark messages as read
-  app.put("/api/chat/messages/:messageId/read", isAuthenticated, async (req: any, res) => {
-    try {
-      const { messageId } = req.params;
-      await storage.markMessageAsRead(messageId);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Mark message as read error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // Get unread message count
-  app.get("/api/chat/unread-count", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const count = await storage.getUnreadMessageCount(userId);
-      res.json({ count });
-    } catch (error) {
-      console.error("Get unread count error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
   // Create HTTP server
   const httpServer = createServer(app);
 
-  // Initialize Sshwifty service (commented out - service not found)
-  // const sshwiftyService = new SshwiftyService(httpServer);
-  // SshwiftyService.setupStaticRoutes(app);
-  console.log('Sshwifty terminal interface configured at /sshwifty');
-
-  // Initialize WebSocket server for chat system
-  chatWss = new WebSocketServer({
-    server: httpServer,
-    path: '/ws/chat'
-  });
-
-  // Handle chat WebSocket connections
-  chatWss.on('connection', (ws: any, req) => {
-    console.log('Chat WebSocket client connected from:', req.headers['user-agent'] || 'unknown', 'URL:', req.url);
-
-    ws.on('message', async (data: Buffer) => {
-      try {
-        const message = JSON.parse(data.toString());
-
-        switch (message.type) {
-          case 'auth':
-            try {
-              // Set user ID for this connection
-              ws.userId = message.userId;
-
-              // Update user presence as online (if method exists)
-              try {
-                await storage.updateUserPresence?.(message.userId, true, ws.id);
-              } catch (error) {
-                console.error('Error updating user presence:', error);
-              }
-
-              // Mark messages as delivered for this user (if method exists)
-              try {
-                await storage.markMessagesAsDelivered?.(message.userId);
-              } catch (error) {
-                console.error('Error marking messages as delivered:', error);
-              }
-
-              // Broadcast user online status
-              chatWss.clients.forEach((client: any) => {
-                if (client.readyState === WebSocket.OPEN && client !== ws) {
-                  client.send(JSON.stringify({
-                    type: 'user_online',
-                    data: { userId: message.userId }
-                  }));
-                }
-              });
-
-              ws.send(JSON.stringify({
-                type: 'auth_success',
-                data: { connected: true }
-              }));
-            } catch (error) {
-              console.error('Error during WebSocket auth:', error);
-              ws.send(JSON.stringify({
-                type: 'error',
-                data: { message: 'Authentication failed' }
-              }));
-            }
-            break;
-
-          case 'typing':
-            // Broadcast typing indicator to other user
-            chatWss.clients.forEach((client: any) => {
-              if (client.readyState === WebSocket.OPEN &&
-                  client.userId === message.toUserId) {
-                client.send(JSON.stringify({
-                  type: 'typing',
-                  data: {
-                    fromUserId: ws.userId,
-                    chatId: message.chatId,
-                    isTyping: message.isTyping
-                  }
-                }));
-              }
-            });
-            break;
-
-          default:
-            console.log('Unknown message type:', message.type);
-        }
-      } catch (error) {
-        console.error('Error processing WebSocket message:', error);
-        ws.send(JSON.stringify({
-          type: 'error',
-          data: { message: 'Invalid message format' }
-        }));
-      }
-    });
-
-    ws.on('close', async (code: number, reason: Buffer) => {
-      console.log('Chat WebSocket client disconnected - Code:', code, 'Reason:', reason.toString() || 'No reason', 'Had userId:', !!ws.userId);
-
-      if (ws.userId) {
-        try {
-          // Set user offline
-          await storage.updateUserPresence?.(ws.userId, false);
-
-          // Broadcast user offline status
-          chatWss.clients.forEach((client: any) => {
-            if (client.readyState === WebSocket.OPEN && client !== ws) {
-              client.send(JSON.stringify({
-                type: 'user_offline',
-                data: { userId: ws.userId }
-              }));
-            }
-          });
-        } catch (error) {
-          console.error('Error updating user presence on disconnect:', error);
-        }
-      }
-    });
-
-    ws.on('error', (error: Error) => {
-      console.error('Chat WebSocket error:', error);
-    });
-  });
-
-  console.log('Chat WebSocket server initialized on /ws/chat');
-
   return httpServer;
-}
-
-// Helper function to get user from request (assuming it's defined elsewhere)
-async function getUser(req: any, res: any) {
-  // This function should ideally retrieve the authenticated user from the session or token
-  // For demonstration purposes, we'll assume it returns a user object or null
-  // In a real application, this would involve checking req.user or session data
-  if (req.user && req.user.claims && req.user.claims.sub) {
-    // Mock user object with claims
-    return { id: req.user.claims.sub, name: 'Mock User', claims: req.user.claims };
-  } else {
-    // If not authenticated, send an error response
-    res.status(401).json({ error: 'Unauthorized' });
-    return null;
-  }
-}
-
-// Helper function to authenticate WebSocket connection (example)
-async function authenticateWebSocket(req: any) {  // This function should validate the session or token from the WebSocket handshake
-  // For demonstration, we'll use a mock authentication check
-  const session = await getSession(req); // Assuming getSession retrieves session data
-  const isAuthenticated = !!session && !!session.userId;
-  return {
-    isAuthenticated,
-    userId: session?.userId || null
-  };
 }
