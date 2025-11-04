@@ -544,6 +544,46 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             {
               url: "https://cdn.webampskins.org/skins/base-2.91.wsz",
               name: "Classic Winamp"
+            },
+            {
+              url: "/skin-superman.wsz",
+              name: "Be Strong Like Superman"
+            },
+            {
+              url: "/skin-calvinhobbes.wsz",
+              name: "Calvin And Hobbes Tribute"
+            },
+            {
+              url: "/skin-cuteamp.wsz",
+              name: "Cute Amp"
+            },
+            {
+              url: "/skin-knight.wsz",
+              name: "Knight Test"
+            },
+            {
+              url: "/skin-neonphilanthropist.wsz",
+              name: "Neon Philanthropist"
+            },
+            {
+              url: "/skin-nge.wsz",
+              name: "NGE Winamp 2015"
+            },
+            {
+              url: "/skin-pioneer.wsz",
+              name: "Pioneer Car Audio"
+            },
+            {
+              url: "/skin-tandyamp.wsz",
+              name: "Tandy Amp"
+            },
+            {
+              url: "/skin-wbstereo.wsz",
+              name: "WB Stereo"
+            },
+            {
+              url: "/skin-yufo.wsz",
+              name: "Yufo 07"
             }
           ]
         });
