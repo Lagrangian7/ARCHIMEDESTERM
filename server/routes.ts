@@ -45,6 +45,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const MESSAGE_RATE_LIMIT = 50; // messages per minute
   const RATE_LIMIT_WINDOW = 60000; // 1 minute in ms
 
+  // Declare WebSocket servers that will be initialized later
+  let chatWss: WebSocketServer;
+  let mudWss: WebSocketServer;
+
   // Serve attached assets (for soundtrack and other user files)
   app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
 
@@ -5321,7 +5325,7 @@ function windowResized() {
   console.log('Sshwifty service initialized');
 
   // Initialize WebSocket server for chat system
-  const chatWss = new WebSocketServer({
+  chatWss = new WebSocketServer({
     server: httpServer,
     path: '/ws/chat'
   });
@@ -5437,7 +5441,7 @@ function windowResized() {
   console.log('Chat WebSocket server initialized on /ws/chat');
 
   // Create WebSocket server for MUD connections
-  const mudWss = new WebSocketServer({
+  mudWss = new WebSocketServer({
     server: httpServer,
     path: '/ws/mud'
   });
