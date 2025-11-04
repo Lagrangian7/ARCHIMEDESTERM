@@ -156,26 +156,28 @@ export function VoiceControls({
 
   // Restore theme on component mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem('selectedTheme');
-    const savedIndex = localStorage.getItem('selectedThemeIndex');
+    // Apply theme IMMEDIATELY before checking localStorage
+    const savedTheme = localStorage.getItem('selectedTheme') || 'theme-green';
+    const savedIndex = localStorage.getItem('selectedThemeIndex') || '0';
     
-    if (savedTheme && savedIndex) {
-      // Remove all theme classes
-      THEMES.forEach(theme => {
-        document.documentElement.classList.remove(theme.class);
-      });
-      // Apply saved theme
-      document.documentElement.classList.add(savedTheme);
-      setSelectedThemeIndex(parseInt(savedIndex, 10));
-    } else {
-      // Apply default theme (Green) if no saved theme
-      THEMES.forEach(theme => {
-        document.documentElement.classList.remove(theme.class);
-      });
-      document.documentElement.classList.add('theme-green');
+    console.log('Initializing theme on mount:', savedTheme);
+    
+    // Remove all theme classes first
+    THEMES.forEach(theme => {
+      document.documentElement.classList.remove(theme.class);
+    });
+    
+    // Apply theme
+    document.documentElement.classList.add(savedTheme);
+    setSelectedThemeIndex(parseInt(savedIndex, 10));
+    
+    // Save to localStorage if not already saved
+    if (!localStorage.getItem('selectedTheme')) {
       localStorage.setItem('selectedTheme', 'theme-green');
       localStorage.setItem('selectedThemeIndex', '0');
     }
+    
+    console.log('Theme initialized. HTML classes:', document.documentElement.className);
   }, []);
 
   const handleThemeSelect = (themeClass: string, index: number) => {
