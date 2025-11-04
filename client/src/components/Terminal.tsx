@@ -423,18 +423,6 @@ export function Terminal() {
         {/* Matrix Rain Background Effect */}
         <MemoizedMatrixRain />
 
-        {/* Background Image Layer */}
-        <div
-          className="fixed inset-0 pointer-events-none z-[0]"
-          style={{
-            backgroundImage: `url(/attached_assets/bgterm_1762281445629.png)`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center bottom',
-            backgroundRepeat: 'no-repeat',
-            opacity: 0.6
-          }}
-        />
-
         {/* Voice Controls - Fixed at top */}
         <div className="flex-shrink-0">
           <VoiceControls
