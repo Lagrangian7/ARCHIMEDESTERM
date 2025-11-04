@@ -2761,7 +2761,9 @@ function windowResized() {
   app.get("/api/documents", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      console.log(`📚 Fetching documents for user: ${userId}`);
       const documents = await storage.getUserDocuments(userId);
+      console.log(`📚 Found ${documents.length} documents for user ${userId}`);
 
       // Return all necessary fields including mimeType and objectPath for audio files
       const documentsInfo = documents.map(doc => ({
