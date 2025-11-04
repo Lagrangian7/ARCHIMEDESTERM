@@ -23,14 +23,6 @@ function Router() {
 function App() {
   const [showSplash, setShowSplash] = useState(true);
 
-  // Apply saved theme immediately on app mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('selectedTheme') || 'theme-green';
-    console.log('App mounting - applying theme:', savedTheme);
-    document.documentElement.classList.add(savedTheme);
-  }, []);
-
-
   useEffect(() => {
     // Check if splash has been shown in this session
     const splashShown = sessionStorage.getItem('splashShown');

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from '@/components/Terminal';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
@@ -27,45 +26,6 @@ interface VoiceControlsProps {
   unreadCount: number;
   setShowNotepad: (show: boolean) => void;
 }
-
-const THEMES = [
-  { name: 'Green', class: 'theme-green', colors: ['#000000', '#00FF41', '#00FF80'] },
-  { name: 'Blue', class: 'theme-blue', colors: ['#000000', '#33A8FF', '#5CC8FF'] },
-  { name: 'Orange', class: 'theme-orange', colors: ['#000000', '#FF9933', '#FFAD5C'] },
-  { name: 'Greyscale', class: 'theme-greyscale', colors: ['#000000', '#BFBFBF', '#E5E5E5'] },
-  { name: 'Red', class: 'theme-red', colors: ['#000000', '#FF3333', '#FF5C5C'] },
-  { name: 'Black & White', class: 'theme-blackwhite', colors: ['#000000', '#FFFFFF', '#CCCCCC'] },
-  { name: 'White', class: 'theme-white', colors: ['#FFFFFF', '#000000', '#333333'] },
-  { name: 'Patriot', class: 'theme-patriot', colors: ['#000000', '#E63946', '#5C7CFF'] },
-  { name: 'Solarized', class: 'theme-solarized', colors: ['#002B36', '#93A1A1', '#B58900'] },
-  { name: 'Commodore 64', class: 'theme-commodore64', colors: ['#2A388F', '#7FDBFF', '#7FDBFF'] },
-  { name: 'Cyberpunk', class: 'theme-cyberpunk', colors: ['#0D0D0D', '#FF33FF', '#00FFFF'] },
-  { name: 'Forest', class: 'theme-forest', colors: ['#1A3329', '#7ACC5D', '#A6E68A'] },
-  { name: 'Ocean', class: 'theme-ocean', colors: ['#0A1529', '#5CC8FF', '#70E5C4'] },
-  { name: 'Sunset', class: 'theme-sunset', colors: ['#261A14', '#FF8533', '#FF5470'] },
-  { name: 'Neon', class: 'theme-neon', colors: ['#000000', '#CC33FF', '#00FF80'] },
-  { name: 'Vintage', class: 'theme-vintage', colors: ['#2B251A', '#CCA866', '#D9906B'] },
-  { name: 'Arctic', class: 'theme-arctic', colors: ['#142832', '#99E0FF', '#C2F5FF'] },
-  { name: 'Amber', class: 'theme-amber', colors: ['#141414', '#FFB833', '#FFC252'] },
-  { name: 'Hacker', class: 'theme-hacker', colors: ['#000000', '#00CC00', '#00FF00'] },
-  { name: 'Royal', class: 'theme-royal', colors: ['#1A0D29', '#CC99FF', '#FFD633'] },
-  { name: 'Vaporwave', class: 'theme-vaporwave', colors: ['#140A1A', '#FF4DFF', '#33FFFF'] },
-  { name: 'Desert', class: 'theme-desert', colors: ['#1F1814', '#E5B34D', '#FF8F52'] },
-  { name: 'Toxic', class: 'theme-toxic', colors: ['#0D0D0D', '#80FF00', '#A6FF00'] },
-  { name: 'Crimson', class: 'theme-crimson', colors: ['#141414', '#FF3366', '#FF6B52'] },
-  { name: 'Lavender', class: 'theme-lavender', colors: ['#1A0D26', '#E699FF', '#FF85CC'] },
-  { name: 'Emerald', class: 'theme-emerald', colors: ['#0A1A17', '#52CC99', '#70E5AD'] },
-  { name: 'Midnight', class: 'theme-midnight', colors: ['#0A0F2D', '#527FE5', '#5CB8FF'] },
-  { name: 'Sakura', class: 'theme-sakura', colors: ['#1F1419', '#E699CC', '#FF6B85'] },
-  { name: 'Copper', class: 'theme-copper', colors: ['#1A1014', '#CC9952', '#E5AD70'] },
-  { name: 'Plasma', class: 'theme-plasma', colors: ['#080808', '#E633FF', '#FF5285'] },
-  { name: 'Atari', class: 'theme-atari', colors: ['#29190D', '#FFD633', '#FF6B33'] },
-  { name: 'NES', class: 'theme-nes', colors: ['#1F2457', '#FF5270', '#5CB8FF'] },
-  { name: 'Game Boy', class: 'theme-gameboy', colors: ['#242D1F', '#99CC85', '#B3E599'] },
-  { name: 'Arcade', class: 'theme-arcade', colors: ['#000000', '#33CCFF', '#FF52E5'] },
-  { name: 'Spectrum', class: 'theme-spectrum', colors: ['#000000', '#FF3366', '#5C5CFF'] },
-  { name: 'Rainbow Cycle', class: 'theme-rainbow-cycle', colors: ['#000000', '#00FF41', '#FF1493'] },
-] as const;
 
 export function VoiceControls({
   onVoiceInput,
@@ -151,71 +111,6 @@ export function VoiceControls({
   const [showSpiderFoot, setShowSpiderFoot] = useState(false);
   const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
   const [showSshwifty, setShowSshwiftyLocal] = useState(false);
-  const [showThemeMenu, setShowThemeMenu] = useState(false);
-  const [selectedThemeIndex, setSelectedThemeIndex] = useState(0);
-
-  // Restore theme on component mount
-  useEffect(() => {
-    // Apply theme IMMEDIATELY before checking localStorage
-    const savedTheme = localStorage.getItem('selectedTheme') || 'theme-green';
-    const savedIndex = localStorage.getItem('selectedThemeIndex') || '0';
-    
-    console.log('Initializing theme on mount:', savedTheme);
-    
-    // Remove all theme classes first
-    THEMES.forEach(theme => {
-      document.documentElement.classList.remove(theme.class);
-    });
-    
-    // Apply theme
-    document.documentElement.classList.add(savedTheme);
-    setSelectedThemeIndex(parseInt(savedIndex, 10));
-    
-    // Save to localStorage if not already saved
-    if (!localStorage.getItem('selectedTheme')) {
-      localStorage.setItem('selectedTheme', 'theme-green');
-      localStorage.setItem('selectedThemeIndex', '0');
-    }
-    
-    console.log('Theme initialized. HTML classes:', document.documentElement.className);
-  }, []);
-
-  const handleThemeSelect = (themeClass: string, index: number) => {
-    console.log('Theme selected:', themeClass, 'at index:', index);
-    
-    // Remove all existing theme classes from the root html element
-    THEMES.forEach(theme => {
-      document.documentElement.classList.remove(theme.class);
-    });
-    
-    // Apply the new theme class to root html element
-    document.documentElement.classList.add(themeClass);
-    
-    // Force a reflow to ensure the change is applied
-    void document.documentElement.offsetHeight;
-    
-    // Store the selected theme in localStorage for persistence
-    localStorage.setItem('selectedTheme', themeClass);
-    localStorage.setItem('selectedThemeIndex', index.toString());
-    
-    console.log('Theme applied. Current classes:', document.documentElement.className);
-    
-    setSelectedThemeIndex(index);
-    setShowThemeMenu(false);
-  };
-
-  const handleThemeKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedThemeIndex((prev) => (prev > 0 ? prev - 1 : THEMES.length - 1));
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedThemeIndex((prev) => (prev < THEMES.length - 1 ? prev + 1 : 0));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      handleThemeSelect(THEMES[selectedThemeIndex].class, selectedThemeIndex);
-    }
-  };
 
   return (
     <div className="voice-controls p-2 md:p-3 border-b border-terminal-subtle flex flex-wrap md:flex-nowrap items-center justify-between gap-2 text-sm relative z-10">
@@ -378,90 +273,21 @@ export function VoiceControls({
           <CassetteTape size={16} />
         </Button>
 
-        {/* Theme Selector */}
-        <Button
-          onClick={() => setShowThemeMenu(true)}
-          variant="outline"
-          size="sm"
-          className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
+        {/* RGB Theme Switcher */}
+        <button
+          onClick={switchTheme}
+          className="cursor-pointer p-2 rounded transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px] flex items-center justify-center bg-transparent border-none"
           data-testid="button-theme-toggle"
-          aria-label="Select Theme"
+          aria-label="Switch Theme"
         >
           <img
             src={cubesIcon}
-            alt="Theme Selector"
+            alt="Theme Switcher"
             width="24"
             height="24"
             className="rgb-theme-icon"
           />
-        </Button>
-
-        {/* Theme Selector Dialog */}
-        <Dialog open={showThemeMenu} onOpenChange={setShowThemeMenu}>
-          <DialogContent 
-            className="w-full max-w-3xl h-[80vh] flex flex-col border rounded-lg overflow-hidden"
-            style={{
-              backgroundColor: 'var(--terminal-bg)',
-              borderColor: 'var(--terminal-subtle)'
-            }}
-            onKeyDown={handleThemeKeyDown}
-          >
-            <DialogHeader className="p-3 border-b" style={{ borderColor: 'var(--terminal-subtle)' }}>
-              <DialogTitle className="text-lg font-bold font-mono flex items-center gap-2" style={{ color: 'var(--terminal-text)' }}>
-                <img src={cubesIcon} alt="Themes" width="20" height="20" />
-                THEME SELECTOR
-              </DialogTitle>
-            </DialogHeader>
-
-            <div className="flex-1 overflow-y-auto p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {THEMES.map((theme, index) => (
-                  <button
-                    key={theme.class}
-                    onClick={() => handleThemeSelect(theme.class, index)}
-                    onMouseEnter={() => setSelectedThemeIndex(index)}
-                    className={`flex items-center gap-3 p-3 rounded border transition-all text-left ${
-                      selectedThemeIndex === index 
-                        ? 'border-terminal-highlight bg-terminal-highlight/20 scale-105' 
-                        : 'border-terminal-subtle hover:border-terminal-highlight hover:bg-terminal-highlight/10'
-                    }`}
-                    style={{
-                      borderColor: selectedThemeIndex === index ? 'var(--terminal-highlight)' : 'var(--terminal-subtle)',
-                      backgroundColor: selectedThemeIndex === index ? 'rgba(var(--terminal-highlight-rgb), 0.2)' : 'transparent'
-                    }}
-                  >
-                    <div className="flex gap-1 flex-shrink-0">
-                      {theme.colors.map((color, idx) => (
-                        <div
-                          key={idx}
-                          className="w-6 h-6 rounded border"
-                          style={{ 
-                            backgroundColor: color,
-                            borderColor: 'var(--terminal-subtle)'
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <span className="font-mono text-sm flex-1" style={{ color: 'var(--terminal-text)' }}>
-                      {theme.name}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div 
-              className="p-3 border-t text-xs font-mono"
-              style={{ 
-                borderColor: 'var(--terminal-subtle)',
-                color: 'var(--terminal-text)',
-                opacity: 0.7
-              }}
-            >
-              Use arrow keys ↑↓ to navigate, Enter to select, or click a theme
-            </div>
-          </DialogContent>
-        </Dialog>
+        </button>
       </div>
 
       {showPrivacyEncoder && (
