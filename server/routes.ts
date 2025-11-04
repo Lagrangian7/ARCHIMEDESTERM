@@ -2787,35 +2787,37 @@ function windowResized() {
       // Get ALL documents regardless of userId
       const allDocs = await db.select().from(documents);
       
-      // Group by userId with details
-      const byUserId: Record<string, { count: number, documents: string[] }> = {};
+      // Group by userId with details and show actual userId values
+      const byUserId: Record<string, { count: number, documents: string[], actualUserId: string | null }> = {};
       allDocs.forEach(doc => {
         const uid = doc.userId || 'null';
         if (!byUserId[uid]) {
-          byUserId[uid] = { count: 0, documents: [] };
+          byUserId[uid] = { count: 0, documents: [], actualUserId: doc.userId };
         }
         byUserId[uid].count++;
         byUserId[uid].documents.push(doc.originalName);
       });
       
       console.log(`📊 Total documents in database: ${allDocs.length}`);
+      console.log(`📊 Your userId: ${userId}`);
       console.log(`📊 Documents by userId:`, Object.fromEntries(
         Object.entries(byUserId).map(([uid, data]) => [uid, data.count])
       ));
       
+      // Show all unique userIds found
+      const uniqueUserIds = Array.from(new Set(allDocs.map(d => d.userId || 'null')));
+      console.log(`📊 Unique userIds in database:`, uniqueUserIds);
+      
       res.json({
         totalDocuments: allDocs.length,
         yourDocuments: allDocs.filter(d => d.userId === userId).length,
+        yourUserId: userId,
+        uniqueUserIds: uniqueUserIds,
         documentsByUserId: Object.fromEntries(
-          Object.entries(byUserId).map(([uid, data]) => [uid, data.count])
+          Object.entries(byUserId).map(([uid, data]) => [uid, { count: data.count, actualUserId: data.actualUserId }])
         ),
         documentDetails: byUserId,
-        yourUserId: userId,
-        sampleDocuments: allDocs.slice(0, 5).map(d => ({
-          id: d.id,
-          name: d.originalName,
-          userId: d.userId || 'null'
-        }))
+        allDocumentsUserIds: allDocs.map(d => ({ id: d.id, name: d.originalName, userId: d.userId }))
       });
     } catch (error) {
       console.error("Diagnostic error:", error);
