@@ -2787,21 +2787,35 @@ function windowResized() {
       // Get ALL documents regardless of userId
       const allDocs = await db.select().from(documents);
       
-      // Group by userId
-      const byUserId: Record<string, number> = {};
+      // Group by userId with details
+      const byUserId: Record<string, { count: number, documents: string[] }> = {};
       allDocs.forEach(doc => {
         const uid = doc.userId || 'null';
-        byUserId[uid] = (byUserId[uid] || 0) + 1;
+        if (!byUserId[uid]) {
+          byUserId[uid] = { count: 0, documents: [] };
+        }
+        byUserId[uid].count++;
+        byUserId[uid].documents.push(doc.originalName);
       });
       
       console.log(`📊 Total documents in database: ${allDocs.length}`);
-      console.log(`📊 Documents by userId:`, byUserId);
+      console.log(`📊 Documents by userId:`, Object.fromEntries(
+        Object.entries(byUserId).map(([uid, data]) => [uid, data.count])
+      ));
       
       res.json({
         totalDocuments: allDocs.length,
         yourDocuments: allDocs.filter(d => d.userId === userId).length,
-        documentsByUserId: byUserId,
-        yourUserId: userId
+        documentsByUserId: Object.fromEntries(
+          Object.entries(byUserId).map(([uid, data]) => [uid, data.count])
+        ),
+        documentDetails: byUserId,
+        yourUserId: userId,
+        sampleDocuments: allDocs.slice(0, 5).map(d => ({
+          id: d.id,
+          name: d.originalName,
+          userId: d.userId || 'null'
+        }))
       });
     } catch (error) {
       console.error("Diagnostic error:", error);

@@ -2,7 +2,7 @@
 import { storage } from "./storage";
 import { db } from "./db";
 import { documents } from "@shared/schema";
-import { isNull, eq } from "drizzle-orm";
+import { isNull, eq, sql, or } from "drizzle-orm";
 
 /**
  * Migrate all documents to a specific user
@@ -19,6 +19,14 @@ export async function migrateDocumentsToUser(targetUserId: string) {
 
     console.log(`📚 Found ${allDocs.length} total documents in database`);
 
+    // Group documents by userId for diagnostics
+    const byUserId: Record<string, number> = {};
+    allDocs.forEach(doc => {
+      const uid = doc.userId || 'null';
+      byUserId[uid] = (byUserId[uid] || 0) + 1;
+    });
+    console.log(`📊 Documents by userId before migration:`, byUserId);
+
     // Filter documents that don't belong to target user
     const docsToMigrate = allDocs.filter(doc => doc.userId !== targetUserId);
     
@@ -29,23 +37,42 @@ export async function migrateDocumentsToUser(targetUserId: string) {
       return { 
         migrated: 0, 
         total: allDocs.length,
-        alreadyOwned: allDocs.length
+        alreadyOwned: allDocs.length,
+        beforeMigration: byUserId,
+        afterMigration: byUserId
       };
     }
 
-    // Update ALL documents to target user
+    // Update documents that don't belong to target user
     const result = await db
       .update(documents)
       .set({ userId: targetUserId })
+      .where(
+        or(
+          isNull(documents.userId),
+          sql`${documents.userId} != ${targetUserId}`
+        )
+      )
       .returning();
 
     console.log(`✅ Successfully migrated ${result.length} documents to user ${targetUserId}`);
+
+    // Get final count
+    const finalDocs = await db.select().from(documents);
+    const afterByUserId: Record<string, number> = {};
+    finalDocs.forEach(doc => {
+      const uid = doc.userId || 'null';
+      afterByUserId[uid] = (afterByUserId[uid] || 0) + 1;
+    });
+    console.log(`📊 Documents by userId after migration:`, afterByUserId);
 
     return {
       migrated: result.length,
       total: allDocs.length,
       alreadyOwned: allDocs.length - result.length,
-      documents: result.map(doc => ({
+      beforeMigration: byUserId,
+      afterMigration: afterByUserId,
+      documents: result.slice(0, 10).map(doc => ({
         id: doc.id,
         originalName: doc.originalName,
         mimeType: doc.mimeType
