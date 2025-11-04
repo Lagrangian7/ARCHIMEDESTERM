@@ -12,7 +12,6 @@ import { weatherService } from "./weather-service";
 import { knowledgeService } from "./knowledge-service";
 import { gutendxService } from "./gutendx-service";
 import { marketstackService } from "./marketstack-service";
-import { radioGardenService } from "./radio-garden-service";
 import { scholarService } from "./scholar-service";
 import multer from "multer";
 import { z } from "zod";
@@ -2005,87 +2004,6 @@ function windowResized() {
     res.send(gameHtml);
   });
 
-  // Radio streaming endpoint (must be BEFORE auth middleware)
-  app.get('/api/radio/stream', (req, res) => {
-    const streamUrl = 'https://ice.somafm.com/groovesalad';
-
-    // Parse the URL
-    const url = new URL(streamUrl);
-
-    const options = {
-      hostname: url.hostname,
-      port: url.port || 443,
-      path: url.pathname,
-      method: 'GET',
-      headers: {
-        'User-Agent': 'ARCHIMEDES-Radio/1.0',
-        'Accept': 'audio/*',
-        'Connection': 'keep-alive'
-      }
-    };
-
-    const proxyReq = https.request(options, (proxyRes: any) => {
-      // Set CORS and streaming headers
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Range, Content-Type');
-
-      // Copy headers from the original stream
-      res.setHeader('Content-Type', proxyRes.headers['content-type'] || 'audio/mpeg');
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Accept-Ranges', 'none');
-
-      // Copy ICY headers if present (Shoutcast metadata)
-      Object.keys(proxyRes.headers).forEach(key => {
-        if (key.startsWith('icy-')) {
-          res.setHeader(key, proxyRes.headers[key]);
-        }
-      });
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`✅ Radio stream: ${proxyRes.statusCode} - ${proxyRes.headers['content-type']}`);
-      }
-
-      if (proxyRes.statusCode !== 200) {
-        console.log(`❌ Radio stream error: ${proxyRes.statusCode}`);
-        res.status(503).json({
-          error: 'Stream unavailable',
-          status: proxyRes.statusCode
-        });
-        return;
-      }
-
-      // Set status code
-      res.status(proxyRes.statusCode);
-
-      // Pipe the audio stream
-      proxyRes.pipe(res);
-
-      proxyRes.on('error', (error: any) => {
-        console.error('❌ Stream error:', error);
-        res.end();
-      });
-    });
-
-    proxyReq.on('error', (error: any) => {
-      console.error('❌ Radio proxy error:', error);
-      res.status(503).json({
-        error: 'Radio stream unavailable',
-        message: 'Unable to connect to Soma FM Groove Salad stream'
-      });
-    });
-
-    proxyReq.setTimeout(30000, () => {
-      console.log('⏰ Radio stream timeout');
-      proxyReq.destroy();
-      if (!res.headersSent) {
-        res.status(503).json({ error: 'Stream timeout' });
-      }
-    });
-
-    proxyReq.end();
-  });
-
   // Setup authentication middleware
   await setupAuth(app);
 
@@ -3298,76 +3216,6 @@ function windowResized() {
       console.error("Scholar paper details error:", error);
       const message = error instanceof Error ? error.message : "Failed to get paper details";
       res.status(500).json({ error: message });
-    }
-  });
-
-  // Radio Garden API endpoints
-  app.get('/api/radio/search', async (req, res) => {
-    try {
-      const query = req.query.q as string;
-      const limit = parseInt(req.query.limit as string) || 10;
-
-      if (!query) {
-        return res.status(400).json({ error: 'Query parameter required' });
-      }
-
-      const stations = await radioGardenService.search(query, limit);
-      res.json(stations);
-    } catch (error) {
-      console.error('Radio Garden search error:', error);
-      res.status(500).json({ error: 'Search failed' });
-    }
-  });
-
-  app.get('/api/radio/popular', async (req, res) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 20;
-      const stations = await radioGardenService.getPopularStations(limit);
-      res.json(stations);
-    } catch (error) {
-      console.error('Radio Garden popular stations error:', error);
-      res.status(500).json({ error: 'Failed to get popular stations' });
-    }
-  });
-
-  app.get('/api/radio/countries', async (req, res) => {
-    try {
-      const countries = await radioGardenService.getCountries();
-      res.json(countries);
-    } catch (error) {
-      console.error('Radio Garden countries error:', error);
-      res.status(500).json({ error: 'Failed to get countries' });
-    }
-  });
-
-  app.get('/api/radio/channel/:channelId', async (req, res) => {
-    try {
-      const channelId = req.params.channelId;
-      const channel = await radioGardenService.getChannelDetails(channelId);
-
-      if (!channel) {
-        return res.status(404).json({ error: 'Channel not found' });
-      }
-
-      res.json(channel);
-    } catch (error) {
-      console.error('Radio Garden channel error:', error);
-      res.status(500).json({ error: 'Failed to get channel details' });
-    }
-  });
-
-  app.get('/api/radio/random', async (req, res) => {
-    try {
-      const station = await radioGardenService.getRandomStation();
-
-      if (!station) {
-        return res.status(404).json({ error: 'No stations available' });
-      }
-
-      res.json(station);
-    } catch (error) {
-      console.error('Radio Garden random station error:', error);
-      res.status(500).json({ error: 'Failed to get random station' });
     }
   });
 
@@ -4829,66 +4677,6 @@ function windowResized() {
           modules_used: []
         }
       });
-    }
-  });
-
-  // CORS proxy for radio streaming - helps bypass CORS restrictions
-  app.get("/api/radio-proxy", async (req, res) => {
-    try {
-      const streamUrl = req.query.url as string;
-
-      if (!streamUrl) {
-        return res.status(400).json({ error: "URL parameter is required" });
-      }
-
-      console.log(`📻 Proxying radio stream: ${streamUrl}`);
-
-      // Set CORS headers for audio streaming
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-      // Fetch the stream and proxy it
-      const response = await fetch(streamUrl, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'RadioPlayer/1.0',
-          'Accept': 'audio/*,*/*;q=0.1',
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Stream server returned ${response.status}`);
-      }
-
-      // Set appropriate headers for audio streaming
-      const contentType = response.headers.get('content-type') || 'audio/mpeg';
-      res.setHeader('Content-Type', contentType);
-
-      // Pipe the response directly
-      if (response.body) {
-        const reader = response.body.getReader();
-
-        const pump = async () => {
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              res.write(value);
-            }
-            res.end();
-          } catch (error) {
-            console.error('Streaming error:', error);
-            res.end();
-          }
-        };
-
-        pump();
-      }
-
-    } catch (error) {
-      console.error("Radio proxy error:", error);
-      res.status(500).json({ error: "Failed to proxy stream" });
     }
   });
 

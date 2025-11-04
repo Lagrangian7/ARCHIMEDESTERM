@@ -40,12 +40,15 @@ Preferred communication style: Simple, everyday language.
 - **Session Handling**: Session-based conversation tracking without complex auth flows
 - **Data Isolation**: Conversations tied to session IDs for user separation
 
+## External APIs and Services
+- **Academic Search**: Semantic Scholar API (FREE - 100 requests per 5 minutes, no authentication required)
+- **Computational Knowledge**: Wolfram Alpha Full Results API for math solving, data lookup, and knowledge queries
+- **Mathematical Rendering**: MathJax 3 CDN for rendering MathML and LaTeX mathematical expressions
+
 ## External Dependencies
 - **Database Driver**: Neon Database serverless PostgreSQL client
 - **UI Framework**: Comprehensive Radix UI component suite for accessible, unstyled components
 - **Voice Integration**: Web Speech API for speech synthesis and speech recognition
-- **Academic APIs**: Semantic Scholar API (FREE - 100 requests per 5 minutes, no authentication required)
-- **Mathematical Rendering**: MathJax 3 CDN for rendering MathML and LaTeX mathematical expressions
 - **Development Tools**: 
   - Replit-specific plugins for development environment
   - ESBuild for production bundling

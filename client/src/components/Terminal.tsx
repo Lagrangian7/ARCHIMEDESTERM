@@ -14,7 +14,6 @@ import { HelpMenu } from './HelpMenu';
 import { TalkingArchimedes } from './TalkingArchimedes';
 import { ThinkingAnimation } from './ThinkingAnimation';
 import { MatrixRain } from './MatrixRain';
-import { RadioCharacter } from './RadioCharacter';
 import { DraggableResponse } from './DraggableResponse';
 // import { ChatInterface } from './ChatInterface'; // Commented out - component not found
 import { LinkifiedText } from '@/lib/linkify';
@@ -416,7 +415,6 @@ export function Terminal() {
   const MemoizedTalkingArchimedes = useMemo(() => memo(TalkingArchimedes), []);
   const MemoizedThinkingAnimation = useMemo(() => memo(ThinkingAnimation), []);
   const MemoizedMatrixRain = useMemo(() => memo(MatrixRain), []);
-  const MemoizedRadioCharacter = useMemo(() => memo(RadioCharacter), []);
   const MemoizedDraggableResponse = useMemo(() => memo(DraggableResponse), []);
 
   return (
@@ -776,9 +774,6 @@ export function Terminal() {
 
       {/* Thinking Animation - shows during AI processing, before typing starts */}
       <MemoizedThinkingAnimation isThinking={isLoading && !isTyping && !isSpeaking} />
-
-      {/* Animated Archimedes Character - appears when Webamp is playing */}
-      <RadioCharacter isRadioPlaying={isWebampOpen} />
 
       {/* Chat Interface - commented out - component not found */}
       {/* {isAuthenticated && showChat && (
