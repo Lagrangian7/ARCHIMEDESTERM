@@ -435,18 +435,14 @@ export function Terminal() {
           }}
         />
 
-        {/* Consolidated Grid and Watermark Layer */}
+        {/* Watermark Layer */}
         <div
           className="fixed inset-0 pointer-events-none z-[1]"
           style={{
-            backgroundImage: `
-              linear-gradient(to right, rgba(var(--terminal-subtle-rgb), 0.3) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(var(--terminal-subtle-rgb), 0.3) 1px, transparent 1px),
-              url(${watermarkImage})
-            `,
-            backgroundSize: '20px 20px, 20px 20px, 400px auto',
-            backgroundPosition: '0 0, 0 0, center center',
-            backgroundRepeat: 'repeat, repeat, no-repeat',
+            backgroundImage: `url(${watermarkImage})`,
+            backgroundSize: '400px auto',
+            backgroundPosition: 'center center',
+            backgroundRepeat: 'no-repeat',
             opacity: 0.15,
             filter: 'brightness(0.7) contrast(1.2)',
             mixBlendMode: 'screen'
