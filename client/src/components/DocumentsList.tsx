@@ -244,10 +244,26 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
         </div>
         <Button 
           onClick={async () => {
-            const res = await fetch('/api/documents/diagnostic');
-            const data = await res.json();
-            console.log('📊 Database Diagnostic:', data);
-            alert(`Total docs in DB: ${data.totalDocuments}\nYour docs: ${data.yourDocuments}\nBy userId: ${JSON.stringify(data.documentsByUserId, null, 2)}`);
+            try {
+              const res = await fetch('/api/documents/diagnostic');
+              if (!res.ok) {
+                const error = await res.json();
+                console.error('Diagnostic error:', error);
+                alert(`Diagnostic failed: ${error.error || 'Unknown error'}\n${error.details || ''}`);
+                return;
+              }
+              const data = await res.json();
+              console.log('📊 Database Diagnostic:', data);
+              
+              const totalDocs = data.totalDocuments ?? 0;
+              const yourDocs = data.yourDocuments ?? 0;
+              const byUserId = data.documentsByUserId ?? {};
+              
+              alert(`Total docs in DB: ${totalDocs}\nYour docs: ${yourDocs}\nYour User ID: ${data.yourUserId}\n\nBy userId:\n${JSON.stringify(byUserId, null, 2)}`);
+            } catch (error) {
+              console.error('Diagnostic request failed:', error);
+              alert('Failed to run diagnostic. Check console for details.');
+            }
           }}
           variant="ghost" 
           size="sm" 

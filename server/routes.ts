@@ -2805,7 +2805,10 @@ function windowResized() {
       });
     } catch (error) {
       console.error("Diagnostic error:", error);
-      res.status(500).json({ error: "Failed to run diagnostic" });
+      res.status(500).json({ 
+        error: "Failed to run diagnostic",
+        details: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
