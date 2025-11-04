@@ -945,7 +945,7 @@ Code Execution:
         'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
       ];
       
-      const currentTheme = localStorage.getItem('terminal-theme') || 'greyscale';
+      const currentTheme = localStorage.getItem('terminal-theme') || 'spectrum';
       const formattedList = themesList.map(theme => 
         theme === currentTheme ? `  ▶ ${theme} (current)` : `    ${theme}`
       ).join('\n');
