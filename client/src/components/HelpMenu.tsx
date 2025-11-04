@@ -624,14 +624,7 @@ const helpMenuItems: HelpMenuItem[] = [
     command: 'radio status',
     icon: <Radio size={16} />
   },
-  {
-    id: 'radio-garden',
-    category: 'Audio & Radio',
-    title: 'Radio Garden',
-    description: 'Launch Radio Garden - Explore live radio from around the world',
-    command: 'garden',
-    icon: <Radio size={16} />
-  },
+  
 
   // Additional Games
   {
