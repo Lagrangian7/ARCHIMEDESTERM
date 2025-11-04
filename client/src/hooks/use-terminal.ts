@@ -560,6 +560,8 @@ Use the URLs above to access the full articles and information.`;
   voice [on|off] - Toggle voice synthesis
   history - Show command history
   status - Show system status
+  theme list - List all available themes
+  theme <name> - Switch to a specific theme
   weather - Get current weather (uses location if available)
   research <query> - Search the web using Brave API
   chat - Open user-to-user chat interface
@@ -932,6 +934,47 @@ Code Execution:
         message: `これを日本語で説明してください:\n\n${lastAiResponse.content}`,
         mode: currentMode
       });
+      return;
+    }
+
+    if (cmd === 'theme list') {
+      const themesList = [
+        'commodore64', 'green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized',
+        'cyberpunk', 'forest', 'ocean', 'sunset', 'neon', 'vintage', 'arctic', 'amber', 'hacker', 'royal',
+        'vaporwave', 'desert', 'toxic', 'crimson', 'lavender', 'emerald', 'midnight', 'sakura', 'copper', 'plasma',
+        'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
+      ];
+      
+      const currentTheme = localStorage.getItem('terminal-theme') || 'greyscale';
+      const formattedList = themesList.map(theme => 
+        theme === currentTheme ? `  ▶ ${theme} (current)` : `    ${theme}`
+      ).join('\n');
+      
+      addEntry('system', `Available Themes:\n\n${formattedList}\n\nUsage: theme <name>\nExample: theme cyberpunk`);
+      return;
+    }
+
+    if (cmd.startsWith('theme ')) {
+      const requestedTheme = cmd.substring(6).trim().toLowerCase();
+      const availableThemes = [
+        'commodore64', 'green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized',
+        'cyberpunk', 'forest', 'ocean', 'sunset', 'neon', 'vintage', 'arctic', 'amber', 'hacker', 'royal',
+        'vaporwave', 'desert', 'toxic', 'crimson', 'lavender', 'emerald', 'midnight', 'sakura', 'copper', 'plasma',
+        'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
+      ];
+
+      if (!availableThemes.includes(requestedTheme)) {
+        addEntry('error', `Theme "${requestedTheme}" not found. Use "theme list" to see available themes.`);
+        return;
+      }
+
+      // Update the theme
+      localStorage.setItem('terminal-theme', requestedTheme);
+      
+      // Trigger theme change by dispatching a custom event
+      window.dispatchEvent(new CustomEvent('terminal-theme-change', { detail: requestedTheme }));
+      
+      addEntry('system', `🎨 Theme changed to: ${requestedTheme}`);
       return;
     }
 

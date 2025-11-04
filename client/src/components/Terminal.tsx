@@ -138,7 +138,10 @@ export function Terminal() {
     'vaporwave', 'desert', 'toxic', 'crimson', 'lavender', 'emerald', 'midnight', 'sakura', 'copper', 'plasma',
     'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
   ], []);
-  const [currentTheme, setCurrentTheme] = useState<string>(themes[4]); // greyscale is at index 4
+  const [currentTheme, setCurrentTheme] = useState<string>(() => {
+    // Load theme from localStorage or default to greyscale
+    return localStorage.getItem('terminal-theme') || themes[4];
+  });
 
   // Switch theme function
   const switchTheme = useCallback(() => {
@@ -147,6 +150,18 @@ export function Terminal() {
     setCurrentTheme(nextTheme);
     localStorage.setItem('terminal-theme', nextTheme);
   }, [themes, currentTheme]);
+
+  // Listen for theme change events from commands
+  useEffect(() => {
+    const handleThemeChange = (event: CustomEvent) => {
+      setCurrentTheme(event.detail);
+    };
+
+    window.addEventListener('terminal-theme-change', handleThemeChange as EventListener);
+    return () => {
+      window.removeEventListener('terminal-theme-change', handleThemeChange as EventListener);
+    };
+  }, []);
 
   // Radio character is now controlled by Webamp state
   // No separate radio audio functionality
