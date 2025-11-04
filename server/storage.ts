@@ -40,11 +40,11 @@ export interface IStorage {
   updateConversationUserId(sessionId: string, userId: string): Promise<void>;
 
   // Document methods for knowledge base
-  createDocument(document: InsertDocument): Promise<Document>;
+  createDocument(document: InsertDocument & { isNote?: boolean }): Promise<Document>;
   getUserDocuments(userId: string): Promise<Document[]>;
   getDocument(id: string): Promise<Document | undefined>;
   getDocumentByFilename(userId: string, filename: string): Promise<Document | undefined>;
-  updateDocument(id: string, updates: Partial<InsertDocument>): Promise<Document>;
+  updateDocument(id: string, updates: Partial<InsertDocument> & { isNote?: boolean }): Promise<Document>;
   deleteDocument(id: string): Promise<void>;
   searchDocuments(userId: string, query: string): Promise<Document[]>;
 
@@ -234,7 +234,7 @@ export class MemStorage implements IStorage {
   }
 
   // Document methods implementation
-  async createDocument(insertDocument: InsertDocument): Promise<Document> {
+  async createDocument(insertDocument: InsertDocument & { isNote?: boolean }): Promise<Document> {
     const id = randomUUID();
     const now = new Date();
     const document: Document = {
@@ -250,6 +250,7 @@ export class MemStorage implements IStorage {
       keywords: insertDocument.keywords || null,
       uploadedAt: now,
       lastAccessedAt: now,
+      isNote: insertDocument.isNote || false, // Add isNote property
     };
     this.documents.set(id, document);
     return document;
@@ -288,7 +289,7 @@ export class MemStorage implements IStorage {
     return undefined;
   }
 
-  async updateDocument(id: string, updates: Partial<InsertDocument>): Promise<Document> {
+  async updateDocument(id: string, updates: Partial<InsertDocument> & { isNote?: boolean }): Promise<Document> {
     const existing = this.documents.get(id);
     if (!existing) {
       throw new Error("Document not found");
@@ -492,8 +493,8 @@ export class DatabaseStorage implements IStorage {
       .where(eq(conversations.sessionId, sessionId));
   }
 
-  async createDocument(document: InsertDocument): Promise<Document> {
-    const [doc] = await db.insert(documents).values(document).returning();
+  async createDocument(document: InsertDocument & { isNote?: boolean }): Promise<Document> {
+    const [doc] = await db.insert(documents).values({ ...document, isNote: document.isNote || false }).returning();
     return doc;
   }
 
@@ -530,8 +531,8 @@ export class DatabaseStorage implements IStorage {
     return doc;
   }
 
-  async updateDocument(id: string, updates: Partial<InsertDocument>): Promise<Document> {
-    const [doc] = await db.update(documents).set(updates).where(eq(documents.id, id)).returning();
+  async updateDocument(id: string, updates: Partial<InsertDocument> & { isNote?: boolean }): Promise<Document> {
+    const [doc] = await db.update(documents).set({ ...updates, lastAccessedAt: new Date() }).where(eq(documents.id, id)).returning();
     return doc;
   }
 

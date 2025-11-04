@@ -2683,6 +2683,68 @@ function windowResized() {
     }
   });
 
+  // Save a note
+  app.post("/api/notes", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { title, content } = req.body;
+
+      if (!title || !content) {
+        return res.status(400).json({ error: "Title and content are required" });
+      }
+
+      const fileName = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.txt`;
+      
+      const document = await knowledgeService.processDocument(content, {
+        userId,
+        fileName,
+        originalName: title,
+        fileSize: content.length.toString(),
+        mimeType: 'text/plain',
+      });
+
+      // Mark as note
+      await storage.updateDocument(document.id, { isNote: true });
+
+      res.json({ 
+        success: true, 
+        document: { ...document, isNote: true },
+        message: "Note saved to knowledge base" 
+      });
+    } catch (error) {
+      console.error("Save note error:", error);
+      res.status(500).json({ error: "Failed to save note" });
+    }
+  });
+
+  // Update a note
+  app.put("/api/notes/:documentId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { documentId } = req.params;
+      const { title, content } = req.body;
+
+      const document = await storage.getDocument(documentId);
+      if (!document || document.userId !== userId || !document.isNote) {
+        return res.status(404).json({ error: "Note not found" });
+      }
+
+      const fileName = title ? `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.txt` : document.fileName;
+      
+      await storage.updateDocument(documentId, {
+        originalName: title || document.originalName,
+        fileName,
+        content: content || document.content,
+        fileSize: (content?.length || document.content.length).toString(),
+      });
+
+      res.json({ success: true, message: "Note updated" });
+    } catch (error) {
+      console.error("Update note error:", error);
+      res.status(500).json({ error: "Failed to update note" });
+    }
+  });
+
   // Download a specific document (for audio files)
   app.get("/api/knowledge/documents/:documentId/download", isAuthenticated, async (req: any, res) => {
     try {

@@ -116,6 +116,7 @@ export const documents = pgTable("documents", {
   objectPath: varchar("object_path"), // Object storage path for uploaded files
   summary: text("summary"),
   keywords: text("keywords").array(),
+  isNote: boolean("is_note").notNull().default(false), // Flag for notes vs uploaded files
   uploadedAt: timestamp("uploaded_at").defaultNow(),
   lastAccessedAt: timestamp("last_accessed_at").defaultNow(),
 });

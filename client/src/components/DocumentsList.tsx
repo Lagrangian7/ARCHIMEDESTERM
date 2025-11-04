@@ -28,6 +28,7 @@ interface Document {
   keywords: string[] | null;
   uploadedAt: string;
   lastAccessedAt: string;
+  isNote?: boolean; // Added to indicate if it's a note
 }
 
 interface DocumentsListProps {
@@ -254,11 +255,11 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
               }
               const data = await res.json();
               console.log('📊 Database Diagnostic:', data);
-              
+
               const totalDocs = data.totalDocuments ?? 0;
               const yourDocs = data.yourDocuments ?? 0;
               const byUserId = data.documentsByUserId ?? {};
-              
+
               alert(`Total docs in DB: ${totalDocs}\nYour docs: ${yourDocs}\nYour User ID: ${data.yourUserId}\n\nBy userId:\n${JSON.stringify(byUserId, null, 2)}`);
             } catch (error) {
               console.error('Diagnostic request failed:', error);
@@ -341,109 +342,79 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <File className="flex-shrink-0" style={{ color: 'var(--terminal-text)' }} size={16} />
-                      {renamingId === document.id ? (
-                        <div className="flex items-center space-x-2 flex-1">
-                          <Input
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                handleRenameSubmit(document.id);
-                              } else if (e.key === 'Escape') {
-                                handleRenameCancel();
-                              }
-                            }}
-                            autoFocus
-                            className="text-sm h-7"
-                            style={{
-                              backgroundColor: 'var(--terminal-bg)',
-                              borderColor: 'var(--terminal-highlight)',
-                              color: 'var(--terminal-text)'
-                            }}
-                          />
-                          <Button
-                            onClick={() => handleRenameSubmit(document.id)}
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-terminal-highlight"
-                            disabled={renameMutation.isPending}
-                          >
-                            ✓
-                          </Button>
-                          <Button
-                            onClick={handleRenameCancel}
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 px-2 text-terminal-text"
-                          >
-                            ✕
-                          </Button>
-                        </div>
-                      ) : (
-                        <h3 
-                          className="font-semibold truncate" 
-                          style={{ color: 'var(--terminal-text)' }}
-                          title={document.originalName}
-                          data-testid={`text-document-name-${document.id}`}
-                        >
-                          {document.originalName}
-                        </h3>
-                      )}
-                    </div>
-
-                    <div className="flex items-center space-x-4 text-xs mb-2" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
-                      <span className="flex items-center">
-                        <HardDrive size={12} className="mr-1" />
-                        {formatFileSize(document.fileSize)}
-                      </span>
-                      <span className="flex items-center">
-                        <Calendar size={12} className="mr-1" />
-                        {formatDate(document.uploadedAt)}
-                      </span>
-                      <Badge variant="outline" className="text-xs px-1 py-0">
-                        {document.mimeType}
-                      </Badge>
-                    </div>
-
-                    {document.summary && (
-                      <p className="text-sm mb-2 line-clamp-2" style={{ color: 'var(--terminal-text)', opacity: 0.8 }}>
-                        {document.summary}
-                      </p>
-                    )}
-
-                    {document.keywords && document.keywords.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {document.keywords.slice(0, 5).map((keyword) => (
-                          <Badge
-                            key={keyword}
-                            variant="secondary"
-                            className="text-xs px-2 py-0 border"
-                            style={{
-                              backgroundColor: 'var(--terminal-highlight)',
-                              color: 'var(--terminal-text)',
-                              borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)'
-                            }}
-                          >
-                            {keyword}
-                          </Badge>
-                        ))}
-                        {document.keywords.length > 5 && (
-                          <Badge 
-                            variant="secondary" 
-                            className="text-xs px-2 py-0"
-                            style={{
-                              backgroundColor: 'var(--terminal-bg)',
-                              color: 'var(--terminal-text)',
-                              opacity: 0.6
-                            }}
-                          >
-                            +{document.keywords.length - 5} more
-                          </Badge>
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--terminal-highlight)' }} />
+                      <div className="flex-1 min-w-0">
+                        {renamingId === document.id ? (
+                          <form onSubmit={(e) => {
+                            e.preventDefault();
+                            handleRenameSubmit(document.id);
+                          }} className="flex gap-2">
+                            <Input
+                              ref={searchInputRef}
+                              value={newName}
+                              onChange={(e) => setNewName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleRenameSubmit(document.id);
+                                } else if (e.key === 'Escape') {
+                                  handleRenameCancel();
+                                }
+                              }}
+                              autoFocus
+                              className="flex-1 px-2 py-1 rounded font-mono text-sm h-8"
+                              style={{
+                                backgroundColor: 'var(--terminal-bg)',
+                                color: 'var(--terminal-text)',
+                                borderColor: 'var(--terminal-highlight)'
+                              }}
+                            />
+                            <Button
+                              type="submit"
+                              size="sm"
+                              className="h-8 px-2"
+                              style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}
+                              disabled={renameMutation.isPending}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={handleRenameCancel}
+                              className="h-8 px-2"
+                              style={{ borderColor: 'var(--terminal-subtle)', color: 'var(--terminal-text)' }}
+                            >
+                              Cancel
+                            </Button>
+                          </form>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <p className="font-mono font-semibold truncate" style={{ color: 'var(--terminal-text)' }}>
+                                {document.originalName}
+                              </p>
+                              {document.isNote && (
+                                <span 
+                                  className="px-2 py-0.5 text-xs font-mono rounded"
+                                  style={{ 
+                                    backgroundColor: 'var(--terminal-highlight)', 
+                                    color: 'var(--terminal-bg)',
+                                    opacity: 0.8
+                                  }}
+                                >
+                                  NOTE
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs font-mono opacity-70" style={{ color: 'var(--terminal-text)' }}>
+                              {formatFileSize(parseInt(document.fileSize))} • {document.mimeType} • {new Date(document.uploadedAt).toLocaleDateString()}
+                            </p>
+                          </>
                         )}
                       </div>
-                    )}
+                    </div>
                   </div>
 
                   <div className="flex items-center space-x-2 ml-4 flex-shrink-0">

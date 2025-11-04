@@ -1,7 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { FileText, Save, Trash2, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface NotepadProps {
   onClose: () => void;
@@ -9,8 +12,11 @@ interface NotepadProps {
 
 export function Notepad({ onClose }: NotepadProps) {
   const [content, setContent] = useState('');
+  const [title, setTitle] = useState('Untitled Note');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Load saved content from localStorage on mount
+  // Load saved content from localStorage on mount (legacy support)
   useEffect(() => {
     const saved = localStorage.getItem('notepad-content');
     if (saved) {
@@ -18,14 +24,55 @@ export function Notepad({ onClose }: NotepadProps) {
     }
   }, []);
 
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ title, content }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save note');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Note Saved",
+        description: `"${title}" has been saved to your knowledge base. Use 'docs' or 'read ${title}' to access it.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      localStorage.removeItem('notepad-content'); // Clear legacy storage
+      setContent('');
+      setTitle('Untitled Note');
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Save Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSave = () => {
-    localStorage.setItem('notepad-content', content);
-    alert('Note saved!');
+    if (!content.trim()) {
+      toast({
+        title: "Empty Note",
+        description: "Please add some content before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+    saveMutation.mutate();
   };
 
   const handleClear = () => {
     if (confirm('Clear all content?')) {
       setContent('');
+      setTitle('Untitled Note');
       localStorage.removeItem('notepad-content');
     }
   };
@@ -44,11 +91,15 @@ export function Notepad({ onClose }: NotepadProps) {
           className="flex items-center justify-between p-3 border-b"
           style={{ borderColor: 'var(--terminal-subtle)' }}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <FileText className="w-5 h-5" style={{ color: 'var(--terminal-highlight)' }} />
-            <h2 className="text-lg font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
-              NOTEPAD
-            </h2>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="font-bold font-mono text-lg border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+              style={{ color: 'var(--terminal-text)' }}
+              placeholder="Note title..."
+            />
           </div>
           <Button
             onClick={onClose}
@@ -71,9 +122,10 @@ export function Notepad({ onClose }: NotepadProps) {
             size="sm"
             className="font-mono"
             style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}
+            disabled={saveMutation.isPending}
           >
             <Save className="w-4 h-4 mr-2" />
-            Save
+            {saveMutation.isPending ? 'Saving...' : 'Save to Knowledge Base'}
           </Button>
           <Button
             onClick={handleClear}
