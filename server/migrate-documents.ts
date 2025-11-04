@@ -33,11 +33,10 @@ export async function migrateDocumentsToUser(targetUserId: string) {
       };
     }
 
-    // Update only documents that don't belong to target user
+    // Update ALL documents to target user
     const result = await db
       .update(documents)
       .set({ userId: targetUserId })
-      .where(sql`${documents.userId} != ${targetUserId} OR ${documents.userId} IS NULL`)
       .returning();
 
     console.log(`✅ Successfully migrated ${result.length} documents to user ${targetUserId}`);
