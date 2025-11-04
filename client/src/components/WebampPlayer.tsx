@@ -358,13 +358,13 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
 
           // Initial window layout with Milkdrop visualizer - positioned on right side
           windowLayout: {
-            main: { position: { top: 20, right: 20 } },
-            equalizer: { position: { top: 20, right: 300 } },
+            main: { position: { top: 20, left: Math.max(20, window.innerWidth - 295) } },
+            equalizer: { position: { top: 20, left: Math.max(20, window.innerWidth - 855) } },
             playlist: { 
-              position: { top: 480, right: 20 },
+              position: { top: 480, left: Math.max(20, window.innerWidth - 295) },
               size: { extraHeight: 4, extraWidth: 0 } 
             },
-            milkdrop: { position: { top: 20, right: 320 }, size: [275, 455] }
+            milkdrop: { position: { top: 20, left: Math.max(20, window.innerWidth - 595) }, size: [275, 455] }
           },
 
           // Available skins
