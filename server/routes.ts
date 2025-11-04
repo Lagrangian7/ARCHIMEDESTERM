@@ -34,19 +34,13 @@ import { spiderFootService } from "./spiderfoot-service"; // Import SpiderFoot s
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
-  // Enable gzip compression
-  app.use(compression());
+  // Setup authentication FIRST before any other routes
+  await setupAuth(app);
 
-  // Initialize Archimedes AI bot
-  await archimedesBotService.initializeBot();
-
-  // Create a reference for the chat WebSocket server (will be initialized later)
-  let chatWss: WebSocketServer | null = null;
-
-  // Rate limiting for WebSocket messages
-  const messageRateLimits = new Map<string, { count: number; resetTime: number }>();
-  const MESSAGE_RATE_LIMIT = 50; // messages per minute
-  const RATE_LIMIT_WINDOW = 60000; // 1 minute in ms
+  // Health check endpoint (no auth required)
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
 
   // Serve attached assets (for soundtrack and other user files)
   app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
@@ -2030,22 +2024,25 @@ function windowResized() {
   });
 
   // Auth routes
-  app.get('/api/auth/user', async (req, res) => {
+  app.get("/api/auth/user", isAuthenticated, async (req, res) => {
     try {
-      // Check if user is authenticated
-      if (!req.isAuthenticated?.() || !req.user?.claims?.sub) {
+      console.log('Auth user endpoint hit, session:', req.session?.id, 'authenticated:', req.isAuthenticated());
+      const user = req.user as any;
+      const userId = user?.claims?.sub;
+      console.log('User ID:', userId);
+
+      if (!userId) {
         return res.json({ 
           user: null,
           preferences: null
         });
       }
 
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const userProfile = await storage.getUser(userId);
       const preferences = await storage.getUserPreferences(userId);
 
       res.json({ 
-        user: user || null,
+        user: userProfile || null,
         preferences: preferences || null
       });
     } catch (error) {
