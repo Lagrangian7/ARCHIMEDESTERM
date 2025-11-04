@@ -489,6 +489,17 @@
   --terminal-orange: hsl(50 100% 60%);
 }
 
+.theme-white {
+  --terminal-bg: hsl(0 0% 100%);
+  --terminal-text: hsl(0 0% 0%);
+  --terminal-highlight: hsl(0 0% 20%);
+  --terminal-subtle: hsl(0 0% 30%);
+  --terminal-subtle-rgb: 77, 77, 77;
+  --terminal-logo-green: hsl(0 0% 20%);
+  --terminal-bright-green: hsl(0 0% 10%);
+  --terminal-orange: hsl(0 0% 40%);
+}
+
 /* Matrix Rain Background Effect - Optimized */
 @keyframes logoGlow {
   0%, 100% { 

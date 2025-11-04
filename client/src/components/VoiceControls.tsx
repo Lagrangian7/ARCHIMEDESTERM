@@ -10,6 +10,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from '@/components/Terminal';
+import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
+
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
   currentMode: 'natural' | 'technical';
@@ -146,6 +148,9 @@ export function VoiceControls({
     speak(randomPhrase);
   };
 
+  const [showSpiderFoot, setShowSpiderFoot] = useState(false);
+  const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
+  const [showSshwifty, setShowSshwiftyLocal] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [selectedThemeIndex, setSelectedThemeIndex] = useState(0);
 
@@ -328,6 +333,10 @@ export function VoiceControls({
                   <p>Upload</p>
                 </TooltipContent>
               </Tooltip>
+
+              {/* Chat Button - Removed */}
+
+              {/* Radio button removed - Webamp now controls animated character */}
             </>
           )}
         </TooltipProvider>
@@ -396,16 +405,12 @@ export function VoiceControls({
               borderColor: 'var(--terminal-subtle)'
             }}
             onKeyDown={handleThemeKeyDown}
-            aria-describedby="theme-selector-description"
           >
             <DialogHeader className="p-3 border-b" style={{ borderColor: 'var(--terminal-subtle)' }}>
               <DialogTitle className="text-lg font-bold font-mono flex items-center gap-2" style={{ color: 'var(--terminal-text)' }}>
                 <img src={cubesIcon} alt="Themes" width="20" height="20" />
                 THEME SELECTOR
               </DialogTitle>
-              <p id="theme-selector-description" className="sr-only">
-                Select a color theme for the terminal interface
-              </p>
             </DialogHeader>
 
             <div className="flex-1 overflow-y-auto p-4">
@@ -458,6 +463,10 @@ export function VoiceControls({
           </DialogContent>
         </Dialog>
       </div>
+
+      {showPrivacyEncoder && (
+        <EncodeDecodeOverlay isOpen={showPrivacyEncoder} onClose={() => setShowPrivacyEncoderLocal(false)} />
+      )}
     </div>
   );
 }

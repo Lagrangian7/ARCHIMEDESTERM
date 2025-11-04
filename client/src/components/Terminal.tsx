@@ -400,11 +400,15 @@ export function Terminal() {
   const MemoizedConversationHistory = useMemo(() => memo(ConversationHistory), []);
   const MemoizedDocumentsList = useMemo(() => memo(DocumentsList), []);
   const MemoizedDocumentUpload = useMemo(() => memo(DocumentUpload), []);
-  const MemoizedMusicUpload = useMemo(() => memo(MusicUpload), []);
+  const MemoizedMusicUpload = useMemo(() => memo(MusicUpload), []); // Memoized MusicUpload
   const MemoizedZorkGame = useMemo(() => memo(ZorkGame), []);
   const MemoizedDTMFDecoder = useMemo(() => memo(DTMFDecoder), []);
   const MemoizedHelpMenu = useMemo(() => memo(HelpMenu), []);
+  // const MemoizedChatInterface = useMemo(() => memo(ChatInterface), []); // Commented out - component not found
+  // const MemoizedSshwiftyInterface = useMemo(() => memo(SshwiftyInterface), []); // Commented out - component not found
+  // const MemoizedMudClient = useMemo(() => memo(MudClient), []); // Commented out - component not found
   const MemoizedTheHarvester = useMemo(() => memo(TheHarvester), []);
+  // const MemoizedSpiderFoot = useMemo(() => memo(SpiderFoot), []); // Commented out - component not found
   const MemoizedEncodeDecodeOverlay = useMemo(() => memo(EncodeDecodeOverlay), []);
   const MemoizedCodePreview = useMemo(() => memo(CodePreview), []);
   const MemoizedWebampPlayer = useMemo(() => memo(WebampPlayer), []);
