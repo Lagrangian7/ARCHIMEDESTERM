@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import archyLogo from '@assets/archy111_1760233943010.jpeg';
+import archyEngraving from '@assets/archi engraved 4_1762290512438.png';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -25,9 +25,9 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       data-testid="splash-screen"
     >
       <img
-        src={archyLogo}
+        src={archyEngraving}
         alt="ARCHIMEDES Logo"
-        className="absolute inset-0 w-full h-full object-contain opacity-30"
+        className="absolute inset-0 w-full h-full object-contain opacity-40"
       />
       <div className="absolute inset-0 flex items-center justify-center">
         <h1 
