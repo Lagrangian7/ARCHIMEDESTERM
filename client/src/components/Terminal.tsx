@@ -16,12 +16,12 @@ import { ThinkingAnimation } from './ThinkingAnimation';
 import { MatrixRain } from './MatrixRain';
 import { RadioCharacter } from './RadioCharacter';
 import { DraggableResponse } from './DraggableResponse';
-import { ChatInterface } from './ChatInterface';
+// import { ChatInterface } from './ChatInterface'; // Commented out - component not found
 import { LinkifiedText } from '@/lib/linkify';
-import { SshwiftyInterface } from './SshwiftyInterface';
-import { MudClient } from './MudClient';
+// import { SshwiftyInterface } from './SshwiftyInterface'; // Commented out - component not found
+// import { MudClient } from './MudClient'; // Commented out - component not found
 import { TheHarvester } from './TheHarvester';
-import { SpiderFoot } from './SpiderFoot';
+// import { SpiderFoot } from './SpiderFoot'; // Commented out - component not found
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { CodePreview } from './CodePreview';
 import WebampPlayer from './WebampPlayer';
@@ -403,11 +403,11 @@ export function Terminal() {
   const MemoizedZorkGame = useMemo(() => memo(ZorkGame), []);
   const MemoizedDTMFDecoder = useMemo(() => memo(DTMFDecoder), []);
   const MemoizedHelpMenu = useMemo(() => memo(HelpMenu), []);
-  const MemoizedChatInterface = useMemo(() => memo(ChatInterface), []);
-  const MemoizedSshwiftyInterface = useMemo(() => memo(SshwiftyInterface), []);
-  const MemoizedMudClient = useMemo(() => memo(MudClient), []);
+  // const MemoizedChatInterface = useMemo(() => memo(ChatInterface), []); // Commented out - component not found
+  // const MemoizedSshwiftyInterface = useMemo(() => memo(SshwiftyInterface), []); // Commented out - component not found
+  // const MemoizedMudClient = useMemo(() => memo(MudClient), []); // Commented out - component not found
   const MemoizedTheHarvester = useMemo(() => memo(TheHarvester), []);
-  const MemoizedSpiderFoot = useMemo(() => memo(SpiderFoot), []);
+  // const MemoizedSpiderFoot = useMemo(() => memo(SpiderFoot), []); // Commented out - component not found
   const MemoizedEncodeDecodeOverlay = useMemo(() => memo(EncodeDecodeOverlay), []);
   const MemoizedCodePreview = useMemo(() => memo(CodePreview), []);
   const MemoizedWebampPlayer = useMemo(() => memo(WebampPlayer), []);
@@ -779,38 +779,38 @@ export function Terminal() {
       {/* Animated Archimedes Character - appears when Webamp is playing */}
       <RadioCharacter isRadioPlaying={isWebampOpen} />
 
-      {/* Chat Interface */}
-      {isAuthenticated && showChat && (
+      {/* Chat Interface - commented out - component not found */}
+      {/* {isAuthenticated && showChat && (
         <MemoizedChatInterface
           isOpen={true}
           onClose={() => setShowChat(false)}
         />
-      )}
+      )} */}
 
-      {/* Sshwifty Interface */}
-      {showSshwifty && (
+      {/* Sshwifty Interface - commented out - component not found */}
+      {/* {showSshwifty && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
           <div className="w-[90vw] h-[80vh] bg-terminal-bg border border-terminal-highlight rounded-lg overflow-hidden">
             <MemoizedSshwiftyInterface onClose={() => setShowSshwifty(false)} />
           </div>
         </div>
-      )}
+      )} */}
 
-      {/* MUD Client */}
-      <MudClient
+      {/* MUD Client - commented out - component not found */}
+      {/* <MudClient
         isOpen={showMud}
         onClose={() => setShowMud(false)}
-      />
+      /> */}
 
       {/* theHarvester OSINT Tool */}
       {showTheHarvester && (
         <TheHarvester onClose={() => setShowTheHarvester(false)} />
       )}
 
-      {/* SpiderFoot OSINT Tool */}
-      {showSpiderFoot && (
+      {/* SpiderFoot OSINT Tool - commented out - component not found */}
+      {/* {showSpiderFoot && (
         <SpiderFoot onClose={() => setShowSpiderFoot(false)} />
-      )}
+      )} */}
 
       {/* Privacy Encoder */}
       <EncodeDecodeOverlay
