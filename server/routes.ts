@@ -40,9 +40,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize Archimedes AI bot
   await archimedesBotService.initializeBot();
 
-  // Declare chatWss variable early - will be initialized later
-  let chatWss: WebSocketServer | null = null;
-
   // Rate limiting for WebSocket messages
   const messageRateLimits = new Map<string, { count: number; resetTime: number }>();
   const MESSAGE_RATE_LIMIT = 50; // messages per minute
@@ -5324,7 +5321,7 @@ function windowResized() {
   console.log('Sshwifty service initialized');
 
   // Initialize WebSocket server for chat system
-  chatWss = new WebSocketServer({
+  const chatWss = new WebSocketServer({
     server: httpServer,
     path: '/ws/chat'
   });
