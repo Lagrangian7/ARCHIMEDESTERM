@@ -424,7 +424,9 @@ export function Terminal() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
+        backgroundAttachment: 'local',
+        imageRendering: 'crisp-edges',
+        willChange: 'auto'
       }}>
         {/* Matrix Rain Background Effect */}
         <MemoizedMatrixRain />
