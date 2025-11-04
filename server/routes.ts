@@ -2781,6 +2781,8 @@ function windowResized() {
   app.get("/api/documents/diagnostic", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const { db } = await import('./db');
+      const { documents } = await import('@shared/schema');
       
       // Get ALL documents regardless of userId
       const allDocs = await db.select().from(documents);
