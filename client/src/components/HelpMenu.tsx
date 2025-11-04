@@ -624,7 +624,6 @@ const helpMenuItems: HelpMenuItem[] = [
     command: 'radio status',
     icon: <Radio size={16} />
   },
-  
 
   // Additional Games
   {

@@ -625,7 +625,7 @@ OSINT (Open Source Intelligence):
   osint-report <target> - Comprehensive OSINT report
   threat-actors - MISP Galaxy threat actor intelligence
   threat-actors <name> - Look up specific threat actor details
-  spiderfoot <target>        - Launch SpiderFoot OSINT tool
+  spiderfoot <target>        - Launch SpiderFoot OSINT automation tool
 
 Audio & Signal Processing:
   dtmf - Start DTMF decoder for touch-tone signals
@@ -795,7 +795,6 @@ Code Execution:
       }
       return;
     }
-
 
     if (cmd === 'aj') {
       addEntry('system', '📺 Launching AJ video player...');
@@ -2294,6 +2293,23 @@ Powered by Wolfram Alpha Full Results API`);
     }
 
     // Radio Garden streaming commands
+    if (cmd === 'radio') {
+      // Show radio help when just "radio" is typed
+      const helpText =
+        `📻 RADIO GARDEN - Global Live Radio Streams\n\n` +
+        `Available Commands:\n` +
+        `radio play        - Open radio interface\n` +
+        `radio stop        - Stop current stream\n` +
+        `radio search <q>  - Search for stations\n` +
+        `radio random      - Get random station\n` +
+        `radio countries   - List countries\n` +
+        `radio volume <n>  - Set volume (0-100)\n` +
+        `radio status      - Check status\n\n` +
+        `💡 Radio Garden provides access to thousands of live stations worldwide`;
+      addEntry('system', helpText);
+      return;
+    }
+
     if (cmd.startsWith('radio ')) {
       const subCmd = cmd.substring(6).trim();
 
