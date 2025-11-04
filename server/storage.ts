@@ -23,9 +23,7 @@ import {
   knowledgeChunks,
   userPresence,
   directChats,
-  userMessages,
-  mudProfiles,
-  mudSessions
+  userMessages
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
