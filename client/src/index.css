@@ -558,6 +558,11 @@
     margin: 0;
     padding: 0;
     background: var(--terminal-bg);
+    background-image: url('@assets/BG_1762284465883.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     color: var(--terminal-text);
     overflow: hidden;
     transform: translateZ(0);
@@ -575,6 +580,11 @@
   .terminal-container {
     position: relative;
     background: var(--terminal-bg);
+    background-image: url('@assets/BG_1762284465883.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     border: 2px solid var(--terminal-subtle);
     box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
   }
