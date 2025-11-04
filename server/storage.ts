@@ -53,20 +53,6 @@ export interface IStorage {
   getDocumentChunks(documentId: string): Promise<KnowledgeChunk[]>;
   searchKnowledgeChunks(userId: string, query: string): Promise<KnowledgeChunk[]>;
   deleteDocumentChunks(documentId: string): Promise<void>;
-
-  // MUD profile methods
-  createMudProfile(profile: InsertMudProfile): Promise<MudProfile>;
-  getUserMudProfiles(userId: string): Promise<MudProfile[]>;
-  getMudProfile(id: string): Promise<MudProfile | undefined>;
-  updateMudProfile(id: string, updates: Partial<InsertMudProfile>): Promise<MudProfile>;
-  deleteMudProfile(id: string): Promise<void>;
-
-  // MUD session methods
-  createMudSession(session: InsertMudSession): Promise<MudSession>;
-  getMudSession(sessionId: string): Promise<MudSession | undefined>;
-  getUserMudSessions(userId: string): Promise<MudSession[]>;
-  updateMudSession(id: string, updates: Partial<InsertMudSession>): Promise<MudSession>;
-  closeMudSession(sessionId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -75,9 +61,6 @@ export class MemStorage implements IStorage {
   private conversations: Map<string, Conversation>;
   private documents: Map<string, Document>;
   private knowledgeChunks: Map<string, KnowledgeChunk>;
-  private userPresences: Map<string, UserPresence>;
-  private directChats: Map<string, DirectChat>;
-  private userMessages: Map<string, UserMessage>;
 
   constructor() {
     this.users = new Map();
@@ -85,9 +68,6 @@ export class MemStorage implements IStorage {
     this.conversations = new Map();
     this.documents = new Map();
     this.knowledgeChunks = new Map();
-    this.userPresences = new Map();
-    this.directChats = new Map();
-    this.userMessages = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -387,9 +367,10 @@ export class MemStorage implements IStorage {
     });
     idsToDelete.forEach(id => this.knowledgeChunks.delete(id));
   }
+}
 
-  // User presence methods implementation
-  async updateUserPresence(userId: string, isOnline: boolean, socketId?: string): Promise<UserPresence> {
+export class DatabaseStorage implements IStorage {
+  async getUser(id: string): Promise<User | undefined> {
     let presence = Array.from(this.userPresences.values()).find(p => p.userId === userId);
 
     if (presence) {
@@ -885,111 +866,6 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDocumentChunks(documentId: string): Promise<void> {
     await db.delete(knowledgeChunks).where(eq(knowledgeChunks.documentId, documentId));
-  }
-
-  // User presence methods implementation (stubbed - tables don't exist)
-  async updateUserPresence(userId: string, isOnline: boolean, socketId?: string): Promise<any> {
-    // Stub - userPresence table doesn't exist in schema
-    return { userId, isOnline, socketId, lastSeen: new Date() };
-  }
-
-  async getUserPresence(userId: string): Promise<any> {
-    // Stub - userPresence table doesn't exist in schema
-    return undefined;
-  }
-
-  async getOnlineUsers(): Promise<any[]> {
-    // Stub - userPresence table doesn't exist in schema
-    return [];
-  }
-
-  async setUserOffline(socketId: string): Promise<void> {
-    // Stub - userPresence table doesn't exist in schema
-  }
-
-  // Direct chat methods implementation (stubbed - tables don't exist)
-  async getOrCreateDirectChat(user1Id: string, user2Id: string): Promise<any> {
-    // Stub - directChats table doesn't exist in schema
-    return { id: randomUUID(), user1Id, user2Id };
-  }
-
-  async getUserDirectChats(userId: string): Promise<any[]> {
-    // Stub - directChats table doesn't exist in schema
-    return [];
-  }
-
-  // Message methods implementation (stubbed - tables don't exist)
-  async sendMessage(message: any): Promise<any> {
-    // Stub - userMessages table doesn't exist in schema
-    return { id: randomUUID(), ...message, sentAt: new Date() };
-  }
-
-  async getChatMessages(chatId: string, limit: number = 50): Promise<any[]> {
-    // Stub - userMessages table doesn't exist in schema
-    return [];
-  }
-
-  async markMessageAsRead(messageId: string): Promise<void> {
-    // Stub - userMessages table doesn't exist in schema
-  }
-
-  async markMessagesAsDelivered(userId: string): Promise<void> {
-    // Stub - userMessages table doesn't exist in schema
-  }
-
-  async getUnreadMessageCount(userId: string): Promise<number> {
-    // Stub - userMessages table doesn't exist in schema
-    return 0;
-  }
-
-  // MUD profile methods implementation (stubbed - tables don't exist)
-  async createMudProfile(profile: any): Promise<any> {
-    // Stub - mudProfiles table doesn't exist in schema
-    return { id: randomUUID(), ...profile, createdAt: new Date() };
-  }
-
-  async getUserMudProfiles(userId: string): Promise<any[]> {
-    // Stub - mudProfiles table doesn't exist in schema
-    return [];
-  }
-
-  async getMudProfile(id: string): Promise<any> {
-    // Stub - mudProfiles table doesn't exist in schema
-    return undefined;
-  }
-
-  async updateMudProfile(id: string, updates: any): Promise<any> {
-    // Stub - mudProfiles table doesn't exist in schema
-    return { id, ...updates, updatedAt: new Date() };
-  }
-
-  async deleteMudProfile(id: string): Promise<void> {
-    // Stub - mudProfiles table doesn't exist in schema
-  }
-
-  // MUD session methods implementation (stubbed - tables don't exist)
-  async createMudSession(session: any): Promise<any> {
-    // Stub - mudSessions table doesn't exist in schema
-    return { id: randomUUID(), ...session, createdAt: new Date() };
-  }
-
-  async getMudSession(sessionId: string): Promise<any> {
-    // Stub - mudSessions table doesn't exist in schema
-    return undefined;
-  }
-
-  async getUserMudSessions(userId: string): Promise<any[]> {
-    // Stub - mudSessions table doesn't exist in schema
-    return [];
-  }
-
-  async updateMudSession(id: string, updates: any): Promise<any> {
-    // Stub - mudSessions table doesn't exist in schema
-    return { id, ...updates };
-  }
-
-  async closeMudSession(sessionId: string): Promise<void> {
-    // Stub - mudSessions table doesn't exist in schema
   }
 }
 
