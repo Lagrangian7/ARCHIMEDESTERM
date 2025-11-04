@@ -14,9 +14,7 @@ import {
   userPreferences,
   conversations,
   documents,
-  knowledgeChunks,
-  mudProfiles,
-  mudSessions
+  knowledgeChunks
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
