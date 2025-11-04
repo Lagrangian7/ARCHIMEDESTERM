@@ -169,11 +169,18 @@ export function VoiceControls({
       setSelectedThemeIndex(parseInt(savedIndex, 10));
     } else {
       // Apply default theme (Green) if no saved theme
+      THEMES.forEach(theme => {
+        document.documentElement.classList.remove(theme.class);
+      });
       document.documentElement.classList.add('theme-green');
+      localStorage.setItem('selectedTheme', 'theme-green');
+      localStorage.setItem('selectedThemeIndex', '0');
     }
   }, []);
 
   const handleThemeSelect = (themeClass: string, index: number) => {
+    console.log('Theme selected:', themeClass, 'at index:', index);
+    
     // Remove all existing theme classes from the root html element
     THEMES.forEach(theme => {
       document.documentElement.classList.remove(theme.class);
@@ -182,9 +189,14 @@ export function VoiceControls({
     // Apply the new theme class to root html element
     document.documentElement.classList.add(themeClass);
     
+    // Force a reflow to ensure the change is applied
+    void document.documentElement.offsetHeight;
+    
     // Store the selected theme in localStorage for persistence
     localStorage.setItem('selectedTheme', themeClass);
     localStorage.setItem('selectedThemeIndex', index.toString());
+    
+    console.log('Theme applied. Current classes:', document.documentElement.className);
     
     setSelectedThemeIndex(index);
     setShowThemeMenu(false);
