@@ -431,21 +431,7 @@ export function Terminal() {
             backgroundSize: 'cover',
             backgroundPosition: 'center bottom',
             backgroundRepeat: 'no-repeat',
-            opacity: 0.3
-          }}
-        />
-
-        {/* Watermark Layer */}
-        <div
-          className="fixed inset-0 pointer-events-none z-[1]"
-          style={{
-            backgroundImage: `url(${watermarkImage})`,
-            backgroundSize: '400px auto',
-            backgroundPosition: 'center center',
-            backgroundRepeat: 'no-repeat',
-            opacity: 0.15,
-            filter: 'brightness(0.7) contrast(1.2)',
-            mixBlendMode: 'screen'
+            opacity: 0.5
           }}
         />
 
