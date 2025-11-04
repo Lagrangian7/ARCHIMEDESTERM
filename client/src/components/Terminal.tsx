@@ -427,7 +427,7 @@ export function Terminal() {
         <div
           className="fixed inset-0 pointer-events-none z-[0]"
           style={{
-            backgroundImage: `url('@assets/bgterm_1762276657386.png')`,
+            backgroundImage: `url(/attached_assets/bgterm_1762276657386.png)`,
             backgroundSize: 'cover',
             backgroundPosition: 'center bottom',
             backgroundRepeat: 'no-repeat',
