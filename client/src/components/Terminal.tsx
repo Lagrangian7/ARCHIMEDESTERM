@@ -37,7 +37,7 @@ import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
 import archyLogo from '@assets/archy111_1760233943010.jpeg';
-import backgroundImage from '@assets/painted_1762286902341.jpeg';
+import backgroundImage from '@assets/bg engraving_1762288785249.png';
 
 // Logo Component
 export const LogoIcon = memo(() => (
