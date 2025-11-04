@@ -12,7 +12,8 @@ import {
   Calendar, 
   FileText,
   HardDrive,
-  Edit2
+  Edit2,
+  X // Import X icon
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -51,6 +52,28 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
     onError: (err) => {
       console.error('Failed to load documents:', err);
     }
+  });
+
+  // Migrate documents mutation
+  const migrateMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('POST', '/api/documents/migrate');
+    },
+    onSuccess: () => {
+      toast({
+        title: "Documents Migrated",
+        description: "All documents have been migrated to your account.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/knowledge/stats'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Migration Failed",
+        description: error.message || "Failed to migrate documents.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Delete document mutation
@@ -198,18 +221,12 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
           <FileText className="mr-2" size={20} />
           Knowledge Base Documents
         </h2>
-        {onClose && (
-          <Button onClick={onClose} variant="ghost" size="sm" style={{ color: 'var(--terminal-text)' }}>
-            ✕
-          </Button>
-        )}
-      </div>
-
-      {/* Search Bar */}
-      <div className="mb-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2" style={{ color: 'var(--terminal-text)', opacity: 0.5 }} size={16} />
-          <input
+        {/* Search Bar */}
+        <div className="mb-4 flex-grow mx-4"> {/* Added flex-grow and margin */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-terminal-text opacity-50" />
+          </div>
+          <Input
             ref={searchInputRef}
             type="text"
             placeholder="Search documents by name, content, or keywords..."
@@ -225,6 +242,20 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
             data-testid="input-document-search"
           />
         </div>
+        <Button 
+          onClick={() => migrateMutation.mutate()}
+          disabled={migrateMutation.isPending}
+          variant="ghost" 
+          size="sm" 
+          className="text-terminal-highlight hover:bg-terminal-highlight/20 text-xs"
+        >
+          {migrateMutation.isPending ? 'Migrating...' : 'Migrate Docs'}
+        </Button>
+        {onClose && (
+          <Button onClick={onClose} variant="ghost" size="sm" className="text-terminal-text hover:bg-terminal-highlight/20">
+            <X size={18} />
+          </Button>
+        )}
       </div>
 
       {/* Documents Count */}

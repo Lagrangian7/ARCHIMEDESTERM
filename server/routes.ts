@@ -2757,6 +2757,26 @@ function windowResized() {
     }
   });
 
+  // Migrate documents endpoint
+  app.post("/api/documents/migrate", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      console.log(`🔄 Migration requested by user: ${userId}`);
+
+      const { migrateDocumentsToUser } = await import('./migrate-documents');
+      const result = await migrateDocumentsToUser(userId);
+
+      res.json({
+        success: true,
+        message: `Successfully migrated ${result.migrated} documents`,
+        ...result
+      });
+    } catch (error) {
+      console.error("Document migration error:", error);
+      res.status(500).json({ error: "Failed to migrate documents" });
+    }
+  });
+
   // Get user documents
   app.get("/api/documents", isAuthenticated, async (req: any, res) => {
     try {
