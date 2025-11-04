@@ -888,8 +888,7 @@ Code Execution:
 
       chatMutation.mutate({
         message: translationPrompt,
-        mode: currentMode,
-        language: languageCode
+        mode: currentMode
       });
       return;
     }
@@ -905,8 +904,7 @@ Code Execution:
       setIsTyping(true);
       chatMutation.mutate({
         message: `Please explain this in English:\n\n${lastAiResponse.content}`,
-        mode: currentMode,
-        language: 'english'
+        mode: currentMode
       });
       return;
     }
@@ -921,8 +919,7 @@ Code Execution:
       setIsTyping(true);
       chatMutation.mutate({
         message: `Por favor explica esto en español:\n\n${lastAiResponse.content}`,
-        mode: currentMode,
-        language: 'spanish'
+        mode: currentMode
       });
       return;
     }
@@ -937,8 +934,7 @@ Code Execution:
       setIsTyping(true);
       chatMutation.mutate({
         message: `これを日本語で説明してください:\n\n${lastAiResponse.content}`,
-        mode: currentMode,
-        language: 'japanese'
+        mode: currentMode
       });
       return;
     }
