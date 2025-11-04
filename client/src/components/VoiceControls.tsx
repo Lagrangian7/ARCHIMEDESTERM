@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from '@/components/Terminal';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
@@ -26,6 +27,45 @@ interface VoiceControlsProps {
   unreadCount: number;
   setShowNotepad: (show: boolean) => void;
 }
+
+const THEMES = [
+  { name: 'Green', class: 'theme-green', colors: ['#000000', '#00FF41', '#00FF80'] },
+  { name: 'Blue', class: 'theme-blue', colors: ['#000000', '#33A8FF', '#5CC8FF'] },
+  { name: 'Orange', class: 'theme-orange', colors: ['#000000', '#FF9933', '#FFAD5C'] },
+  { name: 'Greyscale', class: 'theme-greyscale', colors: ['#000000', '#BFBFBF', '#E5E5E5'] },
+  { name: 'Red', class: 'theme-red', colors: ['#000000', '#FF3333', '#FF5C5C'] },
+  { name: 'Black & White', class: 'theme-blackwhite', colors: ['#000000', '#FFFFFF', '#CCCCCC'] },
+  { name: 'White', class: 'theme-white', colors: ['#FFFFFF', '#000000', '#333333'] },
+  { name: 'Patriot', class: 'theme-patriot', colors: ['#000000', '#E63946', '#5C7CFF'] },
+  { name: 'Solarized', class: 'theme-solarized', colors: ['#002B36', '#93A1A1', '#B58900'] },
+  { name: 'Commodore 64', class: 'theme-commodore64', colors: ['#2A388F', '#7FDBFF', '#7FDBFF'] },
+  { name: 'Cyberpunk', class: 'theme-cyberpunk', colors: ['#0D0D0D', '#FF33FF', '#00FFFF'] },
+  { name: 'Forest', class: 'theme-forest', colors: ['#1A3329', '#7ACC5D', '#A6E68A'] },
+  { name: 'Ocean', class: 'theme-ocean', colors: ['#0A1529', '#5CC8FF', '#70E5C4'] },
+  { name: 'Sunset', class: 'theme-sunset', colors: ['#261A14', '#FF8533', '#FF5470'] },
+  { name: 'Neon', class: 'theme-neon', colors: ['#000000', '#CC33FF', '#00FF80'] },
+  { name: 'Vintage', class: 'theme-vintage', colors: ['#2B251A', '#CCA866', '#D9906B'] },
+  { name: 'Arctic', class: 'theme-arctic', colors: ['#142832', '#99E0FF', '#C2F5FF'] },
+  { name: 'Amber', class: 'theme-amber', colors: ['#141414', '#FFB833', '#FFC252'] },
+  { name: 'Hacker', class: 'theme-hacker', colors: ['#000000', '#00CC00', '#00FF00'] },
+  { name: 'Royal', class: 'theme-royal', colors: ['#1A0D29', '#CC99FF', '#FFD633'] },
+  { name: 'Vaporwave', class: 'theme-vaporwave', colors: ['#140A1A', '#FF4DFF', '#33FFFF'] },
+  { name: 'Desert', class: 'theme-desert', colors: ['#1F1814', '#E5B34D', '#FF8F52'] },
+  { name: 'Toxic', class: 'theme-toxic', colors: ['#0D0D0D', '#80FF00', '#A6FF00'] },
+  { name: 'Crimson', class: 'theme-crimson', colors: ['#141414', '#FF3366', '#FF6B52'] },
+  { name: 'Lavender', class: 'theme-lavender', colors: ['#1A0D26', '#E699FF', '#FF85CC'] },
+  { name: 'Emerald', class: 'theme-emerald', colors: ['#0A1A17', '#52CC99', '#70E5AD'] },
+  { name: 'Midnight', class: 'theme-midnight', colors: ['#0A0F2D', '#527FE5', '#5CB8FF'] },
+  { name: 'Sakura', class: 'theme-sakura', colors: ['#1F1419', '#E699CC', '#FF6B85'] },
+  { name: 'Copper', class: 'theme-copper', colors: ['#1A1014', '#CC9952', '#E5AD70'] },
+  { name: 'Plasma', class: 'theme-plasma', colors: ['#080808', '#E633FF', '#FF5285'] },
+  { name: 'Atari', class: 'theme-atari', colors: ['#29190D', '#FFD633', '#FF6B33'] },
+  { name: 'NES', class: 'theme-nes', colors: ['#1F2457', '#FF5270', '#5CB8FF'] },
+  { name: 'Game Boy', class: 'theme-gameboy', colors: ['#242D1F', '#99CC85', '#B3E599'] },
+  { name: 'Arcade', class: 'theme-arcade', colors: ['#000000', '#33CCFF', '#FF52E5'] },
+  { name: 'Spectrum', class: 'theme-spectrum', colors: ['#000000', '#FF3366', '#5C5CFF'] },
+  { name: 'Rainbow Cycle', class: 'theme-rainbow-cycle', colors: ['#000000', '#00FF41', '#FF1493'] },
+] as const;
 
 export function VoiceControls({
   onVoiceInput,
@@ -111,6 +151,15 @@ export function VoiceControls({
   const [showSpiderFoot, setShowSpiderFoot] = useState(false);
   const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
   const [showSshwifty, setShowSshwiftyLocal] = useState(false);
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
+
+  const handleThemeSelect = (themeClass: string) => {
+    // Find the theme and apply it
+    const currentThemeClasses = THEMES.map(t => t.class);
+    document.documentElement.classList.remove(...currentThemeClasses);
+    document.documentElement.classList.add(themeClass);
+    setShowThemeMenu(false);
+  };
 
   return (
     <div className="voice-controls p-2 md:p-3 border-b border-terminal-subtle flex flex-wrap md:flex-nowrap items-center justify-between gap-2 text-sm relative z-10">
@@ -273,21 +322,52 @@ export function VoiceControls({
           <CassetteTape size={16} />
         </Button>
 
-        {/* RGB Theme Switcher */}
-        <button
-          onClick={switchTheme}
-          className="cursor-pointer p-2 rounded transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px] flex items-center justify-center bg-transparent border-none"
-          data-testid="button-theme-toggle"
-          aria-label="Switch Theme"
-        >
-          <img
-            src={cubesIcon}
-            alt="Theme Switcher"
-            width="24"
-            height="24"
-            className="rgb-theme-icon"
-          />
-        </button>
+        {/* Theme Selector */}
+        <Popover open={showThemeMenu} onOpenChange={setShowThemeMenu}>
+          <PopoverTrigger asChild>
+            <button
+              className="cursor-pointer p-2 rounded transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px] flex items-center justify-center bg-transparent border-none"
+              data-testid="button-theme-toggle"
+              aria-label="Select Theme"
+            >
+              <img
+                src={cubesIcon}
+                alt="Theme Selector"
+                width="24"
+                height="24"
+                className="rgb-theme-icon"
+              />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-80 max-h-96 overflow-y-auto bg-terminal-bg border-terminal-highlight p-4"
+            align="end"
+          >
+            <div className="space-y-2">
+              <h3 className="text-terminal-text font-bold text-sm mb-3">Select Theme</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {THEMES.map((theme) => (
+                  <button
+                    key={theme.class}
+                    onClick={() => handleThemeSelect(theme.class)}
+                    className="flex items-center gap-2 p-2 rounded border border-terminal-subtle hover:border-terminal-highlight hover:bg-terminal-highlight/10 transition-colors text-left"
+                  >
+                    <div className="flex gap-1">
+                      {theme.colors.map((color, idx) => (
+                        <div
+                          key={idx}
+                          className="w-4 h-4 rounded-sm border border-terminal-subtle"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-terminal-text text-xs flex-1">{theme.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {showPrivacyEncoder && (
