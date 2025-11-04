@@ -819,7 +819,7 @@ function draw() {
     let laser = ufoLasers[i];
     laser.x += laser.vx;
     laser.y += laser.vy;
-    if (laser.x < -width / 2 - 50 || laser.x > width / 2 + 50 || 
+    if (laser.x < -width / 2 - 50 || laser.x > width / 2 + 50 ||
         laser.y < -height / 2 - 50 || laser.y > height / 2 + 50) {
       ufoLasers.splice(i, 1);
       continue;
@@ -1057,7 +1057,7 @@ function draw() {
     laser.y += laser.vy;
 
     // Remove lasers that go off screen
-    if (laser.x < -width / 2 - 50 || laser.x > width / 2 + 50 || 
+    if (laser.x < -width / 2 - 50 || laser.x > width / 2 + 50 ||
         laser.y < -height / 2 - 50 || laser.y > height / 2 + 50) {
       playerLasers.splice(i, 1);
       continue;
@@ -1791,7 +1791,7 @@ function checkSkylineCollisions() {
     let laser = ufoLasers[i];
     for (let j = cityBlocks.length - 1; j >= 0; j--) {
       let block = cityBlocks[j];
-      if (!block.destroyed && 
+      if (!block.destroyed &&
           laser.x > block.x && laser.x < block.x + block.width &&
           laser.y > block.y && laser.y < block.y + block.height) {
         // Only destroy non-foundation blocks
@@ -1809,7 +1809,7 @@ function checkSkylineCollisions() {
     let laser = invaderLasers[i];
     for (let j = cityBlocks.length - 1; j >= 0; j--) {
       let block = cityBlocks[j];
-      if (!block.destroyed && 
+      if (!block.destroyed &&
           laser.x > block.x && laser.x < block.x + block.width &&
           laser.y > block.y && laser.y < block.y + block.height) {
         // Only destroy non-foundation blocks
@@ -1827,7 +1827,7 @@ function checkSkylineCollisions() {
     let bomb = nyanCatBombs[i];
     for (let j = cityBlocks.length - 1; j >= 0; j--) {
       let block = cityBlocks[j];
-      if (!block.destroyed && 
+      if (!block.destroyed &&
           bomb.x > block.x && bomb.x < block.x + block.width &&
           bomb.y > block.y && bomb.y < block.y + block.height) {
         // Only destroy non-foundation blocks
@@ -2073,9 +2073,9 @@ function windowResized() {
 
       if (proxyRes.statusCode !== 200) {
         console.log(`❌ Radio stream error: ${proxyRes.statusCode}`);
-        res.status(503).json({ 
+        res.status(503).json({
           error: 'Stream unavailable',
-          status: proxyRes.statusCode 
+          status: proxyRes.statusCode
         });
         return;
       }
@@ -2094,7 +2094,7 @@ function windowResized() {
 
     proxyReq.on('error', (error: any) => {
       console.error('❌ Radio proxy error:', error);
-      res.status(503).json({ 
+      res.status(503).json({
         error: 'Radio stream unavailable',
         message: 'Unable to connect to Soma FM Groove Salad stream'
       });
@@ -2131,7 +2131,7 @@ function windowResized() {
     try {
       // Check if user is authenticated
       if (!req.isAuthenticated?.() || !req.user?.claims?.sub) {
-        return res.json({ 
+        return res.json({
           user: null,
           preferences: null
         });
@@ -2141,14 +2141,14 @@ function windowResized() {
       const user = await storage.getUser(userId);
       const preferences = await storage.getUserPreferences(userId);
 
-      res.json({ 
+      res.json({
         user: user || null,
         preferences: preferences || null
       });
     } catch (error) {
       console.error("Error fetching user:", error);
       // Return null instead of error to prevent auth loops
-      res.json({ 
+      res.json({
         user: null,
         preferences: null
       });
@@ -2188,7 +2188,7 @@ function windowResized() {
       // Validate request body
       const validationResult = insertUserPreferencesSchema.partial().safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Invalid preferences data",
           details: validationResult.error.errors
         });
@@ -2236,7 +2236,7 @@ function windowResized() {
       });
 
       if (!validationResult.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Invalid profile data",
           details: validationResult.error.errors
         });
@@ -2285,7 +2285,7 @@ function windowResized() {
 
       const validationResult = insertMudProfileSchema.partial().safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Invalid profile data",
           details: validationResult.error.errors
         });
@@ -2342,7 +2342,7 @@ function windowResized() {
       });
 
       if (!validationResult.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Invalid session data",
           details: validationResult.error.errors
         });
@@ -2392,7 +2392,7 @@ function windowResized() {
 
       const validationResult = insertMudSessionSchema.partial().safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Invalid session data",
           details: validationResult.error.errors
         });
@@ -2588,7 +2588,7 @@ function windowResized() {
           console.log(`📤 Processing file: ${file.originalname}, size: ${file.size}, mimetype: ${file.mimetype}`);
 
           // Determine if the file is an audio file (based on mimetype or extension)
-          const isAudioFile = file.mimetype.startsWith('audio/') || 
+          const isAudioFile = file.mimetype.startsWith('audio/') ||
                               file.originalname.toLowerCase().match(/\.(mp3|wav|ogg|m4a)$/);
 
           // If it's an audio file, create metadata record with proper mimeType
@@ -2690,7 +2690,7 @@ function windowResized() {
         }
       });
 
-      res.json({ 
+      res.json({
         message: `Successfully processed ${results.length} of ${req.files.length} files`,
         documents: results,
         errors: errors,
@@ -2778,15 +2778,19 @@ function windowResized() {
   });
 
   // Diagnostic endpoint to check all documents in database
-  app.get("/api/documents/diagnostic", isAuthenticated, async (req: any, res) => {
+  app.get('/api/documents/diagnostic', isAuthenticated, async (req: any, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+
     try {
       const userId = req.user.claims.sub;
       const { db } = await import('./db');
       const { documents } = await import('@shared/schema');
-      
+
       // Get ALL documents regardless of userId
       const allDocs = await db.select().from(documents);
-      
+
       // Group by userId with details and show actual userId values
       const byUserId: Record<string, { count: number, documents: string[], actualUserId: string | null }> = {};
       allDocs.forEach(doc => {
@@ -2797,36 +2801,53 @@ function windowResized() {
         byUserId[uid].count++;
         byUserId[uid].documents.push(doc.originalName);
       });
-      
+
       console.log(`📊 Total documents in database: ${allDocs.length}`);
       console.log(`📊 Your userId: ${userId}`);
       console.log(`📊 Documents by userId:`, Object.fromEntries(
         Object.entries(byUserId).map(([uid, data]) => [uid, data.count])
       ));
-      
+
       // Show all unique userIds found
       const uniqueUserIds = Array.from(new Set(allDocs.map(d => d.userId || 'null')));
       console.log(`📊 Unique userIds in database:`, uniqueUserIds);
-      
+
+      // Compare to expected count (140 from published version)
+      const expectedCount = 140;
+      const currentCount = allDocs.length;
+      const yourCount = allDocs.filter(d => d.userId === userId).length;
+
       res.json({
+        environment: process.env.NODE_ENV || 'development',
+        comparison: {
+          publishedCount: expectedCount,
+          currentCount: currentCount,
+          yourDocuments: yourCount,
+          difference: currentCount - expectedCount,
+          missing: expectedCount - currentCount,
+          status: currentCount === expectedCount ? 'MATCH' : currentCount > expectedCount ? 'EXTRA_DOCS' : 'MISSING_DOCS'
+        },
         totalDocuments: allDocs.length,
-        yourDocuments: allDocs.filter(d => d.userId === userId).length,
+        yourDocuments: yourCount,
         yourUserId: userId,
         uniqueUserIds: uniqueUserIds,
         documentsByUserId: Object.fromEntries(
           Object.entries(byUserId).map(([uid, data]) => [uid, { count: data.count, actualUserId: data.actualUserId }])
         ),
         documentDetails: byUserId,
-        allDocumentsUserIds: allDocs.map(d => ({ id: d.id, name: d.originalName, userId: d.userId }))
+        sampleDocuments: allDocs.slice(0, 10).map(d => ({
+          id: d.id,
+          name: d.originalName,
+          userId: d.userId,
+          uploadedAt: d.uploadedAt
+        }))
       });
     } catch (error) {
       console.error("Diagnostic error:", error);
-      res.status(500).json({ 
-        error: "Failed to run diagnostic",
-        details: error instanceof Error ? error.message : String(error)
-      });
+      res.status(500).json({ error: "Failed to run diagnostic" });
     }
   });
+
 
   // Get user documents
   app.get("/api/documents", isAuthenticated, async (req: any, res) => {
@@ -2930,7 +2951,7 @@ function windowResized() {
 
       const document = await storage.getDocumentByFilename(userId, filename);
       if (!document) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           error: `Document '${filename}' not found`,
           formatted: `❌ Document '${filename}' not found in knowledge base.\n\nUse 'docs' command to list available documents.`
         });
@@ -2942,7 +2963,7 @@ function windowResized() {
       });
     } catch (error) {
       console.error("Read document error:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: "Failed to read document",
         formatted: "❌ Failed to read document. Please try again."
       });
@@ -3163,9 +3184,9 @@ function windowResized() {
 
         // Return 400 for client errors (422) instead of 500
         const statusCode = response.status === 422 ? 400 : 500;
-        return res.status(statusCode).json({ 
+        return res.status(statusCode).json({
           error: `Brave API error: ${response.status} ${response.statusText}`,
-          details: errorText 
+          details: errorText
         });
       }
 
@@ -3435,7 +3456,7 @@ function windowResized() {
 
     } catch (error) {
       console.error("Python execution error:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: "Failed to execute Python code",
         formatted: '╭─ Python Execution Result\n├─ Error: Internal server error\n╰─ Failed to execute code'
       });
@@ -3480,7 +3501,7 @@ function windowResized() {
       }
 
       const formatted = `Stock Search Results for "${query}":\n\n` +
-        tickers.map((ticker, index) => 
+        tickers.map((ticker, index) =>
           `${index + 1}. ${ticker.symbol} - ${ticker.name}\n   Exchange: ${ticker.stock_exchange.name} (${ticker.country})`
         ).join('\n\n') +
         `\n\nUse 'stock quote <symbol>' to get current prices.`;
@@ -3705,8 +3726,8 @@ function windowResized() {
           formatted += `├─ Domain: ${domain}\n`;
 
           // Extract registrar from entities
-          const registrar = rdapData.entities?.find((entity: any) => 
-            entity.roles?.includes('registrar'))?.vcardArray?.[1]?.find((item: any) => 
+          const registrar = rdapData.entities?.find((entity: any) =>
+            entity.roles?.includes('registrar'))?.vcardArray?.[1]?.find((item: any) =>
               item[0] === 'fn')?.[3];
           if (registrar) {
             formatted += `├─ Registrar: ${registrar}\n`;
@@ -3829,13 +3850,13 @@ function windowResized() {
           formatted += `╰─ DNS resolution complete (WHOIS services unavailable)`;
           res.json({ formatted });
         } else {
-          res.json({ 
-            formatted: `╭─ Domain lookup for ${domain}\n╰─ Domain does not resolve or is not accessible` 
+          res.json({
+            formatted: `╭─ Domain lookup for ${domain}\n╰─ Domain does not resolve or is not accessible`
           });
         }
       } catch (finalError) {
-        res.json({ 
-          formatted: `╭─ Domain lookup for ${domain}\n╰─ All lookup methods failed - domain may not exist` 
+        res.json({
+          formatted: `╭─ Domain lookup for ${domain}\n╰─ All lookup methods failed - domain may not exist`
         });
       }
     } catch (error) {
@@ -3876,7 +3897,7 @@ function windowResized() {
           results.AAAA = await dns.resolve6(domain);
         } catch (e) {}
 
-        // Get MX records  
+        // Get MX records
         try {
           results.MX = await dns.resolveMx(domain);
         } catch (e) {}
@@ -3998,7 +4019,7 @@ function windowResized() {
       }
 
       try {
-        const response = await fetch(url, { 
+        const response = await fetch(url, {
           method: 'HEAD',
           redirect: 'follow',
           headers: {
@@ -4098,7 +4119,7 @@ function windowResized() {
       const checks = await Promise.allSettled(
         platforms.map(async (platform) => {
           try {
-            const response = await fetch(platform.url, { 
+            const response = await fetch(platform.url, {
               method: 'HEAD',
               redirect: 'follow',
               headers: {
@@ -4140,7 +4161,7 @@ function windowResized() {
     res.json({ message: 'Test endpoint working' });
   });
 
-  // Traceroute OSINT endpoint  
+  // Traceroute OSINT endpoint
   app.get('/api/osint/traceroute/:target', async (req, res) => {
     const { target } = req.params;
 
@@ -4349,9 +4370,9 @@ function windowResized() {
 
         // Try to determine if SSL is available at all
         try {
-          const response = await fetch(`https://${domain}`, { 
-            method: 'HEAD', 
-            signal: AbortSignal.timeout(5000) 
+          const response = await fetch(`https://${domain}`, {
+            method: 'HEAD',
+            signal: AbortSignal.timeout(5000)
           });
           formatted += `├─ HTTPS Available: ✅ (Status: ${response.status})\n`;
         } catch (httpsError) {
@@ -4555,7 +4576,7 @@ function windowResized() {
 
       try {
         const url = `https://${domain}`;
-        const response = await fetch(url, { 
+        const response = await fetch(url, {
           method: 'GET',
           signal: AbortSignal.timeout(10000),
           headers: {
@@ -4886,7 +4907,7 @@ function windowResized() {
         const confidence = actor.meta?.['attribution-confidence'] || 'Unknown';
         const country = actor.meta?.country || 'Unknown';
         const synonyms = actor.meta?.synonyms?.slice(0, 3)?.join(', ') || 'None';
-        const description = actor.description.length > 100 
+        const description = actor.description.length > 100
           ? actor.description.substring(0, 97) + '...'
           : actor.description;
 
@@ -4903,7 +4924,7 @@ function windowResized() {
 
       formatted += `└─ Use 'threat-actors <name>' for detailed actor information\n`;
 
-      res.json({ 
+      res.json({
         formatted,
         count: data.values.length,
         source: 'MISP Galaxy',
@@ -4912,7 +4933,7 @@ function windowResized() {
 
     } catch (error) {
       console.error('❌ Threat actors fetch error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to fetch threat actor intelligence',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -4937,15 +4958,15 @@ function windowResized() {
       const data = await response.json();
 
       // Search for the specific threat actor
-      const actor = data.values.find((actor: any) => 
+      const actor = data.values.find((actor: any) =>
         actor.value.toLowerCase().includes(name.toLowerCase()) ||
-        actor.meta?.synonyms?.some((synonym: string) => 
+        actor.meta?.synonyms?.some((synonym: string) =>
           synonym.toLowerCase().includes(name.toLowerCase())
         )
       );
 
       if (!actor) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           error: `Threat actor '${name}' not found in MISP Galaxy database`,
           suggestion: 'Try using partial names or known aliases'
         });
@@ -5006,7 +5027,7 @@ function windowResized() {
 
       formatted += `└─ Intelligence sourced from MISP Galaxy\n`;
 
-      res.json({ 
+      res.json({
         formatted,
         actor: actor.value,
         source: 'MISP Galaxy'
@@ -5014,7 +5035,7 @@ function windowResized() {
 
     } catch (error) {
       console.error('❌ Threat actor lookup error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to lookup threat actor',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -5032,7 +5053,7 @@ function windowResized() {
 
       const validationResult = spiderFootSchema.safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Invalid request data',
           details: validationResult.error.errors
         });
@@ -5118,7 +5139,7 @@ function windowResized() {
       res.json(mockResults);
     } catch (error) {
       console.error('SpiderFoot error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'OSINT scan failed',
         modules: {},
         summary: {
@@ -5212,7 +5233,7 @@ function windowResized() {
       res.json(result);
     } catch (error) {
       console.error('Wolfram Alpha query error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to query Wolfram Alpha',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -5316,7 +5337,7 @@ function windowResized() {
       // Emit message via WebSocket to connected users
       if (chatWss) {
         chatWss.clients.forEach((client: any) => {
-          if (client.readyState === WebSocket.OPEN && 
+          if (client.readyState === WebSocket.OPEN &&
               (client.userId === userId || client.userId === toUserId)) {
             client.send(JSON.stringify({
               type: 'message',
@@ -5350,7 +5371,7 @@ function windowResized() {
             // Emit bot message via WebSocket
             if (chatWss) {
               chatWss.clients.forEach((client: any) => {
-                if (client.readyState === WebSocket.OPEN && 
+                if (client.readyState === WebSocket.OPEN &&
                     (client.userId === userId || client.userId === archimedesBotService.getBotId())) {
                   client.send(JSON.stringify({
                     type: 'message',
@@ -5431,7 +5452,7 @@ function windowResized() {
                 console.error('Error updating user presence:', error);
               }
 
-              // Mark messages as delivered for this user (if method exists)  
+              // Mark messages as delivered for this user (if method exists)
               try {
                 await storage.markMessagesAsDelivered?.(message.userId);
               } catch (error) {
@@ -5464,7 +5485,7 @@ function windowResized() {
           case 'typing':
             // Broadcast typing indicator to other user
             chatWss.clients.forEach((client: any) => {
-              if (client.readyState === WebSocket.OPEN && 
+              if (client.readyState === WebSocket.OPEN &&
                   client.userId === message.toUserId) {
                 client.send(JSON.stringify({
                   type: 'typing',

@@ -1,10 +1,10 @@
-import { 
-  type User, 
-  type UpsertUser, 
+import {
+  type User,
+  type UpsertUser,
   type UserPreferences,
-  type InsertUserPreferences, 
-  type Conversation, 
-  type InsertConversation, 
+  type InsertUserPreferences,
+  type Conversation,
+  type InsertConversation,
   type Message,
   type Document,
   type InsertDocument,
@@ -16,10 +16,6 @@ import {
   type InsertDirectChat,
   type UserMessage,
   type InsertUserMessage,
-  type MudProfile,
-  type InsertMudProfile,
-  type MudSession,
-  type InsertMudSession,
   users,
   userPreferences,
   conversations,
@@ -39,12 +35,12 @@ export interface IStorage {
   // User methods for Replit Auth
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
-  
+
   // User preferences methods
   getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
   createUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences>;
   updateUserPreferences(userId: string, preferences: Partial<InsertUserPreferences>): Promise<UserPreferences>;
-  
+
   // Conversation methods
   getConversation(sessionId: string): Promise<Conversation | undefined>;
   getUserConversations(userId: string): Promise<Conversation[]>;
@@ -78,7 +74,7 @@ export interface IStorage {
   // Direct chat methods
   getOrCreateDirectChat(user1Id: string, user2Id: string): Promise<DirectChat>;
   getUserDirectChats(userId: string): Promise<(DirectChat & { otherUser: User; lastMessage?: UserMessage })[]>;
-  
+
   // Message methods
   sendMessage(message: InsertUserMessage): Promise<UserMessage>;
   getChatMessages(chatId: string, limit?: number): Promise<UserMessage[]>;
@@ -110,8 +106,6 @@ export class MemStorage implements IStorage {
   private userPresences: Map<string, UserPresence>;
   private directChats: Map<string, DirectChat>;
   private userMessages: Map<string, UserMessage>;
-  private mudProfiles: Map<string, MudProfile>;
-  private mudSessions: Map<string, MudSession>;
 
   constructor() {
     this.users = new Map();
@@ -122,8 +116,6 @@ export class MemStorage implements IStorage {
     this.userPresences = new Map();
     this.directChats = new Map();
     this.userMessages = new Map();
-    this.mudProfiles = new Map();
-    this.mudSessions = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -138,10 +130,10 @@ export class MemStorage implements IStorage {
     if (existingUser) {
       // Update existing user - preserve createdAt, only update updatedAt
       const { createdAt, ...updateFields } = userData;
-      const updatedUser: User = { 
-        ...existingUser, 
-        ...updateFields, 
-        updatedAt: new Date() 
+      const updatedUser: User = {
+        ...existingUser,
+        ...updateFields,
+        updatedAt: new Date()
       };
       this.users.set(existingUser.id, updatedUser);
       return updatedUser;
@@ -149,17 +141,17 @@ export class MemStorage implements IStorage {
       // Create new user
       const id = randomUUID();
       const now = new Date();
-      const user: User = { 
+      const user: User = {
         id,
         email: userData.email || null,
         firstName: userData.firstName || null,
         lastName: userData.lastName || null,
         profileImageUrl: userData.profileImageUrl || null,
         createdAt: now,
-        updatedAt: now 
+        updatedAt: now
       };
       this.users.set(id, user);
-      
+
       // Create default preferences
       await this.createUserPreferences({
         userId: id,
@@ -169,7 +161,7 @@ export class MemStorage implements IStorage {
         voiceRate: "1",
         terminalTheme: "classic"
       });
-      
+
       return user;
     }
   }
@@ -183,7 +175,7 @@ export class MemStorage implements IStorage {
   async createUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences> {
     const id = randomUUID();
     const now = new Date();
-    const userPrefs: UserPreferences = { 
+    const userPrefs: UserPreferences = {
       id,
       userId: preferences.userId,
       defaultMode: preferences.defaultMode || "natural",
@@ -192,7 +184,7 @@ export class MemStorage implements IStorage {
       voiceRate: preferences.voiceRate || null,
       terminalTheme: preferences.terminalTheme || null,
       createdAt: now,
-      updatedAt: now 
+      updatedAt: now
     };
     this.userPreferences.set(id, userPrefs);
     return userPrefs;
@@ -228,7 +220,7 @@ export class MemStorage implements IStorage {
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
     const id = randomUUID();
     const now = new Date();
-    const conversation: Conversation = { 
+    const conversation: Conversation = {
       id,
       userId: insertConversation.userId || null,
       sessionId: insertConversation.sessionId,
@@ -268,10 +260,10 @@ export class MemStorage implements IStorage {
 
   async addMessageToConversation(sessionId: string, message: Message): Promise<void> {
     let conversation = await this.getConversation(sessionId);
-    
+
     if (!conversation) {
       // Generate a conversation title based on the first user message
-      const title = message.role === 'user' 
+      const title = message.role === 'user'
         ? message.content.slice(0, 50) + (message.content.length > 50 ? '...' : '')
         : 'New Conversation';
 
@@ -283,7 +275,7 @@ export class MemStorage implements IStorage {
         messages: [],
       });
     }
-    
+
     const messages = Array.isArray(conversation.messages) ? conversation.messages as Message[] : [];
     messages.push(message);
     await this.updateConversation(sessionId, messages);
@@ -316,7 +308,7 @@ export class MemStorage implements IStorage {
       const documents = Array.from(this.documents.values())
         .filter(doc => doc.userId === userId)
         .sort((a, b) => (b.uploadedAt?.getTime() || 0) - (a.uploadedAt?.getTime() || 0));
-      
+
       console.log(`📚 Retrieved ${documents.length} documents for user ${userId}`);
       return documents;
     } catch (error) {
@@ -368,8 +360,8 @@ export class MemStorage implements IStorage {
   async searchDocuments(userId: string, query: string): Promise<Document[]> {
     const userDocs = await this.getUserDocuments(userId);
     const searchQuery = query.toLowerCase();
-    
-    return userDocs.filter(doc => 
+
+    return userDocs.filter(doc =>
       doc.originalName.toLowerCase().includes(searchQuery) ||
       doc.content.toLowerCase().includes(searchQuery) ||
       doc.summary?.toLowerCase().includes(searchQuery) ||
@@ -377,7 +369,7 @@ export class MemStorage implements IStorage {
     );
   }
 
-  // Knowledge chunk methods implementation  
+  // Knowledge chunk methods implementation
   async createKnowledgeChunk(insertChunk: InsertKnowledgeChunk): Promise<KnowledgeChunk> {
     const id = randomUUID();
     const now = new Date();
@@ -403,11 +395,11 @@ export class MemStorage implements IStorage {
     const userDocIds = new Set(
       (await this.getUserDocuments(userId)).map(doc => doc.id)
     );
-    
+
     const searchQuery = query.toLowerCase();
-    
+
     return Array.from(this.knowledgeChunks.values())
-      .filter(chunk => 
+      .filter(chunk =>
         userDocIds.has(chunk.documentId) &&
         chunk.content.toLowerCase().includes(searchQuery)
       )
@@ -427,7 +419,7 @@ export class MemStorage implements IStorage {
   // User presence methods implementation
   async updateUserPresence(userId: string, isOnline: boolean, socketId?: string): Promise<UserPresence> {
     let presence = Array.from(this.userPresences.values()).find(p => p.userId === userId);
-    
+
     if (presence) {
       presence.isOnline = isOnline;
       presence.lastSeen = new Date();
@@ -448,7 +440,7 @@ export class MemStorage implements IStorage {
       };
       this.userPresences.set(id, presence);
     }
-    
+
     return presence;
   }
 
@@ -459,14 +451,14 @@ export class MemStorage implements IStorage {
   async getOnlineUsers(): Promise<(User & { presence: UserPresence })[]> {
     const onlinePresences = Array.from(this.userPresences.values()).filter(p => p.isOnline);
     const result: (User & { presence: UserPresence })[] = [];
-    
+
     for (const presence of onlinePresences) {
       const user = this.users.get(presence.userId);
       if (user) {
         result.push({ ...user, presence });
       }
     }
-    
+
     return result;
   }
 
@@ -483,15 +475,15 @@ export class MemStorage implements IStorage {
   // Direct chat methods implementation
   async getOrCreateDirectChat(user1Id: string, user2Id: string): Promise<DirectChat> {
     // Look for existing chat between these users
-    const existingChat = Array.from(this.directChats.values()).find(chat => 
+    const existingChat = Array.from(this.directChats.values()).find(chat =>
       (chat.user1Id === user1Id && chat.user2Id === user2Id) ||
       (chat.user1Id === user2Id && chat.user2Id === user1Id)
     );
-    
+
     if (existingChat) {
       return existingChat;
     }
-    
+
     // Create new chat
     const id = randomUUID();
     const now = new Date();
@@ -503,30 +495,30 @@ export class MemStorage implements IStorage {
       createdAt: now,
       updatedAt: now,
     };
-    
+
     this.directChats.set(id, chat);
     return chat;
   }
 
   async getUserDirectChats(userId: string): Promise<(DirectChat & { otherUser: User; lastMessage?: UserMessage })[]> {
-    const userChats = Array.from(this.directChats.values()).filter(chat => 
+    const userChats = Array.from(this.directChats.values()).filter(chat =>
       chat.user1Id === userId || chat.user2Id === userId
     );
-    
+
     const result: (DirectChat & { otherUser: User; lastMessage?: UserMessage })[] = [];
-    
+
     for (const chat of userChats) {
       const otherUserId = chat.user1Id === userId ? chat.user2Id : chat.user1Id;
       const otherUser = this.users.get(otherUserId);
-      
+
       if (otherUser) {
         // Get last message for this chat
         const chatMessages = Array.from(this.userMessages.values())
           .filter(msg => msg.chatId === chat.id)
           .sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime());
-        
+
         const lastMessage = chatMessages[0];
-        
+
         result.push({
           ...chat,
           otherUser,
@@ -534,7 +526,7 @@ export class MemStorage implements IStorage {
         });
       }
     }
-    
+
     return result.sort((a, b) => {
       const aTime = a.lastMessage?.sentAt.getTime() || a.createdAt?.getTime() || 0;
       const bTime = b.lastMessage?.sentAt.getTime() || b.createdAt?.getTime() || 0;
@@ -558,16 +550,16 @@ export class MemStorage implements IStorage {
       sentAt: now,
       readAt: message.readAt || null,
     };
-    
+
     this.userMessages.set(id, userMessage);
-    
+
     // Update chat's lastMessageAt
     const chat = this.directChats.get(message.chatId);
     if (chat) {
       chat.lastMessageAt = now;
       chat.updatedAt = now;
     }
-    
+
     return userMessage;
   }
 
@@ -617,7 +609,7 @@ export class MemStorage implements IStorage {
       aliases: profile.aliases || {},
       triggers: profile.triggers || [],
       macros: profile.macros || {},
-      autoConnect: profile.autoConnect || false,
+      autoConnect: profile.autoConnect ?? false,
       theme: profile.theme || "classic",
       fontSize: profile.fontSize || "14",
       scrollbackLines: profile.scrollbackLines || "1000",
@@ -729,7 +721,7 @@ export class DatabaseStorage implements IStorage {
   async upsertUser(userData: UpsertUser): Promise<User> {
     // First check if user already exists
     const existingUser = await this.getUser(userData.id!);
-    
+
     if (existingUser) {
       // Update existing user - preserve createdAt, only update updatedAt
       const { createdAt, ...updateFields } = userData;
@@ -869,7 +861,7 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .limit(1);
-    
+
     // Update last accessed time if document found
     if (doc) {
       await db.update(documents)
@@ -877,7 +869,7 @@ export class DatabaseStorage implements IStorage {
         .where(eq(documents.id, doc.id));
       doc.lastAccessedAt = new Date();
     }
-    
+
     return doc;
   }
 
@@ -911,9 +903,9 @@ export class DatabaseStorage implements IStorage {
     // First get user's document IDs
     const userDocs = await this.getUserDocuments(userId);
     const docIds = userDocs.map(doc => doc.id);
-    
+
     if (docIds.length === 0) return [];
-    
+
     // Simple text search in chunks
     return await db.select().from(knowledgeChunks)
       .where(like(knowledgeChunks.content, `%${query}%`));
@@ -927,7 +919,7 @@ export class DatabaseStorage implements IStorage {
   async updateUserPresence(userId: string, isOnline: boolean, socketId?: string): Promise<UserPresence> {
     // Try to update existing presence
     const existing = await db.select().from(userPresence).where(eq(userPresence.userId, userId));
-    
+
     if (existing.length > 0) {
       const [updated] = await db
         .update(userPresence)
@@ -1181,7 +1173,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(mudProfiles.id, id));
   }
 
-  // MUD session methods implementation  
+  // MUD session methods implementation
   async createMudSession(session: InsertMudSession): Promise<MudSession> {
     const [created] = await db
       .insert(mudSessions)
