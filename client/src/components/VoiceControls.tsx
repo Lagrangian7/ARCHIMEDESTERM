@@ -158,7 +158,8 @@ export function VoiceControls({
     const currentThemeClasses = THEMES.map(t => t.class);
     document.documentElement.classList.remove(...currentThemeClasses);
     document.documentElement.classList.add(themeClass);
-    setShowThemeMenu(false);
+    // Delay closing to prevent flash
+    setTimeout(() => setShowThemeMenu(false), 100);
   };
 
   return (
@@ -329,6 +330,10 @@ export function VoiceControls({
               className="cursor-pointer p-2 rounded transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px] flex items-center justify-center bg-transparent border-none"
               data-testid="button-theme-toggle"
               aria-label="Select Theme"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
             >
               <img
                 src={cubesIcon}
@@ -340,8 +345,10 @@ export function VoiceControls({
             </button>
           </PopoverTrigger>
           <PopoverContent 
-            className="w-80 max-h-96 overflow-y-auto bg-terminal-bg border-terminal-highlight p-4"
+            className="w-80 max-h-96 overflow-y-auto bg-terminal-bg border-terminal-highlight p-4 z-50"
             align="end"
+            sideOffset={8}
+            onOpenAutoFocus={(e) => e.preventDefault()}
           >
             <div className="space-y-2">
               <h3 className="text-terminal-text font-bold text-sm mb-3">Select Theme</h3>
@@ -349,10 +356,14 @@ export function VoiceControls({
                 {THEMES.map((theme) => (
                   <button
                     key={theme.class}
-                    onClick={() => handleThemeSelect(theme.class)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleThemeSelect(theme.class);
+                    }}
                     className="flex items-center gap-2 p-2 rounded border border-terminal-subtle hover:border-terminal-highlight hover:bg-terminal-highlight/10 transition-colors text-left"
                   >
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-shrink-0">
                       {theme.colors.map((color, idx) => (
                         <div
                           key={idx}
@@ -361,7 +372,7 @@ export function VoiceControls({
                         />
                       ))}
                     </div>
-                    <span className="text-terminal-text text-xs flex-1">{theme.name}</span>
+                    <span className="text-terminal-text text-xs flex-1 truncate">{theme.name}</span>
                   </button>
                 ))}
               </div>
