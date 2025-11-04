@@ -160,19 +160,26 @@ export function VoiceControls({
     const savedIndex = localStorage.getItem('selectedThemeIndex');
     
     if (savedTheme && savedIndex) {
-      const currentThemeClasses = THEMES.map(t => t.class);
-      document.documentElement.classList.remove(...currentThemeClasses);
+      // Remove all theme classes
+      THEMES.forEach(theme => {
+        document.documentElement.classList.remove(theme.class);
+      });
+      // Apply saved theme
       document.documentElement.classList.add(savedTheme);
       setSelectedThemeIndex(parseInt(savedIndex, 10));
+    } else {
+      // Apply default theme (Green) if no saved theme
+      document.documentElement.classList.add('theme-green');
     }
   }, []);
 
   const handleThemeSelect = (themeClass: string, index: number) => {
-    // Remove all existing theme classes from the root element
-    const currentThemeClasses = THEMES.map(t => t.class);
-    document.documentElement.classList.remove(...currentThemeClasses);
+    // Remove all existing theme classes from the root html element
+    THEMES.forEach(theme => {
+      document.documentElement.classList.remove(theme.class);
+    });
     
-    // Apply the new theme class
+    // Apply the new theme class to root html element
     document.documentElement.classList.add(themeClass);
     
     // Store the selected theme in localStorage for persistence
