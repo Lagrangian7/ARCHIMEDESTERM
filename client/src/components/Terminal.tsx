@@ -31,7 +31,7 @@ import { Notepad } from './Notepad';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
-import { useChat } from '@/hooks/useChat';
+// import { useChat } from '@/hooks/useChat'; // Commented out - hook not found
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
@@ -105,7 +105,8 @@ export function Terminal() {
 
   const { speak, isSpeaking } = useSpeech();
   const { user, isAuthenticated, preferences } = useAuth();
-  const { unreadCount } = useChat({ enableWebSocket: false });
+  // const { unreadCount } = useChat({ enableWebSocket: false }); // Commented out - hook not found
+  const unreadCount = 0; // Stub for missing useChat hook
   const [input, setInput] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [showProfile, setShowProfile] = useState(false);

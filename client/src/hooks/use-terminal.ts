@@ -2770,7 +2770,11 @@ Powered by Wolfram Alpha Full Results API`);
 
     // SpiderFoot command handler
     if (lowerCmd.startsWith('spiderfoot') || lowerCmd.startsWith('spider')) {
-      // For non-command inputs, send to AI
+      addEntry('system', '🕷️ SpiderFoot OSINT tool is currently unavailable');
+      return;
+    }
+
+    // For non-command inputs, send to AI
     setIsTyping(true);
     chatMutation.mutate({ message: command, mode: currentMode });
   }, [currentMode, sessionId, commandHistory.length, addEntry, chatMutation, weatherMutation]);

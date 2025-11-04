@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -254,11 +254,7 @@ export function VoiceControls({
               </Tooltip>
 
               {/* Radio button removed - Webamp now controls animated character */}
-
-              
-              </Tooltip>
-
-              </>
+            </>
           )}
         </TooltipProvider>
 
