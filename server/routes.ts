@@ -2017,12 +2017,14 @@ function windowResized() {
   // Create HTTP server first
   const httpServer = createServer(app);
 
-  // Setup authentication asynchronously (non-blocking)
-  // This allows the server to start and respond to health checks immediately
-  setupAuth(app).catch((error) => {
+  // Setup authentication BEFORE returning (must complete before Vite middleware)
+  // This ensures auth routes are registered before the Vite catch-all route
+  try {
+    await setupAuth(app);
+  } catch (error) {
     console.error('Failed to setup authentication:', error);
     console.warn('Server will continue running without authentication');
-  });
+  }
 
   // Auth routes
   app.get('/api/auth/user', async (req, res) => {
