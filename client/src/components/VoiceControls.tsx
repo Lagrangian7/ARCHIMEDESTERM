@@ -154,11 +154,31 @@ export function VoiceControls({
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [selectedThemeIndex, setSelectedThemeIndex] = useState(0);
 
+  // Restore theme on component mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('selectedTheme');
+    const savedIndex = localStorage.getItem('selectedThemeIndex');
+    
+    if (savedTheme && savedIndex) {
+      const currentThemeClasses = THEMES.map(t => t.class);
+      document.documentElement.classList.remove(...currentThemeClasses);
+      document.documentElement.classList.add(savedTheme);
+      setSelectedThemeIndex(parseInt(savedIndex, 10));
+    }
+  }, []);
+
   const handleThemeSelect = (themeClass: string, index: number) => {
-    // Find the theme and apply it
+    // Remove all existing theme classes from the root element
     const currentThemeClasses = THEMES.map(t => t.class);
     document.documentElement.classList.remove(...currentThemeClasses);
+    
+    // Apply the new theme class
     document.documentElement.classList.add(themeClass);
+    
+    // Store the selected theme in localStorage for persistence
+    localStorage.setItem('selectedTheme', themeClass);
+    localStorage.setItem('selectedThemeIndex', index.toString());
+    
     setSelectedThemeIndex(index);
     setShowThemeMenu(false);
   };
