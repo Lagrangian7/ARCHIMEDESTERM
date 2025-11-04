@@ -138,7 +138,7 @@ export function Terminal() {
     'vaporwave', 'desert', 'toxic', 'crimson', 'lavender', 'emerald', 'midnight', 'sakura', 'copper', 'plasma',
     'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
   ], []);
-  const [currentTheme, setCurrentTheme] = useState<string>(themes[0]);
+  const [currentTheme, setCurrentTheme] = useState<string>(themes[4]); // greyscale is at index 4
 
   // Switch theme function
   const switchTheme = useCallback(() => {
