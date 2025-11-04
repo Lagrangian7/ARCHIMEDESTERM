@@ -45,6 +45,12 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
   const { data: documents = [], isLoading, error } = useQuery<Document[]>({
     queryKey: ['/api/documents'],
     retry: 1,
+    onSuccess: (data) => {
+      console.log(`📚 Loaded ${data.length} documents from knowledge base`);
+    },
+    onError: (err) => {
+      console.error('Failed to load documents:', err);
+    }
   });
 
   // Delete document mutation

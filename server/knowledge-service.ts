@@ -17,14 +17,21 @@ export class KnowledgeService {
     objectPath?: string;
   }): Promise<Document> {
     // Check if this is an audio file
-    const isAudioFile = metadata.mimeType.startsWith('audio/');
+    const isAudioFile = metadata.mimeType?.startsWith('audio/') || 
+                        metadata.originalName.match(/\.(mp3|wav|ogg|m4a)$/i);
 
     // For audio files, use empty string as content (database requires non-null)
     const documentContent = isAudioFile ? '' : (content || '');
 
     // Extract keywords and generate summary (skip for audio files)
-    const keywords = isAudioFile ? [metadata.originalName.replace(/\.(mp3|wav|ogg|m4a)$/i, '')] : this.extractKeywords(documentContent);
-    const summary = isAudioFile ? `Audio file: ${metadata.originalName}` : this.generateSummary(documentContent);
+    const keywords = isAudioFile 
+      ? [metadata.originalName.replace(/\.(mp3|wav|ogg|m4a)$/i, '')] 
+      : this.extractKeywords(documentContent);
+    const summary = isAudioFile 
+      ? `Audio file: ${metadata.originalName}` 
+      : this.generateSummary(documentContent);
+
+    console.log(`📝 Creating document: ${metadata.originalName}, isAudio: ${isAudioFile}, mimeType: ${metadata.mimeType}`);
 
     // Create document record with proper metadata
     const document = await storage.createDocument({
@@ -32,16 +39,18 @@ export class KnowledgeService {
       fileName: metadata.fileName,
       originalName: metadata.originalName,
       fileSize: metadata.fileSize,
-      mimeType: metadata.mimeType || 'application/octet-stream', // Preserve mimeType
-      objectPath: metadata.objectPath || null, // Preserve objectPath
-      content: content || '',
+      mimeType: metadata.mimeType || 'application/octet-stream',
+      objectPath: metadata.objectPath || null,
+      content: documentContent,
       summary: summary || `Audio file: ${metadata.originalName}`,
       keywords: keywords || [metadata.originalName.replace(/\.[^/.]+$/, '')],
     });
 
+    console.log(`✅ Document created with ID: ${document.id}`);
+
     // Split content into chunks for better search (skip for audio files)
-    if (!isAudioFile) {
-      await this.createKnowledgeChunks(document.id, content);
+    if (!isAudioFile && documentContent.length > 0) {
+      await this.createKnowledgeChunks(document.id, documentContent);
     }
 
     return document;

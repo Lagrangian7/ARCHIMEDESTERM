@@ -2435,7 +2435,7 @@ function windowResized() {
   });
 
   // Chat endpoint (enhanced with user support)
-  app.post("/api/chat", async (req: any, res) => {
+  app.post("/api/chat", async (req, res) => {
     try {
       const user = await getUser(req, res); // Assuming getUser is defined elsewhere and handles authentication
       if (!user) return;
@@ -2585,8 +2585,11 @@ function windowResized() {
       // Process files in parallel for better performance
       const fileProcessingPromises = req.files.map(async (file: any) => {
         try {
+          console.log(`📤 Processing file: ${file.originalname}, size: ${file.size}, mimetype: ${file.mimetype}`);
+
           // Determine if the file is an audio file (based on mimetype or extension)
-          const isAudioFile = file.mimetype.startsWith('audio/') || file.originalname.match(/\.(mp3|wav|ogg|m4a)$/i);
+          const isAudioFile = file.mimetype.startsWith('audio/') || 
+                              file.originalname.toLowerCase().match(/\.(mp3|wav|ogg|m4a)$/);
 
           // If it's an audio file, create metadata record with proper mimeType
           if (isAudioFile) {
@@ -2602,7 +2605,7 @@ function windowResized() {
               else mimeType = 'audio/mpeg'; // default
             }
 
-            console.log(`📝 Creating audio document: ${file.originalname} with mimeType: ${mimeType}`);
+            console.log(`🎵 Creating audio document: ${file.originalname} with mimeType: ${mimeType}`);
 
             // Create document with metadata - mimeType is crucial for Webamp detection
             const document = await knowledgeService.processDocument(null, {
@@ -2614,7 +2617,7 @@ function windowResized() {
               objectPath: null // Will be set by separate PUT request
             });
 
-            console.log(`✅ Document created with ID: ${document.id}, mimeType: ${document.mimeType}`);
+            console.log(`✅ Audio document created - ID: ${document.id}, name: ${document.originalName}, mimeType: ${document.mimeType}`);
 
             return {
               type: 'success',
@@ -2622,7 +2625,7 @@ function windowResized() {
                 id: document.id,
                 originalName: document.originalName,
                 fileSize: document.fileSize,
-                mimeType: document.mimeType, // Include mimeType in response
+                mimeType: document.mimeType,
                 objectPath: document.objectPath,
                 summary: document.summary,
                 keywords: document.keywords,
@@ -2637,9 +2640,11 @@ function windowResized() {
               return { type: 'error', file: file.originalname, error: "File is empty" };
             }
 
-            if (content.length > 5000000) { // 5MB text limit to match frontend
+            if (content.length > 5000000) {
               return { type: 'error', file: file.originalname, error: "File content is too large (max 5MB)" };
             }
+
+            console.log(`📄 Creating text document: ${file.originalname}`);
 
             const document = await knowledgeService.processDocument(content, {
               userId,
@@ -2648,6 +2653,8 @@ function windowResized() {
               fileSize: file.size.toString(),
               mimeType: file.mimetype,
             });
+
+            console.log(`✅ Text document created - ID: ${document.id}, name: ${document.originalName}`);
 
             return {
               type: 'success',
@@ -2662,7 +2669,7 @@ function windowResized() {
             };
           }
         } catch (fileError) {
-          console.error(`Error processing file ${file.originalname}:`, fileError);
+          console.error(`❌ Error processing file ${file.originalname}:`, fileError);
           return { type: 'error', file: file.originalname, error: "Failed to process file" };
         }
       });
@@ -3764,7 +3771,7 @@ function windowResized() {
     }
   });
 
-  app.get('/api/osint/dns/:domain', async (req, res) => {
+  app.get("/api/osint/dns/:domain", async (req, res) => {
     try {
       const { domain } = req.params;
       // DNS module imported at top of file
@@ -5618,8 +5625,7 @@ async function getUser(req: any, res: any) {
 }
 
 // Helper function to authenticate WebSocket connection (example)
-async function authenticateWebSocket(req: any) {
-  // This function should validate the session or token from the WebSocket handshake
+async function authenticateWebSocket(req: any) {  // This function should validate the session or token from the WebSocket handshake
   // For demonstration, we'll use a mock authentication check
   const session = await getSession(req); // Assuming getSession retrieves session data
   const isAuthenticated = !!session && !!session.userId;
