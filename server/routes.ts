@@ -40,7 +40,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize Archimedes AI bot
   await archimedesBotService.initializeBot();
 
-  // Create a reference for the chat WebSocket server (will be initialized later)
+  // Declare chatWss variable early - will be initialized later
   let chatWss: WebSocketServer | null = null;
 
   // Rate limiting for WebSocket messages
@@ -5323,7 +5323,7 @@ function windowResized() {
   SshwiftyService.setupStaticRoutes(app);
   console.log('Sshwifty service initialized');
 
-  // Create WebSocket server for chat system
+  // Initialize WebSocket server for chat system
   chatWss = new WebSocketServer({
     server: httpServer,
     path: '/ws/chat'
