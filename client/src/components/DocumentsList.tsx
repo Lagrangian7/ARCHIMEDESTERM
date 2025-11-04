@@ -243,6 +243,19 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
           />
         </div>
         <Button 
+          onClick={async () => {
+            const res = await fetch('/api/documents/diagnostic');
+            const data = await res.json();
+            console.log('📊 Database Diagnostic:', data);
+            alert(`Total docs in DB: ${data.totalDocuments}\nYour docs: ${data.yourDocuments}\nBy userId: ${JSON.stringify(data.documentsByUserId, null, 2)}`);
+          }}
+          variant="ghost" 
+          size="sm" 
+          className="text-terminal-highlight hover:bg-terminal-highlight/20 text-xs mr-2"
+        >
+          Check DB
+        </Button>
+        <Button 
           onClick={() => migrateMutation.mutate()}
           disabled={migrateMutation.isPending}
           variant="ghost" 

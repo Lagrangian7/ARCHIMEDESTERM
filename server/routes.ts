@@ -2777,6 +2777,36 @@ function windowResized() {
     }
   });
 
+  // Diagnostic endpoint to check all documents in database
+  app.get("/api/documents/diagnostic", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get ALL documents regardless of userId
+      const allDocs = await db.select().from(documents);
+      
+      // Group by userId
+      const byUserId: Record<string, number> = {};
+      allDocs.forEach(doc => {
+        const uid = doc.userId || 'null';
+        byUserId[uid] = (byUserId[uid] || 0) + 1;
+      });
+      
+      console.log(`📊 Total documents in database: ${allDocs.length}`);
+      console.log(`📊 Documents by userId:`, byUserId);
+      
+      res.json({
+        totalDocuments: allDocs.length,
+        yourDocuments: allDocs.filter(d => d.userId === userId).length,
+        documentsByUserId: byUserId,
+        yourUserId: userId
+      });
+    } catch (error) {
+      console.error("Diagnostic error:", error);
+      res.status(500).json({ error: "Failed to run diagnostic" });
+    }
+  });
+
   // Get user documents
   app.get("/api/documents", isAuthenticated, async (req: any, res) => {
     try {
