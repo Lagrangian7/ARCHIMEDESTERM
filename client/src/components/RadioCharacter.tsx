@@ -9,12 +9,12 @@ export function RadioCharacter({ isRadioPlaying }: RadioCharacterProps) {
   const [showCharacter, setShowCharacter] = useState(false);
   const [glitchActive, setGlitchActive] = useState(false);
   const [glitchIntensity, setGlitchIntensity] = useState(1);
-  
+
   // Drag state management
   const [position, setPosition] = useState({ x: window.innerWidth - 220, y: 16 }); // Default top-right position
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  
+
   useEffect(() => {
     if (isRadioPlaying) {
       setShowCharacter(true);
@@ -34,13 +34,13 @@ export function RadioCharacter({ isRadioPlaying }: RadioCharacterProps) {
   // Random glitch effects for radio aesthetic
   useEffect(() => {
     if (!showCharacter) return;
-    
+
     const glitchInterval = setInterval(() => {
       // Random chance for glitch effect (25% chance every 3-5 seconds)
       if (Math.random() < 0.25) {
         setGlitchActive(true);
         setGlitchIntensity(Math.random() * 2 + 1); // Intensity between 1-3
-        
+
         // Glitch duration between 150-600ms
         const glitchDuration = Math.random() * 450 + 150;
         setTimeout(() => {
@@ -48,7 +48,7 @@ export function RadioCharacter({ isRadioPlaying }: RadioCharacterProps) {
         }, glitchDuration);
       }
     }, Math.random() * 2000 + 3000); // Every 3-5 seconds
-    
+
     return () => clearInterval(glitchInterval);
   }, [showCharacter]);
 
@@ -71,7 +71,7 @@ export function RadioCharacter({ isRadioPlaying }: RadioCharacterProps) {
     // Boundary constraints to keep character on screen
     const maxX = window.innerWidth - 192; // 192px is w-48 (12rem * 16px)
     const maxY = window.innerHeight - 192;
-    
+
     setPosition({
       x: Math.max(0, Math.min(newX, maxX)),
       y: Math.max(0, Math.min(newY, maxY))
@@ -125,14 +125,9 @@ export function RadioCharacter({ isRadioPlaying }: RadioCharacterProps) {
             loop
             muted
             playsInline
-            className={`w-full h-full object-cover transition-all duration-300 animate-pulse scale-105 ${
-              glitchActive ? 'brightness-125 contrast-125' : ''
-            }`}
-            style={{
-              filter: glitchActive ? `saturate(${1 + glitchIntensity}) blur(${glitchIntensity * 0.3}px)` : 'none'
-            }}
+            className="w-full h-full object-cover transition-all duration-300 animate-pulse scale-105"
           />
-          
+
           {/* Digital Glitch Overlay for Radio */}
           {glitchActive && (
             <div className="absolute inset-0">
@@ -149,7 +144,7 @@ export function RadioCharacter({ isRadioPlaying }: RadioCharacterProps) {
                   )`
                 }}
               />
-              
+
               {/* Radio static bars */}
               <div 
                 className="absolute w-full opacity-50"
@@ -162,7 +157,7 @@ export function RadioCharacter({ isRadioPlaying }: RadioCharacterProps) {
               />
             </div>
           )}
-          
+
           {/* Radio Wave Animation Overlay */}
           <div className="absolute inset-0">
             {/* Animated radio waves */}
@@ -184,7 +179,7 @@ export function RadioCharacter({ isRadioPlaying }: RadioCharacterProps) {
                 ))}
               </div>
             </div>
-            
+
             {/* Broadcasting indicator */}
             <div className="absolute bottom-4 right-4">
               <div className="flex items-center space-x-1">
@@ -193,7 +188,7 @@ export function RadioCharacter({ isRadioPlaying }: RadioCharacterProps) {
               </div>
             </div>
           </div>
-          
+
           {/* Overlay Effects */}
           <div className={`absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent transition-all duration-200 ${
             glitchActive ? 'bg-gradient-to-br from-red-500/15 via-orange-500/10 to-yellow-500/5' : ''
@@ -203,7 +198,7 @@ export function RadioCharacter({ isRadioPlaying }: RadioCharacterProps) {
 
         {/* Glowing Ring Effect for Radio */}
         <div className="absolute inset-0 rounded-full ring-2 ring-orange-400/20 animate-ping transition-all duration-1000" />
-        
+
         {/* Additional radio frequency rings */}
         <div className="absolute inset-0 rounded-full">
           <div className="absolute inset-2 rounded-full ring-1 ring-orange-300/10 animate-pulse" 
