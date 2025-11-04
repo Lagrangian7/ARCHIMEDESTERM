@@ -2770,31 +2770,7 @@ Powered by Wolfram Alpha Full Results API`);
 
     // SpiderFoot command handler
     if (lowerCmd.startsWith('spiderfoot') || lowerCmd.startsWith('spider')) {
-      const parts = cmd.split(/\s+/);
-      if (parts.length < 2) {
-        addEntry('error', '❌ Usage: spiderfoot <target> [scan_type]\n\nExample: spiderfoot example.com footprint\n\nScan types: footprint, investigate, passive, all');
-        return;
-      }
-
-      const target = parts[1];
-      const scanType = parts[2] || 'footprint';
-
-      addEntry('system', `🕷️ Launching SpiderFoot for target: ${target}\n\nOpening OSINT automation interface...`);
-
-      // Trigger SpiderFoot modal to open
-      setTimeout(() => {
-        const openSpiderFoot = (window as any).openSpiderFoot;
-        if (openSpiderFoot) {
-          openSpiderFoot(target, scanType);
-        } else {
-          addEntry('error', 'SpiderFoot interface not available. Please ensure the system is loaded.');
-        }
-      }, 50);
-      return;
-    }
-
-
-    // For non-command inputs, send to AI
+      // For non-command inputs, send to AI
     setIsTyping(true);
     chatMutation.mutate({ message: command, mode: currentMode });
   }, [currentMode, sessionId, commandHistory.length, addEntry, chatMutation, weatherMutation]);

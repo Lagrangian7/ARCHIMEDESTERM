@@ -10,20 +10,13 @@ import {
   type InsertDocument,
   type KnowledgeChunk,
   type InsertKnowledgeChunk,
-  type UserPresence,
-  type InsertUserPresence,
-  type DirectChat,
-  type InsertDirectChat,
-  type UserMessage,
-  type InsertUserMessage,
   users,
   userPreferences,
   conversations,
   documents,
   knowledgeChunks,
-  userPresence,
-  directChats,
-  userMessages
+  mudProfiles,
+  mudSessions
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -63,35 +56,18 @@ export interface IStorage {
   searchKnowledgeChunks(userId: string, query: string): Promise<KnowledgeChunk[]>;
   deleteDocumentChunks(documentId: string): Promise<void>;
 
-  // User presence methods
-  updateUserPresence(userId: string, isOnline: boolean, socketId?: string): Promise<UserPresence>;
-  getUserPresence(userId: string): Promise<UserPresence | undefined>;
-  getOnlineUsers(): Promise<(User & { presence: UserPresence })[]>;
-  setUserOffline(socketId: string): Promise<void>;
-
-  // Direct chat methods
-  getOrCreateDirectChat(user1Id: string, user2Id: string): Promise<DirectChat>;
-  getUserDirectChats(userId: string): Promise<(DirectChat & { otherUser: User; lastMessage?: UserMessage })[]>;
-
-  // Message methods
-  sendMessage(message: InsertUserMessage): Promise<UserMessage>;
-  getChatMessages(chatId: string, limit?: number): Promise<UserMessage[]>;
-  markMessageAsRead(messageId: string): Promise<void>;
-  markMessagesAsDelivered(userId: string): Promise<void>;
-  getUnreadMessageCount(userId: string): Promise<number>;
-
-  // MUD profile methods (not implemented - tables not in schema)
-  createMudProfile(profile: any): Promise<any>;
-  getUserMudProfiles(userId: string): Promise<any[]>;
-  getMudProfile(id: string): Promise<any | undefined>;
-  updateMudProfile(id: string, updates: any): Promise<any>;
+  // MUD profile methods
+  createMudProfile(profile: InsertMudProfile): Promise<MudProfile>;
+  getUserMudProfiles(userId: string): Promise<MudProfile[]>;
+  getMudProfile(id: string): Promise<MudProfile | undefined>;
+  updateMudProfile(id: string, updates: Partial<InsertMudProfile>): Promise<MudProfile>;
   deleteMudProfile(id: string): Promise<void>;
 
-  // MUD session methods (not implemented - tables not in schema)
-  createMudSession(session: any): Promise<any>;
-  getMudSession(sessionId: string): Promise<any | undefined>;
-  getUserMudSessions(userId: string): Promise<any[]>;
-  updateMudSession(id: string, updates: any): Promise<any>;
+  // MUD session methods
+  createMudSession(session: InsertMudSession): Promise<MudSession>;
+  getMudSession(sessionId: string): Promise<MudSession | undefined>;
+  getUserMudSessions(userId: string): Promise<MudSession[]>;
+  updateMudSession(id: string, updates: Partial<InsertMudSession>): Promise<MudSession>;
   closeMudSession(sessionId: string): Promise<void>;
 }
 
@@ -590,46 +566,123 @@ export class MemStorage implements IStorage {
       .length;
   }
 
-  // MUD profile methods implementation (not implemented - tables not in schema)
-  async createMudProfile(profile: any): Promise<any> {
-    throw new Error('MUD profiles not implemented');
+  // MUD profile methods implementation (memory storage)
+  async createMudProfile(profile: InsertMudProfile): Promise<MudProfile> {
+    if (!profile.userId) {
+      throw new Error('User ID is required for MUD profile');
+    }
+    const id = randomUUID();
+    const now = new Date();
+    const mudProfile: MudProfile = {
+      id,
+      userId: profile.userId,
+      name: profile.name,
+      host: profile.host,
+      port: profile.port,
+      description: profile.description || null,
+      aliases: profile.aliases || {},
+      triggers: profile.triggers || [],
+      macros: profile.macros || {},
+      autoConnect: profile.autoConnect ?? false,
+      theme: profile.theme || "classic",
+      fontSize: profile.fontSize || "14",
+      scrollbackLines: profile.scrollbackLines || "1000",
+      enableAnsi: profile.enableAnsi ?? true,
+      enableTriggers: profile.enableTriggers ?? true,
+      enableAliases: profile.enableAliases ?? true,
+      enableLog: profile.enableLog ?? false,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.mudProfiles.set(id, mudProfile);
+    return mudProfile;
   }
 
-  async getUserMudProfiles(userId: string): Promise<any[]> {
-    return [];
+  async getUserMudProfiles(userId: string): Promise<MudProfile[]> {
+    return Array.from(this.mudProfiles.values())
+      .filter(profile => profile.userId === userId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
-  async getMudProfile(id: string): Promise<any | undefined> {
-    return undefined;
+  async getMudProfile(id: string): Promise<MudProfile | undefined> {
+    return this.mudProfiles.get(id);
   }
 
-  async updateMudProfile(id: string, updates: any): Promise<any> {
-    throw new Error('MUD profiles not implemented');
+  async updateMudProfile(id: string, updates: Partial<InsertMudProfile>): Promise<MudProfile> {
+    const existing = this.mudProfiles.get(id);
+    if (!existing) {
+      throw new Error(`MUD profile with id ${id} not found`);
+    }
+    const updated: MudProfile = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.mudProfiles.set(id, updated);
+    return updated;
   }
 
   async deleteMudProfile(id: string): Promise<void> {
-    // No-op
+    this.mudProfiles.delete(id);
   }
 
-  // MUD session methods implementation (not implemented - tables not in schema)
-  async createMudSession(session: any): Promise<any> {
-    throw new Error('MUD sessions not implemented');
+  // MUD session methods implementation (memory storage)
+  async createMudSession(session: InsertMudSession): Promise<MudSession> {
+    if (!session.userId) {
+      throw new Error('User ID is required for MUD session');
+    }
+    const id = randomUUID();
+    const now = new Date();
+    const mudSession: MudSession = {
+      id,
+      userId: session.userId,
+      profileId: session.profileId || null,
+      sessionId: session.sessionId,
+      status: session.status || "disconnected",
+      connectTime: session.connectTime || null,
+      disconnectTime: session.disconnectTime || null,
+      lastActivity: session.lastActivity || now,
+      bytesReceived: session.bytesReceived || "0",
+      bytesSent: session.bytesSent || "0",
+      commandCount: session.commandCount || "0",
+      errorMessage: session.errorMessage || null,
+      createdAt: now,
+    };
+    this.mudSessions.set(id, mudSession);
+    return mudSession;
   }
 
-  async getMudSession(sessionId: string): Promise<any | undefined> {
-    return undefined;
+  async getMudSession(sessionId: string): Promise<MudSession | undefined> {
+    return Array.from(this.mudSessions.values())
+      .find(session => session.sessionId === sessionId);
   }
 
-  async getUserMudSessions(userId: string): Promise<any[]> {
-    return [];
+  async getUserMudSessions(userId: string): Promise<MudSession[]> {
+    return Array.from(this.mudSessions.values())
+      .filter(session => session.userId === userId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
   }
 
-  async updateMudSession(id: string, updates: any): Promise<any> {
-    throw new Error('MUD sessions not implemented');
+  async updateMudSession(id: string, updates: Partial<InsertMudSession>): Promise<MudSession> {
+    const existing = this.mudSessions.get(id);
+    if (!existing) {
+      throw new Error(`MUD session with id ${id} not found`);
+    }
+    const updated: MudSession = {
+      ...existing,
+      ...updates,
+    };
+    this.mudSessions.set(id, updated);
+    return updated;
   }
 
   async closeMudSession(sessionId: string): Promise<void> {
-    // No-op
+    const session = Array.from(this.mudSessions.values())
+      .find(s => s.sessionId === sessionId);
+    if (session) {
+      session.status = "disconnected";
+      session.disconnectTime = new Date();
+    }
   }
 }
 
@@ -1053,46 +1106,90 @@ export class DatabaseStorage implements IStorage {
     return parseInt(result[0].count as string) || 0;
   }
 
-  // MUD profile methods implementation (commented out - tables not in schema)
-  async createMudProfile(profile: any): Promise<any> {
-    throw new Error('MUD profiles not implemented');
+  // MUD profile methods implementation
+  async createMudProfile(profile: InsertMudProfile): Promise<MudProfile> {
+    const [created] = await db
+      .insert(mudProfiles)
+      .values(profile)
+      .returning();
+    return created;
   }
 
-  async getUserMudProfiles(userId: string): Promise<any[]> {
-    return [];
+  async getUserMudProfiles(userId: string): Promise<MudProfile[]> {
+    return await db
+      .select()
+      .from(mudProfiles)
+      .where(eq(mudProfiles.userId, userId))
+      .orderBy(desc(mudProfiles.createdAt));
   }
 
-  async getMudProfile(id: string): Promise<any | undefined> {
-    return undefined;
+  async getMudProfile(id: string): Promise<MudProfile | undefined> {
+    const [profile] = await db
+      .select()
+      .from(mudProfiles)
+      .where(eq(mudProfiles.id, id))
+      .limit(1);
+    return profile;
   }
 
-  async updateMudProfile(id: string, updates: any): Promise<any> {
-    throw new Error('MUD profiles not implemented');
+  async updateMudProfile(id: string, updates: Partial<InsertMudProfile>): Promise<MudProfile> {
+    const [updated] = await db
+      .update(mudProfiles)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(mudProfiles.id, id))
+      .returning();
+    return updated;
   }
 
   async deleteMudProfile(id: string): Promise<void> {
-    // No-op
+    await db
+      .delete(mudProfiles)
+      .where(eq(mudProfiles.id, id));
   }
 
-  // MUD session methods implementation (commented out - tables not in schema)
-  async createMudSession(session: any): Promise<any> {
-    throw new Error('MUD sessions not implemented');
+  // MUD session methods implementation
+  async createMudSession(session: InsertMudSession): Promise<MudSession> {
+    const [created] = await db
+      .insert(mudSessions)
+      .values(session)
+      .returning();
+    return created;
   }
 
-  async getMudSession(sessionId: string): Promise<any | undefined> {
-    return undefined;
+  async getMudSession(sessionId: string): Promise<MudSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(mudSessions)
+      .where(eq(mudSessions.sessionId, sessionId))
+      .limit(1);
+    return session;
   }
 
-  async getUserMudSessions(userId: string): Promise<any[]> {
-    return [];
+  async getUserMudSessions(userId: string): Promise<MudSession[]> {
+    return await db
+      .select()
+      .from(mudSessions)
+      .where(eq(mudSessions.userId, userId))
+      .orderBy(desc(mudSessions.createdAt));
   }
 
-  async updateMudSession(id: string, updates: any): Promise<any> {
-    throw new Error('MUD sessions not implemented');
+  async updateMudSession(id: string, updates: Partial<InsertMudSession>): Promise<MudSession> {
+    const [updated] = await db
+      .update(mudSessions)
+      .set(updates)
+      .where(eq(mudSessions.id, id))
+      .returning();
+    return updated;
   }
 
   async closeMudSession(sessionId: string): Promise<void> {
-    // No-op
+    await db
+      .update(mudSessions)
+      .set({
+        status: "disconnected",
+        disconnectTime: new Date(),
+      })
+      .where(eq(mudSessions.sessionId, sessionId));
   }
 }
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, MessageSquare, Terminal as TerminalIcon, Shield, Search, FileText } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from '@/components/Terminal';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
-import { SshwiftyInterface } from './SshwiftyInterface';
-import { SpiderFoot } from './SpiderFoot';
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
@@ -257,44 +255,10 @@ export function VoiceControls({
 
               {/* Radio button removed - Webamp now controls animated character */}
 
-              {/* SSH/Telnet Button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => setShowSshwiftyLocal(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
-                    data-testid="button-sshwifty"
-                    aria-label="SSH/Telnet"
-                  >
-                    <TerminalIcon size={16} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>SSH/Telnet</p>
-                </TooltipContent>
+              
               </Tooltip>
 
-              {/* OSINT Button - launches SpiderFoot */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => setShowSpiderFoot(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
-                    data-testid="button-spiderfoot"
-                    aria-label="SpiderFoot"
-                  >
-                    <Search size={16} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>SpiderFoot</p>
-                </TooltipContent>
-              </Tooltip>
-            </>
+              </>
           )}
         </TooltipProvider>
 
@@ -354,26 +318,6 @@ export function VoiceControls({
 
       {showPrivacyEncoder && (
         <EncodeDecodeOverlay isOpen={showPrivacyEncoder} onClose={() => setShowPrivacyEncoderLocal(false)} />
-      )}
-
-      {/* Sshwifty Modal */}
-      {showSshwifty && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-          onClick={() => setShowSshwiftyLocal(false)}
-        >
-          <div
-            className="w-full max-w-4xl h-[80vh] bg-terminal-bg border-2 border-terminal-highlight rounded-lg overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <SshwiftyInterface onClose={() => setShowSshwiftyLocal(false)} />
-          </div>
-        </div>
-      )}
-
-      {/* SpiderFoot Modal */}
-      {showSpiderFoot && (
-        <SpiderFoot onClose={() => setShowSpiderFoot(false)} />
       )}
     </div>
   );
