@@ -494,6 +494,7 @@ export function Terminal() {
             setShowChat={setShowChat}
             unreadCount={unreadCount}
             setShowNotepad={setShowNotepad}
+            setShowPythonIDE={setShowPythonIDE} // Pass the prop to control Python IDE visibility
             openPythonLessons={ () => setShowPythonLessons(true) } // Add callback for Python Lessons
           />
         </div>
