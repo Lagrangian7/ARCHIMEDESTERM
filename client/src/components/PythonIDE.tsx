@@ -2154,7 +2154,6 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 </div>
               </ScrollArea>
             </div>
-            </div>
           </div>
         </div>
 
