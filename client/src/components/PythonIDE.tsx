@@ -1872,7 +1872,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             )}
 
             {/* Editor/Output Section */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0">
             {/* Archimedes Guidance Panel */}
             {showGuidance && (
               <div className="p-4 bg-[var(--terminal-highlight)]/5 border-b border-[var(--terminal-highlight)]/30">
@@ -1927,10 +1927,11 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             )}
 
             {/* Editor */}
-            <div className="flex-1 border-b border-[var(--terminal-highlight)]/30">
-              <div className="h-full">
+            <div className="flex-1 border-b border-[var(--terminal-highlight)]/30 min-h-0">
+              <div className="h-full w-full relative">
                 <Editor
                   height="100%"
+                  width="100%"
                   defaultLanguage="python"
                   value={code}
                   onChange={(value) => setCode(value || '')}
