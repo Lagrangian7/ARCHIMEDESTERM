@@ -8,7 +8,7 @@ import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import cubesIcon from '@assets/cubes_1758504853239.png';
-import { LogoIcon } from '@/components/Terminal';
+import { LogoIcon } from './LogoIcon';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 
 interface VoiceControlsProps {

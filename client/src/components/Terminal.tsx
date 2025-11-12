@@ -42,25 +42,8 @@ import invadersIcon from '@assets/invaders_1758659503566.png';
 import archyLogo from '@assets/archy111_1760233943010.jpeg';
 import wallpaperImage from '../assets/terminal-bg-new.png';
 
-// Logo Component
-export const LogoIcon = memo(() => (
-  <img
-    src={logoImage}
-    alt="ARCHIMEDES Logo"
-    width="32"
-    height="32"
-    className="logo-icon"
-    style={{
-      display: 'block',
-      visibility: 'visible',
-      opacity: 1,
-      backgroundColor: 'var(--terminal-logo-green)',
-      border: '2px solid var(--terminal-logo-orange)',
-      borderRadius: '6px',
-      boxShadow: '0 0 8px var(--terminal-logo-green), 0 0 16px var(--terminal-logo-green)'
-    }}
-  />
-));
+// Import LogoIcon from its own file to break circular dependency
+import { LogoIcon } from './LogoIcon';
 
 export function Terminal() {
   const {

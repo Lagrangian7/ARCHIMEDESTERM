@@ -18,8 +18,6 @@ import { scholarService } from "./scholar-service";
 import multer from "multer";
 import { z } from "zod";
 import compression from "compression";
-import { spiderFootService } from "./spiderfoot-service";
-
 export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check endpoint - MUST be first, before any middleware
@@ -2136,7 +2134,7 @@ function windowResized() {
         return res.status(400).json({ error: "Invalid mode" });
       }
 
-      const currentSessionId = randomUUID(); // TODO: Use sessionId from req.body if provided
+      const currentSessionId = req.body.sessionId || randomUUID();
 
       // Add user message to conversation
       const userMessage: Message = {
