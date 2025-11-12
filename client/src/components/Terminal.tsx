@@ -105,15 +105,10 @@ export function Terminal() {
     (window as any).openPythonIDE = () => setShowPythonIDE(true);
     (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
 
-    // Load saved background on mount
-    const savedBg = localStorage.getItem('terminal-background-url');
-    if (savedBg) {
-      setCustomBackgroundUrl(savedBg);
-    }
-
     // Listen for background change events
     const handleBackgroundChange = (event: CustomEvent) => {
-      setCustomBackgroundUrl(event.detail);
+      const newUrl = event.detail;
+      setCustomBackgroundUrl(newUrl);
     };
 
     window.addEventListener('terminal-background-change', handleBackgroundChange as EventListener);
@@ -150,7 +145,10 @@ export function Terminal() {
   const [showNotepad, setShowNotepad] = useState(false);
   const [showPythonIDE, setShowPythonIDE] = useState(false);
   const [showBackgroundManager, setShowBackgroundManager] = useState(false);
-  const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>('');
+  const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>(() => {
+    // Load saved background on mount
+    return localStorage.getItem('terminal-background-url') || '';
+  });
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
 
@@ -458,7 +456,7 @@ export function Terminal() {
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={{
-        backgroundImage: customBackgroundUrl ? `url(${customBackgroundUrl})` : `url(${wallpaperImage})`,
+        backgroundImage: `url(${customBackgroundUrl || wallpaperImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
