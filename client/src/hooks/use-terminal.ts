@@ -635,6 +635,7 @@ Games:
 System Commands:
   privacy - Activate matrix rain privacy screen (type "QWERTY" to unlock)
   xx - Activate screensaver manually
+  bg - Open background manager for custom wallpapers
 
 Knowledge Base Commands:
   docs - List your uploaded documents
@@ -813,9 +814,24 @@ Code Execution:
       case 'pythonide':
       case 'learnpython':
       case 'pyide':
-        (window as any).openPythonIDE?.();
-        addEntry('system', '🐍 Opening Python Learning IDE...\n\nFeatures:\n• Interactive code editor with syntax highlighting\n• Pre-loaded examples and tutorials\n• Live code execution\n• Perfect for learning Python basics!');
-        break;
+        addEntry('system', '🐍 Launching Python IDE...');
+        const openPythonIDE = (window as any).openPythonIDE;
+        if (openPythonIDE) {
+          openPythonIDE();
+        } else {
+          addEntry('error', 'Python IDE not available. Please ensure the system is loaded.');
+        }
+        return;
+
+      case 'bg':
+        addEntry('system', '🖼️  Opening Background Manager...\n\nUpload custom wallpapers and manage your terminal background.\n\n• Drag & drop images\n• Store up to 10 wallpapers\n• Click to apply');
+        const openBackgroundManager = (window as any).openBackgroundManager;
+        if (openBackgroundManager) {
+          openBackgroundManager();
+        } else {
+          addEntry('error', 'Background Manager not available. Please ensure the system is loaded.');
+        }
+        return;
     }
 
     if (cmd.startsWith('mode ')) {

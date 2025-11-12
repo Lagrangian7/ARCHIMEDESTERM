@@ -692,6 +692,16 @@ const helpMenuItems: HelpMenuItem[] = [
     description: 'Show recent command history',
     command: 'history',
     icon: <TerminalIcon size={16} />
+  },
+
+  // Background Manager
+  {
+    id: 'bg',
+    category: 'System',
+    title: 'Background Manager',
+    description: 'Open background manager to upload and select wallpapers',
+    command: 'bg',
+    icon: <TerminalIcon size={16} />
   }
 ];
 

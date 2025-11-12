@@ -24,6 +24,7 @@ import { TheHarvester } from './TheHarvester';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { PythonIDE } from './PythonIDE';
 import { CodePreview } from './CodePreview';
+import { BackgroundManager } from './BackgroundManager';
 import WebampPlayer from './WebampPlayer';
 import AJVideoPopup from './AJVideoPopup';
 import { MusicUpload } from './MusicUpload'; // Import the new MusicUpload component
@@ -102,6 +103,13 @@ export function Terminal() {
     (window as any).openAJVideo = () => setShowAJVideo(true);
     (window as any).openSpacewars = () => setShowSpacewars(true);
     (window as any).openPythonIDE = () => setShowPythonIDE(true);
+    (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
+
+    // Load saved background on mount
+    const savedBg = localStorage.getItem('terminal-background-url');
+    if (savedBg) {
+      setCustomBackgroundUrl(savedBg);
+    }
   }, []);
 
   const { speak, isSpeaking } = useSpeech();
@@ -131,6 +139,8 @@ export function Terminal() {
   const [showSpacewars, setShowSpacewars] = useState(false);
   const [showNotepad, setShowNotepad] = useState(false);
   const [showPythonIDE, setShowPythonIDE] = useState(false);
+  const [showBackgroundManager, setShowBackgroundManager] = useState(false);
+  const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>('');
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
 
@@ -438,7 +448,7 @@ export function Terminal() {
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={{
-        backgroundImage: `url(${wallpaperImage})`,
+        backgroundImage: customBackgroundUrl ? `url(${customBackgroundUrl})` : `url(${wallpaperImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -878,6 +888,14 @@ export function Terminal() {
       {/* Python IDE */}
       {showPythonIDE && (
         <PythonIDE onClose={() => setShowPythonIDE(false)} />
+      )}
+
+      {/* Background Manager */}
+      {showBackgroundManager && (
+        <BackgroundManager
+          onClose={() => setShowBackgroundManager(false)}
+          onBackgroundChange={(url) => setCustomBackgroundUrl(url)}
+        />
       )}
     </div>
   );
