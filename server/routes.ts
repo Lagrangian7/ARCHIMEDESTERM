@@ -2686,11 +2686,22 @@ function windowResized() {
   // Save a note
   app.post("/api/notes", isAuthenticated, async (req: any, res) => {
     try {
+      // Ensure user is authenticated
+      if (!req.user?.claims?.sub) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
       const userId = req.user.claims.sub;
       const { title, content } = req.body;
 
-      if (!title || !content) {
-        return res.status(400).json({ error: "Title and content are required" });
+      console.log('📝 Saving note:', { userId, titleLength: title?.length, contentLength: content?.length });
+
+      if (!title || typeof title !== 'string' || title.trim().length === 0) {
+        return res.status(400).json({ error: "Valid title is required" });
+      }
+
+      if (!content || typeof content !== 'string' || content.trim().length === 0) {
+        return res.status(400).json({ error: "Valid content is required" });
       }
 
       const fileName = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.txt`;
@@ -2699,12 +2710,14 @@ function windowResized() {
         userId,
         fileName,
         originalName: title,
-        fileSize: content.length.toString(),
+        fileSize: Buffer.byteLength(content, 'utf8').toString(),
         mimeType: 'text/plain',
       });
 
       // Mark as note
       await storage.updateDocument(document.id, { isNote: true });
+
+      console.log('✅ Note saved successfully:', document.id);
 
       res.json({ 
         success: true, 
@@ -2712,8 +2725,11 @@ function windowResized() {
         message: "Note saved to knowledge base" 
       });
     } catch (error) {
-      console.error("Save note error:", error);
-      res.status(500).json({ error: "Failed to save note" });
+      console.error("❌ Save note error:", error);
+      res.status(500).json({ 
+        error: "Failed to save note",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

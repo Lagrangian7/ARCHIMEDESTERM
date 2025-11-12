@@ -14,6 +14,9 @@ interface DraggableResponseProps {
 export function DraggableResponse({ children, isTyping, entryId, onBubbleRendered }: DraggableResponseProps) {
   const { toast } = useToast();
 
+  // State to track if the response has been saved
+  const [isSaved, setIsSaved] = useState(false);
+
   // Drag state management
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null); // Null until calculated
   const [isDragging, setIsDragging] = useState(false);
@@ -51,46 +54,57 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       // Try to extract text content
       let textContent = extractTextContent(children);
 
-      // If extraction failed, try to get it directly from the rendered DOM element
-      if (!textContent || !textContent.trim()) {
-        const floatingDiv = document.querySelector(`[data-testid="draggable-response-${entryId}"]`);
-        if (floatingDiv) {
-          const contentDiv = floatingDiv.querySelector('[data-no-drag]')?.parentElement?.querySelector('div');
-          if (contentDiv) {
-            textContent = contentDiv.textContent || contentDiv.innerText || '';
-          }
+      // If extraction failed or content is too short, use a fallback
+      if (!textContent || textContent.length < 10) {
+        // Try to get the raw string representation
+        if (typeof children === 'string') {
+          textContent = children;
+        } else {
+          // Last resort - stringify the content
+          textContent = JSON.stringify(children);
         }
       }
 
-      // Final validation
-      if (!textContent || !textContent.trim()) {
-        console.error('Failed to extract content from children:', children);
-        throw new Error('Unable to extract text content from response. Please try again.');
+      // Ensure content is valid
+      if (!textContent || textContent.trim().length === 0) {
+        throw new Error('No valid content to save');
       }
 
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const filename = `archimedes-response-${timestamp}.txt`;
+      console.log('Saving to knowledge base:', textContent.substring(0, 100));
 
-      const response = await apiRequest('POST', '/api/documents/save-text', {
-        content: textContent.trim(),
-        filename: filename,
+      const response = await fetch('/api/notes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          title: `AI Response - ${new Date().toLocaleString()}`,
+          content: textContent,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Save failed:', response.status, errorData);
+        throw new Error(errorData.error || `Save failed: ${response.status}`);
+      }
+
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast({
-        title: 'Saved to Knowledge Base',
-        description: `Response saved as ${data.document.originalName}`,
+        title: "Saved to Knowledge Base",
+        description: "Response has been saved successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      // Dismiss the bubble after successful save
-      setShowFloating(false);
+      setIsSaved(true);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
+      console.error('Save mutation error:', error);
       toast({
-        title: 'Save Failed',
-        description: error.message || 'Failed to save to knowledge base',
-        variant: 'destructive',
+        title: "Save Failed",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
@@ -127,7 +141,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       y = Math.max(padding, Math.min(y, maxY));
 
       setPosition({ x, y });
-      
+
       // Notify parent that bubble is positioned and ready
       onBubbleRendered?.();
     }
@@ -185,26 +199,26 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
           variant: 'destructive',
         });
       });
-  }, [children, entryId, toast, extractTextContent]);
+  }, [children, entryId, toast]); // Removed extractTextContent from dependency array as it's defined in scope
 
   // Double-click handler to save and dismiss the bubble
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Don't allow double-click if already saving
-    if (saveMutation.isPending) return;
+    // Don't allow double-click if already saving or already saved
+    if (saveMutation.isPending || isSaved) return;
 
     // Save to knowledge base (the mutation will auto-dismiss on success)
     saveMutation.mutate();
-  }, [saveMutation]);
+  }, [saveMutation, isSaved]); // Added isSaved to dependency array
 
   // Drag functionality - similar to RadioCharacter
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     // Don't start dragging if clicking on a button or in the action buttons area
     const target = e.target as HTMLElement;
     if (
-      target.tagName === 'BUTTON' || 
+      target.tagName === 'BUTTON' ||
       target.closest('button') ||
       target.closest('[data-no-drag]')
     ) {
@@ -255,7 +269,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
   return (
     <>
       {/* Original response in place (always hidden to avoid duplication) */}
-      <div 
+      <div
         ref={responseElementRef}
         className="opacity-0 pointer-events-none h-0 overflow-hidden"
       >
@@ -264,7 +278,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
 
       {/* Floating draggable version - always visible */}
       {position && (
-        <div 
+        <div
           className="fixed z-50 cursor-move"
           style={{
             left: position.x,
@@ -319,11 +333,11 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (!saveMutation.isPending) {
+                    if (!saveMutation.isPending && !isSaved) { // Prevent saving if already saved
                       saveMutation.mutate();
                     }
                   }}
-                  disabled={saveMutation.isPending}
+                  disabled={saveMutation.isPending || isSaved} // Disable if pending or already saved
                   className="text-terminal-highlight hover:text-terminal-bright-green transition-colors disabled:opacity-50 cursor-pointer p-1 z-10"
                   title="Save to knowledge base"
                   data-testid={`save-response-${entryId}`}
@@ -338,7 +352,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
               </div>
 
               {/* Glowing border effect */}
-              <div className="absolute inset-0 rounded-lg ring-1 ring-terminal-highlight/20 animate-pulse" 
+              <div className="absolute inset-0 rounded-lg ring-1 ring-terminal-highlight/20 animate-pulse"
                    style={{ animationDuration: '2s' }} />
             </div>
           </div>
