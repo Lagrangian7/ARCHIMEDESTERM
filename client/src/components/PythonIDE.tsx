@@ -1619,6 +1619,23 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const editorRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
+  // Get current theme from body class
+  const [currentTheme, setCurrentTheme] = useState('');
+  
+  useEffect(() => {
+    const updateTheme = () => {
+      const bodyClasses = document.body.className;
+      const themeClass = bodyClasses.split(' ').find(cls => cls.startsWith('theme-'));
+      setCurrentTheme(themeClass || 'theme-green');
+    };
+    
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    
+    return () => observer.disconnect();
+  }, []);
+
   // Save session to localStorage whenever state changes
   useEffect(() => {
     const session: PythonSession = {
@@ -1724,7 +1741,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+      className={`fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 ${currentTheme}`}
       data-no-terminal-autofocus
     >
       <div className="w-full h-full max-w-7xl max-h-[90vh] bg-[var(--terminal-bg)] border-2 border-[var(--terminal-highlight)] rounded-lg overflow-hidden shadow-2xl flex flex-col">
