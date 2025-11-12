@@ -3,6 +3,8 @@ import express from "express";
 import path from "path";
 import { createServer, type Server } from "http";
 import https from "https";
+import { promisify } from "util";
+import { exec } from "child_process";
 import { storage } from "./storage";
 import { messageSchema, type Message, insertUserPreferencesSchema, insertDocumentSchema } from "@shared/schema";
 import { randomUUID } from "crypto";
