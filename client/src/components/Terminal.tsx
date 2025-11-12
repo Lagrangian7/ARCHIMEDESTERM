@@ -439,10 +439,13 @@ export function Terminal() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
+        backgroundAttachment: 'fixed',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)'
       }}>
-        {/* Matrix Rain Background Effect */}
-        <MemoizedMatrixRain />
+        {/* Matrix Rain Background Effect - with reduced opacity to show wallpaper */}
+        <div style={{ opacity: 0.3 }}>
+          <MemoizedMatrixRain />
+        </div>
 
         {/* Voice Controls - Fixed at top */}
         <div className="flex-shrink-0">

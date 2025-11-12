@@ -92,8 +92,8 @@ export function MatrixRain() {
       }
       lastFrameTime = currentTime;
 
-      // Clear canvas
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; // Fading effect
+      // Clear canvas with more transparency to show wallpaper
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.02)'; // Lighter fading effect for wallpaper visibility
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.font = `${fontSize}px 'Invaders from Space', monospace`; // Set font
