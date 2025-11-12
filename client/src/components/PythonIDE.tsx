@@ -2,8 +2,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2 } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send } from 'lucide-react';
 import Editor from '@monaco-editor/react';
+import { useMutation } from '@tanstack/react-query';
 
 interface PythonIDEProps {
   onClose: () => void;
@@ -1585,13 +1586,52 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const [selectedLesson, setSelectedLesson] = useState<keyof typeof LESSONS>('basics');
   const [showGuidance, setShowGuidance] = useState(true);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
+  const [showChat, setShowChat] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const editorRef = useRef<any>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   const currentLesson = LESSONS[selectedLesson];
+
+  const chatMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `As a Python programming expert analyzing code in the Python IDE, ${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nProvide focused Python programming guidance.`,
+          mode: 'technical'
+        })
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
+    },
+    onError: (error) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
+    }
+  });
 
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
   };
+
+  const handleChatSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || chatMutation.isPending) return;
+
+    setChatHistory(prev => [...prev, { role: 'user', content: chatInput }]);
+    chatMutation.mutate(chatInput);
+    setChatInput('');
+  };
+
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
 
   const runCode = async () => {
     setIsRunning(true);
@@ -1649,14 +1689,27 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
               Archi v7 PythonIDE
             </h3>
           </div>
-          <Button
-            onClick={onClose}
-            variant="ghost"
-            size="sm"
-            className="text-[#00FF41] hover:text-white hover:bg-[#00FF41]/20"
-          >
-            <X className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowChat(!showChat)}
+              variant="outline"
+              size="sm"
+              className={`border-[#00FF41]/50 font-mono text-xs ${
+                showChat ? 'bg-[#00FF41]/20 text-[#00FF41]' : 'text-[#00FF41] hover:bg-[#00FF41]/20'
+              }`}
+            >
+              <MessageSquare className="w-4 h-4 mr-2" />
+              {showChat ? 'Hide' : 'Ask'} Archimedes
+            </Button>
+            <Button
+              onClick={onClose}
+              variant="ghost"
+              size="sm"
+              className="text-[#00FF41] hover:text-white hover:bg-[#00FF41]/20"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Main Content */}
@@ -1688,7 +1741,83 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
           </div>
 
           {/* Editor and Output Split */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex">
+            {/* Chat Panel */}
+            {showChat && (
+              <div className="w-96 border-r border-[#00FF41]/30 bg-black/30 flex flex-col">
+                <div className="p-3 border-b border-[#00FF41]/20">
+                  <div className="flex items-center gap-2 text-[#00FF41] font-mono text-xs">
+                    <MessageSquare className="w-4 h-4" />
+                    <span>PYTHON PROGRAMMING ASSISTANT</span>
+                  </div>
+                </div>
+                
+                {/* Chat History */}
+                <ScrollArea className="flex-1">
+                  <div ref={chatScrollRef} className="p-3 space-y-3">
+                    {chatHistory.length === 0 && (
+                      <div className="text-[#00FF41]/50 font-mono text-xs">
+                        <p className="mb-2">💡 Ask me about:</p>
+                        <ul className="list-disc list-inside space-y-1 text-[10px]">
+                          <li>Python syntax and best practices</li>
+                          <li>Code improvements and optimization</li>
+                          <li>Debugging current errors</li>
+                          <li>Lesson-specific questions</li>
+                          <li>Project structure analysis</li>
+                        </ul>
+                      </div>
+                    )}
+                    {chatHistory.map((msg, idx) => (
+                      <div key={idx} className={`${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                        <div className={`inline-block max-w-[90%] p-2 rounded font-mono text-xs ${
+                          msg.role === 'user' 
+                            ? 'bg-[#00FF41]/20 text-[#00FF41]' 
+                            : 'bg-black/50 text-[#00FF41]/90'
+                        }`}>
+                          <div className="font-bold text-[10px] mb-1 opacity-70">
+                            {msg.role === 'user' ? 'YOU' : 'ARCHIMEDES'}
+                          </div>
+                          <div className="whitespace-pre-wrap">{msg.content}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {chatMutation.isPending && (
+                      <div className="text-left">
+                        <div className="inline-block p-2 rounded bg-black/50 text-[#00FF41]/70 font-mono text-xs">
+                          <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                          Analyzing...
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+
+                {/* Chat Input */}
+                <form onSubmit={handleChatSubmit} className="p-3 border-t border-[#00FF41]/30">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="Ask about Python code..."
+                      className="flex-1 bg-black/50 border border-[#00FF41]/30 rounded px-3 py-2 text-[#00FF41] font-mono text-xs focus:outline-none focus:border-[#00FF41]"
+                      disabled={chatMutation.isPending}
+                    />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={!chatInput.trim() || chatMutation.isPending}
+                      className="bg-[#00FF41] text-black hover:bg-[#00FF41]/80"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Editor/Output Section */}
+            <div className="flex-1 flex flex-col">
             {/* Archimedes Guidance Panel */}
             {showGuidance && (
               <div className="p-4 bg-[#00FF41]/5 border-b border-[#00FF41]/30">
@@ -1813,6 +1942,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   </pre>
                 </div>
               </ScrollArea>
+            </div>
             </div>
           </div>
         </div>
