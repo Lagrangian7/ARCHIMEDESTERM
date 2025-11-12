@@ -1805,11 +1805,13 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             </div>
 
             {/* Output */}
-            <div className="flex-1 bg-black/50">
-              <ScrollArea className="h-full">
-                <pre className="p-4 font-mono text-xs text-[#00FF41] whitespace-pre-wrap">
-                  {output || '// Run code to see output here...'}
-                </pre>
+            <div className="flex-1 bg-black/50 overflow-hidden">
+              <ScrollArea className="h-full w-full">
+                <div className="p-4">
+                  <pre className="font-mono text-xs text-[#00FF41] whitespace-pre-wrap">
+                    {output || '// Run code to see output here...'}
+                  </pre>
+                </div>
               </ScrollArea>
             </div>
           </div>
