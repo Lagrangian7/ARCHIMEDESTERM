@@ -1579,18 +1579,58 @@ if __name__ == "__main__":
   }
 };
 
+// Storage key for session persistence
+const PYTHON_SESSION_KEY = 'python-ide-session';
+
+interface PythonSession {
+  code: string;
+  output: string;
+  selectedLesson: keyof typeof LESSONS;
+  showGuidance: boolean;
+  completedTasks: string[];
+  chatHistory: Array<{ role: 'user' | 'assistant', content: string }>;
+}
+
 export function PythonIDE({ onClose }: PythonIDEProps) {
-  const [code, setCode] = useState(LESSONS.basics.code);
-  const [output, setOutput] = useState('');
+  // Load session from localStorage or use defaults
+  const loadSession = (): PythonSession | null => {
+    const saved = localStorage.getItem(PYTHON_SESSION_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const savedSession = loadSession();
+  
+  const [code, setCode] = useState(savedSession?.code || LESSONS.basics.code);
+  const [output, setOutput] = useState(savedSession?.output || '');
   const [isRunning, setIsRunning] = useState(false);
-  const [selectedLesson, setSelectedLesson] = useState<keyof typeof LESSONS>('basics');
-  const [showGuidance, setShowGuidance] = useState(true);
-  const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
+  const [selectedLesson, setSelectedLesson] = useState<keyof typeof LESSONS>(savedSession?.selectedLesson || 'basics');
+  const [showGuidance, setShowGuidance] = useState(savedSession?.showGuidance ?? true);
+  const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set(savedSession?.completedTasks || []));
   const [showChat, setShowChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
-  const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
+  const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>>(savedSession?.chatHistory || []);
   const editorRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+
+  // Save session to localStorage whenever state changes
+  useEffect(() => {
+    const session: PythonSession = {
+      code,
+      output,
+      selectedLesson,
+      showGuidance,
+      completedTasks: Array.from(completedTasks),
+      chatHistory
+    };
+    localStorage.setItem(PYTHON_SESSION_KEY, JSON.stringify(session));
+  }, [code, output, selectedLesson, showGuidance, completedTasks, chatHistory]);
 
   const currentLesson = LESSONS[selectedLesson];
 
@@ -1675,6 +1715,13 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     setCompletedTasks(newCompleted);
   };
 
+  const handleQuit = () => {
+    if (window.confirm('Are you sure you want to quit? This will clear your current session.')) {
+      localStorage.removeItem(PYTHON_SESSION_KEY);
+      onClose();
+    }
+  };
+
   return (
     <div 
       className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
@@ -1703,11 +1750,19 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             </Button>
             <Button
               onClick={onClose}
+              variant="outline"
+              size="sm"
+              className="text-[#00FF41] hover:text-white hover:bg-[#00FF41]/20 border-[#00FF41]/50 font-mono text-xs"
+            >
+              Close (Save Session)
+            </Button>
+            <Button
+              onClick={handleQuit}
               variant="ghost"
               size="sm"
-              className="text-[#00FF41] hover:text-white hover:bg-[#00FF41]/20"
+              className="text-red-500 hover:text-red-400 hover:bg-red-500/20 font-mono text-xs"
             >
-              <X className="w-5 h-5" />
+              Quit & Clear
             </Button>
           </div>
         </div>
@@ -1952,8 +2007,13 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
           <div className="text-[#00FF41]/70 font-mono text-xs">
             💡 {currentLesson.title} - Follow Archimedes' guidance and complete all objectives
           </div>
-          <div className="text-[#00FF41]/50 font-mono text-xs">
-            Lesson {Object.keys(LESSONS).indexOf(selectedLesson) + 1} of {Object.keys(LESSONS).length}
+          <div className="flex items-center gap-4">
+            <div className="text-[#00FF41]/50 font-mono text-xs">
+              💾 Session auto-saved
+            </div>
+            <div className="text-[#00FF41]/50 font-mono text-xs">
+              Lesson {Object.keys(LESSONS).indexOf(selectedLesson) + 1} of {Object.keys(LESSONS).length}
+            </div>
           </div>
         </div>
       </div>
