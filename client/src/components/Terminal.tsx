@@ -37,7 +37,7 @@ import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
 import archyLogo from '@assets/archy111_1760233943010.jpeg';
-import backgroundImage from '@assets/bg engraving_1762288785249.png';
+import backgroundImage from '@assets/terminal-bg-new.png';
 
 // Logo Component
 export const LogoIcon = memo(() => (
@@ -435,7 +435,7 @@ export function Terminal() {
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={{
-        backgroundImage: `url(${backgroundImage})`,
+        backgroundImage: `url(/attached_assets/terminal-bg-new.png)`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
