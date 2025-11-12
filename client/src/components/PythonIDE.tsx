@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
+import { useSpeech } from '@/contexts/SpeechContext';
 
 interface PythonIDEProps {
   onClose: () => void;
@@ -1619,6 +1620,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   );
   const editorRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const { speak } = useSpeech();
+  const lastSpokenChatIdRef = useRef<string>('');
 
   // Get current theme from body class
   const [currentTheme, setCurrentTheme] = useState('');
@@ -1665,10 +1668,15 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       return response.json();
     },
     onSuccess: (data) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
+      const assistantMessage = { role: 'assistant' as const, content: data.response };
+      setChatHistory(prev => [...prev, assistantMessage]);
+      // Speak the response vocally
+      speak(data.response);
     },
     onError: (error) => {
-      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error: ${error.message}` }]);
+      const errorMessage = { role: 'assistant' as const, content: `Error: ${error.message}` };
+      setChatHistory(prev => [...prev, errorMessage]);
+      speak(`Error: ${error.message}`);
     }
   });
 
@@ -1689,7 +1697,17 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     if (chatScrollRef.current) {
       chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
     }
-  }, [chatHistory]);
+
+    // Auto-speak new assistant messages
+    const lastMessage = chatHistory[chatHistory.length - 1];
+    if (lastMessage && lastMessage.role === 'assistant') {
+      const messageId = `${chatHistory.length}-${lastMessage.content.substring(0, 20)}`;
+      if (messageId !== lastSpokenChatIdRef.current) {
+        lastSpokenChatIdRef.current = messageId;
+        speak(lastMessage.content);
+      }
+    }
+  }, [chatHistory, speak]);
 
   const runCode = async () => {
     setIsRunning(true);
