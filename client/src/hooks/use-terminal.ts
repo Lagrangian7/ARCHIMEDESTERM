@@ -564,6 +564,8 @@ Use the URLs above to access the full articles and information.`;
   weather - Get current weather (uses location if available)
   research <query> - Search the web using Brave API
   chat - Open user-to-user chat interface
+  python - Launch Python IDE
+  python lessons - Launch Python lessons guide
 
 Network & BBS Commands:
   telnet <host> <port> - Connect via web-based telnet client
@@ -820,6 +822,16 @@ Code Execution:
           openPythonIDE();
         } else {
           addEntry('error', 'Python IDE not available. Please ensure the system is loaded.');
+        }
+        return;
+
+      case 'python lessons':
+        addEntry('system', '📚 Launching Python Lessons Guide...');
+        const openPythonLessons = (window as any).openPythonLessons;
+        if (openPythonLessons) {
+          openPythonLessons();
+        } else {
+          addEntry('error', 'Python Lessons Guide not available. Please ensure the system is loaded.');
         }
         return;
 

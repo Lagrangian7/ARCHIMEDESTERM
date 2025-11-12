@@ -23,6 +23,7 @@ import { TheHarvester } from './TheHarvester';
 // import { SpiderFoot } from './SpiderFoot'; // Commented out - component not found
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { PythonIDE } from './PythonIDE';
+import { PythonLessons } from './PythonLessons'; // Import the new PythonLessons component
 import { CodePreview } from './CodePreview';
 import { BackgroundManager } from './BackgroundManager';
 import WebampPlayer from './WebampPlayer';
@@ -104,6 +105,7 @@ export function Terminal() {
     (window as any).openSpacewars = () => setShowSpacewars(true);
     (window as any).openPythonIDE = () => setShowPythonIDE(true);
     (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
+    (window as any).openPythonLessons = () => setShowPythonLessons(true); // Add Python lessons opener
 
     // Listen for background change events
     const handleBackgroundChange = (event: Event) => {
@@ -149,6 +151,7 @@ export function Terminal() {
   const [showSpacewars, setShowSpacewars] = useState(false);
   const [showNotepad, setShowNotepad] = useState(false);
   const [showPythonIDE, setShowPythonIDE] = useState(false);
+  const [showPythonLessons, setShowPythonLessons] = useState(false); // New state for Python lessons
   const [showBackgroundManager, setShowBackgroundManager] = useState(false);
   const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>(() => {
     // Load saved background on mount
@@ -457,6 +460,8 @@ export function Terminal() {
   const MemoizedThinkingAnimation = useMemo(() => memo(ThinkingAnimation), []);
   const MemoizedMatrixRain = useMemo(() => memo(MatrixRain), []);
   const MemoizedDraggableResponse = useMemo(() => memo(DraggableResponse), []);
+  const MemoizedPythonIDE = useMemo(() => memo(PythonIDE), []); // Memoized PythonIDE
+  const MemoizedPythonLessons = useMemo(() => memo(PythonLessons), []); // Memoized PythonLessons
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
@@ -489,6 +494,7 @@ export function Terminal() {
             setShowChat={setShowChat}
             unreadCount={unreadCount}
             setShowNotepad={setShowNotepad}
+            openPythonLessons={ () => setShowPythonLessons(true) } // Add callback for Python Lessons
           />
         </div>
 
@@ -899,9 +905,11 @@ export function Terminal() {
       )}
 
       {/* Python IDE */}
-      {showPythonIDE && (
-        <PythonIDE onClose={() => setShowPythonIDE(false)} />
-      )}
+      {showPythonIDE && <MemoizedPythonIDE onClose={() => setShowPythonIDE(false)} />}
+      {/* Python Lessons */}
+      {showPythonLessons && <MemoizedPythonLessons onClose={() => setShowPythonLessons(false)} />}
+      {/* Webamp Music Player */}
+      {showWebamp && <WebampPlayer onClose={() => setShowWebamp(false)} />}
 
       {/* Background Manager */}
       {showBackgroundManager && (
