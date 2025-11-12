@@ -1295,7 +1295,7 @@ class BankAccount:
         """Deposit money into account."""
         if amount > 0:
             self._balance += amount
-            print(f"Deposited ${amount:.2f}. New balance: ${self._balance:.2f}")
+            print(f"Deposited \${amount:.2f}. New balance: \${self._balance:.2f}")
         else:
             print("Deposit amount must be positive!")
     
@@ -1306,12 +1306,12 @@ class BankAccount:
             return False
         if amount > 0:
             self._balance -= amount
-            print(f"Withdrew ${amount:.2f}. New balance: ${self._balance:.2f}")
+            print(f"Withdrew \${amount:.2f}. New balance: \${self._balance:.2f}")
             return True
         return False
     
     def __str__(self) -> str:
-        return f"Account({self.owner}, ${self._balance:.2f})"
+        return f"Account({self.owner}, \${self._balance:.2f})"
 
 # Inheritance - "is-a" relationship
 class Student(Person):
@@ -1511,7 +1511,7 @@ if __name__ == "__main__":
     # Properties
     print("\\n=== Properties ===")
     account = BankAccount("Bob", 100.0)
-    print(f"Balance: ${account.balance:.2f}")
+    print(f"Balance: \${account.balance:.2f}")
     account.deposit(50.0)
     account.withdraw(30.0)
     
@@ -1550,7 +1550,7 @@ if __name__ == "__main__":
     print("\\n=== Dataclass ===")
     product = Product("Laptop", 999.99, 5)
     print(product)
-    print(f"Total value: ${product.total_value():.2f}")
+    print(f"Total value: \${product.total_value():.2f}")
     product.restock(3)
     print(f"After restock: {product.quantity} units")
     
