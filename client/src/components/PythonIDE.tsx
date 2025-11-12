@@ -2035,7 +2035,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   <Lightbulb className="w-5 h-5 text-[var(--terminal-highlight)] mt-1 flex-shrink-0" />
                   <div className="flex-1">
                     <div className="text-[var(--terminal-highlight)] font-mono text-xs font-bold mb-2">
-                      ARCHIMEDES GUIDANCE:
+                      {currentLesson.title} - ARCHIMEDES GUIDANCE:
                     </div>
                     <p className="text-[var(--terminal-text)] font-mono text-xs leading-relaxed">
                       {currentLesson.guidance}
