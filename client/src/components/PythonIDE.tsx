@@ -353,6 +353,14 @@ def set_comprehension_examples():
     unique_squares = {x**2 for x in [-2, -1, 0, 1, 2]}
     print(f"Unique squares: {unique_squares}")
 
+# Generator function - defined at module level for reuse
+def count_from(start: int = 0) -> Iterator[int]:
+    """Infinite counter starting from a value."""
+    num = start
+    while True:
+        yield num
+        num += 1
+
 # Generator Expressions - memory efficient
 def generator_examples():
     """Demonstrate generators for memory-efficient iteration."""
@@ -373,14 +381,7 @@ def generator_examples():
     fib_gen = fibonacci(10)
     print(f"Fibonacci: {list(fib_gen)}")
     
-    # Infinite generator
-    def count_from(start: int = 0) -> Iterator[int]:
-        """Infinite counter starting from a value."""
-        num = start
-        while True:
-            yield num
-            num += 1
-    
+    # Use the module-level infinite generator
     counter = count_from(100)
     print(f"First 5 from counter: {[next(counter) for _ in range(5)]}")
 
