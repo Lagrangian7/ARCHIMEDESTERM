@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import { useSpeech } from '@/contexts/SpeechContext';
@@ -1622,6 +1622,15 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const { speak } = useSpeech();
   const lastSpokenChatIdRef = useRef<string>('');
+  
+  // Resizable window state
+  const [isMaximized, setIsMaximized] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
 
   // Get current theme from body class
   const [currentTheme, setCurrentTheme] = useState('');
@@ -1639,6 +1648,65 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
     return () => observer.disconnect();
   }, []);
+
+  // Center window on mount
+  useEffect(() => {
+    const centerX = (window.innerWidth - dimensions.width) / 2;
+    const centerY = (window.innerHeight - dimensions.height) / 2;
+    setPosition({ x: Math.max(0, centerX), y: Math.max(0, centerY) });
+  }, []);
+
+  // Handle window dragging
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - dragStartRef.current.x;
+      const deltaY = e.clientY - dragStartRef.current.y;
+      
+      setPosition(prev => ({
+        x: Math.max(0, Math.min(window.innerWidth - dimensions.width, prev.x + deltaX)),
+        y: Math.max(0, Math.min(window.innerHeight - dimensions.height, prev.y + deltaY))
+      }));
+      
+      dragStartRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handleMouseUp = () => setIsDragging(false);
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dimensions]);
+
+  // Handle window resizing
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - resizeStartRef.current.mouseX;
+      const deltaY = e.clientY - resizeStartRef.current.mouseY;
+      
+      setDimensions({
+        width: Math.max(800, Math.min(window.innerWidth - position.x, resizeStartRef.current.width + deltaX)),
+        height: Math.max(600, Math.min(window.innerHeight - position.y, resizeStartRef.current.height + deltaY))
+      });
+    };
+
+    const handleMouseUp = () => setIsResizing(false);
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, position]);
 
   // Save session to localStorage whenever state changes
   useEffect(() => {
@@ -1762,14 +1830,46 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     }
   };
 
+  const toggleMaximize = () => {
+    if (isMaximized) {
+      // Restore previous size and position
+      setDimensions({ width: 1200, height: 800 });
+      const centerX = (window.innerWidth - 1200) / 2;
+      const centerY = (window.innerHeight - 800) / 2;
+      setPosition({ x: Math.max(0, centerX), y: Math.max(0, centerY) });
+    } else {
+      // Maximize
+      setDimensions({ width: window.innerWidth, height: window.innerHeight });
+      setPosition({ x: 0, y: 0 });
+    }
+    setIsMaximized(!isMaximized);
+  };
+
   return (
     <div 
-      className={`fixed inset-0 z-50 bg-black/90 backdrop-blur-sm ${currentTheme}`}
+      className={`fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center ${currentTheme}`}
       data-no-terminal-autofocus
     >
-      <div className="w-full h-full bg-[var(--terminal-bg)] border-2 border-[var(--terminal-highlight)] overflow-hidden shadow-2xl flex flex-col">
+      <div 
+        className="bg-[var(--terminal-bg)] border-2 border-[var(--terminal-highlight)] overflow-hidden shadow-2xl flex flex-col relative"
+        style={{
+          width: isMaximized ? '100%' : `${dimensions.width}px`,
+          height: isMaximized ? '100%' : `${dimensions.height}px`,
+          position: isMaximized ? 'relative' : 'absolute',
+          left: isMaximized ? 'auto' : `${position.x}px`,
+          top: isMaximized ? 'auto' : `${position.y}px`
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[var(--terminal-highlight)]/30">
+        <div 
+          className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[var(--terminal-highlight)]/30 cursor-move"
+          onMouseDown={(e) => {
+            if (!isMaximized && e.target === e.currentTarget) {
+              setIsDragging(true);
+              dragStartRef.current = { x: e.clientX, y: e.clientY };
+            }
+          }}
+        >
           <div className="flex items-center gap-3">
             <Code className="w-5 h-5 text-[var(--terminal-highlight)]" />
             <h3 className="text-[var(--terminal-highlight)] font-mono text-sm font-bold">
@@ -1777,6 +1877,14 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             </h3>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              onClick={toggleMaximize}
+              variant="outline"
+              size="sm"
+              className="bg-black text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20 border-[var(--terminal-highlight)]/50 font-mono text-xs"
+            >
+              {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
             <Button
               onClick={() => setShowChat(!showChat)}
               variant="outline"
@@ -2068,6 +2176,27 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             </div>
           </div>
         </div>
+
+        {/* Resize handle */}
+        {!isMaximized && (
+          <div
+            className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
+            style={{
+              borderRight: `2px solid var(--terminal-highlight)`,
+              borderBottom: `2px solid var(--terminal-highlight)`,
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setIsResizing(true);
+              resizeStartRef.current = {
+                width: dimensions.width,
+                height: dimensions.height,
+                mouseX: e.clientX,
+                mouseY: e.clientY
+              };
+            }}
+          />
+        )}
       </div>
     </div>
   );
