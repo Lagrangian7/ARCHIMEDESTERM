@@ -33,8 +33,8 @@ const REPLIT_AI_CONFIG = {
     'EleutherAI/gpt-neo-2.7B'              // Creative and flexible responses
   ],
   maxTokens: {
-    natural: 400,
-    technical: 1500
+    natural: 2000,
+    technical: 4000
   },
   temperature: {
     natural: 0.8,
@@ -342,7 +342,7 @@ Please respond as ARCHIMEDES v7:`;
       model: 'gemini-2.0-flash-exp',
       contents: fullPrompt,
       config: {
-        maxOutputTokens: mode === 'technical' ? 1500 : 500,
+        maxOutputTokens: mode === 'technical' ? 4000 : 2000,
         temperature: mode === 'technical' ? 0.3 : 0.7,
       }
     });
@@ -431,7 +431,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       body: JSON.stringify({
         model: 'llama-3.1-sonar-small-128k-online',
         messages,
-        max_tokens: mode === 'technical' ? 1500 : 500,
+        max_tokens: mode === 'technical' ? 4000 : 2000,
         temperature: mode === 'technical' ? 0.3 : 0.7,
         top_p: 0.9,
         search_recency_filter: 'month',
@@ -525,7 +525,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const chatResponse = await mistral.chat.complete({
       model: 'mistral-large-latest', // Use the latest Mistral model
       messages: messages as any,
-      maxTokens: mode === 'technical' ? 1500 : 400,
+      maxTokens: mode === 'technical' ? 4000 : 2000,
       temperature: mode === 'technical' ? 0.3 : 0.7,
       topP: 0.9,
     });
@@ -775,7 +775,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages,
-      max_tokens: mode === 'technical' ? 1500 : 500,
+      max_tokens: mode === 'technical' ? 4000 : 2000,
       temperature: mode === 'technical' ? 0.3 : 0.7,
       presence_penalty: 0.1,
       frequency_penalty: 0.1,
