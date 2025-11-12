@@ -2169,21 +2169,6 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="px-4 py-2 bg-black/50 border-t border-[var(--terminal-highlight)]/30 flex items-center justify-between">
-          <div className="text-[var(--terminal-text)]/70 font-mono text-xs">
-            💡 {currentLesson.title} - Follow Archimedes' guidance and complete all objectives
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-[var(--terminal-text)]/50 font-mono text-xs">
-              💾 Session auto-saved
-            </div>
-            <div className="text-[var(--terminal-text)]/50 font-mono text-xs">
-              Lesson {Object.keys(LESSONS).indexOf(selectedLesson) + 1} of {Object.keys(LESSONS).length}
-            </div>
-          </div>
-        </div>
-
         {/* Resize handle */}
         {!isMaximized && (
           <div
