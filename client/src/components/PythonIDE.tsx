@@ -1727,12 +1727,12 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
       data-no-terminal-autofocus
     >
-      <div className="w-full h-full max-w-7xl max-h-[90vh] bg-[#0D1117] border-2 border-[#00FF41] rounded-lg overflow-hidden shadow-2xl flex flex-col">
+      <div className="w-full h-full max-w-7xl max-h-[90vh] bg-[var(--terminal-bg)] border-2 border-[var(--terminal-highlight)] rounded-lg overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[#00FF41]/30">
+        <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[var(--terminal-highlight)]/30">
           <div className="flex items-center gap-3">
-            <Code className="w-5 h-5 text-[#00FF41]" />
-            <h3 className="text-[#00FF41] font-mono text-sm font-bold">
+            <Code className="w-5 h-5 text-[var(--terminal-highlight)]" />
+            <h3 className="text-[var(--terminal-highlight)] font-mono text-sm font-bold">
               Archi v7 PythonIDE
             </h3>
           </div>
@@ -1741,8 +1741,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
               onClick={() => setShowChat(!showChat)}
               variant="outline"
               size="sm"
-              className={`border-[#00FF41]/50 font-mono text-xs ${
-                showChat ? 'bg-[#00FF41]/20 text-[#00FF41]' : 'text-[#00FF41] hover:bg-[#00FF41]/20'
+              className={`border-[var(--terminal-highlight)]/50 font-mono text-xs ${
+                showChat ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)]' : 'text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20'
               }`}
             >
               <MessageSquare className="w-4 h-4 mr-2" />
@@ -1752,7 +1752,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
               onClick={onClose}
               variant="outline"
               size="sm"
-              className="text-[#00FF41] hover:text-white hover:bg-[#00FF41]/20 border-[#00FF41]/50 font-mono text-xs"
+              className="text-[var(--terminal-highlight)] hover:text-white hover:bg-[var(--terminal-highlight)]/20 border-[var(--terminal-highlight)]/50 font-mono text-xs"
             >
               Close (Save Session)
             </Button>
@@ -1770,9 +1770,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
           {/* Sidebar - Lessons */}
-          <div className="w-72 border-r border-[#00FF41]/30 bg-black/30 overflow-y-auto">
-            <div className="p-3 border-b border-[#00FF41]/20">
-              <div className="flex items-center gap-2 text-[#00FF41] font-mono text-xs">
+          <div className="w-72 border-r border-[var(--terminal-highlight)]/30 bg-black/30 overflow-y-auto">
+            <div className="p-3 border-b border-[var(--terminal-highlight)]/20">
+              <div className="flex items-center gap-2 text-[var(--terminal-highlight)] font-mono text-xs">
                 <BookOpen className="w-4 h-4" />
                 <span>COMPREHENSIVE LESSONS</span>
               </div>
@@ -1784,8 +1784,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   onClick={() => loadLesson(key as keyof typeof LESSONS)}
                   className={`w-full text-left px-3 py-2 rounded font-mono text-xs transition-colors ${
                     selectedLesson === key
-                      ? 'bg-[#00FF41]/20 text-[#00FF41] border border-[#00FF41]/50'
-                      : 'text-[#00FF41]/70 hover:bg-[#00FF41]/10 hover:text-[#00FF41]'
+                      ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)] border border-[var(--terminal-highlight)]/50'
+                      : 'text-[var(--terminal-highlight)]/70 hover:bg-[var(--terminal-highlight)]/10 hover:text-[var(--terminal-highlight)]'
                   }`}
                 >
                   <div className="font-bold">{lesson.title}</div>
@@ -1799,9 +1799,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
           <div className="flex-1 flex">
             {/* Chat Panel */}
             {showChat && (
-              <div className="w-96 border-r border-[#00FF41]/30 bg-black/30 flex flex-col">
-                <div className="p-3 border-b border-[#00FF41]/20">
-                  <div className="flex items-center gap-2 text-[#00FF41] font-mono text-xs">
+              <div className="w-96 border-r border-[var(--terminal-highlight)]/30 bg-black/30 flex flex-col">
+                <div className="p-3 border-b border-[var(--terminal-highlight)]/20">
+                  <div className="flex items-center gap-2 text-[var(--terminal-highlight)] font-mono text-xs">
                     <MessageSquare className="w-4 h-4" />
                     <span>PYTHON PROGRAMMING ASSISTANT</span>
                   </div>
@@ -1811,7 +1811,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 <ScrollArea className="flex-1">
                   <div ref={chatScrollRef} className="p-3 space-y-3">
                     {chatHistory.length === 0 && (
-                      <div className="text-[#00FF41]/50 font-mono text-xs">
+                      <div className="text-[var(--terminal-text)]/70 font-mono text-xs">
                         <p className="mb-2">💡 Ask me about:</p>
                         <ul className="list-disc list-inside space-y-1 text-[10px]">
                           <li>Python syntax and best practices</li>
@@ -1826,8 +1826,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                       <div key={idx} className={`${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
                         <div className={`inline-block max-w-[90%] p-2 rounded font-mono text-xs ${
                           msg.role === 'user' 
-                            ? 'bg-[#00FF41]/20 text-[#00FF41]' 
-                            : 'bg-black/50 text-[#00FF41]/90'
+                            ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)]' 
+                            : 'bg-black/50 text-[var(--terminal-text)]/90'
                         }`}>
                           <div className="font-bold text-[10px] mb-1 opacity-70">
                             {msg.role === 'user' ? 'YOU' : 'ARCHIMEDES'}
@@ -1838,7 +1838,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                     ))}
                     {chatMutation.isPending && (
                       <div className="text-left">
-                        <div className="inline-block p-2 rounded bg-black/50 text-[#00FF41]/70 font-mono text-xs">
+                        <div className="inline-block p-2 rounded bg-black/50 text-[var(--terminal-text)]/70 font-mono text-xs">
                           <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
                           Analyzing...
                         </div>
@@ -1848,21 +1848,21 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 </ScrollArea>
 
                 {/* Chat Input */}
-                <form onSubmit={handleChatSubmit} className="p-3 border-t border-[#00FF41]/30">
+                <form onSubmit={handleChatSubmit} className="p-3 border-t border-[var(--terminal-highlight)]/30">
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       placeholder="Ask about Python code..."
-                      className="flex-1 bg-black/50 border border-[#00FF41]/30 rounded px-3 py-2 text-[#00FF41] font-mono text-xs focus:outline-none focus:border-[#00FF41]"
+                      className="flex-1 bg-black/50 border border-[var(--terminal-highlight)]/30 rounded px-3 py-2 text-[var(--terminal-text)] font-mono text-xs focus:outline-none focus:border-[var(--terminal-highlight)]"
                       disabled={chatMutation.isPending}
                     />
                     <Button
                       type="submit"
                       size="sm"
                       disabled={!chatInput.trim() || chatMutation.isPending}
-                      className="bg-[#00FF41] text-black hover:bg-[#00FF41]/80"
+                      className="bg-[var(--terminal-highlight)] text-black hover:bg-[var(--terminal-highlight)]/80"
                     >
                       <Send className="w-4 h-4" />
                     </Button>
@@ -1875,18 +1875,18 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             <div className="flex-1 flex flex-col">
             {/* Archimedes Guidance Panel */}
             {showGuidance && (
-              <div className="p-4 bg-[#00FF41]/5 border-b border-[#00FF41]/30">
+              <div className="p-4 bg-[var(--terminal-highlight)]/5 border-b border-[var(--terminal-highlight)]/30">
                 <div className="flex items-start gap-3">
-                  <Lightbulb className="w-5 h-5 text-[#00FF41] mt-1 flex-shrink-0" />
+                  <Lightbulb className="w-5 h-5 text-[var(--terminal-highlight)] mt-1 flex-shrink-0" />
                   <div className="flex-1">
-                    <div className="text-[#00FF41] font-mono text-xs font-bold mb-2">
+                    <div className="text-[var(--terminal-highlight)] font-mono text-xs font-bold mb-2">
                       ARCHIMEDES GUIDANCE:
                     </div>
-                    <p className="text-[#00FF41]/80 font-mono text-xs leading-relaxed">
+                    <p className="text-[var(--terminal-text)] font-mono text-xs leading-relaxed">
                       {currentLesson.guidance}
                     </p>
                     <div className="mt-3">
-                      <div className="text-[#00FF41] font-mono text-xs font-bold mb-2">
+                      <div className="text-[var(--terminal-highlight)] font-mono text-xs font-bold mb-2">
                         LEARNING OBJECTIVES:
                       </div>
                       <div className="space-y-1">
@@ -1899,15 +1899,15 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                               <CheckCircle2
                                 className={`w-4 h-4 ${
                                   completedTasks.has(task)
-                                    ? 'text-[#00FF41]'
-                                    : 'text-[#00FF41]/30'
+                                    ? 'text-[var(--terminal-highlight)]'
+                                    : 'text-[var(--terminal-highlight)]/30'
                                 }`}
                               />
                             </button>
                             <span className={`font-mono text-xs ${
                               completedTasks.has(task)
-                                ? 'text-[#00FF41] line-through'
-                                : 'text-[#00FF41]/70'
+                                ? 'text-[var(--terminal-highlight)] line-through'
+                                : 'text-[var(--terminal-text)]/70'
                             }`}>
                               {task}
                             </span>
@@ -1918,7 +1918,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   </div>
                   <button
                     onClick={() => setShowGuidance(false)}
-                    className="text-[#00FF41]/50 hover:text-[#00FF41]"
+                    className="text-[var(--terminal-highlight)]/50 hover:text-[var(--terminal-highlight)]"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -1927,7 +1927,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             )}
 
             {/* Editor */}
-            <div className="flex-1 border-b border-[#00FF41]/30">
+            <div className="flex-1 border-b border-[var(--terminal-highlight)]/30">
               <div className="h-full">
                 <Editor
                   height="100%"
@@ -1951,12 +1951,12 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             </div>
 
             {/* Run Button */}
-            <div className="px-4 py-2 bg-black/30 border-b border-[#00FF41]/30 flex items-center justify-between">
+            <div className="px-4 py-2 bg-black/30 border-b border-[var(--terminal-highlight)]/30 flex items-center justify-between">
               <div className="flex gap-2">
                 <Button
                   onClick={runCode}
                   disabled={isRunning}
-                  className="bg-[#00FF41] text-black hover:bg-[#00FF41]/80 font-mono text-sm"
+                  className="bg-[var(--terminal-highlight)] text-black hover:bg-[var(--terminal-highlight)]/80 font-mono text-sm"
                 >
                   {isRunning ? (
                     <>
@@ -1974,14 +1974,14 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   <Button
                     onClick={() => setShowGuidance(true)}
                     variant="outline"
-                    className="border-[#00FF41]/50 text-[#00FF41] hover:bg-[#00FF41]/20 font-mono text-sm"
+                    className="border-[var(--terminal-highlight)]/50 text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20 font-mono text-sm"
                   >
                     <Lightbulb className="w-4 h-4 mr-2" />
                     Show Guidance
                   </Button>
                 )}
               </div>
-              <div className="text-[#00FF41]/70 font-mono text-xs">
+              <div className="text-[var(--terminal-text)]/70 font-mono text-xs">
                 {currentLesson.tasks.length > 0 && (
                   <span>Progress: {completedTasks.size}/{currentLesson.tasks.length} objectives</span>
                 )}
@@ -1992,7 +1992,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             <div className="flex-1 bg-black/50 overflow-hidden">
               <ScrollArea className="h-full w-full">
                 <div className="p-4">
-                  <pre className="font-mono text-xs text-[#00FF41] whitespace-pre-wrap">
+                  <pre className="font-mono text-xs text-[var(--terminal-text)] whitespace-pre-wrap">
                     {output || '// Run code to see output here...'}
                   </pre>
                 </div>
@@ -2003,15 +2003,15 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 bg-black/50 border-t border-[#00FF41]/30 flex items-center justify-between">
-          <div className="text-[#00FF41]/70 font-mono text-xs">
+        <div className="px-4 py-2 bg-black/50 border-t border-[var(--terminal-highlight)]/30 flex items-center justify-between">
+          <div className="text-[var(--terminal-text)]/70 font-mono text-xs">
             💡 {currentLesson.title} - Follow Archimedes' guidance and complete all objectives
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-[#00FF41]/50 font-mono text-xs">
+            <div className="text-[var(--terminal-text)]/50 font-mono text-xs">
               💾 Session auto-saved
             </div>
-            <div className="text-[#00FF41]/50 font-mono text-xs">
+            <div className="text-[var(--terminal-text)]/50 font-mono text-xs">
               Lesson {Object.keys(LESSONS).indexOf(selectedLesson) + 1} of {Object.keys(LESSONS).length}
             </div>
           </div>
