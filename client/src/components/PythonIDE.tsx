@@ -1708,6 +1708,17 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     };
   }, [isResizing, position]);
 
+  // Trigger editor layout update when dimensions change
+  useEffect(() => {
+    if (editorRef.current) {
+      // Small delay to ensure DOM has updated
+      const timer = setTimeout(() => {
+        editorRef.current?.layout();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [dimensions, isMaximized]);
+
   // Save session to localStorage whenever state changes
   useEffect(() => {
     const session: PythonSession = {
@@ -2095,6 +2106,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                     formatOnType: true,
                     acceptSuggestionOnEnter: 'on'
                   }}
+                  key={`${dimensions.width}-${dimensions.height}`}
                 />
               </div>
             </div>
