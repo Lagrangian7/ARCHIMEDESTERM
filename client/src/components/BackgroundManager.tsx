@@ -120,12 +120,14 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
   };
 
   const selectWallpaper = (wallpaper: WallpaperSlot) => {
+    // Add cache-busting parameter to force reload
+    const urlWithCacheBust = `${wallpaper.url}?t=${Date.now()}`;
     setSelectedWallpaper(wallpaper.url);
     localStorage.setItem('terminal-background-url', wallpaper.url);
-    // Force immediate update
-    onBackgroundChange(wallpaper.url);
+    // Force immediate update with cache-busted URL
+    onBackgroundChange(urlWithCacheBust);
     // Trigger a custom event to notify Terminal of background change
-    window.dispatchEvent(new CustomEvent('terminal-background-change', { detail: wallpaper.url }));
+    window.dispatchEvent(new CustomEvent('terminal-background-change', { detail: urlWithCacheBust }));
   };
 
   const deleteWallpaper = (id: string) => {
