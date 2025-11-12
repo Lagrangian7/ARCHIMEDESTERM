@@ -1,0 +1,7 @@
+# Python TTS Development Dependencies
+# ⚠️ LOCAL DEVELOPMENT ONLY - NOT FOR PRODUCTION
+# These are used by tts_japanese.py and tts_spanish.py
+
+TTS>=0.22.0
+jaconv>=0.3.4
+unidecode>=0.3.8

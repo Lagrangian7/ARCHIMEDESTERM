@@ -1,0 +1,12 @@
+# Python TTS Scripts (Development Only)
+# These scripts use Coqui TTS with multi-GB dependencies
+# They are NOT used by the Node.js app in production
+# The app uses browser-based Web Speech API instead
+tts_japanese.py
+tts_spanish.py
+requirements.txt
+
+# Development tools
+dev-tools/
+*.pyc
+__pycache__/
