@@ -122,7 +122,10 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
   const selectWallpaper = (wallpaper: WallpaperSlot) => {
     setSelectedWallpaper(wallpaper.url);
     localStorage.setItem('terminal-background-url', wallpaper.url);
+    // Force immediate update
     onBackgroundChange(wallpaper.url);
+    // Trigger a custom event to notify Terminal of background change
+    window.dispatchEvent(new CustomEvent('terminal-background-change', { detail: wallpaper.url }));
   };
 
   const deleteWallpaper = (id: string) => {

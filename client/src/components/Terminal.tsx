@@ -110,6 +110,16 @@ export function Terminal() {
     if (savedBg) {
       setCustomBackgroundUrl(savedBg);
     }
+
+    // Listen for background change events
+    const handleBackgroundChange = (event: CustomEvent) => {
+      setCustomBackgroundUrl(event.detail);
+    };
+
+    window.addEventListener('terminal-background-change', handleBackgroundChange as EventListener);
+    return () => {
+      window.removeEventListener('terminal-background-change', handleBackgroundChange as EventListener);
+    };
   }, []);
 
   const { speak, isSpeaking } = useSpeech();
