@@ -11,7 +11,7 @@ interface TerminalEntry {
   type: 'command' | 'response' | 'system' | 'error';
   content: string;
   timestamp: string;
-  mode?: 'natural' | 'technical';
+  mode?: 'natural' | 'technical'
   action?: string;
 }
 
@@ -520,40 +520,39 @@ Use the URLs above to access the full articles and information.`;
     }
 
     // Handle built-in terminal commands
-    if (cmd === 'help') {
-      // Open interactive help menu instead of static text
-      addEntry('system', 'Opening interactive help menu... (Use F1 key for quick access)');
+    switch (cmd) {
+      case 'help':
+        // Open interactive help menu instead of static text
+        addEntry('system', 'Opening interactive help menu... (Use F1 key for quick access)');
 
-      // Trigger the help menu
-      setTimeout(() => {
-        const openHelpMenu = (window as any).openHelpMenu;
-        if (openHelpMenu) {
-          openHelpMenu();
-        } else {
-          addEntry('error', 'Help menu not available. Try pressing F1 key instead.');
-        }
-      }, 50);
-      return;
-    }
+        // Trigger the help menu
+        setTimeout(() => {
+          const openHelpMenu = (window as any).openHelpMenu;
+          if (openHelpMenu) {
+            openHelpMenu();
+          } else {
+            addEntry('error', 'Help menu not available. Try pressing F1 key instead.');
+          }
+        }, 50);
+        return;
 
-    if (cmd === 'chat') {
-      addEntry('system', 'Opening chat interface... Connect with other online users!');
+      case 'chat':
+        addEntry('system', 'Opening chat interface... Connect with other online users!');
 
-      // Trigger the chat interface
-      setTimeout(() => {
-        const openChatInterface = (window as any).openChatInterface;
-        if (openChatInterface) {
-          openChatInterface();
-        } else {
-          addEntry('error', 'Chat interface not available. Please try using the Chat button in the header.');
-        }
-      }, 50);
-      return;
-    }
+        // Trigger the chat interface
+        setTimeout(() => {
+          const openChatInterface = (window as any).openChatInterface;
+          if (openChatInterface) {
+            openChatInterface();
+          } else {
+            addEntry('error', 'Chat interface not available. Please try using the Chat button in the header.');
+          }
+        }, 50);
+        return;
 
-    // Fallback help command if the interactive menu fails
-    if (cmd === 'help-text') {
-      addEntry('system', `Available Commands:
+      // Fallback help command if the interactive menu fails
+      case 'help-text':
+        addEntry('system', `Available Commands:
   help - Show this help message
   clear - Clear terminal output
   mode [natural|technical] - Switch AI mode
@@ -654,164 +653,169 @@ Session & Productivity:
 Code Execution:
   preview / run - Execute and preview code from last AI response
   preview <code> - Execute and preview your pasted HTML/CSS/JS code`);
-      return;
-    }
+        return;
 
-    if (cmd === 'clear') {
-      setEntries([
-        {
-          id: crypto.randomUUID(),
-          type: 'system',
-          content: 'ARCHIMEDES AI Terminal v7.0 - Initialized',
-          timestamp: new Date().toISOString(),
-        },
-        {
-          id: crypto.randomUUID(),
-          type: 'system',
-          content: 'System Status: ONLINE | Voice Synthesis: READY | Mode: NATURAL CHAT',
-          timestamp: new Date().toISOString(),
-        },
-        {
-          id: crypto.randomUUID(),
-          type: 'system',
-          content: 'Archimedes v7 Online',
-          timestamp: new Date().toISOString(),
-        },
-      ]);
-      return;
-    }
+      case 'clear':
+        setEntries([
+          {
+            id: crypto.randomUUID(),
+            type: 'system',
+            content: 'ARCHIMEDES AI Terminal v7.0 - Initialized',
+            timestamp: new Date().toISOString(),
+          },
+          {
+            id: crypto.randomUUID(),
+            type: 'system',
+            content: 'System Status: ONLINE | Voice Synthesis: READY | Mode: NATURAL CHAT',
+            timestamp: new Date().toISOString(),
+          },
+          {
+            id: crypto.randomUUID(),
+            type: 'system',
+            content: 'Archimedes v7 Online',
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+        return;
 
-    if (cmd === 'rain') {
-      const toggleMatrixRain = (window as any).toggleMatrixRain;
-      if (toggleMatrixRain) {
-        const isEnabled = toggleMatrixRain();
-        addEntry('system', `Matrix rain ${isEnabled ? 'enabled' : 'disabled'}`);
-      } else {
-        addEntry('error', 'Matrix rain control not available');
-      }
-      return;
-    }
-
-    if (cmd === 'privacy') {
-      addEntry('system', 'Privacy screen activated! Matrix rain overlay is now protecting your screen. Type "QWERTY" to unlock and return to normal view.');
-
-      // Trigger the privacy screen overlay
-      setTimeout(() => {
-        const openPrivacyEncoder = (window as any).openPrivacyEncoder;
-        if (openPrivacyEncoder) {
-          openPrivacyEncoder();
+      case 'rain':
+        const toggleMatrixRain = (window as any).toggleMatrixRain;
+        if (toggleMatrixRain) {
+          const isEnabled = toggleMatrixRain();
+          addEntry('system', `Matrix rain ${isEnabled ? 'enabled' : 'disabled'}`);
         } else {
-          addEntry('error', 'Privacy screen not available. Please try using the Privacy button in the header.');
+          addEntry('error', 'Matrix rain control not available');
         }
-      }, 50);
-      return;
-    }
+        return;
 
-    if (cmd === 'xx') {
-      addEntry('system', 'Activating screensaver...');
-      const activateScreensaver = (window as any).activateScreensaver;
-      if (activateScreensaver) {
-        activateScreensaver();
-      } else {
-        addEntry('error', 'Screensaver not available. Please ensure the system is loaded.');
-      }
-      return;
-    }
+      case 'privacy':
+        addEntry('system', 'Privacy screen activated! Matrix rain overlay is now protecting your screen. Type "QWERTY" to unlock and return to normal view.');
 
-    if (cmd === 'debug audio' || cmd === 'test audio') {
-      addEntry('system', `Audio Debug Information:\n\nImported path: ${lagrangianSong}\nPath type: ${typeof lagrangianSong}\nPath length: ${lagrangianSong.length}\nEnvironment: ${import.meta.env.MODE}\n\nTrying to create Audio element...`);
+        // Trigger the privacy screen overlay
+        setTimeout(() => {
+          const openPrivacyEncoder = (window as any).openPrivacyEncoder;
+          if (openPrivacyEncoder) {
+            openPrivacyEncoder();
+          } else {
+            addEntry('error', 'Privacy screen not available. Please try using the Privacy button in the header.');
+          }
+        }, 50);
+        return;
 
-      try {
-        const testAudio = new Audio(lagrangianSong);
-        addEntry('system', `✓ Audio element created successfully\nAudio src: ${testAudio.src}\n\nAttempting to load metadata...`);
+      case 'xx':
+        addEntry('system', 'Activating screensaver...');
+        const activateScreensaver = (window as any).activateScreensaver;
+        if (activateScreensaver) {
+          activateScreensaver();
+        } else {
+          addEntry('error', 'Screensaver not available. Please ensure the system is loaded.');
+        }
+        return;
 
-        testAudio.addEventListener('loadedmetadata', () => {
-          addEntry('system', `✓ Audio metadata loaded\nDuration: ${testAudio.duration}s\nReady to play!`);
-        });
+      case 'debug audio':
+      case 'test audio':
+        addEntry('system', `Audio Debug Information:\n\nImported path: ${lagrangianSong}\nPath type: ${typeof lagrangianSong}\nPath length: ${lagrangianSong.length}\nEnvironment: ${import.meta.env.MODE}\n\nTrying to create Audio element...`);
 
-        testAudio.addEventListener('error', (e) => {
-          const errorCode = testAudio.error?.code;
-          const errorMessages: Record<number, string> = {
-            1: 'MEDIA_ERR_ABORTED - Download aborted',
-            2: 'MEDIA_ERR_NETWORK - Network error',
-            3: 'MEDIA_ERR_DECODE - Decoding error',
-            4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Format not supported or file not found'
-          };
-          addEntry('error', `✗ Audio loading failed\nError code: ${errorCode}\nError: ${errorMessages[errorCode || 0] || 'Unknown error'}\nSource: ${testAudio.src}`);
-        });
+        try {
+          const testAudio = new Audio(lagrangianSong);
+          addEntry('system', `✓ Audio element created successfully\nAudio src: ${testAudio.src}\n\nAttempting to load metadata...`);
 
-        testAudio.load();
-      } catch (error: any) {
-        addEntry('error', `✗ Failed to create audio element: ${error.message}`);
-      }
+          testAudio.addEventListener('loadedmetadata', () => {
+            addEntry('system', `✓ Audio metadata loaded\nDuration: ${testAudio.duration}s\nReady to play!`);
+          });
 
-      return;
-    }
+          testAudio.addEventListener('error', (e) => {
+            const errorCode = testAudio.error?.code;
+            const errorMessages: Record<number, string> = {
+              1: 'MEDIA_ERR_ABORTED - Download aborted',
+              2: 'MEDIA_ERR_NETWORK - Network error',
+              3: 'MEDIA_ERR_DECODE - Decoding error',
+              4: 'MEDIA_ERR_SRC_NOT_SUPPORTED - Format not supported or file not found'
+            };
+            addEntry('error', `✗ Audio loading failed\nError code: ${errorCode}\nError: ${errorMessages[errorCode || 0] || 'Unknown error'}\nSource: ${testAudio.src}`);
+          });
 
-    if (cmd === 'play our song') {
-      addEntry('system', '🎵 Launching Webamp...\n\nOpening music player with Milkdrop visualizer.');
+          testAudio.load();
+        } catch (error: any) {
+          addEntry('error', `✗ Failed to create audio element: ${error.message}`);
+        }
 
-      const openWebamp = (window as any).openWebamp;
-      if (openWebamp) {
-        openWebamp();
-      } else {
-        addEntry('error', 'Webamp not available. Please ensure the system is loaded.');
-      }
+        return;
 
-      return;
-    }
+      case 'play our song':
+        addEntry('system', '🎵 Launching Webamp...\n\nOpening music player with Milkdrop visualizer.');
 
-    if (cmd === 'stop') {
-      if (backgroundAudio) {
-        backgroundAudio.pause();
-        backgroundAudio.currentTime = 0;
-        setBackgroundAudio(null);
-        addEntry('system', '🔇 Background music stopped.');
-      }
-      return;
-    }
+        const openWebamp = (window as any).openWebamp;
+        if (openWebamp) {
+          openWebamp();
+        } else {
+          addEntry('error', 'Webamp not available. Please ensure the system is loaded.');
+        }
 
-    if (cmd === 'ssh-client' || cmd === 'sshwifty') {
-      addEntry('system', 'Opening SSH/Telnet client interface...');
-      const openSshwiftyInterface = (window as any).openSshwiftyInterface;
-      if (openSshwiftyInterface) {
-        openSshwiftyInterface();
-      } else {
-        addEntry('error', 'SSH/Telnet interface not available. Please ensure the system is loaded.');
-      }
-      return;
-    }
+        return;
 
-    if (cmd === 'webamp') {
-      addEntry('system', '🎵 Launching Webamp music player with Milkdrop visualizer...\n\nControls:\n- ESC to close\n- SPACE/← → for preset navigation\n- H for hard cut\n- R to toggle preset cycling\n\nLoading...');
+      case 'stop':
+        if (backgroundAudio) {
+          backgroundAudio.pause();
+          backgroundAudio.currentTime = 0;
+          setBackgroundAudio(null);
+          addEntry('system', '🔇 Background music stopped.');
+        }
+        return;
 
-      const openWebamp = (window as any).openWebamp;
-      if (openWebamp) {
-        openWebamp();
-      } else {
-        addEntry('error', 'Webamp not available. Please ensure the system is loaded.');
-      }
-      return;
-    }
+      case 'ssh-client':
+      case 'sshwifty':
+        addEntry('system', 'Opening SSH/Telnet client interface...');
+        const openSshwiftyInterface = (window as any).openSshwiftyInterface;
+        if (openSshwiftyInterface) {
+          openSshwiftyInterface();
+        } else {
+          addEntry('error', 'SSH/Telnet interface not available. Please ensure the system is loaded.');
+        }
+        return;
 
-    if (cmd === 'aj') {
-      addEntry('system', '📺 Launching AJ video player...');
+      case 'webamp':
+        addEntry('system', '🎵 Launching Webamp music player with Milkdrop visualizer...\n\nControls:\n- ESC to close\n- SPACE/← → for preset navigation\n- H for hard cut\n- R to toggle preset cycling\n\nLoading...');
 
-      const openAJVideo = (window as any).openAJVideo;
-      if (openAJVideo) {
-        openAJVideo();
-      } else {
-        addEntry('error', 'AJ video player not available. Please ensure the system is loaded.');
-      }
-      return;
-    }
+        const openWebampPlayer = (window as any).openWebamp;
+        if (openWebampPlayer) {
+          openWebampPlayer();
+        } else {
+          addEntry('error', 'Webamp not available. Please ensure the system is loaded.');
+        }
+        return;
 
-    if (cmd === 'mode') {
-      // Toggle between natural and technical
-      const newMode = currentMode === 'natural' ? 'technical' : 'natural';
-      setCurrentMode(newMode);
-      addEntry('system', `Mode switched to: ${newMode.toUpperCase()}`);
-      return;
+      case 'aj':
+        addEntry('system', '📺 Launching AJ video player...');
+
+        const openAJVideo = (window as any).openAJVideo;
+        if (openAJVideo) {
+          openAJVideo();
+        } else {
+          addEntry('error', 'AJ video player not available. Please ensure the system is loaded.');
+        }
+        return;
+
+      case 'mode':
+        // Toggle between natural and technical
+        const newMode = currentMode === 'natural' ? 'technical' : 'natural';
+        setCurrentMode(newMode);
+        addEntry('system', `Mode switched to: ${newMode.toUpperCase()}`);
+        return;
+
+      case 'spacewar':
+      case 'spacewars':
+        (window as any).openSpacewars?.();
+        addEntry('system', '🚀 Launching SPACEWAR game...');
+        break;
+
+      case 'python':
+      case 'pythonide':
+      case 'learnpython':
+      case 'pyide':
+        (window as any).openPythonIDE?.();
+        addEntry('system', '🐍 Opening Python Learning IDE...\n\nFeatures:\n• Interactive code editor with syntax highlighting\n• Pre-loaded examples and tutorials\n• Live code execution\n• Perfect for learning Python basics!');
+        break;
     }
 
     if (cmd.startsWith('mode ')) {
@@ -944,12 +948,12 @@ Code Execution:
         'vaporwave', 'desert', 'toxic', 'crimson', 'lavender', 'emerald', 'midnight', 'sakura', 'copper', 'plasma',
         'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
       ];
-      
+
       const currentTheme = localStorage.getItem('terminal-theme') || 'spectrum';
-      const formattedList = themesList.map(theme => 
+      const formattedList = themesList.map(theme =>
         theme === currentTheme ? `  ▶ ${theme} (current)` : `    ${theme}`
       ).join('\n');
-      
+
       addEntry('system', `Available Themes:\n\n${formattedList}\n\nUsage: theme <name>\nExample: theme cyberpunk`);
       return;
     }
@@ -970,10 +974,10 @@ Code Execution:
 
       // Update the theme
       localStorage.setItem('terminal-theme', requestedTheme);
-      
+
       // Trigger theme change by dispatching a custom event
       window.dispatchEvent(new CustomEvent('terminal-theme-change', { detail: requestedTheme }));
-      
+
       addEntry('system', `🎨 Theme changed to: ${requestedTheme}`);
       return;
     }
@@ -2299,18 +2303,6 @@ Powered by Wolfram Alpha Full Results API`);
         openZorkGame();
       } else {
         addEntry('error', 'ZORK game not available. Please ensure the game component is loaded.');
-      }
-      return;
-    }
-
-    if (cmd === 'spacewars') {
-      addEntry('system', 'Launching SPACEWAR...');
-      const openSpacewars = (window as any).openSpacewars;
-      if (openSpacewars) {
-        openSpacewars();
-        addEntry('system', 'SPACEWAR game launched! Defend against the alien invasion!');
-      } else {
-        addEntry('error', 'SPACEWAR game not available. Please ensure the game component is loaded.');
       }
       return;
     }

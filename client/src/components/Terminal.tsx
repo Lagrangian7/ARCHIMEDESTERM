@@ -22,6 +22,7 @@ import { LinkifiedText } from '@/lib/linkify';
 import { TheHarvester } from './TheHarvester';
 // import { SpiderFoot } from './SpiderFoot'; // Commented out - component not found
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
+import { PythonIDE } from './PythonIDE';
 import { CodePreview } from './CodePreview';
 import WebampPlayer from './WebampPlayer';
 import AJVideoPopup from './AJVideoPopup';
@@ -100,6 +101,7 @@ export function Terminal() {
     (window as any).openWebamp = () => setShowWebamp(true);
     (window as any).openAJVideo = () => setShowAJVideo(true);
     (window as any).openSpacewars = () => setShowSpacewars(true);
+    (window as any).openPythonIDE = () => setShowPythonIDE(true);
   }, []);
 
   const { speak, isSpeaking } = useSpeech();
@@ -128,6 +130,7 @@ export function Terminal() {
   const [isWebampOpen, setIsWebampOpen] = useState(false); // State to track if Webamp is open
   const [showSpacewars, setShowSpacewars] = useState(false);
   const [showNotepad, setShowNotepad] = useState(false);
+  const [showPythonIDE, setShowPythonIDE] = useState(false);
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
 
@@ -870,6 +873,11 @@ export function Terminal() {
       {/* Notepad */}
       {showNotepad && (
         <Notepad onClose={() => setShowNotepad(false)} />
+      )}
+
+      {/* Python IDE */}
+      {showPythonIDE && (
+        <PythonIDE onClose={() => setShowPythonIDE(false)} />
       )}
     </div>
   );

@@ -449,6 +449,17 @@ const helpMenuItems: HelpMenuItem[] = [
     icon: <TerminalIcon size={16} />
   },
 
+  // Python Learning IDE
+  {
+    id: 'python',
+    category: 'Tools',
+    title: 'Python Learning IDE',
+    description: 'Interactive Python learning environment with examples and tutorials',
+    command: 'python / pythonide / learnpython',
+    example: 'python',
+    icon: <TerminalIcon size={16} />
+  },
+
   // Session & Productivity
   {
     id: 'session',
