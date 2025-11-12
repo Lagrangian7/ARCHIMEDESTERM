@@ -1700,8 +1700,12 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
     // Auto-speak new assistant messages
     const lastMessage = chatHistory[chatHistory.length - 1];
-    if (lastMessage && lastMessage.role === 'assistant' && lastMessage.content) {
-      const messageId = `${chatHistory.length}-${lastMessage.content.substring(0, 20)}`;
+    if (lastMessage && 
+        lastMessage.role === 'assistant' && 
+        lastMessage.content && 
+        typeof lastMessage.content === 'string' &&
+        lastMessage.content.trim().length > 0) {
+      const messageId = `${chatHistory.length}-${lastMessage.content.substring(0, Math.min(20, lastMessage.content.length))}`;
       if (messageId !== lastSpokenChatIdRef.current) {
         lastSpokenChatIdRef.current = messageId;
         speak(lastMessage.content);
