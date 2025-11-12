@@ -3153,11 +3153,11 @@ function windowResized() {
         return res.status(400).json({ error: "Code too large (max 50KB)" });
       }
 
-      // Create a temporary Python file
-      const { writeFile, unlink } = require('fs').promises;
-      const path = require('path');
-      const tmpDir = require('os').tmpdir();
-      const tmpFile = path.join(tmpDir, `python_${Date.now()}_${Math.random().toString(36).substring(7)}.py`);
+      // Create a temporary Python file using ES module imports
+      const { writeFile, unlink } = await import('fs/promises');
+      const { join } = await import('path');
+      const { tmpdir } = await import('os');
+      const tmpFile = join(tmpdir(), `python_${Date.now()}_${Math.random().toString(36).substring(7)}.py`);
 
       await writeFile(tmpFile, code, 'utf8');
 
