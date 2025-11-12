@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -36,11 +35,11 @@ API_TIMEOUT = 30
 def greet_user(name: str, age: int) -> str:
     """
     Greet a user with their name and age.
-    
+
     Args:
         name: The user's name
         age: The user's age
-        
+
     Returns:
         A formatted greeting string
     """
@@ -111,34 +110,34 @@ letters = Counter("archimedes")
 
 def demonstrate_data_types():
     """Show appropriate usage of each data type."""
-    
+
     # List operations (mutable)
     numbers.append(6)
     numbers.extend([7, 8])
     print(f"List after append/extend: {numbers}")
-    
+
     # Tuple unpacking
     latitude, longitude = coordinates
     print(f"Coordinates: ({latitude}, {longitude})")
-    
+
     # Set operations
     set_a = {1, 2, 3, 4}
     set_b = {3, 4, 5, 6}
     print(f"Union: {set_a | set_b}")
     print(f"Intersection: {set_a & set_b}")
     print(f"Difference: {set_a - set_b}")
-    
+
     # Dict operations
     user_data['last_login'] = datetime.now().isoformat()
     print(f"User: {user_data.get('name', 'Unknown')}")
-    
+
     # Advanced collections
     print(f"Word count: {dict(word_count)}")
     print(f"Most common letter: {letters.most_common(1)}")
 
 if __name__ == "__main__":
     demonstrate_data_types()
-    
+
     # Type checking
     print(f"\\nType of numbers: {type(numbers)}")
     print(f"Type of coordinates: {type(coordinates)}")
@@ -169,27 +168,27 @@ import operator
 # Built-in functions demonstration
 def demonstrate_builtins():
     """Show powerful built-in functions."""
-    
+
     numbers = [1, 2, 3, 4, 5]
-    
+
     # map: apply function to each element
     squared = list(map(lambda x: x**2, numbers))
     print(f"Squared: {squared}")
-    
+
     # filter: keep elements that match condition
     evens = list(filter(lambda x: x % 2 == 0, numbers))
     print(f"Evens: {evens}")
-    
+
     # zip: combine iterables
     names = ['Alice', 'Bob', 'Carol']
     ages = [25, 30, 35]
     combined = list(zip(names, ages))
     print(f"Combined: {combined}")
-    
+
     # enumerate: get index and value
     for i, name in enumerate(names, start=1):
         print(f"{i}. {name}")
-    
+
     # reduce: accumulate values
     total = reduce(operator.add, numbers)
     print(f"Sum using reduce: {total}")
@@ -198,19 +197,19 @@ def demonstrate_builtins():
 def calculate_statistics(numbers: List[float]) -> Dict[str, float]:
     """
     Calculate basic statistics for a list of numbers.
-    
+
     Args:
         numbers: List of numeric values
-        
+
     Returns:
         Dictionary with mean, median, min, max
     """
     if not numbers:
         return {}
-    
+
     sorted_nums = sorted(numbers)
     n = len(sorted_nums)
-    
+
     return {
         'mean': sum(numbers) / n,
         'median': sorted_nums[n // 2] if n % 2 else 
@@ -254,26 +253,26 @@ if __name__ == "__main__":
     # Test built-ins
     print("=== Built-in Functions ===")
     demonstrate_builtins()
-    
+
     # Test custom functions
     print("\\n=== Custom Functions ===")
     data = [15, 23, 8, 42, 16, 4]
     stats = calculate_statistics(data)
     print(f"Statistics: {stats}")
-    
+
     # Default parameters
     print(greet("Alice"))
     print(greet("Bob", "Hi"))
     print(greet("Carol", "Hey", "..."))
-    
+
     # *args and **kwargs
     print(f"Sum: {sum_all(1, 2, 3, 4, 5)}")
     print_user_info(name="Alice", age="25", city="NYC")
-    
+
     # Tuple unpacking
     q, r = divide_with_remainder(17, 5)
     print(f"17 ÷ 5 = {q} remainder {r}")
-    
+
     # Higher-order functions
     nums = [1, 2, 3, 4, 5]
     doubled = apply_operation(nums, double)
@@ -303,20 +302,20 @@ import sys
 # List Comprehensions - concise and readable
 def list_comprehension_examples():
     """Demonstrate various list comprehension patterns."""
-    
+
     # Basic comprehension
     squares = [x**2 for x in range(10)]
     print(f"Squares: {squares}")
-    
+
     # With condition
     even_squares = [x**2 for x in range(10) if x % 2 == 0]
     print(f"Even squares: {even_squares}")
-    
+
     # Nested comprehension (flatten matrix)
     matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     flattened = [num for row in matrix for num in row]
     print(f"Flattened: {flattened}")
-    
+
     # String manipulation
     words = ["hello", "world", "python"]
     capitalized = [word.upper() for word in words]
@@ -325,17 +324,17 @@ def list_comprehension_examples():
 # Dictionary Comprehensions
 def dict_comprehension_examples():
     """Demonstrate dictionary comprehension patterns."""
-    
+
     # Create dict from lists
     keys = ['a', 'b', 'c']
     values = [1, 2, 3]
     mapping = {k: v for k, v in zip(keys, values)}
     print(f"Mapping: {mapping}")
-    
+
     # Invert dictionary
     inverted = {v: k for k, v in mapping.items()}
     print(f"Inverted: {inverted}")
-    
+
     # Filter dictionary
     numbers = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
     evens = {k: v for k, v in numbers.items() if v % 2 == 0}
@@ -344,12 +343,12 @@ def dict_comprehension_examples():
 # Set Comprehensions
 def set_comprehension_examples():
     """Demonstrate set comprehension patterns."""
-    
+
     # Unique lengths
     words = ["hello", "world", "hi", "python", "code"]
     lengths = {len(word) for word in words}
     print(f"Unique lengths: {lengths}")
-    
+
     # Unique squares
     unique_squares = {x**2 for x in [-2, -1, 0, 1, 2]}
     print(f"Unique squares: {unique_squares}")
@@ -365,12 +364,12 @@ def count_from(start: int = 0) -> Iterator[int]:
 # Generator Expressions - memory efficient
 def generator_examples():
     """Demonstrate generators for memory-efficient iteration."""
-    
+
     # Generator expression (uses () instead of [])
     squares_gen = (x**2 for x in range(1000000))
     print(f"Generator object: {squares_gen}")
     print(f"First 5 squares: {[next(squares_gen) for _ in range(5)]}")
-    
+
     # Generator function with yield
     def fibonacci(n: int) -> Iterator[int]:
         """Generate Fibonacci sequence up to n terms."""
@@ -378,10 +377,10 @@ def generator_examples():
         for _ in range(n):
             yield a
             a, b = b, a + b
-    
+
     fib_gen = fibonacci(10)
     print(f"Fibonacci: {list(fib_gen)}")
-    
+
     # Use the module-level infinite generator
     counter = count_from(100)
     print(f"First 5 from counter: {[next(counter) for _ in range(5)]}")
@@ -389,13 +388,13 @@ def generator_examples():
 # Custom Iterator Class
 class Countdown:
     """Iterator that counts down from a number."""
-    
+
     def __init__(self, start: int):
         self.current = start
-    
+
     def __iter__(self):
         return self
-    
+
     def __next__(self):
         if self.current <= 0:
             raise StopIteration
@@ -406,20 +405,20 @@ class Countdown:
 def iterator_tools_examples():
     """Demonstrate working with iterators."""
     from itertools import islice, cycle, chain, takewhile
-    
+
     # islice: slice an iterator
     numbers = range(100)
     first_10_evens = list(islice((x for x in numbers if x % 2 == 0), 10))
     print(f"First 10 evens: {first_10_evens}")
-    
+
     # cycle: repeat infinitely
     colors = cycle(['red', 'green', 'blue'])
     print(f"First 7 colors: {[next(colors) for _ in range(7)]}")
-    
+
     # chain: combine iterators
     combined = chain([1, 2, 3], [4, 5, 6], [7, 8, 9])
     print(f"Combined: {list(combined)}")
-    
+
     # takewhile: take while condition is true
     from_one = count_from(1)
     less_than_10 = list(takewhile(lambda x: x < 10, from_one))
@@ -428,15 +427,15 @@ def iterator_tools_examples():
 # Memory comparison
 def memory_comparison():
     """Compare memory usage of list vs generator."""
-    
+
     # List (stores all values in memory)
     list_comp = [x**2 for x in range(100000)]
     list_size = sys.getsizeof(list_comp)
-    
+
     # Generator (computes on demand)
     gen_exp = (x**2 for x in range(100000))
     gen_size = sys.getsizeof(gen_exp)
-    
+
     print(f"\\nMemory Usage:")
     print(f"List: {list_size:,} bytes")
     print(f"Generator: {gen_size:,} bytes")
@@ -445,23 +444,23 @@ def memory_comparison():
 if __name__ == "__main__":
     print("=== List Comprehensions ===")
     list_comprehension_examples()
-    
+
     print("\\n=== Dictionary Comprehensions ===")
     dict_comprehension_examples()
-    
+
     print("\\n=== Set Comprehensions ===")
     set_comprehension_examples()
-    
+
     print("\\n=== Generators ===")
     generator_examples()
-    
+
     print("\\n=== Custom Iterator ===")
     countdown = Countdown(5)
     print(f"Countdown: {list(countdown)}")
-    
+
     print("\\n=== Iterator Tools ===")
     iterator_tools_examples()
-    
+
     memory_comparison()
 `,
     tasks: [
@@ -490,11 +489,11 @@ import time as time_module
 # Current date and time
 def current_datetime_examples():
     """Demonstrate getting current date/time."""
-    
+
     now = datetime.now()
     today = date.today()
     utc_now = datetime.now(timezone.utc)
-    
+
     print(f"Local now: {now}")
     print(f"Today's date: {today}")
     print(f"UTC now: {utc_now}")
@@ -503,19 +502,19 @@ def current_datetime_examples():
 # Creating specific dates and times
 def create_datetime_examples():
     """Create specific datetime objects."""
-    
+
     # Specific date
     birthday = date(1990, 5, 15)
     print(f"Birthday: {birthday}")
-    
+
     # Specific datetime
     meeting = datetime(2024, 12, 25, 14, 30, 0)
     print(f"Meeting: {meeting}")
-    
+
     # Specific time
     alarm = time(7, 30, 0)
     print(f"Alarm time: {alarm}")
-    
+
     # From timestamp
     epoch_time = datetime.fromtimestamp(0, tz=timezone.utc)
     print(f"Unix epoch: {epoch_time}")
@@ -523,15 +522,15 @@ def create_datetime_examples():
 # Formatting and parsing
 def formatting_examples():
     """Format and parse datetime strings."""
-    
+
     now = datetime.now()
-    
+
     # Formatting with strftime
     print(f"ISO format: {now.isoformat()}")
     print(f"Custom: {now.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Readable: {now.strftime('%B %d, %Y at %I:%M %p')}")
     print(f"Date only: {now.strftime('%Y-%m-%d')}")
-    
+
     # Parsing with strptime
     date_str = "2024-12-25 14:30:00"
     parsed = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
@@ -540,27 +539,27 @@ def formatting_examples():
 # Time arithmetic with timedelta
 def timedelta_examples():
     """Perform date/time arithmetic."""
-    
+
     now = datetime.now()
-    
+
     # Add/subtract time
     tomorrow = now + timedelta(days=1)
     next_week = now + timedelta(weeks=1)
     two_hours_ago = now - timedelta(hours=2)
-    
+
     print(f"Tomorrow: {tomorrow.strftime('%Y-%m-%d')}")
     print(f"Next week: {next_week.strftime('%Y-%m-%d')}")
     print(f"2 hours ago: {two_hours_ago.strftime('%H:%M')}")
-    
+
     # Duration between dates
     birthday = date(1990, 5, 15)
     today = date.today()
     age_days = (today - birthday).days
     age_years = age_days / 365.25
-    
+
     print(f"Days since birthday: {age_days}")
     print(f"Approximate age: {age_years:.1f} years")
-    
+
     # Business days calculation
     def add_business_days(start_date: date, days: int) -> date:
         """Add business days (excluding weekends)."""
@@ -570,22 +569,22 @@ def timedelta_examples():
             if current.weekday() < 5:  # Monday = 0, Friday = 4
                 days -= 1
         return current
-    
+
     deadline = add_business_days(today, 10)
     print(f"10 business days from now: {deadline}")
 
 # Calendar operations
 def calendar_examples():
     """Work with calendars."""
-    
+
     # Check if leap year
     year = 2024
     print(f"{year} is leap year: {isleap(year)}")
-    
+
     # Days in month
     month_days = monthrange(2024, 2)  # Returns (weekday, days)
     print(f"February 2024 has {month_days[1]} days")
-    
+
     # Generate calendar
     cal = Calendar()
     print("\\nFebruary 2024 calendar:")
@@ -596,16 +595,16 @@ def calendar_examples():
 # Timezone-aware operations
 def timezone_examples():
     """Work with timezones (basic UTC)."""
-    
+
     # UTC time
     utc_now = datetime.now(timezone.utc)
     print(f"UTC: {utc_now}")
-    
+
     # Convert to timestamp and back
     timestamp = utc_now.timestamp()
     restored = datetime.fromtimestamp(timestamp, tz=timezone.utc)
     print(f"Restored from timestamp: {restored}")
-    
+
     # Time since epoch
     epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
     since_epoch = utc_now - epoch
@@ -614,18 +613,18 @@ def timezone_examples():
 # Performance timing
 def timing_example():
     """Time code execution."""
-    
+
     def slow_function():
         """Simulate slow operation."""
         total = 0
         for i in range(1000000):
             total += i
         return total
-    
+
     start = time_module.perf_counter()
     result = slow_function()
     end = time_module.perf_counter()
-    
+
     duration = end - start
     print(f"\\nFunction took {duration:.4f} seconds")
     print(f"Result: {result}")
@@ -633,45 +632,45 @@ def timing_example():
 # Date utilities
 def date_utilities():
     """Useful date utility functions."""
-    
+
     def is_weekend(check_date: date) -> bool:
         """Check if date is weekend."""
         return check_date.weekday() >= 5
-    
+
     def days_until(target_date: date) -> int:
         """Days until target date."""
         return (target_date - date.today()).days
-    
+
     def quarter(check_date: date) -> int:
         """Get fiscal quarter (1-4)."""
         return (check_date.month - 1) // 3 + 1
-    
+
     today = date.today()
     print(f"\\nToday is weekend: {is_weekend(today)}")
     print(f"Quarter: Q{quarter(today)}")
-    
+
     new_year = date(today.year + 1, 1, 1)
     print(f"Days until new year: {days_until(new_year)}")
 
 if __name__ == "__main__":
     print("=== Current Date/Time ===")
     current_datetime_examples()
-    
+
     print("\\n=== Creating Specific Dates ===")
     create_datetime_examples()
-    
+
     print("\\n=== Formatting & Parsing ===")
     formatting_examples()
-    
+
     print("\\n=== Time Arithmetic ===")
     timedelta_examples()
-    
+
     print("\\n=== Calendar Operations ===")
     calendar_examples()
-    
+
     print("\\n=== Timezone Operations ===")
     timezone_examples()
-    
+
     timing_example()
     date_utilities()
 `,
@@ -703,64 +702,64 @@ import tempfile
 # Text file operations
 def text_file_examples():
     """Demonstrate reading and writing text files."""
-    
+
     # Write text file (context manager ensures cleanup)
     with open('example.txt', 'w', encoding='utf-8') as f:
         f.write("Hello, World!\\n")
         f.write("Python file I/O\\n")
         lines = ["Line 1\\n", "Line 2\\n", "Line 3\\n"]
         f.writelines(lines)
-    
+
     # Read entire file
     with open('example.txt', 'r', encoding='utf-8') as f:
         content = f.read()
         print(f"Full content:\\n{content}")
-    
+
     # Read line by line (memory efficient)
     with open('example.txt', 'r', encoding='utf-8') as f:
         for line_num, line in enumerate(f, 1):
             print(f"Line {line_num}: {line.strip()}")
-    
+
     # Read all lines into list
     with open('example.txt', 'r', encoding='utf-8') as f:
         lines = f.readlines()
         print(f"Total lines: {len(lines)}")
-    
+
     # Append to file
     with open('example.txt', 'a', encoding='utf-8') as f:
         f.write("Appended line\\n")
-    
+
     # Clean up
     os.remove('example.txt')
 
 # Binary file operations
 def binary_file_examples():
     """Demonstrate binary file operations."""
-    
+
     # Write binary data
     data = bytes([0x00, 0x01, 0x02, 0xFF])
     with open('example.bin', 'wb') as f:
         f.write(data)
-    
+
     # Read binary data
     with open('example.bin', 'rb') as f:
         binary_content = f.read()
         print(f"Binary data: {binary_content.hex()}")
         print(f"As list: {list(binary_content)}")
-    
+
     # Read chunks (for large files)
     chunk_size = 2
     with open('example.bin', 'rb') as f:
         while chunk := f.read(chunk_size):
             print(f"Chunk: {chunk.hex()}")
-    
+
     # Clean up
     os.remove('example.bin')
 
 # JSON file operations
 def json_file_examples():
     """Work with JSON files."""
-    
+
     # Create data structure
     data: Dict[str, Any] = {
         'name': 'Alice',
@@ -769,28 +768,28 @@ def json_file_examples():
         'active': True,
         'score': 95.5
     }
-    
+
     # Write JSON (pretty printed)
     with open('data.json', 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
-    
+
     # Read JSON
     with open('data.json', 'r', encoding='utf-8') as f:
         loaded_data = json.load(f)
         print(f"Loaded JSON: {loaded_data}")
-    
+
     # JSON to/from strings
     json_string = json.dumps(data, indent=2)
     parsed = json.loads(json_string)
     print(f"Parsed from string: {parsed['name']}")
-    
+
     # Clean up
     os.remove('data.json')
 
 # CSV file operations
 def csv_file_examples():
     """Work with CSV files."""
-    
+
     # Write CSV
     headers = ['Name', 'Age', 'City']
     rows = [
@@ -798,63 +797,63 @@ def csv_file_examples():
         ['Bob', 30, 'LA'],
         ['Carol', 35, 'Chicago']
     ]
-    
+
     with open('data.csv', 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(headers)
         writer.writerows(rows)
-    
+
     # Read CSV
     with open('data.csv', 'r', encoding='utf-8') as f:
         reader = csv.reader(f)
         print("CSV Data:")
         for row in reader:
             print(row)
-    
+
     # CSV with DictReader/DictWriter
     with open('data.csv', 'r', encoding='utf-8') as f:
         dict_reader = csv.DictReader(f)
         print("\\nAs dictionaries:")
         for row in dict_reader:
             print(f"{row['Name']} is {row['Age']} from {row['City']}")
-    
+
     # Clean up
     os.remove('data.csv')
 
 # Path operations with pathlib
 def pathlib_examples():
     """Use pathlib for modern file operations."""
-    
+
     # Create Path object
     path = Path('example_dir')
-    
+
     # Create directory
     path.mkdir(exist_ok=True)
-    
+
     # Create file in directory
     file_path = path / 'test.txt'
     file_path.write_text("Hello from pathlib!", encoding='utf-8')
-    
+
     # Read file
     content = file_path.read_text(encoding='utf-8')
     print(f"Content: {content}")
-    
+
     # File info
     print(f"Exists: {file_path.exists()}")
     print(f"Is file: {file_path.is_file()}")
     print(f"Size: {file_path.stat().st_size} bytes")
     print(f"Suffix: {file_path.suffix}")
     print(f"Name: {file_path.name}")
-    
+
     # List directory contents
     print(f"\\nDirectory contents:")
     for item in path.iterdir():
         print(f"  {item.name}")
-    
+
     # Glob patterns
     txt_files = list(path.glob('*.txt'))
     print(f"Text files: {[f.name for f in txt_files]}")
-    
+
     # Clean up
     file_path.unlink()
     path.rmdir()
@@ -862,7 +861,7 @@ def pathlib_examples():
 # Safe file operations with error handling
 def safe_file_operations():
     """Demonstrate error handling with files."""
-    
+
     def read_file_safely(filename: str) -> str:
         """Read file with proper error handling."""
         try:
@@ -877,7 +876,7 @@ def safe_file_operations():
         except Exception as e:
             print(f"Unexpected error: {e}")
             return ""
-    
+
     # Try to read non-existent file
     content = read_file_safely('nonexistent.txt')
     print(f"Result: '{content}'")
@@ -885,20 +884,20 @@ def safe_file_operations():
 # Temporary files
 def temporary_file_examples():
     """Work with temporary files."""
-    
+
     # Temporary file (auto-deleted)
     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as tmp:
         tmp.write("Temporary data")
         tmp_path = tmp.name
         print(f"Temp file: {tmp_path}")
-    
+
     # Read temp file
     with open(tmp_path, 'r') as f:
         print(f"Temp content: {f.read()}")
-    
+
     # Manual cleanup
     os.remove(tmp_path)
-    
+
     # Temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
         print(f"Temp directory: {tmp_dir}")
@@ -907,50 +906,50 @@ def temporary_file_examples():
 # Large file processing
 def process_large_file_example():
     """Process large files efficiently."""
-    
+
     # Create sample large file
     with open('large.txt', 'w') as f:
         for i in range(1000):
             f.write(f"Line {i}\\n")
-    
+
     # Process line by line (memory efficient)
     line_count = 0
     total_chars = 0
-    
+
     with open('large.txt', 'r') as f:
         for line in f:
             line_count += 1
             total_chars += len(line)
-    
+
     print(f"\\nProcessed large file:")
     print(f"Lines: {line_count}")
     print(f"Total characters: {total_chars}")
-    
+
     # Clean up
     os.remove('large.txt')
 
 if __name__ == "__main__":
     print("=== Text Files ===")
     text_file_examples()
-    
+
     print("\\n=== Binary Files ===")
     binary_file_examples()
-    
+
     print("\\n=== JSON Files ===")
     json_file_examples()
-    
+
     print("\\n=== CSV Files ===")
     csv_file_examples()
-    
+
     print("\\n=== Pathlib ===")
     pathlib_examples()
-    
+
     print("\\n=== Safe Operations ===")
     safe_file_operations()
-    
+
     print("\\n=== Temporary Files ===")
     temporary_file_examples()
-    
+
     process_large_file_example()
 `,
     tasks: [
@@ -986,22 +985,22 @@ from typing import List, Dict
 # Regular expressions (re)
 def regex_examples():
     """Pattern matching with regular expressions."""
-    
+
     text = "Contact: alice@example.com or bob@test.org"
-    
+
     # Find email addresses
     emails = re.findall(r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b', text)
     print(f"Emails found: {emails}")
-    
+
     # Validate pattern
     phone = "555-123-4567"
     if re.match(r'^\\d{3}-\\d{3}-\\d{4}$', phone):
         print(f"Valid phone: {phone}")
-    
+
     # Search and replace
     sanitized = re.sub(r'\\b\\d+\\b', 'XXX', "My PIN is 1234")
     print(f"Sanitized: {sanitized}")
-    
+
     # Groups
     match = re.search(r'(\\w+)@(\\w+\\.\\w+)', text)
     if match:
@@ -1010,18 +1009,18 @@ def regex_examples():
 # Collections module
 def collections_examples():
     """Advanced container types."""
-    
+
     # defaultdict - never raises KeyError
     word_count = defaultdict(int)
     for word in ['apple', 'banana', 'apple', 'cherry']:
         word_count[word] += 1
     print(f"Word count: {dict(word_count)}")
-    
+
     # Counter - counting hashable objects
     letters = Counter("archimedes")
     print(f"Letter frequency: {letters}")
     print(f"Most common: {letters.most_common(3)}")
-    
+
     # deque - efficient queue/stack
     queue = deque(['a', 'b', 'c'])
     queue.append('d')  # Add to right
@@ -1029,7 +1028,7 @@ def collections_examples():
     print(f"Deque: {queue}")
     print(f"Pop right: {queue.pop()}")
     print(f"Pop left: {queue.popleft()}")
-    
+
     # namedtuple - lightweight class
     Point = namedtuple('Point', ['x', 'y'])
     p = Point(10, 20)
@@ -1038,20 +1037,20 @@ def collections_examples():
 # Itertools - iteration tools
 def itertools_examples():
     """Efficient iteration patterns."""
-    
+
     # chain - combine iterables
     combined = list(chain([1, 2], [3, 4], [5, 6]))
     print(f"Chained: {combined}")
-    
+
     # combinations - r-length combinations
     items = ['A', 'B', 'C']
     combos = list(combinations(items, 2))
     print(f"Combinations: {combos}")
-    
+
     # permutations - r-length permutations
     perms = list(permutations(items, 2))
     print(f"Permutations: {perms}")
-    
+
     # product - Cartesian product
     prod = list(product([1, 2], ['a', 'b']))
     print(f"Product: {prod}")
@@ -1059,27 +1058,27 @@ def itertools_examples():
 # Functools - functional programming
 def functools_examples():
     """Higher-order functions and decorators."""
-    
+
     # lru_cache - memoization
     @lru_cache(maxsize=128)
     def fibonacci(n: int) -> int:
         if n < 2:
             return n
         return fibonacci(n-1) + fibonacci(n-2)
-    
+
     print(f"Fibonacci(10): {fibonacci(10)}")
     print(f"Cache info: {fibonacci.cache_info()}")
-    
+
     # partial - pre-fill arguments
     def power(base: float, exponent: float) -> float:
         return base ** exponent
-    
+
     square = partial(power, exponent=2)
     cube = partial(power, exponent=3)
-    
+
     print(f"Square of 5: {square(5)}")
     print(f"Cube of 5: {cube(5)}")
-    
+
     # reduce - accumulate values
     from operator import mul
     numbers = [1, 2, 3, 4, 5]
@@ -1089,17 +1088,17 @@ def functools_examples():
 # Operator module
 def operator_examples():
     """Efficient operators as functions."""
-    
+
     # Sort by specific field
     people = [
         {'name': 'Alice', 'age': 25},
         {'name': 'Bob', 'age': 30},
         {'name': 'Carol', 'age': 20}
     ]
-    
+
     sorted_by_age = sorted(people, key=itemgetter('age'))
     print(f"Sorted by age: {[p['name'] for p in sorted_by_age]}")
-    
+
     # Sort objects by attribute
     Person = namedtuple('Person', ['name', 'age'])
     persons = [Person('Alice', 25), Person('Bob', 30), Person('Carol', 20)]
@@ -1109,17 +1108,17 @@ def operator_examples():
 # Math module
 def math_examples():
     """Mathematical functions."""
-    
+
     # Constants
     print(f"π: {math.pi:.5f}")
     print(f"e: {math.e:.5f}")
-    
+
     # Functions
     print(f"sqrt(16): {math.sqrt(16)}")
     print(f"ceil(4.3): {math.ceil(4.3)}")
     print(f"floor(4.9): {math.floor(4.9)}")
     print(f"gcd(48, 18): {math.gcd(48, 18)}")
-    
+
     # Trigonometry
     angle_rad = math.radians(45)
     print(f"sin(45°): {math.sin(angle_rad):.4f}")
@@ -1127,22 +1126,22 @@ def math_examples():
 # Random module
 def random_examples():
     """Random number generation."""
-    
+
     # Random integer
     print(f"Random int 1-10: {random.randint(1, 10)}")
-    
+
     # Random float
     print(f"Random float 0-1: {random.random():.4f}")
-    
+
     # Random choice
     colors = ['red', 'green', 'blue']
     print(f"Random color: {random.choice(colors)}")
-    
+
     # Shuffle list
     deck = list(range(1, 11))
     random.shuffle(deck)
     print(f"Shuffled deck: {deck}")
-    
+
     # Random sample
     sample = random.sample(range(1, 51), 6)
     print(f"Lottery numbers: {sorted(sample)}")
@@ -1150,11 +1149,11 @@ def random_examples():
 # String module
 def string_examples():
     """String constants and utilities."""
-    
+
     print(f"ASCII letters: {string.ascii_letters}")
     print(f"Digits: {string.digits}")
     print(f"Punctuation: {string.punctuation}")
-    
+
     # Generate random password
     chars = string.ascii_letters + string.digits + string.punctuation
     password = ''.join(random.choice(chars) for _ in range(12))
@@ -1163,17 +1162,17 @@ def string_examples():
 # OS module
 def os_examples():
     """Operating system interface."""
-    
+
     # Environment variables
     print(f"Python path: {os.environ.get('PYTHONPATH', 'Not set')}")
-    
+
     # Path operations
     cwd = os.getcwd()
     print(f"Current directory: {cwd}")
-    
+
     # File existence
     print(f"File exists: {os.path.exists(__file__)}")
-    
+
     # Path manipulation
     path = os.path.join('folder', 'subfolder', 'file.txt')
     print(f"Joined path: {path}")
@@ -1183,7 +1182,7 @@ def os_examples():
 # Sys module
 def sys_examples():
     """System-specific parameters."""
-    
+
     print(f"Python version: {sys.version}")
     print(f"Platform: {sys.platform}")
     print(f"Max int: {sys.maxsize}")
@@ -1192,31 +1191,31 @@ def sys_examples():
 if __name__ == "__main__":
     print("=== Regular Expressions ===")
     regex_examples()
-    
+
     print("\\n=== Collections ===")
     collections_examples()
-    
+
     print("\\n=== Itertools ===")
     itertools_examples()
-    
+
     print("\\n=== Functools ===")
     functools_examples()
-    
+
     print("\\n=== Operator ===")
     operator_examples()
-    
+
     print("\\n=== Math ===")
     math_examples()
-    
+
     print("\\n=== Random ===")
     random_examples()
-    
+
     print("\\n=== String ===")
     string_examples()
-    
+
     print("\\n=== OS ===")
     os_examples()
-    
+
     print("\\n=== Sys ===")
     sys_examples()
 `,
@@ -1245,14 +1244,14 @@ from abc import ABC, abstractmethod
 # Basic class definition
 class Person:
     """Represents a person with name and age."""
-    
+
     # Class variable (shared by all instances)
     species = "Homo sapiens"
-    
+
     def __init__(self, name: str, age: int):
         """
         Initialize a Person instance.
-        
+
         Args:
             name: Person's name
             age: Person's age
@@ -1261,21 +1260,21 @@ class Person:
         self.name = name
         self.age = age
         self._email = None  # Protected attribute (convention)
-    
+
     def greet(self) -> str:
         """Return a greeting."""
         return f"Hello, I'm {self.name} and I'm {self.age} years old."
-    
+
     def have_birthday(self) -> None:
         """Increment age by one."""
         self.age += 1
         print(f"{self.name} is now {self.age} years old!")
-    
+
     # String representation
     def __str__(self) -> str:
         """Informal string representation."""
         return f"Person(name={self.name}, age={self.age})"
-    
+
     def __repr__(self) -> str:
         """Official string representation."""
         return f"Person('{self.name}', {self.age})"
@@ -1283,16 +1282,16 @@ class Person:
 # Properties for controlled access
 class BankAccount:
     """Bank account with protected balance."""
-    
+
     def __init__(self, owner: str, initial_balance: float = 0.0):
         self.owner = owner
         self._balance = initial_balance  # Protected attribute
-    
+
     @property
     def balance(self) -> float:
         """Get the current balance (read-only)."""
         return self._balance
-    
+
     def deposit(self, amount: float) -> None:
         """Deposit money into account."""
         if amount > 0:
@@ -1300,7 +1299,7 @@ class BankAccount:
             print(f"Deposited \${amount:.2f}. New balance: \${self._balance:.2f}")
         else:
             print("Deposit amount must be positive!")
-    
+
     def withdraw(self, amount: float) -> bool:
         """Withdraw money from account."""
         if amount > self._balance:
@@ -1311,66 +1310,66 @@ class BankAccount:
             print(f"Withdrew \${amount:.2f}. New balance: \${self._balance:.2f}")
             return True
         return False
-    
+
     def __str__(self) -> str:
         return f"Account({self.owner}, \${self._balance:.2f})"
 
 # Inheritance - "is-a" relationship
 class Student(Person):
     """Student is a Person with additional attributes."""
-    
+
     def __init__(self, name: str, age: int, student_id: str):
         # Call parent constructor
         super().__init__(name, age)
         self.student_id = student_id
         self.courses: List[str] = []
-    
+
     def enroll(self, course: str) -> None:
         """Enroll in a course."""
         if course not in self.courses:
             self.courses.append(course)
             print(f"{self.name} enrolled in {course}")
-    
+
     def greet(self) -> str:
         """Override parent method."""
         return f"Hi, I'm {self.name}, a student (ID: {self.student_id})"
-    
+
     def __str__(self) -> str:
         return f"Student(name={self.name}, id={self.student_id}, courses={len(self.courses)})"
 
 # Multiple inheritance
 class Teacher(Person):
     """Teacher is a Person who teaches courses."""
-    
+
     def __init__(self, name: str, age: int, subject: str):
         super().__init__(name, age)
         self.subject = subject
-    
+
     def teach(self, course: str) -> str:
         return f"{self.name} is teaching {course}"
 
 class TeachingAssistant(Student, Teacher):
     """TA is both a Student and a Teacher."""
-    
+
     def __init__(self, name: str, age: int, student_id: str, subject: str):
         # Initialize all parent attributes
         Person.__init__(self, name, age)
         self.student_id = student_id
         self.courses: List[str] = []
         self.subject = subject
-    
+
     def greet(self) -> str:
         return f"Hi, I'm {self.name}, a TA for {self.subject}"
 
 # Abstract base class
 class Shape(ABC):
     """Abstract base class for shapes."""
-    
+
     @abstractmethod
     def area(self) -> float:
         """Calculate area (must be implemented by subclasses)."""
         pass
-    
+
     @abstractmethod
     def perimeter(self) -> float:
         """Calculate perimeter (must be implemented by subclasses)."""
@@ -1378,66 +1377,66 @@ class Shape(ABC):
 
 class Rectangle(Shape):
     """Concrete implementation of Shape."""
-    
+
     def __init__(self, width: float, height: float):
         self.width = width
         self.height = height
-    
+
     def area(self) -> float:
         return self.width * self.height
-    
+
     def perimeter(self) -> float:
         return 2 * (self.width + self.height)
-    
+
     def __str__(self) -> str:
         return f"Rectangle({self.width}x{self.height})"
 
 class Circle(Shape):
     """Circle shape."""
-    
+
     def __init__(self, radius: float):
         self.radius = radius
-    
+
     def area(self) -> float:
         import math
         return math.pi * self.radius ** 2
-    
+
     def perimeter(self) -> float:
         import math
         return 2 * math.pi * self.radius
-    
+
     def __str__(self) -> str:
         return f"Circle(radius={self.radius})"
 
 # Magic methods (dunder methods)
 class Vector:
     """2D vector with operator overloading."""
-    
+
     def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
-    
+
     def __add__(self, other: 'Vector') -> 'Vector':
         """Vector addition."""
         return Vector(self.x + other.x, self.y + other.y)
-    
+
     def __sub__(self, other: 'Vector') -> 'Vector':
         """Vector subtraction."""
         return Vector(self.x - other.x, self.y - other.y)
-    
+
     def __mul__(self, scalar: float) -> 'Vector':
         """Scalar multiplication."""
         return Vector(self.x * scalar, self.y * scalar)
-    
+
     def __eq__(self, other: object) -> bool:
         """Equality comparison."""
         if not isinstance(other, Vector):
             return NotImplemented
         return self.x == other.x and self.y == other.y
-    
+
     def __str__(self) -> str:
         return f"Vector({self.x}, {self.y})"
-    
+
     def __repr__(self) -> str:
         return f"Vector({self.x}, {self.y})"
 
@@ -1448,11 +1447,11 @@ class Product:
     name: str
     price: float
     quantity: int = 0
-    
+
     def total_value(self) -> float:
         """Calculate total value of inventory."""
         return self.price * self.quantity
-    
+
     def restock(self, amount: int) -> None:
         """Add to inventory."""
         self.quantity += amount
@@ -1460,30 +1459,30 @@ class Product:
 # Composition - "has-a" relationship
 class Engine:
     """Car engine."""
-    
+
     def __init__(self, horsepower: int):
         self.horsepower = horsepower
         self.running = False
-    
+
     def start(self) -> None:
         self.running = True
         print(f"Engine started ({self.horsepower} HP)")
-    
+
     def stop(self) -> None:
         self.running = False
         print("Engine stopped")
 
 class Car:
     """Car has an Engine (composition)."""
-    
+
     def __init__(self, model: str, horsepower: int):
         self.model = model
         self.engine = Engine(horsepower)  # Composition
-    
+
     def start(self) -> None:
         print(f"Starting {self.model}...")
         self.engine.start()
-    
+
     def stop(self) -> None:
         print(f"Stopping {self.model}...")
         self.engine.stop()
@@ -1491,14 +1490,14 @@ class Car:
 # Class methods and static methods
 class MathUtils:
     """Utility class with class and static methods."""
-    
+
     pi = 3.14159
-    
+
     @classmethod
     def circle_area(cls, radius: float) -> float:
         """Calculate circle area using class variable."""
         return cls.pi * radius ** 2
-    
+
     @staticmethod
     def is_even(num: int) -> bool:
         """Check if number is even (doesn't need class/instance)."""
@@ -1512,14 +1511,14 @@ if __name__ == "__main__":
     person.have_birthday()
     print(f"String: {str(person)}")
     print(f"Repr: {repr(person)}")
-    
+
     # Properties
     print("\\n=== Properties ===")
     account = BankAccount("Bob", 100.0)
     print(f"Balance: \${account.balance:.2f}")
     account.deposit(50.0)
     account.withdraw(30.0)
-    
+
     # Inheritance
     print("\\n=== Inheritance ===")
     student = Student("Carol", 20, "S12345")
@@ -1527,12 +1526,12 @@ if __name__ == "__main__":
     student.enroll("Python Programming")
     student.enroll("Data Structures")
     print(student)
-    
+
     # Multiple inheritance
     print("\\n=== Multiple Inheritance ===")
     ta = TeachingAssistant("Dave", 23, "T67890", "Computer Science")
     print(ta.greet())
-    
+
     # Abstract classes
     print("\\n=== Abstract Classes ===")
     rect = Rectangle(5, 3)
@@ -1540,7 +1539,7 @@ if __name__ == "__main__":
     shapes = [rect, circle]
     for shape in shapes:
         print(f"{shape}: Area={shape.area():.2f}, Perimeter={shape.perimeter():.2f}")
-    
+
     # Magic methods
     print("\\n=== Magic Methods ===")
     v1 = Vector(1, 2)
@@ -1550,7 +1549,7 @@ if __name__ == "__main__":
     v4 = v1 * 2
     print(f"{v1} * 2 = {v4}")
     print(f"{v1} == {v2}: {v1 == v2}")
-    
+
     # Dataclass
     print("\\n=== Dataclass ===")
     product = Product("Laptop", 999.99, 5)
@@ -1558,13 +1557,13 @@ if __name__ == "__main__":
     print(f"Total value: \${product.total_value():.2f}")
     product.restock(3)
     print(f"After restock: {product.quantity} units")
-    
+
     # Composition
     print("\\n=== Composition ===")
     car = Car("Tesla Model S", 670)
     car.start()
     car.stop()
-    
+
     # Class/static methods
     print("\\n=== Class & Static Methods ===")
     print(f"Circle area (r=5): {MathUtils.circle_area(5):.2f}")
@@ -1606,7 +1605,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   };
 
   const savedSession = loadSession();
-  
+
   const [code, setCode] = useState(savedSession?.code || LESSONS.basics.code);
   const [output, setOutput] = useState(savedSession?.output || '');
   const [isRunning, setIsRunning] = useState(false);
@@ -1623,18 +1622,18 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   // Get current theme from body class
   const [currentTheme, setCurrentTheme] = useState('');
-  
+
   useEffect(() => {
     const updateTheme = () => {
       const bodyClasses = document.body.className;
       const themeClass = bodyClasses.split(' ').find(cls => cls.startsWith('theme-'));
       setCurrentTheme(themeClass || 'theme-green');
     };
-    
+
     updateTheme();
     const observer = new MutationObserver(updateTheme);
     observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -1825,7 +1824,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                     <span>PYTHON PROGRAMMING ASSISTANT</span>
                   </div>
                 </div>
-                
+
                 {/* Chat History */}
                 <ScrollArea className="flex-1">
                   <div ref={chatScrollRef} className="p-3 space-y-3">
@@ -1980,7 +1979,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 <Button
                   onClick={runCode}
                   disabled={isRunning}
-                  className="bg-[var(--terminal-highlight)] text-black hover:bg-[var(--terminal-highlight)]/80 font-mono text-sm"
+                  className="bg-black text-[var(--terminal-highlight)] border border-[var(--terminal-highlight)]/50 hover:bg-[var(--terminal-highlight)]/20 font-mono text-sm"
                 >
                   {isRunning ? (
                     <>
@@ -1997,7 +1996,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 <Button
                   onClick={() => setCode('')}
                   variant="outline"
-                  className="border-[var(--terminal-highlight)]/50 text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20 font-mono text-sm"
+                  className="bg-black border-[var(--terminal-highlight)]/50 text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20 font-mono text-sm"
                 >
                   Clear Editor
                 </Button>
