@@ -1,0 +1,124 @@
+DAY 1: GETTING STARTED WITH PYTHON PROGRAMMING
+
+Python Variables and Data types
+Python intro with a quick overview on the syntax, IDEs
+Recall how to declare/initialize variables of different data types in Python - Numeric, String, Bool, Sequence
+Naming Conventions & Rules
+Functions and purpose of main()
+Arguments
+Command line parameters
+White spacing basic rules
+Types as Objects
+Type conversion
+Mutable vs Immutable Objects
+Working with Strings in Python
+String Literal - Escape Sequences
+Formatting String Output
+Printing and formatting strings
+Scripting with input()
+About raw_input()
+Working with Dates and times
+Working with dates and times
+Translating timestamps
+Parsing dates from text
+Formatting dates
+Calendar data
+Working with Conditional Statements and Loops
+If else statements
+If elif
+Nested if statement
+While usage
+Count and Event controlled loop
+Continue and Break
+For iteration examples
+Objects
+Overview of objects
+Creating objects and defining objects
+Working with objects
+Basic error handling
+Different errors
+Handling errors
+Best practices
+DAY 2: COMPLEX DATA TYPES IN PYTHON
+
+Lists & Tuples
+Lists
+Mixed Lists
+Common List Methods
+Other List Operations – CRUD operations
+Working with Tuples
+Immutable Tuples
+Indexing and Slicing
+Shallow and deep copies of List and tuples
+Lists vs Tuples
+Dictionaries and Sets
+An overview and construction of dictionaries
+Keys and Values
+Dictionary Methods
+About sets
+Creating sets
+Working with sets
+Dictionaries vs Lists vs Tuples vs Sets
+Understanding Iterators
+The range() function
+Taking the range() of len()
+Iterative Objects
+The iter() Function
+Iterating through a sequence
+Nested sequences
+Sequence functions, keywords, and operators
+Looping across data sets
+Iterating through lists
+Looping across lists of lists
+Looping with dictionaries
+Looping across lists of dictionaries
+Sorting
+The sorted() function
+Alternate keys
+Sorting collections
+Using operator.itemgetter()
+Reverse sorting
+Basic File operations in Python
+Opening files
+Read data from files
+Write data to files
+Reading and writing raw (binary) data
+DAY 3: PYTHON MODULAR PROGRAMMING
+
+Python Functions
+Defining functions
+Parameters
+Returning values
+Nested Functions
+Variable Masking
+Preventing Variable Modifications
+Argument Matching Methods
+Basic List Comprehensions
+Variable scope - local, global, nested
+Modules & Packages
+Module Basics
+Packages
+Pip and pip3
+Virtual environments
+Defined modules
+Import modules
+From import statements
+Some useful modules to know
+Functions and module aliases
+The standard library
+The sys module
+Launching external programs
+Math functions
+Random numbers
+Reading CSV data
+Classes in Python
+About OOP
+Defining a class
+Constructor
+Classes instantiation
+Class variables and methods
+Instance variables
+Properties – getters and setters
+Subclasses (Inheritance)
+Multiple Inheritance
+Static methods
