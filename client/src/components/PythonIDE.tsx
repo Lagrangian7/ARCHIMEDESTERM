@@ -1615,7 +1615,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set(savedSession?.completedTasks || []));
   const [showChat, setShowChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
-  const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>>(savedSession?.chatHistory || []);
+  const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>(
+    (savedSession?.chatHistory as Array<{ role: 'user' | 'assistant', content: string }>) || []
+  );
   const editorRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
