@@ -2,6 +2,14 @@
 # ⚠️ LOCAL DEVELOPMENT ONLY - NOT FOR PRODUCTION
 # These are used by tts_japanese.py and tts_spanish.py
 
-TTS>=0.22.0
+# Install TTS without heavy language models to save disk space
+# This excludes gruut_lang_de and other large language packs
+TTS>=0.22.0 --no-deps
+# Core TTS dependencies (minimal set)
+numpy
+torch
+pyyaml
+fsspec
+# Japanese/Spanish specific (lightweight)
 jaconv>=0.3.4
 unidecode>=0.3.8
