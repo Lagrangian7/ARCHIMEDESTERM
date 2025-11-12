@@ -1352,8 +1352,11 @@ class TeachingAssistant(Student, Teacher):
     """TA is both a Student and a Teacher."""
     
     def __init__(self, name: str, age: int, student_id: str, subject: str):
-        Student.__init__(self, name, age, student_id)
-        Teacher.__init__(self, name, age, subject)
+        # Initialize all parent attributes
+        Person.__init__(self, name, age)
+        self.student_id = student_id
+        self.courses: List[str] = []
+        self.subject = subject
     
     def greet(self) -> str:
         return f"Hi, I'm {self.name}, a TA for {self.subject}"
