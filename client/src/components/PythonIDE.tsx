@@ -1944,7 +1944,11 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                     automaticLayout: true,
                     tabSize: 4,
                     wordWrap: 'on',
-                    padding: { top: 10, bottom: 10 }
+                    padding: { top: 10, bottom: 10 },
+                    quickSuggestions: true,
+                    formatOnPaste: true,
+                    formatOnType: true,
+                    acceptSuggestionOnEnter: 'on'
                   }}
                 />
               </div>
@@ -1969,6 +1973,13 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                       Run Code
                     </>
                   )}
+                </Button>
+                <Button
+                  onClick={() => setCode('')}
+                  variant="outline"
+                  className="border-[var(--terminal-highlight)]/50 text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20 font-mono text-sm"
+                >
+                  Clear Editor
                 </Button>
                 {!showGuidance && (
                   <Button
