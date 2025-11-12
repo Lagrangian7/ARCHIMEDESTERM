@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ interface VoiceControlsProps {
   setShowChat: (show: boolean) => void;
   unreadCount: number;
   setShowNotepad: (show: boolean) => void;
+  setShowPythonIDE: (show: boolean) => void;
 }
 
 export function VoiceControls({
@@ -40,7 +41,8 @@ export function VoiceControls({
   setShowUpload,
   setShowChat,
   unreadCount,
-  setShowNotepad
+  setShowNotepad,
+  setShowPythonIDE,
 }: VoiceControlsProps) {
   const { toast } = useToast();
   const {
@@ -226,6 +228,25 @@ export function VoiceControls({
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                   <p>Upload</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Python IDE Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowPythonIDE(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
+                    data-testid="button-python-ide"
+                    aria-label="Python IDE"
+                  >
+                    <Code size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <p>Python IDE</p>
                 </TooltipContent>
               </Tooltip>
 

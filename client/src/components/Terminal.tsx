@@ -35,7 +35,7 @@ import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
 // import { useChat } from '@/hooks/useChat'; // Commented out - hook not found
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
-import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape, Code } from 'lucide-react';
+import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
@@ -647,20 +647,6 @@ export function Terminal() {
               className="text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20"
             >
               <User size={20} />
-            </Button>
-            <Button
-              onClick={() => {
-                const openPythonIDE = (window as any).openPythonIDE;
-                if (openPythonIDE) {
-                  openPythonIDE();
-                }
-              }}
-              variant="ghost"
-              size="sm"
-              className="text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20"
-              title="Python IDE"
-            >
-              <Code size={20} />
             </Button>
           </div>
         </div>
