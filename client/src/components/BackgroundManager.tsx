@@ -205,25 +205,24 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
           <p className="text-sm mb-4" style={{ color: 'var(--terminal-subtle)' }}>
             or
           </p>
-          <label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-            <Button
-              as="span"
-              size="sm"
-              style={{
-                backgroundColor: 'var(--terminal-highlight)',
-                color: 'var(--terminal-bg)'
-              }}
-            >
-              Browse Files
-            </Button>
-          </label>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFileSelect}
+            className="hidden"
+            id="wallpaper-file-input"
+          />
+          <Button
+            onClick={() => document.getElementById('wallpaper-file-input')?.click()}
+            size="sm"
+            style={{
+              backgroundColor: 'var(--terminal-highlight)',
+              color: 'var(--terminal-bg)'
+            }}
+          >
+            Browse Files
+          </Button>
           <p className="text-xs mt-4" style={{ color: 'var(--terminal-subtle)' }}>
             {wallpapers.length}/10 slots used
           </p>
