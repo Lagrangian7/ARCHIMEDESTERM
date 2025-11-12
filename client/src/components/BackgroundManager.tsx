@@ -120,14 +120,28 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
   };
 
   const selectWallpaper = (wallpaper: WallpaperSlot) => {
-    // Add cache-busting parameter to force reload
-    const urlWithCacheBust = `${wallpaper.url}?t=${Date.now()}`;
+    console.log('Selecting wallpaper:', wallpaper.name, wallpaper.url);
+    
+    // Update local state first
     setSelectedWallpaper(wallpaper.url);
+    
+    // Save to localStorage
     localStorage.setItem('terminal-background-url', wallpaper.url);
-    // Force immediate update with cache-busted URL
+    
+    // Add cache-busting parameter to force browser reload
+    const urlWithCacheBust = `${wallpaper.url}?t=${Date.now()}`;
+    
+    // Trigger the custom event with cache-busted URL
+    const event = new CustomEvent('terminal-background-change', { 
+      detail: urlWithCacheBust,
+      bubbles: true 
+    });
+    window.dispatchEvent(event);
+    
+    // Also call the callback
     onBackgroundChange(urlWithCacheBust);
-    // Trigger a custom event to notify Terminal of background change
-    window.dispatchEvent(new CustomEvent('terminal-background-change', { detail: urlWithCacheBust }));
+    
+    console.log('Wallpaper selection complete, event dispatched');
   };
 
   const deleteWallpaper = (id: string) => {

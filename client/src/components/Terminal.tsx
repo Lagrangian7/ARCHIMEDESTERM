@@ -106,20 +106,19 @@ export function Terminal() {
     (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
 
     // Listen for background change events
-    const handleBackgroundChange = (event: CustomEvent) => {
-      const newUrl = event.detail;
+    const handleBackgroundChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const newUrl = customEvent.detail;
       console.log('Background change event received:', newUrl);
+
+      // Force state update with cache-busted URL
       setCustomBackgroundUrl(newUrl);
-      // Force re-render by updating the DOM directly as well
-      const terminalContainer = document.querySelector('.terminal-container') as HTMLElement;
-      if (terminalContainer) {
-        terminalContainer.style.backgroundImage = `url(${newUrl})`;
-      }
     };
 
-    window.addEventListener('terminal-background-change', handleBackgroundChange as EventListener);
+    window.addEventListener('terminal-background-change', handleBackgroundChange);
+
     return () => {
-      window.removeEventListener('terminal-background-change', handleBackgroundChange as EventListener);
+      window.removeEventListener('terminal-background-change', handleBackgroundChange);
     };
   }, []);
 
