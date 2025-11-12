@@ -303,7 +303,11 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
             </div>
             <Button
               variant="outline"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
               style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.5)', color: 'var(--terminal-text)' }}
               data-testid="browse-files-button"
             >
