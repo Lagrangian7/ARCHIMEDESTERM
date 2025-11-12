@@ -639,15 +639,6 @@ export function Terminal() {
               <History className="w-4 h-4" />
               <span className="hidden md:inline">HISTORY</span>
             </Button>
-
-            <Button
-              onClick={() => setShowProfile(!showProfile)}
-              variant="ghost"
-              size="sm"
-              className="text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20"
-            >
-              <User size={20} />
-            </Button>
           </div>
         </div>
       </div>
