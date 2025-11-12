@@ -1601,7 +1601,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: `As a Python programming expert analyzing code in the Python IDE, ${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nProvide focused Python programming guidance.`,
-          mode: 'technical'
+          mode: 'natural'
         })
       });
       return response.json();
