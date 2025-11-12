@@ -1627,7 +1627,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const [isMaximized, setIsMaximized] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
+  const [dimensions, setDimensions] = useState({ width: 900, height: 600 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
@@ -1692,8 +1692,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       const deltaY = e.clientY - resizeStartRef.current.mouseY;
       
       setDimensions({
-        width: Math.max(800, Math.min(window.innerWidth - position.x, resizeStartRef.current.width + deltaX)),
-        height: Math.max(600, Math.min(window.innerHeight - position.y, resizeStartRef.current.height + deltaY))
+        width: Math.max(600, Math.min(window.innerWidth - position.x, resizeStartRef.current.width + deltaX)),
+        height: Math.max(400, Math.min(window.innerHeight - position.y, resizeStartRef.current.height + deltaY))
       });
     };
 
@@ -1833,9 +1833,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const toggleMaximize = () => {
     if (isMaximized) {
       // Restore previous size and position
-      setDimensions({ width: 1200, height: 800 });
-      const centerX = (window.innerWidth - 1200) / 2;
-      const centerY = (window.innerHeight - 800) / 2;
+      setDimensions({ width: 900, height: 600 });
+      const centerX = (window.innerWidth - 900) / 2;
+      const centerY = (window.innerHeight - 600) / 2;
       setPosition({ x: Math.max(0, centerX), y: Math.max(0, centerY) });
     } else {
       // Maximize
