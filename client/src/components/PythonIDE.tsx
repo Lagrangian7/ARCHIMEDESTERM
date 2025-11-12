@@ -1764,10 +1764,10 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   return (
     <div 
-      className={`fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 ${currentTheme}`}
+      className={`fixed inset-0 z-50 bg-black/90 backdrop-blur-sm ${currentTheme}`}
       data-no-terminal-autofocus
     >
-      <div className="w-full h-full max-w-7xl max-h-[90vh] bg-[var(--terminal-bg)] border-2 border-[var(--terminal-highlight)] rounded-lg overflow-hidden shadow-2xl flex flex-col">
+      <div className="w-full h-full bg-[var(--terminal-bg)] border-2 border-[var(--terminal-highlight)] overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[var(--terminal-highlight)]/30">
           <div className="flex items-center gap-3">
