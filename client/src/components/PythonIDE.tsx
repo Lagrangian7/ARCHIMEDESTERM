@@ -1642,7 +1642,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
           <div className="flex items-center gap-3">
             <Code className="w-5 h-5 text-[#00FF41]" />
             <h3 className="text-[#00FF41] font-mono text-sm font-bold">
-              PYTHON LEARNING IDE - ARCHIMEDES GUIDED LESSONS
+              Archi v7 PythonIDE
             </h3>
           </div>
           <Button
