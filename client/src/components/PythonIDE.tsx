@@ -161,7 +161,7 @@ Functions: Built-in and Custom
 Demonstrates function creation with parameters, type hints, and best practices
 """
 
-from typing import List, Optional, Tuple, Callable
+from typing import List, Optional, Tuple, Callable, Dict
 from functools import reduce
 import operator
 
