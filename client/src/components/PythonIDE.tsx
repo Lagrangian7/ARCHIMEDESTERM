@@ -1832,34 +1832,30 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   const toggleMaximize = () => {
     if (isMaximized) {
-      // Restore previous size and position
+      // Restore previous size and center position
       setDimensions({ width: 900, height: 600 });
       const centerX = (window.innerWidth - 900) / 2;
       const centerY = (window.innerHeight - 600) / 2;
       setPosition({ x: Math.max(0, centerX), y: Math.max(0, centerY) });
+      setIsMaximized(false);
     } else {
-      // Maximize
-      setDimensions({ width: window.innerWidth, height: window.innerHeight });
-      setPosition({ x: 0, y: 0 });
+      // Maximize to full viewport
+      setIsMaximized(true);
     }
-    setIsMaximized(!isMaximized);
   };
 
   return (
     <div 
-      className={`fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center ${currentTheme}`}
+      className={`fixed z-50 bg-[var(--terminal-bg)] border-2 border-[var(--terminal-highlight)] overflow-hidden shadow-2xl flex flex-col ${currentTheme}`}
+      style={{
+        width: isMaximized ? '100vw' : `${dimensions.width}px`,
+        height: isMaximized ? '100vh' : `${dimensions.height}px`,
+        left: isMaximized ? '0' : `${position.x}px`,
+        top: isMaximized ? '0' : `${position.y}px`,
+        boxShadow: `0 0 20px var(--terminal-highlight)`,
+      }}
       data-no-terminal-autofocus
     >
-      <div 
-        className="bg-[var(--terminal-bg)] border-2 border-[var(--terminal-highlight)] overflow-hidden shadow-2xl flex flex-col relative"
-        style={{
-          width: isMaximized ? '100%' : `${dimensions.width}px`,
-          height: isMaximized ? '100%' : `${dimensions.height}px`,
-          position: isMaximized ? 'relative' : 'absolute',
-          left: isMaximized ? 'auto' : `${position.x}px`,
-          top: isMaximized ? 'auto' : `${position.y}px`
-        }}
-      >
         {/* Header */}
         <div 
           className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[var(--terminal-highlight)]/30 cursor-move"
