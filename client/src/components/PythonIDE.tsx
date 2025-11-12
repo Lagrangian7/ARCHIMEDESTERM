@@ -1759,7 +1759,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
               onClick={() => setShowChat(!showChat)}
               variant="outline"
               size="sm"
-              className={`border-[var(--terminal-highlight)]/50 font-mono text-xs ${
+              className={`bg-black border-[var(--terminal-highlight)]/50 font-mono text-xs ${
                 showChat ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)]' : 'text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20'
               }`}
             >
@@ -1770,7 +1770,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
               onClick={onClose}
               variant="outline"
               size="sm"
-              className="text-[var(--terminal-highlight)] hover:text-white hover:bg-[var(--terminal-highlight)]/20 border-[var(--terminal-highlight)]/50 font-mono text-xs"
+              className="bg-black text-[var(--terminal-highlight)] hover:text-white hover:bg-[var(--terminal-highlight)]/20 border-[var(--terminal-highlight)]/50 font-mono text-xs"
             >
               Close (Save Session)
             </Button>
@@ -1778,7 +1778,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
               onClick={handleQuit}
               variant="ghost"
               size="sm"
-              className="text-red-500 hover:text-red-400 hover:bg-red-500/20 font-mono text-xs"
+              className="bg-black text-red-500 hover:text-red-400 hover:bg-red-500/20 font-mono text-xs"
             >
               Quit & Clear
             </Button>
