@@ -64,6 +64,13 @@ export function Terminal() {
       setShowUpload(true);
     }
   });
+  
+  // Update system message when mode changes
+  useEffect(() => {
+    if (currentMode === 'freestyle') {
+      // Optional: could add a visual indicator or message
+    }
+  }, [currentMode]);
 
   // Expose modal openers globally
   useEffect(() => {
@@ -506,7 +513,7 @@ export function Terminal() {
                   {entry.type === 'response' && (
                     <div className="mt-2">
                       <div className="text-terminal-highlight">
-                        ARCHIMEDES v7 {entry.mode === 'technical' ? '(Technical Mode)' : '(Natural Chat Mode)'}:
+                        ARCHIMEDES v7 {entry.mode === 'technical' ? '(Technical Mode)' : entry.mode === 'freestyle' ? '(Freestyle Vibe Code Mode)' : '(Natural Chat Mode)'}:
                       </div>
                       <MemoizedDraggableResponse
                         isTyping={typingEntriesSet.has(entry.id)}

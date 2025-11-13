@@ -13,8 +13,8 @@ import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
-  currentMode: 'natural' | 'technical';
-  switchMode: (mode: 'natural' | 'technical' | 'freestyle') => void; // Added 'freestyle' to the type
+  currentMode: 'natural' | 'technical' | 'freestyle';
+  switchMode: (mode: 'natural' | 'technical' | 'freestyle') => void;
   switchTheme: () => void;
   setShowWebamp: (show: boolean) => void;
   setIsWebampOpen?: (show: boolean) => void;
@@ -239,11 +239,6 @@ export function VoiceControls({
                     switchMode('technical');
                   } else if (currentMode === 'technical') {
                     switchMode('freestyle');
-                    setShowPythonIDE(true);
-                    setTimeout(() => {
-                      const freestyleBtn = document.querySelector('[data-freestyle-mode]') as HTMLButtonElement;
-                      if (freestyleBtn) freestyleBtn.click();
-                    }, 200);
                   } else {
                     switchMode('natural');
                   }

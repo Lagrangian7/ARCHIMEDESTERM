@@ -46,17 +46,23 @@ export function useTerminal(onUploadCommand?: () => void) {
 
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [currentMode, setCurrentMode] = useState<'natural' | 'technical'>('natural');
+  const [currentMode, setCurrentMode] = useState<'natural' | 'technical' | 'freestyle'>('natural');
   const [isTyping, setIsTyping] = useState(false);
   const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
 
   const chatMutation = useMutation({
-    mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' }) => {
+    mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' | 'freestyle' }) => {
       const language = localStorage.getItem('ai-language') || 'english';
+      
+      // In freestyle mode, enhance the prompt for code generation
+      const enhancedMessage = mode === 'freestyle' 
+        ? `As a code generation expert in FREESTYLE MODE, help create functional code. ${message}\n\nGenerate complete, runnable code snippets based on the request. Be creative and provide fully functional examples with explanations.`
+        : message;
+      
       const response = await apiRequest('POST', '/api/chat', {
-        message,
-        mode,
-        language, // Pass the selected language to the API
+        message: enhancedMessage,
+        mode: mode === 'freestyle' ? 'technical' : mode, // Use technical mode for freestyle
+        language,
         sessionId,
       });
       return response.json();
@@ -2684,9 +2690,12 @@ Powered by Wolfram Alpha Full Results API`);
     setEntries([]);
   }, []);
 
-  const switchMode = useCallback((mode: 'natural' | 'technical') => {
+  const switchMode = useCallback((mode: 'natural' | 'technical' | 'freestyle') => {
     setCurrentMode(mode);
-    addEntry('system', `Mode switched to: ${mode.toUpperCase()}`);
+    const modeDescription = mode === 'freestyle' 
+      ? 'FREESTYLE (Vibe Code Mode) - Chat with AI to generate code directly in terminal'
+      : mode.toUpperCase();
+    addEntry('system', `Mode switched to: ${modeDescription}`);
   }, [addEntry]);
 
   const getHistoryCommand = useCallback((direction: 'up' | 'down') => {
