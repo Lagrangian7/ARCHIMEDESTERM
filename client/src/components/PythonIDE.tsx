@@ -1703,6 +1703,13 @@ calculator()
   const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>(
     (savedSession?.chatHistory as Array<{ role: 'user' | 'assistant', content: string }>) || []
   );
+
+  // Set document title when component mounts
+  useEffect(() => {
+    const originalTitle = document.title;
+    document.title = 'Archimedes Workshop - Python IDE';
+    return () => { document.title = originalTitle; };
+  }, []);
   const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
   const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
   const editorRef = useRef<any>(null);
@@ -2484,7 +2491,7 @@ calculator()
           <div className="flex items-center gap-3">
             <Code className="w-5 h-5" style={{ color: currentPythonTheme.highlight }} />
             <h3 className="font-mono text-sm font-bold" style={{ color: currentPythonTheme.text }}>
-              Archi v7 PythonIDE
+              Archimedes Workshop
             </h3>
           </div>
           <div className="flex items-center gap-2">
