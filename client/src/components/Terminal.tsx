@@ -44,7 +44,7 @@ import wallpaperImage from '../assets/terminal-bg-new.png';
 
 // Import LogoIcon from its own file to break circular dependency
 import { LogoIcon } from './LogoIcon';
-import WebSynth from './WebSynth'; // Import the WebSynth component
+import { WebSynth } from './WebSynth'; // Import the WebSynth component
 
 export function Terminal() {
   const {
