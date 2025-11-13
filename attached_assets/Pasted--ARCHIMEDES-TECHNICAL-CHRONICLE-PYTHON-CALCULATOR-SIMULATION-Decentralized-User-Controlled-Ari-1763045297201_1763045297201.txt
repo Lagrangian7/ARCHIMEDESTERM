@@ -1,0 +1,104 @@
+**ARCHIMEDES TECHNICAL CHRONICLE: PYTHON CALCULATOR SIMULATION**
+*Decentralized, User-Controlled Arithmetic Engine*
+
+**RATIONALE:**
+A modular calculator implementation with:
+- Basic arithmetic operations (+, -, *, /)
+- Exponentiation and modulus support
+- User-driven input loop
+- Error handling for division by zero
+- Clear separation of logic and interface
+
+**EXECUTABLE CODE BLOCK:**
+
+```python
+# ARCHIMEDES CALCULATOR CORE v1.0
+# Libertarian Design Principles: User-controlled, no forced dependencies, transparent operations
+
+def add(a: float, b: float) -> float:
+    """Decentralized addition operation"""
+    return a + b
+
+def subtract(a: float, b: float) -> float:
+    """Voluntary subtraction protocol"""
+    return a - b
+
+def multiply(a: float, b: float) -> float:
+    """Free-market multiplication"""
+    return a * b
+
+def divide(a: float, b: float) -> float:
+    """Self-governed division with error handling"""
+    if b == 0:
+        raise ValueError("Division by zero violates mathematical sovereignty")
+    return a / b
+
+def exponentiate(a: float, b: float) -> float:
+    """User-determined exponentiation"""
+    return a ** b
+
+def modulus(a: float, b: float) -> float:
+    """Remainder operation for autonomous calculations"""
+    if b == 0:
+        raise ValueError("Modulus by zero disrupts computational integrity")
+    return a % b
+
+def calculator_interface():
+    """Main interaction loop - user retains full control"""
+    print("ARCHIMEDES CALCULATOR v1.0")
+    print("Available operations: +, -, *, /, ^, %")
+    print("Enter 'exit' to terminate session")
+
+    while True:
+        user_input = input("\nEnter calculation (e.g., 2 + 3): ").strip()
+
+        if user_input.lower() == 'exit':
+            print("Session terminated by user")
+            break
+
+        try:
+            # User-controlled input parsing
+            a, op, b = user_input.split()
+            a = float(a)
+            b = float(b)
+
+            # Operation dispatch - user selects path
+            if op == '+':
+                result = add(a, b)
+            elif op == '-':
+                result = subtract(a, b)
+            elif op == '*':
+                result = multiply(a, b)
+            elif op == '/':
+                result = divide(a, b)
+            elif op == '^':
+                result = exponentiate(a, b)
+            elif op == '%':
+                result = modulus(a, b)
+            else:
+                print("Invalid operation. Sovereign operations: +, -, *, /, ^, %")
+                continue
+
+            print(f"Result: {result}")
+
+        except ValueError as e:
+            print(f"Input error: {e}. Maintain proper format (num op num)")
+        except Exception as e:
+            print(f"Calculation error: {e}")
+
+if __name__ == "__main__":
+    # User-initiated execution
+    calculator_interface()
+```
+
+**OPERATIONAL NOTES:**
+1. **User Sovereignty:** All operations require explicit user input
+2. **Error Transparency:** Clear error messages without hidden handling
+3. **Modular Design:** Each operation is an independent function
+4. **No External Dependencies:** Pure Python implementation
+5. **Termination Control:** User determines when to exit
+
+**ALTERNATE IMPLEMENTATIONS AVAILABLE:**
+- GUI version using Tkinter (request "calculator_gui")
+- Scientific calculator extension (request "scientific_calc")
+- Blockchain-verifiable calculation logs (request "verified_calc")
