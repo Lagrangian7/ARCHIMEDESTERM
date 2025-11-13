@@ -1746,10 +1746,14 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   // Trigger editor layout update when dimensions change
   useEffect(() => {
-    if (editorRef.current) {
+    if (editorRef.current && typeof editorRef.current.layout === 'function') {
       // Small delay to ensure DOM has updated
       const timer = setTimeout(() => {
-        editorRef.current?.layout();
+        try {
+          editorRef.current?.layout();
+        } catch (error) {
+          console.warn('Editor layout failed:', error);
+        }
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -1829,64 +1833,70 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   });
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
+    // Validate editor and monaco are properly initialized
+    if (!editor || !monaco) {
+      console.error('Editor or Monaco not properly initialized');
+      return;
+    }
+
     editorRef.current = editor;
 
-    // Setup Monacopilot AI completions with error handling
-    try {
-      const completionProvider: CompletionProvider = {
-        async provideCompletionItems(model, position) {
-          const textUntilPosition = model.getValueInRange({
-            startLineNumber: 1,
-            startColumn: 1,
-            endLineNumber: position.lineNumber,
-            endColumn: position.column,
-          });
-
-          try {
-            // Call your Mistral API for code completion
-            const response = await fetch('/api/chat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                message: `Complete this Python code. Only respond with the completion, no explanations:\n\n${textUntilPosition}`,
-                mode: 'freestyle',
-                sessionId: `copilot-${Date.now()}`,
-                language: 'english'
-              })
+    // Setup Monacopilot AI completions with error handling (async, non-blocking)
+    setTimeout(() => {
+      try {
+        const completionProvider: CompletionProvider = {
+          async provideCompletionItems(model, position) {
+            const textUntilPosition = model.getValueInRange({
+              startLineNumber: 1,
+              startColumn: 1,
+              endLineNumber: position.lineNumber,
+              endColumn: position.column,
             });
 
-            if (!response.ok) {
-              console.warn('Completion API request failed');
+            try {
+              // Call your Mistral API for code completion
+              const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  message: `Complete this Python code. Only respond with the completion, no explanations:\n\n${textUntilPosition}`,
+                  mode: 'freestyle',
+                  sessionId: `copilot-${Date.now()}`,
+                  language: 'english'
+                })
+              });
+
+              if (!response.ok) {
+                return '';
+              }
+
+              const data = await response.json();
+              
+              // Extract clean code from response
+              let completion = data.response || '';
+              const pythonBlockMatch = completion.match(/```(?:python|py)?\s*\n([\s\S]*?)```/);
+              if (pythonBlockMatch && pythonBlockMatch[1]) {
+                completion = pythonBlockMatch[1].trim();
+              }
+
+              return completion;
+            } catch (error) {
               return '';
             }
-
-            const data = await response.json();
-            
-            // Extract clean code from response
-            let completion = data.response || '';
-            const pythonBlockMatch = completion.match(/```(?:python|py)?\s*\n([\s\S]*?)```/);
-            if (pythonBlockMatch && pythonBlockMatch[1]) {
-              completion = pythonBlockMatch[1].trim();
-            }
-
-            return completion;
-          } catch (error) {
-            console.warn('Monacopilot completion error:', error);
-            return '';
           }
-        }
-      };
+        };
 
-      // Register the completion provider with error handling
-      registerCompletion(monaco, editor, completionProvider, {
-        language: 'python',
-        trigger: 'auto',
-        debounceTime: 500,
-      });
-    } catch (error) {
-      console.warn('Failed to register Monacopilot:', error);
-      // Continue without AI completions if registration fails
-    }
+        // Register the completion provider with error handling
+        registerCompletion(monaco, editor, completionProvider, {
+          language: 'python',
+          trigger: 'auto',
+          debounceTime: 500,
+        });
+      } catch (error) {
+        // Silently fail - AI completions are optional
+        console.debug('Monacopilot not available');
+      }
+    }, 500); // Delay registration to ensure editor is fully mounted
   };
 
   const handleChatSubmit = (e: React.FormEvent) => {
@@ -2363,8 +2373,16 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   defaultLanguage="python"
                   value={code}
                   onChange={(value) => setCode(value || '')}
-                  onMount={(editor, monaco) => handleEditorDidMount(editor, monaco)}
+                  onMount={(editor, monaco) => {
+                    try {
+                      handleEditorDidMount(editor, monaco);
+                    } catch (error) {
+                      console.error('Editor mount failed:', error);
+                      setOutput(`Editor initialization error: ${error.message || 'Unknown error'}`);
+                    }
+                  }}
                   theme="vs-dark"
+                  loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
                   options={{
                     // Display
                     minimap: { enabled: false },
