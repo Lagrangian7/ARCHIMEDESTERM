@@ -180,10 +180,10 @@ export function WebSynth({ onClose }: WebSynthProps) {
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     const freq = keyNotes[e.key.toLowerCase()];
-    if (freq && !isPlaying) {
+    if (freq) {
       playNote(freq);
     }
-  }, [keyNotes, isPlaying, playNote]);
+  }, [keyNotes, playNote]);
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
     const freq = keyNotes[e.key.toLowerCase()];
@@ -389,14 +389,21 @@ export function WebSynth({ onClose }: WebSynthProps) {
                 return (
                   <button
                     key={key}
-                    onMouseDown={() => playNote(freq)}
-                    onMouseUp={stopNote}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      playNote(freq);
+                    }}
+                    onMouseUp={(e) => {
+                      e.preventDefault();
+                      stopNote();
+                    }}
                     onMouseLeave={stopNote}
+                    onContextMenu={(e) => e.preventDefault()}
                     className={`px-4 py-8 border-2 border-green-500 ${
                       isBlackKey
                         ? 'bg-green-500 text-black'
                         : 'bg-black text-green-500'
-                    } hover:bg-green-400 transition-colors font-mono text-xs`}
+                    } hover:bg-green-400 transition-colors font-mono text-xs select-none`}
                   >
                     {key.toUpperCase()}
                   </button>
