@@ -1635,22 +1635,55 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
 
-  // Get current theme from body class
-  const [currentTheme, setCurrentTheme] = useState('');
+  // Python IDE independent theme system - easy on the eyes
+  const [pythonTheme, setPythonTheme] = useState('solarized-light');
 
-  useEffect(() => {
-    const updateTheme = () => {
-      const bodyClasses = document.body.className;
-      const themeClass = bodyClasses.split(' ').find(cls => cls.startsWith('theme-'));
-      setCurrentTheme(themeClass || 'theme-green');
-    };
+  const PYTHON_THEMES = {
+    'solarized-light': {
+      bg: 'hsl(44 87% 94%)',
+      text: 'hsl(192 15% 40%)',
+      highlight: 'hsl(205 69% 49%)',
+      subtle: 'hsl(44 11% 86%)',
+      border: 'hsl(45 7% 79%)',
+    },
+    'github-light': {
+      bg: 'hsl(0 0% 99%)',
+      text: 'hsl(210 11% 15%)',
+      highlight: 'hsl(212 92% 45%)',
+      subtle: 'hsl(210 18% 96%)',
+      border: 'hsl(214 13% 93%)',
+    },
+    'sepia': {
+      bg: 'hsl(40 35% 92%)',
+      text: 'hsl(30 12% 25%)',
+      highlight: 'hsl(25 75% 47%)',
+      subtle: 'hsl(40 25% 85%)',
+      border: 'hsl(40 18% 75%)',
+    },
+    'nord-light': {
+      bg: 'hsl(219 28% 97%)',
+      text: 'hsl(220 16% 36%)',
+      highlight: 'hsl(213 32% 52%)',
+      subtle: 'hsl(220 27% 92%)',
+      border: 'hsl(220 16% 84%)',
+    },
+    'gruvbox-light': {
+      bg: 'hsl(48 87% 88%)',
+      text: 'hsl(0 4% 25%)',
+      highlight: 'hsl(24 56% 50%)',
+      subtle: 'hsl(48 45% 82%)',
+      border: 'hsl(45 25% 70%)',
+    },
+    'one-light': {
+      bg: 'hsl(230 1% 98%)',
+      text: 'hsl(230 8% 24%)',
+      highlight: 'hsl(221 87% 60%)',
+      subtle: 'hsl(230 5% 94%)',
+      border: 'hsl(230 8% 88%)',
+    },
+  };
 
-    updateTheme();
-    const observer = new MutationObserver(updateTheme);
-    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-
-    return () => observer.disconnect();
-  }, []);
+  const currentPythonTheme = PYTHON_THEMES[pythonTheme];
 
   // Center window on mount
   useEffect(() => {
@@ -1952,19 +1985,25 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   return (
     <div 
-      className={`fixed z-50 bg-[var(--terminal-bg)] border-2 border-[var(--terminal-highlight)] overflow-hidden shadow-2xl flex flex-col ${currentTheme}`}
+      className="fixed z-50 overflow-hidden shadow-2xl flex flex-col"
       style={{
         width: isMaximized ? '100vw' : `${dimensions.width}px`,
         height: isMaximized ? '100vh' : `${dimensions.height}px`,
         left: isMaximized ? '0' : `${position.x}px`,
         top: isMaximized ? '0' : `${position.y}px`,
-        boxShadow: `0 0 20px var(--terminal-highlight)`,
+        backgroundColor: currentPythonTheme.bg,
+        border: `2px solid ${currentPythonTheme.border}`,
+        boxShadow: `0 0 20px ${currentPythonTheme.highlight}40`,
       }}
       data-no-terminal-autofocus
     >
         {/* Header */}
         <div 
-          className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[var(--terminal-highlight)]/30 cursor-move"
+          className="flex items-center justify-between px-4 py-3 cursor-move"
+          style={{
+            backgroundColor: `${currentPythonTheme.subtle}80`,
+            borderBottom: `1px solid ${currentPythonTheme.border}`,
+          }}
           onMouseDown={(e) => {
             if (!isMaximized && e.target === e.currentTarget) {
               setIsDragging(true);
@@ -1973,17 +2012,39 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
           }}
         >
           <div className="flex items-center gap-3">
-            <Code className="w-5 h-5 text-[var(--terminal-highlight)]" />
-            <h3 className="text-[var(--terminal-highlight)] font-mono text-sm font-bold">
+            <Code className="w-5 h-5" style={{ color: currentPythonTheme.highlight }} />
+            <h3 className="font-mono text-sm font-bold" style={{ color: currentPythonTheme.text }}>
               Archi v7 PythonIDE
             </h3>
           </div>
           <div className="flex items-center gap-2">
+            <select
+              value={pythonTheme}
+              onChange={(e) => setPythonTheme(e.target.value)}
+              className="font-mono text-xs px-2 py-1 rounded"
+              style={{
+                backgroundColor: currentPythonTheme.bg,
+                color: currentPythonTheme.text,
+                border: `1px solid ${currentPythonTheme.border}`,
+              }}
+            >
+              <option value="solarized-light">Solarized Light</option>
+              <option value="github-light">GitHub Light</option>
+              <option value="sepia">Sepia</option>
+              <option value="nord-light">Nord Light</option>
+              <option value="gruvbox-light">Gruvbox Light</option>
+              <option value="one-light">One Light</option>
+            </select>
             <Button
               onClick={toggleMaximize}
               variant="outline"
               size="sm"
-              className="bg-black text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20 border-[var(--terminal-highlight)]/50 font-mono text-xs"
+              className="font-mono text-xs"
+              style={{
+                backgroundColor: currentPythonTheme.bg,
+                color: currentPythonTheme.highlight,
+                borderColor: currentPythonTheme.border,
+              }}
             >
               {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </Button>
@@ -1991,9 +2052,12 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
               onClick={() => setShowChat(!showChat)}
               variant="outline"
               size="sm"
-              className={`bg-black border-[var(--terminal-highlight)]/50 font-mono text-xs ${
-                showChat ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)]' : 'text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20'
-              }`}
+              className="font-mono text-xs"
+              style={{
+                backgroundColor: showChat ? currentPythonTheme.subtle : currentPythonTheme.bg,
+                color: currentPythonTheme.highlight,
+                borderColor: currentPythonTheme.border,
+              }}
             >
               <MessageSquare className="w-4 h-4 mr-2" />
               {showChat ? 'Hide' : 'Ask'} Archimedes
@@ -2002,7 +2066,12 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
               onClick={onClose}
               variant="outline"
               size="sm"
-              className="bg-black text-[var(--terminal-highlight)] hover:text-white hover:bg-[var(--terminal-highlight)]/20 border-[var(--terminal-highlight)]/50 font-mono text-xs"
+              className="font-mono text-xs"
+              style={{
+                backgroundColor: currentPythonTheme.bg,
+                color: currentPythonTheme.text,
+                borderColor: currentPythonTheme.border,
+              }}
             >
               Close (Save Session)
             </Button>
@@ -2010,7 +2079,11 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
               onClick={handleQuit}
               variant="ghost"
               size="sm"
-              className="bg-black text-red-500 hover:text-red-400 hover:bg-red-500/20 font-mono text-xs"
+              className="font-mono text-xs"
+              style={{
+                backgroundColor: currentPythonTheme.bg,
+                color: 'hsl(0 70% 50%)',
+              }}
             >
               Quit & Clear
             </Button>
@@ -2021,15 +2094,16 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         <div className="flex-1 flex overflow-hidden">
           {/* Sidebar - Lessons (Collapsible) */}
           {showLessonsSidebar && (
-            <div className="w-72 border-r border-[var(--terminal-highlight)]/30 bg-black/30 overflow-y-auto">
-              <div className="p-3 border-b border-[var(--terminal-highlight)]/20 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-[var(--terminal-highlight)] font-mono text-xs">
+            <div className="w-72 overflow-y-auto" style={{ borderRight: `1px solid ${currentPythonTheme.border}`, backgroundColor: currentPythonTheme.subtle }}>
+              <div className="p-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
+                <div className="flex items-center gap-2 font-mono text-xs" style={{ color: currentPythonTheme.highlight }}>
                   <BookOpen className="w-4 h-4" />
                   <span>COMPREHENSIVE LESSONS</span>
                 </div>
                 <button
                   onClick={() => setShowLessonsSidebar(false)}
-                  className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)]"
+                  className="hover:opacity-70"
+                  style={{ color: currentPythonTheme.text }}
                   title="Close lessons sidebar"
                 >
                   <X className="w-4 h-4" />
@@ -2040,11 +2114,12 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 <button
                   onClick={activateFreestyleMode}
                   data-freestyle-mode
-                  className={`w-full text-left px-3 py-2 rounded font-mono text-xs transition-colors ${
-                    isFreestyleMode
-                      ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)] border border-[var(--terminal-highlight)]/50'
-                      : 'text-[var(--terminal-highlight)]/70 hover:bg-[var(--terminal-highlight)]/10 hover:text-[var(--terminal-highlight)]'
-                  }`}
+                  className="w-full text-left px-3 py-2 rounded font-mono text-xs transition-colors"
+                  style={{
+                    backgroundColor: isFreestyleMode ? currentPythonTheme.bg : 'transparent',
+                    color: currentPythonTheme.highlight,
+                    border: isFreestyleMode ? `1px solid ${currentPythonTheme.border}` : 'none',
+                  }}
                 >
                   <div className="font-bold flex items-center gap-2">
                     <MessageSquare className="w-3 h-3" />
@@ -2058,11 +2133,12 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   <button
                     key={key}
                     onClick={() => loadLesson(key as keyof typeof LESSONS)}
-                    className={`w-full text-left px-3 py-2 rounded font-mono text-xs transition-colors ${
-                      selectedLesson === key && !isFreestyleMode
-                        ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)] border border-[var(--terminal-highlight)]/50'
-                        : 'text-[var(--terminal-highlight)]/70 hover:bg-[var(--terminal-highlight)]/10 hover:text-[var(--terminal-highlight)]'
-                    }`}
+                    className="w-full text-left px-3 py-2 rounded font-mono text-xs transition-colors"
+                    style={{
+                      backgroundColor: selectedLesson === key && !isFreestyleMode ? currentPythonTheme.bg : 'transparent',
+                      color: selectedLesson === key && !isFreestyleMode ? currentPythonTheme.highlight : currentPythonTheme.text,
+                      border: selectedLesson === key && !isFreestyleMode ? `1px solid ${currentPythonTheme.border}` : 'none',
+                    }}
                   >
                     <div className="font-bold">{lesson.title}</div>
                     <div className="text-[10px] opacity-70 mt-1">{lesson.description}</div>
@@ -2074,10 +2150,11 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
           {/* Show Lessons Button (when sidebar is closed) */}
           {!showLessonsSidebar && (
-            <div className="w-12 border-r border-[var(--terminal-highlight)]/30 bg-black/30 flex flex-col items-center py-3">
+            <div className="w-12 flex flex-col items-center py-3" style={{ borderRight: `1px solid ${currentPythonTheme.border}`, backgroundColor: currentPythonTheme.subtle }}>
               <button
                 onClick={() => setShowLessonsSidebar(true)}
-                className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] p-2 rounded hover:bg-[var(--terminal-highlight)]/10"
+                className="p-2 rounded hover:opacity-70"
+                style={{ color: currentPythonTheme.highlight }}
                 title="Show lessons sidebar"
               >
                 <BookOpen className="w-5 h-5" />
@@ -2089,9 +2166,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
           <div className="flex-1 flex">
             {/* Chat Panel */}
             {showChat && (
-              <div className="w-96 border-r border-[var(--terminal-highlight)]/30 bg-black/30 flex flex-col">
-                <div className="p-3 border-b border-[var(--terminal-highlight)]/20">
-                  <div className="flex items-center gap-2 text-[var(--terminal-highlight)] font-mono text-xs">
+              <div className="w-96 flex flex-col" style={{ borderRight: `1px solid ${currentPythonTheme.border}`, backgroundColor: currentPythonTheme.subtle }}>
+                <div className="p-3" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
+                  <div className="flex items-center gap-2 font-mono text-xs" style={{ color: currentPythonTheme.highlight }}>
                     <MessageSquare className="w-4 h-4" />
                     <span>{isFreestyleMode ? '🎨 FREESTYLE CODE VIBE' : 'PYTHON PROGRAMMING ASSISTANT'}</span>
                   </div>
@@ -2101,7 +2178,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 <ScrollArea className="flex-1">
                   <div ref={chatScrollRef} className="p-3 space-y-3">
                     {chatHistory.length === 0 && (
-                      <div className="text-[var(--terminal-text)]/70 font-mono text-xs">
+                      <div className="font-mono text-xs" style={{ color: currentPythonTheme.text, opacity: 0.7 }}>
                         <p className="mb-2">💡 Ask me about:</p>
                         <ul className="list-disc list-inside space-y-1 text-[10px]">
                           <li>Python syntax and best practices</li>
@@ -2114,11 +2191,14 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                     )}
                     {chatHistory.map((msg, idx) => (
                       <div key={idx} className={`${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                        <div className={`inline-block max-w-[90%] p-2 rounded font-mono text-xs ${
-                          msg.role === 'user' 
-                            ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)]' 
-                            : 'bg-black/50 text-[var(--terminal-text)]/90'
-                        }`}>
+                        <div 
+                          className="inline-block max-w-[90%] p-2 rounded font-mono text-xs"
+                          style={{
+                            backgroundColor: msg.role === 'user' ? currentPythonTheme.bg : currentPythonTheme.subtle,
+                            color: msg.role === 'user' ? currentPythonTheme.highlight : currentPythonTheme.text,
+                            border: `1px solid ${currentPythonTheme.border}`,
+                          }}
+                        >
                           <div className="font-bold text-[10px] mb-1 opacity-70 flex items-center justify-between gap-2">
                             <span>{msg.role === 'user' ? 'YOU' : 'ARCHIMEDES'}</span>
                             {msg.role === 'assistant' && (
@@ -2153,21 +2233,29 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 </ScrollArea>
 
                 {/* Chat Input */}
-                <form onSubmit={handleChatSubmit} className="p-3 border-t border-[var(--terminal-highlight)]/30">
+                <form onSubmit={handleChatSubmit} className="p-3" style={{ borderTop: `1px solid ${currentPythonTheme.border}` }}>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       placeholder={isFreestyleMode ? "Describe code you want to create..." : "Ask about Python code..."}
-                      className="flex-1 bg-black/50 border border-[var(--terminal-highlight)]/30 rounded px-3 py-2 text-[var(--terminal-text)] font-mono text-xs focus:outline-none focus:border-[var(--terminal-highlight)]"
+                      className="flex-1 rounded px-3 py-2 font-mono text-xs focus:outline-none"
+                      style={{
+                        backgroundColor: currentPythonTheme.bg,
+                        border: `1px solid ${currentPythonTheme.border}`,
+                        color: currentPythonTheme.text,
+                      }}
                       disabled={chatMutation.isPending}
                     />
                     <Button
                       type="submit"
                       size="sm"
                       disabled={!chatInput.trim() || chatMutation.isPending}
-                      className="bg-[var(--terminal-highlight)] text-black hover:bg-[var(--terminal-highlight)]/80"
+                      style={{
+                        backgroundColor: currentPythonTheme.highlight,
+                        color: currentPythonTheme.bg,
+                      }}
                     >
                       <Send className="w-4 h-4" />
                     </Button>
@@ -2180,14 +2268,14 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             <div className="flex-1 flex flex-col min-w-0">
             {/* FREESTYLE Mode Banner */}
             {isFreestyleMode && (
-              <div className="p-4 bg-[var(--terminal-highlight)]/10 border-b border-[var(--terminal-highlight)]/30">
+              <div className="p-4" style={{ backgroundColor: `${currentPythonTheme.highlight}10`, borderBottom: `1px solid ${currentPythonTheme.border}` }}>
                 <div className="flex items-start gap-3">
-                  <MessageSquare className="w-5 h-5 text-[var(--terminal-highlight)] mt-1 flex-shrink-0" />
+                  <MessageSquare className="w-5 h-5 mt-1 flex-shrink-0" style={{ color: currentPythonTheme.highlight }} />
                   <div className="flex-1">
-                    <div className="text-[var(--terminal-highlight)] font-mono text-xs font-bold mb-2">
+                    <div className="font-mono text-xs font-bold mb-2" style={{ color: currentPythonTheme.highlight }}>
                       🎨 FREESTYLE MODE - VIBE CODE WITH ARCHIMEDES
                     </div>
-                    <p className="text-[var(--terminal-text)] font-mono text-xs leading-relaxed">
+                    <p className="font-mono text-xs leading-relaxed" style={{ color: currentPythonTheme.text }}>
                       Chat freely with ARCHIMEDES in the AI panel to create any Python code you can imagine. 
                       Describe what you want to build, ask for examples, or request code snippets. 
                       ARCHIMEDES will generate fully functional code based on your vibe!
@@ -2195,7 +2283,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   </div>
                   <button
                     onClick={() => setIsFreestyleMode(false)}
-                    className="text-[var(--terminal-highlight)]/50 hover:text-[var(--terminal-highlight)]"
+                    className="hover:opacity-70"
+                    style={{ color: currentPythonTheme.text }}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -2205,18 +2294,18 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
             {/* Archimedes Guidance Panel */}
             {showGuidance && !isFreestyleMode && (
-              <div className="p-4 bg-[var(--terminal-highlight)]/5 border-b border-[var(--terminal-highlight)]/30">
+              <div className="p-4" style={{ backgroundColor: `${currentPythonTheme.highlight}08`, borderBottom: `1px solid ${currentPythonTheme.border}` }}>
                 <div className="flex items-start gap-3">
-                  <Lightbulb className="w-5 h-5 text-[var(--terminal-highlight)] mt-1 flex-shrink-0" />
+                  <Lightbulb className="w-5 h-5 mt-1 flex-shrink-0" style={{ color: currentPythonTheme.highlight }} />
                   <div className="flex-1">
-                    <div className="text-[var(--terminal-highlight)] font-mono text-xs font-bold mb-2">
+                    <div className="font-mono text-xs font-bold mb-2" style={{ color: currentPythonTheme.highlight }}>
                       {currentLesson.title} - ARCHIMEDES GUIDANCE:
                     </div>
-                    <p className="text-[var(--terminal-text)] font-mono text-xs leading-relaxed">
+                    <p className="font-mono text-xs leading-relaxed" style={{ color: currentPythonTheme.text }}>
                       {currentLesson.guidance}
                     </p>
                     <div className="mt-3">
-                      <div className="text-[var(--terminal-highlight)] font-mono text-xs font-bold mb-2">
+                      <div className="font-mono text-xs font-bold mb-2" style={{ color: currentPythonTheme.highlight }}>
                         LEARNING OBJECTIVES:
                       </div>
                       <div className="space-y-1">
@@ -2227,18 +2316,18 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                               className="flex-shrink-0 mt-0.5"
                             >
                               <CheckCircle2
-                                className={`w-4 h-4 ${
-                                  completedTasks.has(task)
-                                    ? 'text-[var(--terminal-highlight)]'
-                                    : 'text-[var(--terminal-highlight)]/30'
-                                }`}
+                                className="w-4 h-4"
+                                style={{
+                                  color: completedTasks.has(task) ? currentPythonTheme.highlight : `${currentPythonTheme.highlight}50`
+                                }}
                               />
                             </button>
-                            <span className={`font-mono text-xs ${
-                              completedTasks.has(task)
-                                ? 'text-[var(--terminal-highlight)] line-through'
-                                : 'text-[var(--terminal-text)]/70'
-                            }`}>
+                            <span 
+                              className={`font-mono text-xs ${completedTasks.has(task) ? 'line-through' : ''}`}
+                              style={{ 
+                                color: completedTasks.has(task) ? currentPythonTheme.highlight : `${currentPythonTheme.text}B0`
+                              }}
+                            >
                               {task}
                             </span>
                           </div>
@@ -2248,7 +2337,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   </div>
                   <button
                     onClick={() => setShowGuidance(false)}
-                    className="text-[var(--terminal-highlight)]/50 hover:text-[var(--terminal-highlight)]"
+                    className="hover:opacity-70"
+                    style={{ color: currentPythonTheme.text }}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -2369,12 +2459,17 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             </div>
 
             {/* Run Button */}
-            <div className="px-4 py-2 bg-black/30 border-b border-[var(--terminal-highlight)]/30 flex items-center justify-between">
+            <div className="px-4 py-2 flex items-center justify-between" style={{ backgroundColor: currentPythonTheme.subtle, borderBottom: `1px solid ${currentPythonTheme.border}` }}>
               <div className="flex gap-2">
                 <Button
                   onClick={runCode}
                   disabled={isRunning}
-                  className="bg-black text-[var(--terminal-highlight)] border border-[var(--terminal-highlight)]/50 hover:bg-[var(--terminal-highlight)]/20 font-mono text-sm"
+                  className="font-mono text-sm"
+                  style={{
+                    backgroundColor: currentPythonTheme.bg,
+                    color: currentPythonTheme.highlight,
+                    border: `1px solid ${currentPythonTheme.border}`,
+                  }}
                 >
                   {isRunning ? (
                     <>
@@ -2391,7 +2486,12 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 <Button
                   onClick={() => setCode('')}
                   variant="outline"
-                  className="bg-black border-[var(--terminal-highlight)]/50 text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20 font-mono text-sm"
+                  className="font-mono text-sm"
+                  style={{
+                    backgroundColor: currentPythonTheme.bg,
+                    color: currentPythonTheme.text,
+                    border: `1px solid ${currentPythonTheme.border}`,
+                  }}
                 >
                   Clear Editor
                 </Button>
@@ -2399,14 +2499,19 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   <Button
                     onClick={() => setShowGuidance(true)}
                     variant="outline"
-                    className="border-[var(--terminal-highlight)]/50 text-[var(--terminal-highlight)] hover:bg-[var(--terminal-highlight)]/20 font-mono text-sm"
+                    className="font-mono text-sm"
+                    style={{
+                      backgroundColor: currentPythonTheme.bg,
+                      color: currentPythonTheme.highlight,
+                      border: `1px solid ${currentPythonTheme.border}`,
+                    }}
                   >
                     <Lightbulb className="w-4 h-4 mr-2" />
                     Show Guidance
                   </Button>
                 )}
               </div>
-              <div className="text-[var(--terminal-text)]/70 font-mono text-xs">
+              <div className="font-mono text-xs" style={{ color: `${currentPythonTheme.text}B0` }}>
                 {currentLesson.tasks.length > 0 && (
                   <span>Progress: {completedTasks.size}/{currentLesson.tasks.length} objectives</span>
                 )}
@@ -2414,10 +2519,10 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             </div>
 
             {/* Output */}
-            <div className="flex-1 bg-black/50 overflow-hidden">
+            <div className="flex-1 overflow-hidden" style={{ backgroundColor: currentPythonTheme.subtle }}>
               <ScrollArea className="h-full w-full">
                 <div className="p-4">
-                  <pre className="font-mono text-xs text-[var(--terminal-text)] whitespace-pre-wrap">
+                  <pre className="font-mono text-xs whitespace-pre-wrap" style={{ color: currentPythonTheme.text }}>
                     {output || '// Run code to see output here...'}
                   </pre>
                 </div>
@@ -2431,8 +2536,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
           <div
             className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
             style={{
-              borderRight: `2px solid var(--terminal-highlight)`,
-              borderBottom: `2px solid var(--terminal-highlight)`,
+              borderRight: `2px solid ${currentPythonTheme.border}`,
+              borderBottom: `2px solid ${currentPythonTheme.border}`,
             }}
             onMouseDown={(e) => {
               e.preventDefault();
