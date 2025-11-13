@@ -1778,12 +1778,14 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       const assistantMessage = { role: 'assistant' as const, content: cleanResponse };
       setChatHistory(prev => [...prev, assistantMessage]);
       
-      // If we extracted code, also update the editor with clean code
+      // Auto-paste clean Python code into editor
       if (matches && matches.length > 0) {
         setCode(cleanResponse);
+        setOutput('✓ Code automatically pasted into editor. Press Run to execute.');
+        speak('Code pasted into editor and ready to run');
+      } else {
+        speak(data.response);
       }
-      
-      speak(data.response);
     },
     onError: (error) => {
       const errorMessage = { role: 'assistant' as const, content: `Error: ${error.message}` };
