@@ -1609,7 +1609,40 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   const savedSession = loadSession();
 
-  const [code, setCode] = useState(savedSession?.code || '# FREESTYLE MODE - Chat with ARCHIMEDES to create code\n# Ask for anything you want to build!\n\n');
+  const [code, setCode] = useState(savedSession?.code || `# FREESTYLE MODE - Chat with ARCHIMEDES to create code
+# Ask for anything you want to build!
+
+# Example: Simple Calculator (text-based interface)
+def calculator():
+    """Simple calculator with text interface"""
+    print("=== CALCULATOR ===")
+    print("1. Add")
+    print("2. Subtract")
+    print("3. Multiply")
+    print("4. Divide")
+    
+    # For GUI preview, use print() for output
+    # The preview panel will show all results
+    choice = 1  # Example: hardcode or use input()
+    num1 = 10
+    num2 = 5
+    
+    if choice == 1:
+        result = num1 + num2
+        print(f"{num1} + {num2} = {result}")
+    elif choice == 2:
+        result = num1 - num2
+        print(f"{num1} - {num2} = {result}")
+    elif choice == 3:
+        result = num1 * num2
+        print(f"{num1} * {num2} = {result}")
+    elif choice == 4:
+        result = num1 / num2 if num2 != 0 else "Error: Division by zero"
+        print(f"{num1} / {num2} = {result}")
+
+# Uncomment to run:
+# calculator()
+`);
   const [output, setOutput] = useState(savedSession?.output || '');
   const [isRunning, setIsRunning] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
