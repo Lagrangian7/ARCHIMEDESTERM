@@ -1849,6 +1849,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
+      // Determine the correct mode based on freestyle state
+      const chatMode = isFreestyleMode ? 'freestyle' : 'technical';
+      
       const contextMessage = isFreestyleMode 
         ? `${message}\n\nCurrent code in editor:\n\`\`\`python\n${code}\n\`\`\`\n\nIMPORTANT: Generate ONLY clean, executable Python code without markdown backticks or code block markers. The code should be ready to copy and paste directly into a Python file. Do not wrap the code in \`\`\`python or any other markdown formatting.`
         : `${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nIMPORTANT: Generate ONLY clean, executable Python code without markdown backticks or code block markers.`;
@@ -1858,7 +1861,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: contextMessage,
-          mode: isFreestyleMode ? 'freestyle' : 'technical',
+          mode: chatMode,
           sessionId: `python-ide-${Date.now()}`,
           language: 'english'
         })
