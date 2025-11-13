@@ -3217,12 +3217,17 @@ function windowResized() {
           console.error('Failed to delete temp file:', e);
         }
 
-        if (execError.killed) {
+        // Check if it's a timeout error (process was killed or error message mentions timeout)
+        const isTimeout = execError.killed || 
+                         execError.signal === 'SIGTERM' || 
+                         (execError.message && execError.message.includes('timeout'));
+        
+        if (isTimeout) {
           return res.json({
             success: false,
-            output: '',
-            error: 'Execution timeout (10 seconds)',
-            formatted: '╭─ Python Execution Result\n├─ Error: Execution timeout (10 seconds)\n╰─ Code took too long to execute'
+            output: execError.stdout || '',
+            error: 'Execution timeout (10 seconds) - Code took too long to execute',
+            formatted: '╭─ Python Execution Result\n├─ Error: Execution timeout (10 seconds)\n├─ Code took too long to execute\n╰─ Try optimizing your code or reducing the workload'
           });
         }
 
