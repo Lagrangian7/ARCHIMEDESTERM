@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2 } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { registerCompletion } from 'monacopilot';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 interface PythonIDEProps {
   onClose: () => void;
@@ -1613,6 +1614,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [selectedLesson, setSelectedLesson] = useState<keyof typeof LESSONS>(savedSession?.selectedLesson || 'basics');
+  const [showPreview, setShowPreview] = useState(false);
   const [showGuidance, setShowGuidance] = useState(savedSession?.showGuidance ?? false);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set(savedSession?.completedTasks || []));
   const [showChat, setShowChat] = useState(true);
@@ -1911,7 +1913,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             /(?:import|def|class|print|if|for|while)\s/.test(trimmed)) {
           // Remove any leading/trailing markdown-like text
           const lines = trimmed.split('\n');
-          const codeLines = lines.filter(line => {
+          const codeLines = lines.filter((line: string) => {
             // Keep Python code lines, skip markdown explanations
             return !line.match(/^(?:Here|This|The|I'll|Let|Note:|Example:|Output:)/i);
           });
@@ -2184,6 +2186,21 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
               }}
             >
               {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
+            <Button
+              onClick={() => setShowPreview(!showPreview)}
+              variant="outline"
+              size="sm"
+              className="font-mono text-xs"
+              data-testid="button-toggle-preview"
+              style={{
+                backgroundColor: showPreview ? currentPythonTheme.subtle : currentPythonTheme.bg,
+                color: currentPythonTheme.highlight,
+                borderColor: currentPythonTheme.border,
+              }}
+            >
+              {showPreview ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+              {showPreview ? 'Hide' : 'Show'} Preview
             </Button>
             <Button
               onClick={() => setShowChat(!showChat)}
@@ -2497,27 +2514,31 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
               </div>
             )}
 
-            {/* Editor */}
+            {/* Editor with Optional Preview Panel */}
             <div className="flex-1 border-b border-[var(--terminal-highlight)]/30 min-h-0">
-              <div className="h-full w-full relative">
-                <Editor
-                  height="100%"
-                  width="100%"
-                  defaultLanguage="python"
-                  value={code}
-                  onChange={(value) => setCode(value || '')}
-                  onMount={(editor, monaco) => {
-                    try {
-                      handleEditorDidMount(editor, monaco);
-                    } catch (error) {
-                      console.error('Editor mount failed:', error);
-                      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                      setOutput(`Editor initialization error: ${errorMessage}`);
-                    }
-                  }}
-                  theme="vs-dark"
-                  loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
-                  options={{
+              {showPreview ? (
+                <PanelGroup direction="horizontal" autoSaveId="python-ide-preview">
+                  {/* Editor Panel */}
+                  <Panel defaultSize={60} minSize={30}>
+                    <div className="h-full w-full relative">
+                      <Editor
+                        height="100%"
+                        width="100%"
+                        defaultLanguage="python"
+                        value={code}
+                        onChange={(value) => setCode(value || '')}
+                        onMount={(editor, monaco) => {
+                          try {
+                            handleEditorDidMount(editor, monaco);
+                          } catch (error) {
+                            console.error('Editor mount failed:', error);
+                            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                            setOutput(`Editor initialization error: ${errorMessage}`);
+                          }
+                        }}
+                        theme="vs-dark"
+                        loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
+                        options={{
                     // Display
                     minimap: { enabled: false },
                     fontSize: 13,
@@ -2611,9 +2632,161 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                     foldingStrategy: 'indentation',
                     showFoldingControls: 'mouseover'
                   }}
-                  key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
-                />
-              </div>
+                        key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
+                      />
+                    </div>
+                  </Panel>
+
+                  <PanelResizeHandle 
+                    style={{ 
+                      width: '3px', 
+                      backgroundColor: currentPythonTheme.border,
+                      cursor: 'col-resize'
+                    }} 
+                  />
+
+                  {/* Preview Panel */}
+                  <Panel defaultSize={40} minSize={25}>
+                    <div 
+                      className="h-full overflow-auto p-4" 
+                      style={{ 
+                        backgroundColor: currentPythonTheme.bg,
+                        borderLeft: `1px solid ${currentPythonTheme.border}`
+                      }}
+                    >
+                      <div className="font-mono text-xs mb-3 pb-2" style={{ 
+                        color: currentPythonTheme.highlight,
+                        borderBottom: `1px solid ${currentPythonTheme.border}`
+                      }}>
+                        📺 LIVE OUTPUT PREVIEW
+                      </div>
+                      <pre 
+                        className="font-mono text-xs leading-relaxed whitespace-pre-wrap"
+                        style={{ color: currentPythonTheme.text }}
+                        data-testid="preview-output"
+                      >
+                        {output || '(Run code to see output here)'}
+                      </pre>
+                    </div>
+                  </Panel>
+                </PanelGroup>
+              ) : (
+                <div className="h-full w-full relative">
+                  <Editor
+                    height="100%"
+                    width="100%"
+                    defaultLanguage="python"
+                    value={code}
+                    onChange={(value) => setCode(value || '')}
+                    onMount={(editor, monaco) => {
+                      try {
+                        handleEditorDidMount(editor, monaco);
+                      } catch (error) {
+                        console.error('Editor mount failed:', error);
+                        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                        setOutput(`Editor initialization error: ${errorMessage}`);
+                      }
+                    }}
+                    theme="vs-dark"
+                    loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
+                    options={{
+                      // Display
+                      minimap: { enabled: false },
+                      fontSize: 13,
+                      lineNumbers: 'on',
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                      padding: { top: 10, bottom: 10 },
+                      wordWrap: 'on',
+                      renderWhitespace: 'selection',
+                      renderLineHighlight: 'all',
+                      
+                      // Editing
+                      tabSize: 4,
+                      insertSpaces: true,
+                      autoIndent: 'full',
+                      formatOnPaste: true,
+                      formatOnType: true,
+                      trimAutoWhitespace: true,
+                      
+                      // IntelliSense
+                      quickSuggestions: {
+                        other: true,
+                        comments: false,
+                        strings: true
+                      },
+                      acceptSuggestionOnEnter: 'on',
+                      parameterHints: {
+                        enabled: true,
+                        cycle: true
+                      },
+                      suggest: {
+                        showKeywords: true,
+                        showSnippets: true,
+                        showFunctions: true,
+                        showVariables: true,
+                        showClasses: true,
+                        showConstants: true,
+                        showModules: true,
+                        showProperties: true,
+                        snippetsPreventQuickSuggestions: false
+                      },
+                      hover: {
+                        enabled: true,
+                        delay: 300,
+                        sticky: true
+                      },
+                      
+                      // Find/Replace
+                      find: {
+                        seedSearchStringFromSelection: 'selection',
+                        autoFindInSelection: 'never'
+                      },
+                      
+                      // UI Features
+                      contextmenu: true,
+                      mouseWheelZoom: true,
+                      smoothScrolling: true,
+                      cursorBlinking: 'smooth',
+                      cursorSmoothCaretAnimation: 'on',
+                      
+                      // Code Actions
+                      lightbulb: {
+                        enabled: 'on' as any
+                      },
+                      
+                      // Brackets
+                      matchBrackets: 'always',
+                      bracketPairColorization: {
+                        enabled: true
+                      },
+                      guides: {
+                        bracketPairs: true,
+                        indentation: true
+                      },
+                      
+                      // Selection
+                      selectOnLineNumbers: true,
+                      multiCursorModifier: 'ctrlCmd',
+                      
+                      // Scrollbar
+                      scrollbar: {
+                        vertical: 'auto',
+                        horizontal: 'auto',
+                        useShadows: true,
+                        verticalScrollbarSize: 10,
+                        horizontalScrollbarSize: 10
+                      },
+                      
+                      // Folding
+                      folding: true,
+                      foldingStrategy: 'indentation',
+                      showFoldingControls: 'mouseover'
+                    }}
+                    key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Run Button */}
