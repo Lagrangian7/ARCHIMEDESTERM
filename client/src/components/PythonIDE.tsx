@@ -2255,11 +2255,25 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             {/* Chat Panel */}
             {showChat && (
               <div className="w-96 flex flex-col" style={{ borderRight: `1px solid ${currentPythonTheme.border}`, backgroundColor: currentPythonTheme.subtle }}>
-                <div className="p-3" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
+                <div className="p-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
                   <div className="flex items-center gap-2 font-mono text-xs" style={{ color: currentPythonTheme.highlight }}>
                     <MessageSquare className="w-4 h-4" />
                     <span>{isFreestyleMode ? '🎨 FREESTYLE CODE VIBE' : 'PYTHON PROGRAMMING ASSISTANT'}</span>
                   </div>
+                  <Button
+                    onClick={() => setChatHistory([])}
+                    variant="ghost"
+                    size="sm"
+                    className="font-mono text-xs h-7 px-2"
+                    style={{
+                      color: currentPythonTheme.text,
+                      opacity: chatHistory.length > 0 ? 1 : 0.5,
+                    }}
+                    disabled={chatHistory.length === 0}
+                    title="Clear chat history"
+                  >
+                    Clear
+                  </Button>
                 </div>
 
                 {/* Chat History */}
