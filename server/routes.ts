@@ -3182,6 +3182,7 @@ function windowResized() {
 
       // Execute Python with timeout and resource limits
       const execPromise = promisify(exec);
+      const startTime = Date.now();
 
       try {
         const { stdout, stderr } = await execPromise(
@@ -3195,6 +3196,8 @@ function windowResized() {
           }
         );
 
+        const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
         // Clean up temp file
         try {
           await unlink(tmpFile);
@@ -3206,7 +3209,8 @@ function windowResized() {
           success: true,
           output: stdout || '',
           error: stderr || '',
-          formatted: `╭─ Python Execution Result\n${stdout ? `├─ Output:\n${stdout}` : ''}${stderr ? `├─ Errors:\n${stderr}` : ''}╰─ Execution complete`
+          executionTime: parseFloat(executionTime),
+          formatted: `╭─ Python Execution Result (${executionTime}s)\n${stdout ? `├─ Output:\n${stdout}` : ''}${stderr ? `├─ Errors:\n${stderr}` : ''}╰─ Execution complete in ${executionTime} seconds`
         });
 
       } catch (execError: any) {
@@ -3217,17 +3221,21 @@ function windowResized() {
           console.error('Failed to delete temp file:', e);
         }
 
+        const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
         // Check if it's a timeout error (process was killed or error message mentions timeout)
         const isTimeout = execError.killed || 
                          execError.signal === 'SIGTERM' || 
                          (execError.message && execError.message.includes('timeout'));
         
         if (isTimeout) {
+          const partialOutput = execError.stdout || '';
           return res.json({
             success: false,
-            output: execError.stdout || '',
+            output: partialOutput,
             error: 'Execution timeout (10 seconds) - Code took too long to execute',
-            formatted: '╭─ Python Execution Result\n├─ Error: Execution timeout (10 seconds)\n├─ Code took too long to execute\n╰─ Try optimizing your code or reducing the workload'
+            executionTime: 10.0,
+            formatted: `╭─ Python Execution Result (timed out after 10s)\n${partialOutput ? `├─ Partial Output (before timeout):\n${partialOutput}\n├─\n` : ''}├─ ⏱️ Error: Execution timeout (10 seconds)\n├─ Code took too long to execute\n├─ \n├─ 💡 Debug tips:\n├─    • Check for infinite loops or missing break statements\n├─    • Look for large data processing (reduce data size)\n├─    • Remove any input() calls (they wait indefinitely)\n├─    • Add print() statements to track progress\n╰─ Try optimizing your code or reducing the workload`
           });
         }
 
@@ -3235,7 +3243,8 @@ function windowResized() {
           success: false,
           output: execError.stdout || '',
           error: execError.stderr || execError.message,
-          formatted: `╭─ Python Execution Result\n├─ Error: ${execError.stderr || execError.message}\n╰─ Execution failed`
+          executionTime: parseFloat(executionTime),
+          formatted: `╭─ Python Execution Result (${executionTime}s)\n├─ Error: ${execError.stderr || execError.message}\n╰─ Execution failed after ${executionTime} seconds`
         });
       }
 
