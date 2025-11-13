@@ -1831,54 +1831,62 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
 
-    // Setup Monacopilot AI completions
-    const completionProvider: CompletionProvider = {
-      async provideCompletionItems(model, position) {
-        const textUntilPosition = model.getValueInRange({
-          startLineNumber: 1,
-          startColumn: 1,
-          endLineNumber: position.lineNumber,
-          endColumn: position.column,
-        });
-
-        try {
-          // Call your Mistral API for code completion
-          const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: `Complete this Python code. Only respond with the completion, no explanations:\n\n${textUntilPosition}`,
-              mode: 'freestyle',
-              sessionId: `copilot-${Date.now()}`,
-              language: 'english'
-            })
+    // Setup Monacopilot AI completions with error handling
+    try {
+      const completionProvider: CompletionProvider = {
+        async provideCompletionItems(model, position) {
+          const textUntilPosition = model.getValueInRange({
+            startLineNumber: 1,
+            startColumn: 1,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
           });
 
-          const data = await response.json();
-          
-          // Extract clean code from response
-          let completion = data.response;
-          const pythonBlockMatch = completion.match(/```(?:python|py)?\s*\n([\s\S]*?)```/);
-          if (pythonBlockMatch && pythonBlockMatch[1]) {
-            completion = pythonBlockMatch[1].trim();
+          try {
+            // Call your Mistral API for code completion
+            const response = await fetch('/api/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message: `Complete this Python code. Only respond with the completion, no explanations:\n\n${textUntilPosition}`,
+                mode: 'freestyle',
+                sessionId: `copilot-${Date.now()}`,
+                language: 'english'
+              })
+            });
+
+            if (!response.ok) {
+              console.warn('Completion API request failed');
+              return '';
+            }
+
+            const data = await response.json();
+            
+            // Extract clean code from response
+            let completion = data.response || '';
+            const pythonBlockMatch = completion.match(/```(?:python|py)?\s*\n([\s\S]*?)```/);
+            if (pythonBlockMatch && pythonBlockMatch[1]) {
+              completion = pythonBlockMatch[1].trim();
+            }
+
+            return completion;
+          } catch (error) {
+            console.warn('Monacopilot completion error:', error);
+            return '';
           }
-
-          return completion;
-        } catch (error) {
-          console.error('Monacopilot error:', error);
-          return '';
         }
-      }
-    };
+      };
 
-    // Register the completion provider
-    registerCompletion(monaco, editor, completionProvider, {
-      language: 'python',
-      // Trigger on specific keywords or always
-      trigger: 'auto', // or 'manual' to only trigger on Ctrl+Space
-      // Debounce delay before triggering
-      debounceTime: 500,
-    });
+      // Register the completion provider with error handling
+      registerCompletion(monaco, editor, completionProvider, {
+        language: 'python',
+        trigger: 'auto',
+        debounceTime: 500,
+      });
+    } catch (error) {
+      console.warn('Failed to register Monacopilot:', error);
+      // Continue without AI completions if registration fails
+    }
   };
 
   const handleChatSubmit = (e: React.FormEvent) => {
