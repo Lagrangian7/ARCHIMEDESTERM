@@ -1716,10 +1716,10 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       // Small delay to ensure DOM has updated
       const timer = setTimeout(() => {
         editorRef.current?.layout();
-      }, 50);
+      }, 100);
       return () => clearTimeout(timer);
     }
-  }, [dimensions, isMaximized]);
+  }, [dimensions, isMaximized, showChat, showLessonsSidebar]);
 
   // Save session to localStorage whenever state changes
   useEffect(() => {
@@ -2229,9 +2229,19 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                     quickSuggestions: true,
                     formatOnPaste: true,
                     formatOnType: true,
-                    acceptSuggestionOnEnter: 'on'
+                    acceptSuggestionOnEnter: 'on',
+                    contextmenu: true,
+                    mouseWheelZoom: true,
+                    smoothScrolling: true,
+                    cursorBlinking: 'smooth',
+                    cursorSmoothCaretAnimation: 'on',
+                    renderWhitespace: 'selection',
+                    suggest: {
+                      showKeywords: true,
+                      showSnippets: true
+                    }
                   }}
-                  key={`${dimensions.width}-${dimensions.height}`}
+                  key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
                 />
               </div>
             </div>
