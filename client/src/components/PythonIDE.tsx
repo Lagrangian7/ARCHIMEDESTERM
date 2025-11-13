@@ -1611,6 +1611,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const [code, setCode] = useState(savedSession?.code || '# FREESTYLE MODE - Chat with ARCHIMEDES to create code\n# Ask for anything you want to build!\n\n');
   const [output, setOutput] = useState(savedSession?.output || '');
   const [isRunning, setIsRunning] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const [selectedLesson, setSelectedLesson] = useState<keyof typeof LESSONS>(savedSession?.selectedLesson || 'basics');
   const [showGuidance, setShowGuidance] = useState(savedSession?.showGuidance ?? false);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set(savedSession?.completedTasks || []));
@@ -2019,7 +2020,16 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   const runCode = async () => {
     setIsRunning(true);
-    setOutput('Running...\n');
+    setElapsedTime(0);
+    setOutput('⏳ Running...\n');
+
+    // Start timer
+    const startTime = Date.now();
+    const timer = setInterval(() => {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      setElapsedTime(parseFloat(elapsed));
+      setOutput(`⏳ Running... (${elapsed}s elapsed)\n`);
+    }, 100); // Update every 100ms for smooth animation
 
     try {
       const response = await fetch('/api/execute/python', {
@@ -2030,14 +2040,20 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
       const data = await response.json();
 
+      clearInterval(timer);
+
       if (data.success) {
-        setOutput(data.output || '(No output)');
+        const timeInfo = data.executionTime ? ` ✓ Completed in ${data.executionTime}s\n\n` : '\n';
+        setOutput(timeInfo + (data.output || '(No output)'));
       } else {
-        setOutput(`Error:\n${data.error || 'Unknown error occurred'}`);
+        const timeInfo = data.executionTime ? `⏱️ Execution time: ${data.executionTime}s\n\n` : '\n';
+        setOutput(timeInfo + `Error:\n${data.error || 'Unknown error occurred'}` + (data.output ? `\n\nPartial output:\n${data.output}` : ''));
       }
     } catch (error) {
+      clearInterval(timer);
       setOutput(`Execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
+      clearInterval(timer);
       setIsRunning(false);
     }
   };
