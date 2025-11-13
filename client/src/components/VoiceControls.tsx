@@ -260,20 +260,17 @@ export function VoiceControls({
               {/* Freestyle Mode Toggle Button */}
               <Button
                 onClick={() => {
-                  setShowPythonIDE(true);
-                  // This part is tricky as it directly manipulates DOM for a button click
-                  // A better approach might be to have a state variable to control freestyle mode activation
-                  // For now, sticking to the provided change logic:
-                  // switchMode('freestyle'); // This line would ideally be here if switchMode handled 'freestyle'
-                  // The original code had a setTimeout to click a button with data-freestyle-mode, which is not present.
-                  // Assuming the intention is to open the IDE and potentially activate freestyle mode internally if needed.
-                  // Let's add a direct call to switchMode if it can handle 'freestyle'
-                  // If not, this part might need adjustment based on how switchMode is implemented elsewhere.
+                  // Activate freestyle mode in terminal
+                  switchMode('freestyle');
                 }}
                 variant="outline"
                 size="sm"
-                className="bg-black border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-black transition-colors text-xs px-2 py-1 min-h-[44px]"
-                data-testid="button-freestyle-mode" // This is the new test id
+                className={`bg-black border-purple-500 transition-colors text-xs px-2 py-1 min-h-[44px] ${
+                  currentMode === 'freestyle' 
+                    ? 'bg-purple-500 text-black' 
+                    : 'text-purple-400 hover:bg-purple-500 hover:text-black'
+                }`}
+                data-testid="button-freestyle-mode"
               >
                 <MessageSquare className="w-4 h-4 mr-1" />
                 <span className="hidden sm:inline">FREESTYLE</span>

@@ -167,7 +167,7 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
 
   async generateResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' = 'natural',
+    mode: 'natural' | 'technical' | 'freestyle' = 'natural', // Added 'freestyle' to the union type
     conversationHistory: Message[] = [],
     userId?: string,
     language: string = 'english',
@@ -272,7 +272,7 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
 
   private async generateGeminiResponse(
     userMessage: string,
-    mode: 'natural' | 'technical',
+    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
@@ -280,6 +280,11 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
+
+    // In freestyle mode, enhance the prompt for code generation with explicit Python focus
+    const enhancedMessage = mode === 'freestyle'
+      ? `As a Python code generation expert in FREESTYLE MODE, help create functional Python code. ${userMessage}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples with clear explanations.\n\nFORMAT REQUIREMENTS:\n1. Wrap all Python code in markdown code blocks: \`\`\`python\n...\n\`\`\`\n2. Include helpful comments in the code\n3. Provide a brief explanation before or after the code\n4. Make the code immediately runnable - include all necessary imports and a main execution block`
+      : userMessage;
 
     // Add language instruction to system message if not English
     if (language && language !== 'english') {
@@ -334,7 +339,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 Conversation History:
 ${conversationContext}
 
-Current User Message: ${userMessage}
+Current User Message: ${enhancedMessage}
 
 Please respond as ARCHIMEDES v7:`;
 
@@ -342,8 +347,8 @@ Please respond as ARCHIMEDES v7:`;
       model: 'gemini-2.0-flash-exp',
       contents: fullPrompt,
       config: {
-        maxOutputTokens: mode === 'technical' ? 4000 : 2000,
-        temperature: mode === 'technical' ? 0.3 : 0.7,
+        maxOutputTokens: mode === 'technical' || mode === 'freestyle' ? 4000 : 2000, // Adjusted for freestyle
+        temperature: mode === 'technical' || mode === 'freestyle' ? 0.3 : 0.7, // Adjusted for freestyle
       }
     });
 
@@ -353,7 +358,7 @@ Please respond as ARCHIMEDES v7:`;
 
   private async generatePerplexityResponse(
     userMessage: string,
-    mode: 'natural' | 'technical',
+    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
@@ -361,6 +366,11 @@ Please respond as ARCHIMEDES v7:`;
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
+
+    // In freestyle mode, enhance the prompt for code generation with explicit Python focus
+    const enhancedMessage = mode === 'freestyle'
+      ? `As a Python code generation expert in FREESTYLE MODE, help create functional Python code. ${userMessage}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples with clear explanations.\n\nFORMAT REQUIREMENTS:\n1. Wrap all Python code in markdown code blocks: \`\`\`python\n...\n\`\`\`\n2. Include helpful comments in the code\n3. Provide a brief explanation before or after the code\n4. Make the code immediately runnable - include all necessary imports and a main execution block`
+      : userMessage;
 
     // Add language instruction to system message if not English
     if (language && language !== 'english') {
@@ -420,7 +430,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     }
 
     // Add current user message
-    messages.push({ role: 'user', content: userMessage });
+    messages.push({ role: 'user', content: enhancedMessage });
 
     const response = await fetch(PERPLEXITY_API_URL, {
       method: 'POST',
@@ -431,8 +441,8 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       body: JSON.stringify({
         model: 'llama-3.1-sonar-small-128k-online',
         messages,
-        max_tokens: mode === 'technical' ? 4000 : 2000,
-        temperature: mode === 'technical' ? 0.3 : 0.7,
+        max_tokens: mode === 'technical' || mode === 'freestyle' ? 4000 : 2000, // Adjusted for freestyle
+        temperature: mode === 'technical' || mode === 'freestyle' ? 0.3 : 0.7, // Adjusted for freestyle
         top_p: 0.9,
         search_recency_filter: 'month',
         return_related_questions: false,
@@ -452,7 +462,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
   private async generateMistralResponse(
     userMessage: string,
-    mode: 'natural' | 'technical',
+    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
@@ -460,6 +470,11 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
+
+    // In freestyle mode, enhance the prompt for code generation with explicit Python focus
+    const enhancedMessage = mode === 'freestyle'
+      ? `As a Python code generation expert in FREESTYLE MODE, help create functional Python code. ${userMessage}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples with clear explanations.\n\nFORMAT REQUIREMENTS:\n1. Wrap all Python code in markdown code blocks: \`\`\`python\n...\n\`\`\`\n2. Include helpful comments in the code\n3. Provide a brief explanation before or after the code\n4. Make the code immediately runnable - include all necessary imports and a main execution block`
+      : userMessage;
 
     // Add language instruction to system message if not English
     if (language && language !== 'english') {
@@ -519,14 +534,14 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     }
 
     // Add current user message
-    messages.push({ role: 'user', content: userMessage });
+    messages.push({ role: 'user', content: enhancedMessage });
 
     // Use Mistral's latest model with appropriate parameters
     const chatResponse = await mistral.chat.complete({
       model: 'mistral-large-latest', // Use the latest Mistral model
       messages: messages as any,
-      maxTokens: mode === 'technical' ? 4000 : 2000,
-      temperature: mode === 'technical' ? 0.3 : 0.7,
+      maxTokens: mode === 'technical' || mode === 'freestyle' ? 4000 : 2000, // Adjusted for freestyle
+      temperature: mode === 'technical' || mode === 'freestyle' ? 0.3 : 0.7, // Adjusted for freestyle
       topP: 0.9,
     });
 
@@ -544,7 +559,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
   private async generateReplitOptimizedResponse(
     userMessage: string,
-    mode: 'natural' | 'technical',
+    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
@@ -552,6 +567,11 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
+
+    // In freestyle mode, enhance the prompt for code generation with explicit Python focus
+    const enhancedMessage = mode === 'freestyle'
+      ? `As a Python code generation expert in FREESTYLE MODE, help create functional Python code. ${userMessage}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples with clear explanations.\n\nFORMAT REQUIREMENTS:\n1. Wrap all Python code in markdown code blocks: \`\`\`python\n...\n\`\`\`\n2. Include helpful comments in the code\n3. Provide a brief explanation before or after the code\n4. Make the code immediately runnable - include all necessary imports and a main execution block`
+      : userMessage;
 
     // Add language instruction to system message if not English
     if (language && language !== 'english') {
@@ -614,7 +634,7 @@ Conversation Context:\n`;
       }
     }
 
-    prompt += `User: ${userMessage}\nARCHIMEDES:`;
+    prompt += `User: ${enhancedMessage}\nARCHIMEDES:`;
 
     // Reduced timeout for faster response (6 seconds)
     const timeoutPromise = new Promise((_, reject) => {
@@ -633,7 +653,7 @@ Conversation Context:\n`;
     throw new Error('No valid response from Replit-optimized AI pipeline');
   }
 
-  private async tryReplitOptimizedModels(prompt: string, mode: 'natural' | 'technical'): Promise<string> {
+  private async tryReplitOptimizedModels(prompt: string, mode: 'natural' | 'technical' | 'freestyle'): Promise<string> { // Added 'freestyle'
     // Primary model: Fast and efficient for Replit
     const models = [
       REPLIT_AI_CONFIG.primaryModel,
@@ -652,8 +672,8 @@ Conversation Context:\n`;
           body: JSON.stringify({
             inputs: prompt,
             parameters: {
-              max_new_tokens: REPLIT_AI_CONFIG.maxTokens[mode],
-              temperature: REPLIT_AI_CONFIG.temperature[mode],
+              max_new_tokens: REPLIT_AI_CONFIG.maxTokens[mode === 'freestyle' ? 'technical' : mode], // Use technical maxTokens for freestyle
+              temperature: REPLIT_AI_CONFIG.temperature[mode === 'freestyle' ? 'technical' : mode], // Use technical temperature for freestyle
               return_full_text: false,
               do_sample: true,
               top_p: 0.9,
@@ -682,7 +702,7 @@ Conversation Context:\n`;
     throw new Error('All Replit-optimized models failed');
   }
 
-  private postProcessResponse(response: string, mode: 'natural' | 'technical'): string {
+  private postProcessResponse(response: string, mode: 'natural' | 'technical' | 'freestyle'): string { // Added 'freestyle'
     // Clean up the response
     let cleaned = response.trim();
 
@@ -703,7 +723,7 @@ Conversation Context:\n`;
 
   private async generateOpenAIResponse(
     userMessage: string,
-    mode: 'natural' | 'technical',
+    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
@@ -711,6 +731,11 @@ Conversation Context:\n`;
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
+
+    // In freestyle mode, enhance the prompt for code generation with explicit Python focus
+    const enhancedMessage = mode === 'freestyle'
+      ? `As a Python code generation expert in FREESTYLE MODE, help create functional Python code. ${userMessage}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples with clear explanations.\n\nFORMAT REQUIREMENTS:\n1. Wrap all Python code in markdown code blocks: \`\`\`python\n...\n\`\`\`\n2. Include helpful comments in the code\n3. Provide a brief explanation before or after the code\n4. Make the code immediately runnable - include all necessary imports and a main execution block`
+      : userMessage;
 
     // Add language instruction to system message if not English
     if (language && language !== 'english') {
@@ -770,13 +795,13 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     }
 
     // Add current user message
-    messages.push({ role: 'user', content: userMessage });
+    messages.push({ role: 'user', content: enhancedMessage });
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages,
-      max_tokens: mode === 'technical' ? 4000 : 2000,
-      temperature: mode === 'technical' ? 0.3 : 0.7,
+      max_tokens: mode === 'technical' || mode === 'freestyle' ? 4000 : 2000, // Adjusted for freestyle
+      temperature: mode === 'technical' || mode === 'freestyle' ? 0.3 : 0.7, // Adjusted for freestyle
       presence_penalty: 0.1,
       frequency_penalty: 0.1,
     });
@@ -784,10 +809,10 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     return completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
   }
 
-  private getEnhancedFallbackResponse(input: string, mode: 'natural' | 'technical'): string {
+  private getEnhancedFallbackResponse(input: string, mode: 'natural' | 'technical' | 'freestyle'): string { // Added 'freestyle'
     if (mode === 'natural') {
       return this.generateEnhancedNaturalFallback(input);
-    } else {
+    } else { // Technical or Freestyle mode
       return this.generateEnhancedTechnicalFallback(input);
     }
   }

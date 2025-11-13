@@ -54,9 +54,9 @@ export function useTerminal(onUploadCommand?: () => void) {
     mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' | 'freestyle' }) => {
       const language = localStorage.getItem('ai-language') || 'english';
       
-      // In freestyle mode, enhance the prompt for code generation
+      // In freestyle mode, enhance the prompt for code generation with explicit Python formatting
       const enhancedMessage = mode === 'freestyle' 
-        ? `As a code generation expert in FREESTYLE MODE, help create functional code. ${message}\n\nGenerate complete, runnable code snippets based on the request. Be creative and provide fully functional examples with explanations.`
+        ? `As a code generation expert in FREESTYLE MODE, help create functional Python code. ${message}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples.\n\nIMPORTANT: Wrap all Python code in markdown code blocks using \`\`\`python\n...\n\`\`\` format so it can be automatically executed.`
         : message;
       
       const response = await apiRequest('POST', '/api/chat', {
@@ -70,6 +70,29 @@ export function useTerminal(onUploadCommand?: () => void) {
     onSuccess: (data) => {
       setIsTyping(false);
       addEntry('response', data.response, data.mode);
+      
+      // Auto-execute Python code in FREESTYLE mode
+      if (data.mode === 'freestyle' || currentMode === 'freestyle') {
+        const pythonBlockRegex = /```(?:python|py)\n([\s\S]*?)```/;
+        const pythonMatch = data.response.match(pythonBlockRegex);
+        
+        if (pythonMatch && pythonMatch[1]) {
+          addEntry('system', '🐍 Auto-executing generated Python code...');
+          
+          fetch('/api/execute/python', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: pythonMatch[1].trim() })
+          })
+            .then(res => res.json())
+            .then(execData => {
+              addEntry('response', execData.formatted || execData.output || 'Execution complete');
+            })
+            .catch(error => {
+              addEntry('error', `Auto-execution failed: ${error.message}. Use 'preview' or 'run' to execute manually.`);
+            });
+        }
+      }
     },
     onError: (error) => {
       setIsTyping(false);
@@ -2693,9 +2716,9 @@ Powered by Wolfram Alpha Full Results API`);
   const switchMode = useCallback((mode: 'natural' | 'technical' | 'freestyle') => {
     setCurrentMode(mode);
     const modeDescription = mode === 'freestyle' 
-      ? 'FREESTYLE (Vibe Code Mode) - Chat with AI to generate code directly in terminal'
+      ? 'FREESTYLE (Vibe Code Mode) - Chat with AI to generate and auto-execute Python code'
       : mode.toUpperCase();
-    addEntry('system', `Mode switched to: ${modeDescription}`);
+    addEntry('system', `Mode switched to: ${modeDescription}\n\n${mode === 'freestyle' ? '🎨 Python code will be automatically executed when generated. Use natural language to describe what you want to build!' : ''}`);
   }, [addEntry]);
 
   const getHistoryCommand = useCallback((direction: 'up' | 'down') => {
