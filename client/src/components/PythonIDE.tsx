@@ -1615,6 +1615,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [selectedLesson, setSelectedLesson] = useState<keyof typeof LESSONS>(savedSession?.selectedLesson || 'basics');
   const [showPreview, setShowPreview] = useState(false);
+  const [inputPrompts, setInputPrompts] = useState<string[]>([]);
+  const [inputValues, setInputValues] = useState<string[]>([]);
+  const [needsInput, setNeedsInput] = useState(false);
   const [showGuidance, setShowGuidance] = useState(savedSession?.showGuidance ?? false);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set(savedSession?.completedTasks || []));
   const [showChat, setShowChat] = useState(true);
@@ -2020,9 +2023,244 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     }
   }, [chatHistory, speak]);
 
-  const runCode = async () => {
+  // Detect input() calls in code - single-pass parser maintaining position alignment
+  const detectInputs = (code: string): string[] => {
+    const prompts: string[] = [];
+    let i = 0;
+    let inputCount = 0;
+    
+    while (i < code.length) {
+      // Check for triple-quoted strings first (""" or ''')
+      if ((code.substring(i, i + 3) === '"""' || code.substring(i, i + 3) === "'''") ||
+          (code[i] === 'f' && i + 1 < code.length && (code.substring(i + 1, i + 4) === '"""' || code.substring(i + 1, i + 4) === "'''"))) {
+        const hasF = code[i] === 'f';
+        if (hasF) i++;
+        const tripleQuote = code.substring(i, i + 3);
+        i += 3; // Skip opening triple-quote
+        
+        // Find closing triple-quote
+        while (i < code.length) {
+          if (code.substring(i, i + 3) === tripleQuote) {
+            i += 3; // Skip closing triple-quote
+            break;
+          }
+          i++;
+        }
+        continue;
+      }
+      
+      // Skip single/double quoted string literals
+      if (code[i] === '"' || code[i] === "'" || (code[i] === 'f' && i + 1 < code.length && (code[i+1] === '"' || code[i+1] === "'"))) {
+        const quote = code[i] === 'f' ? code[i+1] : code[i];
+        if (code[i] === 'f') i++;
+        i++; // Skip opening quote
+        
+        while (i < code.length) {
+          if (code[i] === '\\' && i + 1 < code.length) {
+            i += 2; // Skip escape sequence
+          } else if (code[i] === quote) {
+            i++; // Skip closing quote
+            break;
+          } else {
+            i++;
+          }
+        }
+        continue;
+      }
+      
+      // Skip comments
+      if (code[i] === '#') {
+        while (i < code.length && code[i] !== '\n') i++;
+        continue;
+      }
+      
+      // Check for input( with word boundary
+      if (/^\binput\s*\(/.test(code.substring(i))) {
+        inputCount++;
+        
+        // Extract the potential prompt argument
+        const matchInput = code.substring(i).match(/^input\s*\(/);
+        if (matchInput) {
+          const inputStart = i;
+          i += matchInput[0].length; // Move past "input("
+          
+          // Try to find a string literal argument
+          while (i < code.length && /\s/.test(code[i])) i++; // Skip whitespace
+          
+          if (i < code.length && (code[i] === '"' || code[i] === "'")) {
+            const quote = code[i];
+            i++; // Skip opening quote
+            let promptText = '';
+            
+            while (i < code.length) {
+              if (code[i] === '\\' && i + 1 < code.length) {
+                // Include escaped character as-is
+                promptText += code.substring(i, i + 2);
+                i += 2;
+              } else if (code[i] === quote) {
+                // Found the closing quote
+                prompts.push(promptText);
+                i++; // Skip closing quote
+                break;
+              } else {
+                promptText += code[i];
+                i++;
+              }
+            }
+            
+            // If we didn't find a closing quote, use default
+            if (prompts.length < inputCount) {
+              prompts.push(`Input ${inputCount}`);
+            }
+          } else {
+            // No string literal argument, use default
+            prompts.push(`Input ${inputCount}`);
+          }
+          
+          continue;
+        }
+      }
+      
+      i++;
+    }
+    
+    return prompts;
+  };
+
+  // Transform code to use pre-provided inputs using a custom replacement
+  const injectInputs = (code: string, inputs: string[]): string => {
+    let inputIndex = 0;
+    let result = '';
+    let i = 0;
+    
+    while (i < code.length) {
+      // Check for triple-quoted strings first
+      if ((code.substring(i, i + 3) === '"""' || code.substring(i, i + 3) === "'''") ||
+          (code[i] === 'f' && i + 1 < code.length && (code.substring(i + 1, i + 4) === '"""' || code.substring(i + 1, i + 4) === "'''"))) {
+        const hasF = code[i] === 'f';
+        if (hasF) {
+          result += code[i];
+          i++;
+        }
+        const tripleQuote = code.substring(i, i + 3);
+        result += tripleQuote;
+        i += 3;
+        
+        // Copy until closing triple-quote
+        while (i < code.length) {
+          if (code.substring(i, i + 3) === tripleQuote) {
+            result += tripleQuote;
+            i += 3;
+            break;
+          }
+          result += code[i];
+          i++;
+        }
+        continue;
+      }
+      
+      // Skip over single/double quoted string literals to avoid replacing inside them
+      if (code[i] === '"' || code[i] === "'" || (code[i] === 'f' && (code[i+1] === '"' || code[i+1] === "'"))) {
+        const quote = code[i] === 'f' ? code[i+1] : code[i];
+        if (code[i] === 'f') {
+          result += code[i]; // Add the 'f'
+          i++;
+        }
+        result += quote;
+        i++;
+        
+        // Copy until closing quote (handling escapes)
+        while (i < code.length) {
+          if (code[i] === '\\' && i + 1 < code.length) {
+            result += code[i] + code[i + 1];
+            i += 2;
+          } else if (code[i] === quote) {
+            result += code[i];
+            i++;
+            break;
+          } else {
+            result += code[i];
+            i++;
+          }
+        }
+        continue;
+      }
+      
+      // Skip over comments
+      if (code[i] === '#') {
+        while (i < code.length && code[i] !== '\n') {
+          result += code[i];
+          i++;
+        }
+        continue;
+      }
+      
+      // Check for input( pattern
+      if (code.substring(i).match(/^\binput\s*\(/)) {
+        const match = code.substring(i).match(/^\binput\s*\(/);
+        if (match) {
+          // Find the matching closing parenthesis
+          let depth = 0;
+          let j = i + match[0].length - 1; // Start at the opening (
+          let start = j;
+          
+          while (j < code.length) {
+            if (code[j] === '(') depth++;
+            if (code[j] === ')') {
+              depth--;
+              if (depth === 0) {
+                // Found matching ), replace the whole input(...) expression
+                if (inputIndex < inputs.length) {
+                  const value = inputs[inputIndex++];
+                  // Properly escape the value
+                  result += `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+                  i = j + 1;
+                } else {
+                  // No more inputs, keep original
+                  result += code.substring(i, j + 1);
+                  i = j + 1;
+                }
+                break;
+              }
+            }
+            j++;
+          }
+          continue;
+        }
+      }
+      
+      result += code[i];
+      i++;
+    }
+    
+    return result;
+  };
+
+  const prepareCodeExecution = () => {
+    // Detect if code needs inputs
+    const prompts = detectInputs(code);
+    
+    if (prompts.length > 0) {
+      // Code needs inputs - show input collection form
+      setInputPrompts(prompts);
+      setInputValues(new Array(prompts.length).fill(''));
+      setNeedsInput(true);
+      setOutput('📝 This code requires user input. Please fill in the values in the preview panel and click "Run with Inputs".');
+      
+      // Auto-show preview if not already visible
+      if (!showPreview) {
+        setShowPreview(true);
+      }
+    } else {
+      // No inputs needed - run directly
+      executeCode(code);
+    }
+  };
+
+  const executeCode = async (codeToRun: string) => {
     setIsRunning(true);
     setElapsedTime(0);
+    setNeedsInput(false);
     setOutput('⏳ Running...\n');
 
     // Start timer
@@ -2037,7 +2275,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       const response = await fetch('/api/execute/python', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
+        body: JSON.stringify({ code: codeToRun })
       });
 
       const data = await response.json();
@@ -2058,6 +2296,23 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       clearInterval(timer);
       setIsRunning(false);
     }
+  };
+
+  const runCode = () => {
+    prepareCodeExecution();
+  };
+
+  const runWithInputs = () => {
+    // Check if all inputs are provided
+    const hasEmptyInputs = inputValues.some(val => val.trim() === '');
+    if (hasEmptyInputs) {
+      setOutput('⚠️ Please fill in all input fields before running.');
+      return;
+    }
+
+    // Inject inputs into code and execute
+    const modifiedCode = injectInputs(code, inputValues);
+    executeCode(modifiedCode);
   };
 
   const loadLesson = (lessonKey: keyof typeof LESSONS) => {
@@ -2658,15 +2913,84 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                         color: currentPythonTheme.highlight,
                         borderBottom: `1px solid ${currentPythonTheme.border}`
                       }}>
-                        📺 LIVE OUTPUT PREVIEW
+                        {needsInput ? '⌨️ INTERACTIVE INPUT REQUIRED' : '📺 LIVE OUTPUT PREVIEW'}
                       </div>
-                      <pre 
-                        className="font-mono text-xs leading-relaxed whitespace-pre-wrap"
-                        style={{ color: currentPythonTheme.text }}
-                        data-testid="preview-output"
-                      >
-                        {output || '(Run code to see output here)'}
-                      </pre>
+                      
+                      {needsInput ? (
+                        <div className="space-y-4">
+                          <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
+                            Your code requires user input. Fill in the values below:
+                          </div>
+                          
+                          {inputPrompts.map((prompt, index) => (
+                            <div key={index} className="space-y-2">
+                              <label 
+                                className="font-mono text-xs font-bold block"
+                                style={{ color: currentPythonTheme.highlight }}
+                              >
+                                {prompt}
+                              </label>
+                              <input
+                                type="text"
+                                value={inputValues[index] || ''}
+                                onChange={(e) => {
+                                  const newValues = [...inputValues];
+                                  newValues[index] = e.target.value;
+                                  setInputValues(newValues);
+                                }}
+                                placeholder={`Enter ${prompt.toLowerCase()}`}
+                                className="w-full px-3 py-2 font-mono text-xs rounded focus:outline-none focus:ring-2"
+                                style={{
+                                  backgroundColor: currentPythonTheme.subtle,
+                                  color: currentPythonTheme.text,
+                                  border: `1px solid ${currentPythonTheme.border}`,
+                                }}
+                                data-testid={`input-field-${index}`}
+                              />
+                            </div>
+                          ))}
+                          
+                          <Button
+                            onClick={runWithInputs}
+                            disabled={isRunning}
+                            className="w-full font-mono text-sm mt-4"
+                            style={{
+                              backgroundColor: currentPythonTheme.highlight,
+                              color: currentPythonTheme.bg,
+                            }}
+                            data-testid="button-run-with-inputs"
+                          >
+                            {isRunning ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Running...
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-4 h-4 mr-2" />
+                                Run with Inputs
+                              </>
+                            )}
+                          </Button>
+                          
+                          <div className="mt-4 p-3 rounded" style={{ 
+                            backgroundColor: `${currentPythonTheme.highlight}10`,
+                            border: `1px solid ${currentPythonTheme.border}`
+                          }}>
+                            <div className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
+                              💡 <strong>How it works:</strong> Your input values will be automatically injected into the code before execution, replacing each input() call.
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <pre 
+                          className="font-mono text-xs leading-relaxed whitespace-pre-wrap"
+                          style={{ color: currentPythonTheme.text }}
+                          data-testid="preview-output"
+                        >
+                          {output || '(Run code to see output here)'}
+                        </pre>
+                      )}
                     </div>
                   </Panel>
                 </PanelGroup>
