@@ -521,6 +521,23 @@ Use the URLs above to access the full articles and information.`;
 
     // Handle built-in terminal commands
     switch (cmd) {
+      case 'vibe':
+      case 'freestyle':
+        addEntry('system', '🎨 Activating FREESTYLE MODE...');
+        addEntry('system', 'Opening Python IDE in creative vibe mode where you can chat with ARCHIMEDES to build anything!');
+        setTimeout(() => {
+          const openPythonIDE = (window as any).openPythonIDE;
+          if (openPythonIDE) {
+            openPythonIDE();
+            // Auto-click freestyle mode after IDE opens
+            setTimeout(() => {
+              const freestyleBtn = document.querySelector('[data-freestyle-mode]') as HTMLButtonElement;
+              if (freestyleBtn) freestyleBtn.click();
+            }, 200);
+          }
+        }, 100);
+        return;
+
       case 'help':
         // Open interactive help menu instead of static text
         addEntry('system', 'Opening interactive help menu... (Use F1 key for quick access)');

@@ -1960,6 +1960,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 {/* FREESTYLE Mode Option */}
                 <button
                   onClick={activateFreestyleMode}
+                  data-freestyle-mode
                   className={`w-full text-left px-3 py-2 rounded font-mono text-xs transition-colors ${
                     isFreestyleMode
                       ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)] border border-[var(--terminal-highlight)]/50'

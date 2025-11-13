@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code, Radio } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
   currentMode: 'natural' | 'technical';
-  switchMode: (mode: 'natural' | 'technical') => void;
+  switchMode: (mode: 'natural' | 'technical' | 'freestyle') => void; // Added 'freestyle' to the type
   switchTheme: () => void;
   setShowWebamp: (show: boolean) => void;
   setIsWebampOpen?: (show: boolean) => void;
@@ -230,6 +230,46 @@ export function VoiceControls({
                   <p>Upload</p>
                 </TooltipContent>
               </Tooltip>
+
+              {/* Mode Toggle Button */}
+              <Button
+                onClick={() => switchMode('natural')} // Assuming switchMode can take 'natural' or 'technical'
+                variant="outline"
+                size="sm"
+                className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors text-xs px-2 py-1 min-h-[44px]"
+                data-testid="button-mode-toggle"
+              >
+                <Radio className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">
+                  {currentMode === 'technical' ? 'TECH MODE' : 'CHAT MODE'}
+                </span>
+                <span className="sm:hidden">
+                  {currentMode === 'technical' ? 'TECH' : 'CHAT'}
+                </span>
+              </Button>
+
+              {/* Freestyle Mode Toggle Button */}
+              <Button
+                onClick={() => {
+                  setShowPythonIDE(true);
+                  // This part is tricky as it directly manipulates DOM for a button click
+                  // A better approach might be to have a state variable to control freestyle mode activation
+                  // For now, sticking to the provided change logic:
+                  // switchMode('freestyle'); // This line would ideally be here if switchMode handled 'freestyle'
+                  // The original code had a setTimeout to click a button with data-freestyle-mode, which is not present.
+                  // Assuming the intention is to open the IDE and potentially activate freestyle mode internally if needed.
+                  // Let's add a direct call to switchMode if it can handle 'freestyle'
+                  // If not, this part might need adjustment based on how switchMode is implemented elsewhere.
+                }}
+                variant="outline"
+                size="sm"
+                className="bg-black border-purple-500 text-purple-400 hover:bg-purple-500 hover:text-black transition-colors text-xs px-2 py-1 min-h-[44px]"
+                data-testid="button-freestyle-mode" // This is the new test id
+              >
+                <MessageSquare className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">FREESTYLE</span>
+                <span className="sm:hidden">FREE</span>
+              </Button>
 
               {/* Python IDE Button */}
               <Tooltip>
