@@ -44,6 +44,7 @@ import wallpaperImage from '../assets/terminal-bg-new.png';
 
 // Import LogoIcon from its own file to break circular dependency
 import { LogoIcon } from './LogoIcon';
+import WebSynth from './WebSynth'; // Import the WebSynth component
 
 export function Terminal() {
   const {
@@ -59,12 +60,14 @@ export function Terminal() {
     loadConversation,
     previewCode,
     setPreviewCode,
+    showWebSynth, // Destructure showWebSynth
+    setShowWebSynth, // Destructure setShowWebSynth
   } = useTerminal(() => {
     if (isAuthenticated) {
       setShowUpload(true);
     }
   });
-  
+
   // Update system message when mode changes
   useEffect(() => {
     if (currentMode === 'freestyle') {
@@ -96,6 +99,7 @@ export function Terminal() {
     (window as any).openPythonIDE = () => setShowPythonIDE(true);
     (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
     (window as any).openPythonLessons = () => setShowPythonLessons(true); // Add Python lessons opener
+    (window as any).openWebSynth = () => setShowWebSynth(true); // Add WebSynth opener
 
     // Listen for background change events
     const handleBackgroundChange = (event: Event) => {
@@ -486,6 +490,7 @@ export function Terminal() {
             setShowNotepad={setShowNotepad}
             setShowPythonIDE={setShowPythonIDE} // Pass the prop to control Python IDE visibility
             openPythonLessons={ () => setShowPythonLessons(true) } // Add callback for Python Lessons
+            openWebSynth={() => setShowWebSynth(true)} // Pass down the prop to control WebSynth visibility
           />
         </div>
 
@@ -908,6 +913,11 @@ export function Terminal() {
           onClose={() => setShowBackgroundManager(false)}
           onBackgroundChange={(url) => setCustomBackgroundUrl(url)}
         />
+      )}
+
+      {/* WebSynth Overlay */}
+      {showWebSynth && (
+        <WebSynth onClose={() => setShowWebSynth(false)} />
       )}
     </div>
   );
