@@ -1842,8 +1842,12 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     try {
       editorRef.current = editor;
 
-      // Focus the editor after mount
-      editor.focus();
+      // Safe focus with error handling
+      try {
+        editor.focus();
+      } catch (focusError) {
+        console.debug('Editor focus skipped:', focusError);
+      }
 
       // Optional: Setup Monacopilot AI completions (non-blocking, graceful failure)
       // Only attempt if registerCompletion is available
