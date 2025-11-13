@@ -1747,7 +1747,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: contextMessage,
-          mode: isFreestyleMode ? 'technical' : 'natural'
+          mode: 'freestyle' // Always use freestyle mode for conversational vibing
         })
       });
       return response.json();
