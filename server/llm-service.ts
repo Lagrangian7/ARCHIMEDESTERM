@@ -255,8 +255,13 @@ Remember: You're a creative coding partner. Make coding fun, accessible, and emp
     let aiResponse: string;
 
     try {
+      // For FREESTYLE mode, use Mistral as primary AI for superior code generation
+      if (mode === 'freestyle' && process.env.MISTRAL_API_KEY) {
+        console.log('[LLM] Using Mistral AI for FREESTYLE code generation');
+        aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
+      }
       // Primary: Use Google Gemini (free tier, excellent quality)
-      if (process.env.GEMINI_API_KEY) {
+      else if (process.env.GEMINI_API_KEY) {
         console.log('[LLM] Using Google Gemini (primary choice)');
         aiResponse = await this.generateGeminiResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
       }
@@ -590,8 +595,8 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const chatResponse = await mistral.chat.complete({
       model: 'mistral-large-latest', // Use the latest Mistral model
       messages: messages as any,
-      maxTokens: mode === 'technical' || mode === 'freestyle' ? 4000 : 2000, // Adjusted for freestyle
-      temperature: mode === 'technical' || mode === 'freestyle' ? 0.3 : 0.7, // Adjusted for freestyle
+      maxTokens: mode === 'freestyle' ? 6000 : mode === 'technical' ? 4000 : 2000, // More tokens for freestyle code generation
+      temperature: mode === 'freestyle' ? 0.5 : mode === 'technical' ? 0.3 : 0.7, // Balanced creativity for freestyle
       topP: 0.9,
     });
 
