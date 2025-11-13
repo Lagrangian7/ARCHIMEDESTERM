@@ -880,8 +880,10 @@ Code Execution:
 
       case 'synth':
       case 'synthesizer':
+        console.log('[DEBUG] Synth command triggered, setting showWebSynth to true');
         setShowWebSynth(true);
         addEntry('response', 'Loading ARCHIMEDES Web Synthesizer...', 'technical');
+        console.log('[DEBUG] showWebSynth state should now be true');
         break;
 
       case 'bg':
