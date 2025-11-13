@@ -1609,39 +1609,82 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   const savedSession = loadSession();
 
-  const [code, setCode] = useState(savedSession?.code || `# FREESTYLE MODE - Chat with ARCHIMEDES to create code
-# Ask for anything you want to build!
+  const [code, setCode] = useState(savedSession?.code || `# FREESTYLE MODE - Interactive Calculator with Visual Interface
+# This calculator uses input() to create an interactive experience
+# The preview panel will show input fields for you to fill in!
 
-# Example: Simple Calculator (text-based interface)
 def calculator():
-    """Simple calculator with text interface"""
-    print("=== CALCULATOR ===")
-    print("1. Add")
-    print("2. Subtract")
-    print("3. Multiply")
-    print("4. Divide")
+    """
+    Interactive Calculator with Visual Output
+    Uses input() for interactive GUI in preview panel
+    """
     
-    # For GUI preview, use print() for output
-    # The preview panel will show all results
-    choice = 1  # Example: hardcode or use input()
-    num1 = 10
-    num2 = 5
+    # Welcome message
+    print("╔═══════════════════════════════════════╗")
+    print("║   🧮 ARCHIMEDES CALCULATOR v7.0    ║")
+    print("╚═══════════════════════════════════════╝")
+    print()
     
-    if choice == 1:
-        result = num1 + num2
-        print(f"{num1} + {num2} = {result}")
-    elif choice == 2:
-        result = num1 - num2
-        print(f"{num1} - {num2} = {result}")
-    elif choice == 3:
-        result = num1 * num2
-        print(f"{num1} * {num2} = {result}")
-    elif choice == 4:
-        result = num1 / num2 if num2 != 0 else "Error: Division by zero"
-        print(f"{num1} / {num2} = {result}")
+    # Display operation menu
+    print("📊 Available Operations:")
+    print("  [1] ➕ Addition")
+    print("  [2] ➖ Subtraction")
+    print("  [3] ✖️  Multiplication")
+    print("  [4] ➗ Division")
+    print("  [5] 📐 Square Root")
+    print("  [6] ⚡ Power")
+    print()
+    
+    # Get user inputs through preview panel
+    operation = input("Select operation (1-6): ")
+    
+    if operation in ['1', '2', '3', '4', '6']:
+        num1 = float(input("Enter first number: "))
+        num2 = float(input("Enter second number: "))
+        
+        print()
+        print("═" * 40)
+        print("📝 CALCULATION RESULT:")
+        print("═" * 40)
+        
+        if operation == '1':
+            result = num1 + num2
+            print(f"✅ {num1} + {num2} = {result}")
+        elif operation == '2':
+            result = num1 - num2
+            print(f"✅ {num1} - {num2} = {result}")
+        elif operation == '3':
+            result = num1 * num2
+            print(f"✅ {num1} × {num2} = {result}")
+        elif operation == '4':
+            if num2 != 0:
+                result = num1 / num2
+                print(f"✅ {num1} ÷ {num2} = {result}")
+            else:
+                print("❌ Error: Division by zero!")
+        elif operation == '6':
+            result = num1 ** num2
+            print(f"✅ {num1} ^ {num2} = {result}")
+            
+    elif operation == '5':
+        num = float(input("Enter number: "))
+        if num >= 0:
+            result = num ** 0.5
+            print()
+            print("═" * 40)
+            print("📝 CALCULATION RESULT:")
+            print("═" * 40)
+            print(f"✅ √{num} = {result}")
+        else:
+            print("❌ Error: Cannot calculate square root of negative number!")
+    else:
+        print("❌ Invalid operation selected!")
+    
+    print("═" * 40)
+    print("💡 Calculator session complete!")
 
-# Uncomment to run:
-# calculator()
+# Run the calculator
+calculator()
 `);
   const [output, setOutput] = useState(savedSession?.output || '');
   const [isRunning, setIsRunning] = useState(false);
