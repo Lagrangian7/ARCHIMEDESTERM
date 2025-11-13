@@ -1876,28 +1876,61 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     },
     onSuccess: (data) => {
       let cleanResponse = data.response;
+      let foundValidCode = false;
       
-      // Extract clean Python code from markdown blocks if present
-      const pythonBlockRegex = /```(?:python|py)?\s*\n([\s\S]*?)```/g;
-      const matches = cleanResponse.match(pythonBlockRegex);
+      // Try multiple extraction patterns for Python code
       
-      if (matches && matches.length > 0) {
-        // Extract the code from the first code block
-        const codeMatch = cleanResponse.match(/```(?:python|py)?\s*\n([\s\S]*?)```/);
+      // Pattern 1: Standard markdown code blocks with language
+      const pythonBlockRegex = /```(?:python|py)\s*\n([\s\S]*?)```/;
+      let codeMatch = cleanResponse.match(pythonBlockRegex);
+      
+      if (codeMatch && codeMatch[1]) {
+        cleanResponse = codeMatch[1].trim();
+        foundValidCode = true;
+      } else {
+        // Pattern 2: Code blocks without language specifier
+        const genericBlockRegex = /```\s*\n([\s\S]*?)```/;
+        codeMatch = cleanResponse.match(genericBlockRegex);
+        
         if (codeMatch && codeMatch[1]) {
-          cleanResponse = codeMatch[1].trim();
+          const potentialCode = codeMatch[1].trim();
+          // Verify it looks like Python (contains common Python keywords)
+          if (/(?:import|def|class|print|if|for|while|return)\s/.test(potentialCode)) {
+            cleanResponse = potentialCode;
+            foundValidCode = true;
+          }
         }
       }
       
-      const assistantMessage = { role: 'assistant' as const, content: cleanResponse };
+      // Pattern 3: If no markdown blocks, check if entire response is Python code
+      if (!foundValidCode) {
+        const trimmed = cleanResponse.trim();
+        // Check for Python-like patterns
+        if (/^(?:import|def|class|#|from|@)/.test(trimmed) || 
+            /(?:import|def|class|print|if|for|while)\s/.test(trimmed)) {
+          // Remove any leading/trailing markdown-like text
+          const lines = trimmed.split('\n');
+          const codeLines = lines.filter(line => {
+            // Keep Python code lines, skip markdown explanations
+            return !line.match(/^(?:Here|This|The|I'll|Let|Note:|Example:|Output:)/i);
+          });
+          if (codeLines.length > 0) {
+            cleanResponse = codeLines.join('\n').trim();
+            foundValidCode = true;
+          }
+        }
+      }
+      
+      const assistantMessage = { role: 'assistant' as const, content: data.response };
       setChatHistory(prev => [...prev, assistantMessage]);
       
-      // Auto-paste clean Python code into editor
-      if (matches && matches.length > 0) {
+      // Auto-paste only valid Python code into editor
+      if (foundValidCode && cleanResponse && cleanResponse.length > 0) {
         setCode(cleanResponse);
-        setOutput('✓ Code automatically pasted into editor. Press Run to execute.');
+        setOutput('✓ Clean Python code automatically pasted into editor. Press Run to execute.');
         speak('Code pasted into editor and ready to run');
       } else {
+        // No code found - just display the response
         speak(data.response);
       }
     },
