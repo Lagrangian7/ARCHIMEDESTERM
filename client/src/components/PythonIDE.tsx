@@ -1618,13 +1618,13 @@ def calculator():
     Interactive Calculator with Visual Output
     Uses input() for interactive GUI in preview panel
     """
-    
+
     # Welcome message
     print("╔═══════════════════════════════════════╗")
     print("║   🧮 ARCHIMEDES CALCULATOR v7.0    ║")
     print("╚═══════════════════════════════════════╝")
     print()
-    
+
     # Display operation menu
     print("📊 Available Operations:")
     print("  [1] ➕ Addition")
@@ -1634,19 +1634,19 @@ def calculator():
     print("  [5] 📐 Square Root")
     print("  [6] ⚡ Power")
     print()
-    
+
     # Get user inputs through preview panel
     operation = input("Select operation (1-6): ")
-    
+
     if operation in ['1', '2', '3', '4', '6']:
         num1 = float(input("Enter first number: "))
         num2 = float(input("Enter second number: "))
-        
+
         print()
         print("═" * 40)
         print("📝 CALCULATION RESULT:")
         print("═" * 40)
-        
+
         if operation == '1':
             result = num1 + num2
             print(f"✅ {num1} + {num2} = {result}")
@@ -1665,7 +1665,7 @@ def calculator():
         elif operation == '6':
             result = num1 ** num2
             print(f"✅ {num1} ^ {num2} = {result}")
-            
+
     elif operation == '5':
         num = float(input("Enter number: "))
         if num >= 0:
@@ -1679,7 +1679,7 @@ def calculator():
             print("❌ Error: Cannot calculate square root of negative number!")
     else:
         print("❌ Invalid operation selected!")
-    
+
     print("═" * 40)
     print("💡 Calculator session complete!")
 
@@ -1704,12 +1704,12 @@ calculator()
     (savedSession?.chatHistory as Array<{ role: 'user' | 'assistant', content: string }>) || []
   );
   const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
-  const [isFreestyleMode, setIsFreestyleMode] = useState(true);
+  const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
   const editorRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const { speak } = useSpeech();
   const lastSpokenChatIdRef = useRef<string>('');
-  
+
   // Resizable window state
   const [isMaximized, setIsMaximized] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -1766,7 +1766,7 @@ calculator()
       subtle: 'hsl(230 5% 94%)',
       border: 'hsl(230 8% 88%)',
     },
-    
+
     // Dark themes - easy on the eyes
     'nord-dark': {
       bg: 'hsl(220 16% 22%)',
@@ -1856,12 +1856,12 @@ calculator()
     const handleMouseMove = (e: MouseEvent) => {
       const deltaX = e.clientX - dragStartRef.current.x;
       const deltaY = e.clientY - dragStartRef.current.y;
-      
+
       setPosition(prev => ({
         x: Math.max(0, Math.min(window.innerWidth - dimensions.width, prev.x + deltaX)),
         y: Math.max(0, Math.min(window.innerHeight - dimensions.height, prev.y + deltaY))
       }));
-      
+
       dragStartRef.current = { x: e.clientX, y: e.clientY };
     };
 
@@ -1883,7 +1883,7 @@ calculator()
     const handleMouseMove = (e: MouseEvent) => {
       const deltaX = e.clientX - resizeStartRef.current.mouseX;
       const deltaY = e.clientY - resizeStartRef.current.mouseY;
-      
+
       setDimensions({
         width: Math.max(600, Math.min(window.innerWidth - position.x, resizeStartRef.current.width + deltaX)),
         height: Math.max(400, Math.min(window.innerHeight - position.y, resizeStartRef.current.height + deltaY))
@@ -1935,39 +1935,39 @@ calculator()
     mutationFn: async (message: string) => {
       // Determine the correct mode based on freestyle state
       const chatMode = isFreestyleMode ? 'freestyle' : 'technical';
-      
+
       const contextMessage = isFreestyleMode 
         ? `${message}\n\nCurrent code in editor:\n\`\`\`python\n${code}\n\`\`\`\n\nIMPORTANT: Generate ONLY clean, executable Python code without markdown backticks or code block markers. The code should be ready to copy and paste directly into a Python file. Do not wrap the code in \`\`\`python or any other markdown formatting.`
         : `${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nIMPORTANT: Generate ONLY clean, executable Python code without markdown backticks or code block markers.`;
-      
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: contextMessage,
-          mode: chatMode,
+          mode: chatMode, // Use the determined chatMode
           sessionId: `python-ide-${Date.now()}`,
           language: 'english'
         })
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `API error: ${response.status}`);
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
       let cleanResponse = data.response;
       let foundValidCode = false;
-      
+
       // Try multiple extraction patterns for Python code
-      
+
       // Pattern 1: Standard markdown code blocks with language
       const pythonBlockRegex = /```(?:python|py)\s*\n([\s\S]*?)```/;
       let codeMatch = cleanResponse.match(pythonBlockRegex);
-      
+
       if (codeMatch && codeMatch[1]) {
         cleanResponse = codeMatch[1].trim();
         foundValidCode = true;
@@ -1975,7 +1975,7 @@ calculator()
         // Pattern 2: Code blocks without language specifier
         const genericBlockRegex = /```\s*\n([\s\S]*?)```/;
         codeMatch = cleanResponse.match(genericBlockRegex);
-        
+
         if (codeMatch && codeMatch[1]) {
           const potentialCode = codeMatch[1].trim();
           // Verify it looks like Python (contains common Python keywords)
@@ -1985,7 +1985,7 @@ calculator()
           }
         }
       }
-      
+
       // Pattern 3: If no markdown blocks, check if entire response is Python code
       if (!foundValidCode) {
         const trimmed = cleanResponse.trim();
@@ -2004,10 +2004,10 @@ calculator()
           }
         }
       }
-      
+
       const assistantMessage = { role: 'assistant' as const, content: data.response };
       setChatHistory(prev => [...prev, assistantMessage]);
-      
+
       // Auto-paste only valid Python code into editor
       if (foundValidCode && cleanResponse && cleanResponse.length > 0) {
         setCode(cleanResponse);
@@ -2106,7 +2106,7 @@ calculator()
     const prompts: string[] = [];
     let i = 0;
     let inputCount = 0;
-    
+
     while (i < code.length) {
       // Check for triple-quoted strings first (""" or ''')
       if ((code.substring(i, i + 3) === '"""' || code.substring(i, i + 3) === "'''") ||
@@ -2115,7 +2115,7 @@ calculator()
         if (hasF) i++;
         const tripleQuote = code.substring(i, i + 3);
         i += 3; // Skip opening triple-quote
-        
+
         // Find closing triple-quote
         while (i < code.length) {
           if (code.substring(i, i + 3) === tripleQuote) {
@@ -2126,13 +2126,13 @@ calculator()
         }
         continue;
       }
-      
+
       // Skip single/double quoted string literals
       if (code[i] === '"' || code[i] === "'" || (code[i] === 'f' && i + 1 < code.length && (code[i+1] === '"' || code[i+1] === "'"))) {
         const quote = code[i] === 'f' ? code[i+1] : code[i];
         if (code[i] === 'f') i++;
         i++; // Skip opening quote
-        
+
         while (i < code.length) {
           if (code[i] === '\\' && i + 1 < code.length) {
             i += 2; // Skip escape sequence
@@ -2145,31 +2145,31 @@ calculator()
         }
         continue;
       }
-      
+
       // Skip comments
       if (code[i] === '#') {
         while (i < code.length && code[i] !== '\n') i++;
         continue;
       }
-      
+
       // Check for input( with word boundary
       if (/^\binput\s*\(/.test(code.substring(i))) {
         inputCount++;
-        
+
         // Extract the potential prompt argument
         const matchInput = code.substring(i).match(/^input\s*\(/);
         if (matchInput) {
           const inputStart = i;
           i += matchInput[0].length; // Move past "input("
-          
+
           // Try to find a string literal argument
           while (i < code.length && /\s/.test(code[i])) i++; // Skip whitespace
-          
+
           if (i < code.length && (code[i] === '"' || code[i] === "'")) {
             const quote = code[i];
             i++; // Skip opening quote
             let promptText = '';
-            
+
             while (i < code.length) {
               if (code[i] === '\\' && i + 1 < code.length) {
                 // Include escaped character as-is
@@ -2185,7 +2185,7 @@ calculator()
                 i++;
               }
             }
-            
+
             // If we didn't find a closing quote, use default
             if (prompts.length < inputCount) {
               prompts.push(`Input ${inputCount}`);
@@ -2194,14 +2194,14 @@ calculator()
             // No string literal argument, use default
             prompts.push(`Input ${inputCount}`);
           }
-          
+
           continue;
         }
       }
-      
+
       i++;
     }
-    
+
     return prompts;
   };
 
@@ -2210,7 +2210,7 @@ calculator()
     let inputIndex = 0;
     let result = '';
     let i = 0;
-    
+
     while (i < code.length) {
       // Check for triple-quoted strings first
       if ((code.substring(i, i + 3) === '"""' || code.substring(i, i + 3) === "'''") ||
@@ -2223,7 +2223,7 @@ calculator()
         const tripleQuote = code.substring(i, i + 3);
         result += tripleQuote;
         i += 3;
-        
+
         // Copy until closing triple-quote
         while (i < code.length) {
           if (code.substring(i, i + 3) === tripleQuote) {
@@ -2236,7 +2236,7 @@ calculator()
         }
         continue;
       }
-      
+
       // Skip over single/double quoted string literals to avoid replacing inside them
       if (code[i] === '"' || code[i] === "'" || (code[i] === 'f' && (code[i+1] === '"' || code[i+1] === "'"))) {
         const quote = code[i] === 'f' ? code[i+1] : code[i];
@@ -2246,7 +2246,7 @@ calculator()
         }
         result += quote;
         i++;
-        
+
         // Copy until closing quote (handling escapes)
         while (i < code.length) {
           if (code[i] === '\\' && i + 1 < code.length) {
@@ -2263,7 +2263,7 @@ calculator()
         }
         continue;
       }
-      
+
       // Skip over comments
       if (code[i] === '#') {
         while (i < code.length && code[i] !== '\n') {
@@ -2272,7 +2272,7 @@ calculator()
         }
         continue;
       }
-      
+
       // Check for input( pattern
       if (code.substring(i).match(/^\binput\s*\(/)) {
         const match = code.substring(i).match(/^\binput\s*\(/);
@@ -2281,7 +2281,7 @@ calculator()
           let depth = 0;
           let j = i + match[0].length - 1; // Start at the opening (
           let start = j;
-          
+
           while (j < code.length) {
             if (code[j] === '(') depth++;
             if (code[j] === ')') {
@@ -2306,25 +2306,25 @@ calculator()
           continue;
         }
       }
-      
+
       result += code[i];
       i++;
     }
-    
+
     return result;
   };
 
   const prepareCodeExecution = () => {
     // Detect if code needs inputs
     const prompts = detectInputs(code);
-    
+
     if (prompts.length > 0) {
       // Code needs inputs - show input collection form
       setInputPrompts(prompts);
       setInputValues(new Array(prompts.length).fill(''));
       setNeedsInput(true);
       setOutput('📝 This code requires user input. Please fill in the values in the preview panel and click "Run with Inputs".');
-      
+
       // Auto-show preview if not already visible
       if (!showPreview) {
         setShowPreview(true);
@@ -2363,7 +2363,7 @@ calculator()
       if (data.success) {
         const timeInfo = data.executionTime ? ` ✓ Completed in ${data.executionTime}s\n\n` : '\n';
         setOutput(timeInfo + (data.output || '(No output)'));
-        
+
         // Check if GUI output was generated
         if (data.guiOutput) {
           setGuiOutput(data.guiOutput);
@@ -2406,7 +2406,7 @@ calculator()
   };
 
   const loadLesson = (lessonKey: keyof typeof LESSONS) => {
-    setIsFreestyleMode(false);
+    setIsFreestyleMode(false); // Set to technical mode when loading a lesson
     setSelectedLesson(lessonKey);
     setCode(LESSONS[lessonKey].code);
     setOutput('');
@@ -2414,7 +2414,7 @@ calculator()
   };
 
   const activateFreestyleMode = () => {
-    setIsFreestyleMode(true);
+    setIsFreestyleMode(true); // Explicitly set to Freestyle Mode
     setSelectedLesson('basics'); // Keep a default lesson selected
     setCode('# FREESTYLE MODE - Chat with ARCHIMEDES to create code\n# Ask for anything you want to build!\n\n');
     setOutput('');
@@ -2894,7 +2894,7 @@ calculator()
                     wordWrap: 'on',
                     renderWhitespace: 'selection',
                     renderLineHighlight: 'all',
-                    
+
                     // Editing
                     tabSize: 4,
                     insertSpaces: true,
@@ -2902,7 +2902,7 @@ calculator()
                     formatOnPaste: true,
                     formatOnType: true,
                     trimAutoWhitespace: true,
-                    
+
                     // IntelliSense
                     quickSuggestions: {
                       other: true,
@@ -2930,25 +2930,25 @@ calculator()
                       delay: 300,
                       sticky: true
                     },
-                    
+
                     // Find/Replace
                     find: {
                       seedSearchStringFromSelection: 'selection',
                       autoFindInSelection: 'never'
                     },
-                    
+
                     // UI Features
                     contextmenu: true,
                     mouseWheelZoom: true,
                     smoothScrolling: true,
                     cursorBlinking: 'smooth',
                     cursorSmoothCaretAnimation: 'on',
-                    
+
                     // Code Actions
                     lightbulb: {
                       enabled: 'on' as any
                     },
-                    
+
                     // Brackets
                     matchBrackets: 'always',
                     bracketPairColorization: {
@@ -2958,11 +2958,11 @@ calculator()
                       bracketPairs: true,
                       indentation: true
                     },
-                    
+
                     // Selection
                     selectOnLineNumbers: true,
                     multiCursorModifier: 'ctrlCmd',
-                    
+
                     // Scrollbar
                     scrollbar: {
                       vertical: 'auto',
@@ -2971,7 +2971,7 @@ calculator()
                       verticalScrollbarSize: 10,
                       horizontalScrollbarSize: 10
                     },
-                    
+
                     // Folding
                     folding: true,
                     foldingStrategy: 'indentation',
@@ -3005,7 +3005,7 @@ calculator()
                       }}>
                         {needsInput ? '⌨️ INTERACTIVE INPUT REQUIRED' : hasGuiElements ? '🎨 GUI APPLICATION PREVIEW' : '📺 LIVE OUTPUT PREVIEW'}
                       </div>
-                      
+
                       {hasGuiElements && guiOutput ? (
                         <div className="space-y-4">
                           <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
@@ -3033,7 +3033,7 @@ calculator()
                           <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
                             Your code requires user input. Fill in the values below:
                           </div>
-                          
+
                           {inputPrompts.map((prompt, index) => (
                             <div key={index} className="space-y-2">
                               <label 
@@ -3061,7 +3061,7 @@ calculator()
                               />
                             </div>
                           ))}
-                          
+
                           <Button
                             onClick={runWithInputs}
                             disabled={isRunning}
@@ -3084,7 +3084,7 @@ calculator()
                               </>
                             )}
                           </Button>
-                          
+
                           <div className="mt-4 p-3 rounded" style={{ 
                             backgroundColor: `${currentPythonTheme.highlight}10`,
                             border: `1px solid ${currentPythonTheme.border}`
@@ -3136,7 +3136,7 @@ calculator()
                       wordWrap: 'on',
                       renderWhitespace: 'selection',
                       renderLineHighlight: 'all',
-                      
+
                       // Editing
                       tabSize: 4,
                       insertSpaces: true,
@@ -3144,7 +3144,7 @@ calculator()
                       formatOnPaste: true,
                       formatOnType: true,
                       trimAutoWhitespace: true,
-                      
+
                       // IntelliSense
                       quickSuggestions: {
                         other: true,
@@ -3172,25 +3172,25 @@ calculator()
                         delay: 300,
                         sticky: true
                       },
-                      
+
                       // Find/Replace
                       find: {
                         seedSearchStringFromSelection: 'selection',
                         autoFindInSelection: 'never'
                       },
-                      
+
                       // UI Features
                       contextmenu: true,
                       mouseWheelZoom: true,
                       smoothScrolling: true,
                       cursorBlinking: 'smooth',
                       cursorSmoothCaretAnimation: 'on',
-                      
+
                       // Code Actions
                       lightbulb: {
                         enabled: 'on' as any
                       },
-                      
+
                       // Brackets
                       matchBrackets: 'always',
                       bracketPairColorization: {
@@ -3200,11 +3200,11 @@ calculator()
                         bracketPairs: true,
                         indentation: true
                       },
-                      
+
                       // Selection
                       selectOnLineNumbers: true,
                       multiCursorModifier: 'ctrlCmd',
-                      
+
                       // Scrollbar
                       scrollbar: {
                         vertical: 'auto',
@@ -3213,7 +3213,7 @@ calculator()
                         verticalScrollbarSize: 10,
                         horizontalScrollbarSize: 10
                       },
-                      
+
                       // Folding
                       folding: true,
                       foldingStrategy: 'indentation',
