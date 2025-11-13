@@ -2067,8 +2067,23 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                             ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)]' 
                             : 'bg-black/50 text-[var(--terminal-text)]/90'
                         }`}>
-                          <div className="font-bold text-[10px] mb-1 opacity-70">
-                            {msg.role === 'user' ? 'YOU' : 'ARCHIMEDES'}
+                          <div className="font-bold text-[10px] mb-1 opacity-70 flex items-center justify-between gap-2">
+                            <span>{msg.role === 'user' ? 'YOU' : 'ARCHIMEDES'}</span>
+                            {msg.role === 'assistant' && (
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(msg.content).then(() => {
+                                    speak('Code copied to clipboard');
+                                  }).catch(err => {
+                                    console.error('Failed to copy:', err);
+                                  });
+                                }}
+                                className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] transition-colors"
+                                title="Copy code to clipboard"
+                              >
+                                📋
+                              </button>
+                            )}
                           </div>
                           <div className="whitespace-pre-wrap">{msg.content}</div>
                         </div>
