@@ -5,7 +5,7 @@ import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquar
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import { useSpeech } from '@/contexts/SpeechContext';
-import { registerCompletion, type CompletionProvider } from 'monacopilot';
+import { registerCompletion } from 'monacopilot';
 
 interface PythonIDEProps {
   onClose: () => void;
@@ -1683,7 +1683,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     },
   };
 
-  const currentPythonTheme = PYTHON_THEMES[pythonTheme];
+  const currentPythonTheme = PYTHON_THEMES[pythonTheme as keyof typeof PYTHON_THEMES];
 
   // Center window on mount
   useEffect(() => {
@@ -1859,51 +1859,14 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         // Delay to ensure editor is fully initialized
         setTimeout(() => {
           try {
-            const completionProvider: CompletionProvider = {
-              async provideCompletionItems(model, position) {
-                try {
-                  const textUntilPosition = model.getValueInRange({
-                    startLineNumber: 1,
-                    startColumn: 1,
-                    endLineNumber: position.lineNumber,
-                    endColumn: position.column,
-                  });
-
-                  const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      message: `Complete this Python code. Only respond with the completion, no explanations:\n\n${textUntilPosition}`,
-                      mode: 'freestyle',
-                      sessionId: `copilot-${Date.now()}`,
-                      language: 'english'
-                    })
-                  });
-
-                  if (!response.ok) {
-                    return '';
-                  }
-
-                  const data = await response.json();
-                  
-                  let completion = data.response || '';
-                  const pythonBlockMatch = completion.match(/```(?:python|py)?\s*\n([\s\S]*?)```/);
-                  if (pythonBlockMatch && pythonBlockMatch[1]) {
-                    completion = pythonBlockMatch[1].trim();
-                  }
-
-                  return completion;
-                } catch (error) {
-                  return '';
-                }
-              }
-            };
-
-            registerCompletion(monaco, editor, completionProvider, {
-              language: 'python',
-              trigger: 'auto',
-              debounceTime: 500,
-            });
+            // Note: Monacopilot requires a backend endpoint
+            // Commenting out for now as it needs proper backend setup
+            // registerCompletion(monaco, editor, {
+            //   endpoint: '/api/code-completion',
+            //   language: 'python',
+            //   trigger: 'onIdle'
+            // });
+            console.debug('Monacopilot available but not configured - needs backend endpoint');
           } catch (error) {
             // AI completions are optional - IDE works without them
             console.debug('Monacopilot registration skipped');
@@ -2396,7 +2359,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                       handleEditorDidMount(editor, monaco);
                     } catch (error) {
                       console.error('Editor mount failed:', error);
-                      setOutput(`Editor initialization error: ${error.message || 'Unknown error'}`);
+                      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                      setOutput(`Editor initialization error: ${errorMessage}`);
                     }
                   }}
                   theme="vs-dark"
@@ -2452,8 +2416,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                     // Find/Replace
                     find: {
                       seedSearchStringFromSelection: 'selection',
-                      autoFindInSelection: 'never',
-                      globalFindClipboard: false
+                      autoFindInSelection: 'never'
                     },
                     
                     // UI Features
@@ -2465,9 +2428,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                     
                     // Code Actions
                     lightbulb: {
-                      enabled: true
+                      enabled: 'on' as any
                     },
-                    codeActionsOnSave: {},
                     
                     // Brackets
                     matchBrackets: 'always',
