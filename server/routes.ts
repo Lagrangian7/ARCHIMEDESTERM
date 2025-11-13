@@ -2129,7 +2129,7 @@ function windowResized() {
         return res.status(400).json({ error: "Message is required" });
       }
 
-      const validModes = ["natural", "technical"];
+      const validModes = ["natural", "technical", "freestyle"];
       if (!validModes.includes(mode)) {
         return res.status(400).json({ error: "Invalid mode" });
       }
@@ -2155,9 +2155,11 @@ function windowResized() {
       const isNewSession = conversationHistory.length === 0;
 
       // Generate AI response using LLM with knowledge base integration
+      // Map freestyle mode to technical for better code generation
+      const effectiveMode = mode === 'freestyle' ? 'technical' : (mode || 'natural');
       const response = await llmService.generateResponse(
         message,
-        mode || 'natural',
+        effectiveMode,
         conversationHistory,
         user.id,
         language || 'english', // Pass language to LLM service
