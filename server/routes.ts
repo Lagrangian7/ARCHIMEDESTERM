@@ -2187,6 +2187,25 @@ function windowResized() {
     }
   });
 
+  // Code completion endpoint for monacopilot (Mistral-powered)
+  app.post("/api/code-completion", async (req, res) => {
+    try {
+      const { code, language = 'python', filename } = req.body;
+
+      if (!code || typeof code !== "string") {
+        return res.status(400).json({ error: "Code is required" });
+      }
+
+      // Generate code completion using Mistral
+      const completion = await llmService.generateCodeCompletion(code, language, filename);
+
+      res.json({ completion });
+    } catch (error) {
+      console.error("Code completion error:", error);
+      res.status(500).json({ error: "Internal server error", completion: '' });
+    }
+  });
+
   // Get conversation history
   app.get("/api/conversation/:sessionId", async (req, res) => {
     try {
