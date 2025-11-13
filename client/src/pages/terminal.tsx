@@ -1,7 +1,4 @@
 import { Terminal } from '@/components/Terminal';
-import { PythonIDE } from "@/components/PythonIDE";
-import { PythonLessons } from "@/components/PythonLessons";
-import { WebSynth } from "@/components/WebSynth";
 
 export default function TerminalPage() {
   // Assuming Terminal component manages its own state for showing/hiding other components

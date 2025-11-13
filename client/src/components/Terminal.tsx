@@ -905,7 +905,7 @@ export function Terminal() {
       {/* Python Lessons */}
       {showPythonLessons && <MemoizedPythonLessons onClose={() => setShowPythonLessons(false)} />}
       {/* Webamp Music Player */}
-      {showWebamp && <WebampPlayer onClose={() => setShowWebamp(false)} />}
+      {showWebamp && <WebampPlayer isOpen={showWebamp} onClose={() => setShowWebamp(false)} />}
 
       {/* Background Manager */}
       {showBackgroundManager && (

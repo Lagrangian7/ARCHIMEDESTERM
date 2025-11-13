@@ -11,7 +11,7 @@ interface TerminalEntry {
   type: 'command' | 'response' | 'system' | 'error';
   content: string;
   timestamp: string;
-  mode?: 'natural' | 'technical'
+  mode?: 'natural' | 'technical' | 'freestyle'
   action?: string;
 }
 
@@ -329,7 +329,7 @@ Use the URLs above to access the full articles and information.`;
     };
   }, [backgroundAudio]);
 
-  const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical') => {
+  const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical' | 'freestyle') => {
     const entry: TerminalEntry = {
       id: crypto.randomUUID(),
       type,

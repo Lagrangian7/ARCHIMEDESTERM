@@ -26,6 +26,8 @@ interface VoiceControlsProps {
   unreadCount: number;
   setShowNotepad: (show: boolean) => void;
   setShowPythonIDE: (show: boolean) => void;
+  openPythonLessons?: () => void;
+  openWebSynth?: () => void;
 }
 
 export function VoiceControls({
@@ -43,6 +45,8 @@ export function VoiceControls({
   unreadCount,
   setShowNotepad,
   setShowPythonIDE,
+  openPythonLessons,
+  openWebSynth,
 }: VoiceControlsProps) {
   const { toast } = useToast();
   const {
