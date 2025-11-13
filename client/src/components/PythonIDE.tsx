@@ -2218,28 +2218,100 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   onMount={handleEditorDidMount}
                   theme="vs-dark"
                   options={{
+                    // Display
                     minimap: { enabled: false },
                     fontSize: 13,
                     lineNumbers: 'on',
                     scrollBeyondLastLine: false,
                     automaticLayout: true,
-                    tabSize: 4,
-                    wordWrap: 'on',
                     padding: { top: 10, bottom: 10 },
-                    quickSuggestions: true,
+                    wordWrap: 'on',
+                    renderWhitespace: 'selection',
+                    renderLineHighlight: 'all',
+                    
+                    // Editing
+                    tabSize: 4,
+                    insertSpaces: true,
+                    autoIndent: 'full',
                     formatOnPaste: true,
                     formatOnType: true,
+                    trimAutoWhitespace: true,
+                    
+                    // IntelliSense
+                    quickSuggestions: {
+                      other: true,
+                      comments: false,
+                      strings: true
+                    },
                     acceptSuggestionOnEnter: 'on',
+                    parameterHints: {
+                      enabled: true,
+                      cycle: true
+                    },
+                    suggest: {
+                      showKeywords: true,
+                      showSnippets: true,
+                      showFunctions: true,
+                      showVariables: true,
+                      showClasses: true,
+                      showConstants: true,
+                      showModules: true,
+                      showProperties: true,
+                      snippetsPreventQuickSuggestions: false
+                    },
+                    hover: {
+                      enabled: true,
+                      delay: 300,
+                      sticky: true
+                    },
+                    
+                    // Find/Replace
+                    find: {
+                      seedSearchStringFromSelection: 'selection',
+                      autoFindInSelection: 'never',
+                      globalFindClipboard: false
+                    },
+                    
+                    // UI Features
                     contextmenu: true,
                     mouseWheelZoom: true,
                     smoothScrolling: true,
                     cursorBlinking: 'smooth',
                     cursorSmoothCaretAnimation: 'on',
-                    renderWhitespace: 'selection',
-                    suggest: {
-                      showKeywords: true,
-                      showSnippets: true
-                    }
+                    
+                    // Code Actions
+                    lightbulb: {
+                      enabled: true
+                    },
+                    codeActionsOnSave: {},
+                    
+                    // Brackets
+                    matchBrackets: 'always',
+                    bracketPairColorization: {
+                      enabled: true
+                    },
+                    guides: {
+                      bracketPairs: true,
+                      indentation: true
+                    },
+                    
+                    // Selection
+                    selectOnLineNumbers: true,
+                    multiCursorModifier: 'ctrlCmd',
+                    
+                    // Scrollbar
+                    scrollbar: {
+                      vertical: 'auto',
+                      horizontal: 'auto',
+                      useShadows: true,
+                      verticalScrollbarSize: 10,
+                      horizontalScrollbarSize: 10
+                    },
+                    
+                    // Folding
+                    folding: true,
+                    foldingStrategy: 'indentation',
+                    showFoldingControls: 'mouseover'
                   }}
                   key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
                 />
