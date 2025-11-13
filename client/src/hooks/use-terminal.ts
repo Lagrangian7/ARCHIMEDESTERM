@@ -49,16 +49,19 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [currentMode, setCurrentMode] = useState<'natural' | 'technical' | 'freestyle'>('natural');
   const [isTyping, setIsTyping] = useState(false);
   const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
+  const [showPythonIDE, setShowPythonIDE] = useState(false);
+  const [showPythonLessons, setShowPythonLessons] = useState(false);
+  const [showWebSynth, setShowWebSynth] = useState(false);
 
   const chatMutation = useMutation({
     mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' | 'freestyle' }) => {
       const language = localStorage.getItem('ai-language') || 'english';
-      
+
       // In freestyle mode, enhance the prompt for code generation with explicit Python formatting
       const enhancedMessage = mode === 'freestyle' 
         ? `As a code generation expert in FREESTYLE MODE, help create functional Python code. ${message}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples.\n\nIMPORTANT: Wrap all Python code in markdown code blocks using \`\`\`python\n...\n\`\`\` format so it can be automatically executed.`
         : message;
-      
+
       const response = await apiRequest('POST', '/api/chat', {
         message: enhancedMessage,
         mode: mode === 'freestyle' ? 'technical' : mode, // Use technical mode for freestyle
@@ -70,15 +73,15 @@ export function useTerminal(onUploadCommand?: () => void) {
     onSuccess: (data) => {
       setIsTyping(false);
       addEntry('response', data.response, data.mode);
-      
+
       // Auto-execute Python code in FREESTYLE mode
       if (data.mode === 'freestyle' || currentMode === 'freestyle') {
         const pythonBlockRegex = /```(?:python|py)\n([\s\S]*?)```/;
         const pythonMatch = data.response.match(pythonBlockRegex);
-        
+
         if (pythonMatch && pythonMatch[1]) {
           addEntry('system', '🐍 Auto-executing generated Python code...');
-          
+
           fetch('/api/execute/python', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -866,24 +869,20 @@ Code Execution:
       case 'pythonide':
       case 'learnpython':
       case 'pyide':
-        addEntry('system', '🐍 Launching Python IDE...');
-        const openPythonIDE = (window as any).openPythonIDE;
-        if (openPythonIDE) {
-          openPythonIDE();
-        } else {
-          addEntry('error', 'Python IDE not available. Please ensure the system is loaded.');
-        }
-        return;
+        setShowPythonIDE(true);
+        addEntry('response', 'Opening Python IDE...', 'technical');
+        break;
 
       case 'python lessons':
-        addEntry('system', '📚 Launching Python Lessons Guide...');
-        const openPythonLessons = (window as any).openPythonLessons;
-        if (openPythonLessons) {
-          openPythonLessons();
-        } else {
-          addEntry('error', 'Python Lessons Guide not available. Please ensure the system is loaded.');
-        }
-        return;
+        setShowPythonLessons(true);
+        addEntry('response', 'Opening Python Lessons Guide...', 'technical');
+        break;
+
+      case 'synth':
+      case 'synthesizer':
+        setShowWebSynth(true);
+        addEntry('response', 'Loading ARCHIMEDES Web Synthesizer...', 'technical');
+        break;
 
       case 'bg':
         addEntry('system', '🖼️  Opening Background Manager...\n\nUpload custom wallpapers and manage your terminal background.\n\n• Drag & drop images\n• Store up to 10 wallpapers\n• Click to apply');
@@ -2791,5 +2790,11 @@ Powered by Wolfram Alpha Full Results API`);
     isLoading: chatMutation.isPending,
     previewCode,
     setPreviewCode,
+    showPythonIDE,
+    setShowPythonIDE,
+    showPythonLessons,
+    setShowPythonLessons,
+    showWebSynth,
+    setShowWebSynth,
   };
 }
