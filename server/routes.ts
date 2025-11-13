@@ -3186,7 +3186,7 @@ function windowResized() {
 
       try {
         const { stdout, stderr } = await execPromise(
-          `timeout 10s python3 "${tmpFile}"`,
+          `timeout 30s python3 "${tmpFile}"`,
           {
             maxBuffer: 1024 * 1024 * 5, // 5MB max output
             env: {
@@ -3233,9 +3233,9 @@ function windowResized() {
           return res.json({
             success: false,
             output: partialOutput,
-            error: 'Execution timeout (10 seconds) - Code took too long to execute',
-            executionTime: 10.0,
-            formatted: `╭─ Python Execution Result (timed out after 10s)\n${partialOutput ? `├─ Partial Output (before timeout):\n${partialOutput}\n├─\n` : ''}├─ ⏱️ Error: Execution timeout (10 seconds)\n├─ Code took too long to execute\n├─ \n├─ 💡 Debug tips:\n├─    • Check for infinite loops or missing break statements\n├─    • Look for large data processing (reduce data size)\n├─    • Remove any input() calls (they wait indefinitely)\n├─    • Add print() statements to track progress\n╰─ Try optimizing your code or reducing the workload`
+            error: 'Execution timeout (30 seconds) - Code took too long to execute',
+            executionTime: 30.0,
+            formatted: `╭─ Python Execution Result (timed out after 30s)\n${partialOutput ? `├─ Partial Output (before timeout):\n${partialOutput}\n├─\n` : ''}├─ ⏱️ Error: Execution timeout (30 seconds)\n├─ Code took too long to execute\n├─ \n├─ 💡 Debug tips:\n├─    • Check for infinite loops or missing break statements\n├─    • Look for large data processing (reduce data size)\n├─    • Remove any input() calls (they wait indefinitely)\n├─    • Add print() statements to track progress\n├─    • Consider using time.sleep() to slow down loops for debugging\n╰─ Try optimizing your code or reducing the workload`
           });
         }
 
