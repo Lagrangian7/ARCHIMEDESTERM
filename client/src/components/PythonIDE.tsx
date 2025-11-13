@@ -1739,17 +1739,22 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
       const contextMessage = isFreestyleMode 
-        ? `As a Python programming expert in FREESTYLE MODE, help the user create functional Python code. ${message}\n\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nGenerate complete, runnable Python code snippets based on the user's request. Be creative and provide fully functional examples.`
-        : `As a Python programming expert analyzing code in the Python IDE, ${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nProvide focused Python programming guidance.`;
+        ? `${message}\n\nCurrent code in editor:\n\`\`\`python\n${code}\n\`\`\`\n\nHelp me build or improve this Python code.`
+        : `${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\``;
       
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: contextMessage,
-          mode: 'freestyle' // Always use freestyle mode for conversational vibing
+          mode: isFreestyleMode ? 'freestyle' : 'technical'
         })
       });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
       return response.json();
     },
     onSuccess: (data) => {

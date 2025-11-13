@@ -552,17 +552,14 @@ Use the URLs above to access the full articles and information.`;
     switch (cmd) {
       case 'vibe':
       case 'freestyle':
-        addEntry('system', '🎨 Activating FREESTYLE MODE...');
-        addEntry('system', 'Opening Python IDE in creative vibe mode where you can chat with ARCHIMEDES to build anything!');
+        setCurrentMode('freestyle');
+        addEntry('system', '🎨 FREESTYLE MODE ACTIVATED!');
+        addEntry('system', 'Now vibing in creative code generation mode. Chat with ARCHIMEDES to build anything! Use natural language to describe what you want to create.');
+        addEntry('system', 'Opening Python IDE in freestyle vibe mode...');
         setTimeout(() => {
           const openPythonIDE = (window as any).openPythonIDE;
           if (openPythonIDE) {
             openPythonIDE();
-            // Auto-click freestyle mode after IDE opens
-            setTimeout(() => {
-              const freestyleBtn = document.querySelector('[data-freestyle-mode]') as HTMLButtonElement;
-              if (freestyleBtn) freestyleBtn.click();
-            }, 200);
           }
         }, 100);
         return;
@@ -846,8 +843,15 @@ Code Execution:
         return;
 
       case 'mode':
-        // Toggle between natural and technical
-        const newMode = currentMode === 'natural' ? 'technical' : 'natural';
+        // Cycle through modes: natural -> technical -> freestyle -> natural
+        let newMode: 'natural' | 'technical' | 'freestyle';
+        if (currentMode === 'natural') {
+          newMode = 'technical';
+        } else if (currentMode === 'technical') {
+          newMode = 'freestyle';
+        } else {
+          newMode = 'natural';
+        }
         setCurrentMode(newMode);
         addEntry('system', `Mode switched to: ${newMode.toUpperCase()}`);
         return;
@@ -893,13 +897,13 @@ Code Execution:
     }
 
     if (cmd.startsWith('mode ')) {
-      const newMode = cmd.split(' ')[1] as 'natural' | 'technical';
-      if (newMode === 'natural' || newMode === 'technical') {
+      const newMode = cmd.split(' ')[1] as 'natural' | 'technical' | 'freestyle';
+      if (newMode === 'natural' || newMode === 'technical' || newMode === 'freestyle') {
         setCurrentMode(newMode);
         addEntry('system', `Mode switched to: ${newMode.toUpperCase()}`);
         return;
       } else {
-        addEntry('error', 'Invalid mode. Use "natural" or "technical"');
+        addEntry('error', 'Invalid mode. Use "natural", "technical", or "freestyle"');
         return;
       }
     }
