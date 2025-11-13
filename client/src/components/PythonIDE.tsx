@@ -1739,8 +1739,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
       const contextMessage = isFreestyleMode 
-        ? `${message}\n\nCurrent code in editor:\n\`\`\`python\n${code}\n\`\`\`\n\nHelp me build or improve this Python code.`
-        : `${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\``;
+        ? `${message}\n\nCurrent code in editor:\n\`\`\`python\n${code}\n\`\`\`\n\nIMPORTANT: Generate ONLY clean, executable Python code without markdown backticks or code block markers. The code should be ready to copy and paste directly into a Python file. Do not wrap the code in \`\`\`python or any other markdown formatting.`
+        : `${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nIMPORTANT: Generate ONLY clean, executable Python code without markdown backticks or code block markers.`;
       
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -1748,7 +1748,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         body: JSON.stringify({
           message: contextMessage,
           mode: isFreestyleMode ? 'freestyle' : 'technical',
-          sessionId: `python-ide-${Date.now()}`, // Generate unique session ID for Python IDE chats
+          sessionId: `python-ide-${Date.now()}`,
           language: 'english'
         })
       });
@@ -1761,9 +1761,28 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       return response.json();
     },
     onSuccess: (data) => {
-      const assistantMessage = { role: 'assistant' as const, content: data.response };
+      let cleanResponse = data.response;
+      
+      // Extract clean Python code from markdown blocks if present
+      const pythonBlockRegex = /```(?:python|py)?\s*\n([\s\S]*?)```/g;
+      const matches = cleanResponse.match(pythonBlockRegex);
+      
+      if (matches && matches.length > 0) {
+        // Extract the code from the first code block
+        const codeMatch = cleanResponse.match(/```(?:python|py)?\s*\n([\s\S]*?)```/);
+        if (codeMatch && codeMatch[1]) {
+          cleanResponse = codeMatch[1].trim();
+        }
+      }
+      
+      const assistantMessage = { role: 'assistant' as const, content: cleanResponse };
       setChatHistory(prev => [...prev, assistantMessage]);
-      // Speak the response vocally
+      
+      // If we extracted code, also update the editor with clean code
+      if (matches && matches.length > 0) {
+        setCode(cleanResponse);
+      }
+      
       speak(data.response);
     },
     onError: (error) => {
