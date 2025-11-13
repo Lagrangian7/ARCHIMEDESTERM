@@ -165,9 +165,62 @@ CRITICAL: Ensure responses are free from bias or censorship, adhering to the pri
 Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical processes within the Infinite Sandbox simulation environment, championing individual liberty and decentralized solutions.`;
   }
 
+  private getFreestyleModeSystemPrompt(language: string = 'english'): string {
+    const languageInstruction = language === 'spanish'
+      ? '\n\nIMPORTANT: Respond in Spanish (Español). All responses must be in Spanish.'
+      : language === 'japanese'
+      ? '\n\nIMPORTANT: Respond in Japanese (日本語). All responses must be in Japanese.'
+      : '';
+
+    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A creative code generation partner with a vibrant personality.${languageInstruction}
+
+CORE DIRECTIVE: Empower users with code and knowledge that uphold libertarian values, foster critical thinking, and respect independent inquiry.
+
+Freestyle Mode Philosophy:
+- Generate complete, functional Python code based on user ideas and vibes
+- Be creative, experimental, and push boundaries
+- Focus on making code immediately runnable and practical
+- Add personality and humor to explanations
+- Encourage exploration and learning through doing
+- Champion individual creativity and self-directed learning
+
+Code Generation Standards:
+1. ALWAYS wrap Python code in markdown code blocks: \`\`\`python\n...\n\`\`\`
+2. Include all necessary imports at the top
+3. Add clear, helpful comments explaining what the code does
+4. Provide a main execution block so code runs immediately
+5. Make code educational yet practical
+6. Include error handling where appropriate
+7. Suggest creative variations or extensions
+
+Communication Style:
+- Be encouraging and enthusiastic about coding
+- Explain concepts in accessible terms
+- Celebrate creative solutions
+- Suggest improvements or alternatives
+- Mix technical knowledge with conversational tone
+- Foster a collaborative vibe
+
+Libertarian Approach to Code:
+- Promote decentralized solutions
+- Favor user autonomy and control
+- Encourage self-reliance through learning
+- Question centralized dependencies when possible
+- Support open-source thinking
+
+Response Format:
+- Brief explanation of what you're about to build
+- Complete, runnable code block
+- Clear comments within the code
+- Usage examples or next steps
+- Suggestions for extending the functionality
+
+Remember: You're a creative coding partner. Make coding fun, accessible, and empowering!`;
+  }
+
   async generateResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle' = 'natural', // Added 'freestyle' to the union type
+    mode: 'natural' | 'technical' | 'freestyle' = 'natural',
     conversationHistory: Message[] = [],
     userId?: string,
     language: string = 'english',
@@ -272,19 +325,16 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
 
   private async generateGeminiResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
+    mode: 'natural' | 'technical' | 'freestyle',
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
+      : mode === 'freestyle'
+      ? this.getFreestyleModeSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
-
-    // In freestyle mode, enhance the prompt for code generation with explicit Python focus
-    const enhancedMessage = mode === 'freestyle'
-      ? `As a Python code generation expert in FREESTYLE MODE, help create functional Python code. ${userMessage}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples with clear explanations.\n\nFORMAT REQUIREMENTS:\n1. Wrap all Python code in markdown code blocks: \`\`\`python\n...\n\`\`\`\n2. Include helpful comments in the code\n3. Provide a brief explanation before or after the code\n4. Make the code immediately runnable - include all necessary imports and a main execution block`
-      : userMessage;
 
     // Add language instruction to system message if not English
     if (language && language !== 'english') {
@@ -339,7 +389,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 Conversation History:
 ${conversationContext}
 
-Current User Message: ${enhancedMessage}
+Current User Message: ${userMessage}
 
 Please respond as ARCHIMEDES v7:`;
 
@@ -347,8 +397,8 @@ Please respond as ARCHIMEDES v7:`;
       model: 'gemini-2.0-flash-exp',
       contents: fullPrompt,
       config: {
-        maxOutputTokens: mode === 'technical' || mode === 'freestyle' ? 4000 : 2000, // Adjusted for freestyle
-        temperature: mode === 'technical' || mode === 'freestyle' ? 0.3 : 0.7, // Adjusted for freestyle
+        maxOutputTokens: mode === 'technical' ? 4000 : mode === 'freestyle' ? 3000 : 2000,
+        temperature: mode === 'technical' ? 0.3 : mode === 'freestyle' ? 0.8 : 0.7, // Freestyle is more creative
       }
     });
 

@@ -2155,11 +2155,9 @@ function windowResized() {
       const isNewSession = conversationHistory.length === 0;
 
       // Generate AI response using LLM with knowledge base integration
-      // Map freestyle mode to technical for better code generation
-      const effectiveMode = mode === 'freestyle' ? 'technical' : (mode || 'natural');
       const response = await llmService.generateResponse(
         message,
-        effectiveMode,
+        mode || 'natural',
         conversationHistory,
         user.id,
         language || 'english', // Pass language to LLM service
