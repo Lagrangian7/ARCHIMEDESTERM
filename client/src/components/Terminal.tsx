@@ -904,8 +904,6 @@ export function Terminal() {
       {showPythonIDE && <MemoizedPythonIDE onClose={() => setShowPythonIDE(false)} />}
       {/* Python Lessons */}
       {showPythonLessons && <MemoizedPythonLessons onClose={() => setShowPythonLessons(false)} />}
-      {/* Webamp Music Player */}
-      {showWebamp && <WebampPlayer isOpen={showWebamp} onClose={() => setShowWebamp(false)} />}
 
       {/* Background Manager */}
       {showBackgroundManager && (
