@@ -1843,28 +1843,32 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       editorRef.current = editor;
 
       // Safe focus with error handling
-      try {
-        editor.focus();
-      } catch (focusError) {
-        console.debug('Editor focus skipped:', focusError);
-      }
+      setTimeout(() => {
+        try {
+          if (editor && typeof editor.focus === 'function') {
+            editor.focus();
+          }
+        } catch (focusError) {
+          console.debug('Editor focus skipped:', focusError);
+        }
+      }, 100);
 
       // Optional: Setup Monacopilot AI completions (non-blocking, graceful failure)
       // Only attempt if registerCompletion is available
       if (typeof registerCompletion === 'function') {
         // Delay to ensure editor is fully initialized
-        const registrationTimer = setTimeout(() => {
+        setTimeout(() => {
           try {
             const completionProvider: CompletionProvider = {
               async provideCompletionItems(model, position) {
-                const textUntilPosition = model.getValueInRange({
-                  startLineNumber: 1,
-                  startColumn: 1,
-                  endLineNumber: position.lineNumber,
-                  endColumn: position.column,
-                });
-
                 try {
+                  const textUntilPosition = model.getValueInRange({
+                    startLineNumber: 1,
+                    startColumn: 1,
+                    endLineNumber: position.lineNumber,
+                    endColumn: position.column,
+                  });
+
                   const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1904,14 +1908,12 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
             // AI completions are optional - IDE works without them
             console.debug('Monacopilot registration skipped');
           }
-        }, 1000);
-
-        // Cleanup on unmount
-        return () => clearTimeout(registrationTimer);
+        }, 1500);
       }
     } catch (error) {
       console.error('Editor initialization error:', error);
-      setOutput(`Editor setup warning: ${error instanceof Error ? error.message : 'Unknown error'}. IDE will work without AI completions.`);
+      // Don't set error output - just log it
+      console.warn('IDE will work without AI completions');
     }
   };
 
