@@ -880,11 +880,9 @@ Code Execution:
 
       case 'synth':
       case 'synthesizer':
-        console.log('[DEBUG] Synth command triggered, setting showWebSynth to true');
         setShowWebSynth(true);
-        addEntry('response', 'Loading ARCHIMEDES Web Synthesizer...', 'technical');
-        console.log('[DEBUG] showWebSynth state should now be true');
-        break;
+        addEntry('system', '🎹 Loading ARCHIMEDES Web Synthesizer...');
+        return;
 
       case 'bg':
         addEntry('system', '🖼️  Opening Background Manager...\n\nUpload custom wallpapers and manage your terminal background.\n\n• Drag & drop images\n• Store up to 10 wallpapers\n• Click to apply');
