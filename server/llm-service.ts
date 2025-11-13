@@ -951,6 +951,64 @@ Simulation Environment Status:
 
 Technical Implementation Archives: Complete protocols available for detailed fabrication processes. Query specificity determines archival depth accessed.`;
   }
+
+  /**
+   * Generate code completions using Mistral AI for monacopilot
+   * Optimized for Python code completion in the IDE
+   */
+  async generateCodeCompletion(
+    code: string,
+    language: string = 'python',
+    filename?: string
+  ): Promise<string> {
+    try {
+      const systemPrompt = `You are an expert ${language} code completion assistant. Your task is to provide concise, accurate code completions.
+
+CRITICAL RULES:
+1. Only provide the completion text - NO explanations, NO markdown, NO code blocks
+2. Complete the code naturally from where it ends
+3. Keep completions focused and relevant
+4. Provide syntactically correct code
+5. For Python: follow PEP 8 style guidelines
+6. Return ONLY the code that should be added, nothing else`;
+
+      const userPrompt = `Complete this ${language} code${filename ? ` from ${filename}` : ''}:
+
+${code}`;
+
+      const chatResponse = await mistral.chat.complete({
+        model: 'codestral-latest', // Mistral's specialized code model
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        maxTokens: 500, // Keep completions concise
+        temperature: 0.2, // Low temperature for more predictable completions
+        topP: 0.95,
+      });
+
+      const completion = chatResponse.choices?.[0]?.message?.content;
+
+      if (!completion) {
+        return '';
+      }
+
+      // Clean up the response - remove any markdown code blocks
+      let cleanedCompletion = typeof completion === 'string' ? completion : completion.map((chunk: any) => chunk.text).join('');
+      
+      // Remove markdown code blocks if present
+      cleanedCompletion = cleanedCompletion.replace(/```(?:python|py|javascript|js|typescript|ts)?\n?/g, '');
+      cleanedCompletion = cleanedCompletion.replace(/```\n?/g, '');
+      
+      // Trim excessive whitespace
+      cleanedCompletion = cleanedCompletion.trim();
+
+      return cleanedCompletion;
+    } catch (error) {
+      console.error('Code completion error:', error);
+      return ''; // Return empty string on error - graceful degradation
+    }
+  }
 }
 
 export const llmService = LLMService.getInstance();
