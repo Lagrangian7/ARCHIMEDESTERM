@@ -1607,19 +1607,19 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   const savedSession = loadSession();
 
-  const [code, setCode] = useState(savedSession?.code || LESSONS.basics.code);
+  const [code, setCode] = useState(savedSession?.code || '# FREESTYLE MODE - Chat with ARCHIMEDES to create code\n# Ask for anything you want to build!\n\n');
   const [output, setOutput] = useState(savedSession?.output || '');
   const [isRunning, setIsRunning] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState<keyof typeof LESSONS>(savedSession?.selectedLesson || 'basics');
-  const [showGuidance, setShowGuidance] = useState(savedSession?.showGuidance ?? true);
+  const [showGuidance, setShowGuidance] = useState(savedSession?.showGuidance ?? false);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set(savedSession?.completedTasks || []));
-  const [showChat, setShowChat] = useState(false);
+  const [showChat, setShowChat] = useState(true);
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>(
     (savedSession?.chatHistory as Array<{ role: 'user' | 'assistant', content: string }>) || []
   );
   const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
-  const [isFreestyleMode, setIsFreestyleMode] = useState(false);
+  const [isFreestyleMode, setIsFreestyleMode] = useState(true);
   const editorRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const { speak } = useSpeech();

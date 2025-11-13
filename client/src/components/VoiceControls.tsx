@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code, Radio } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -230,52 +230,6 @@ export function VoiceControls({
                   <p>Upload</p>
                 </TooltipContent>
               </Tooltip>
-
-              {/* Mode Toggle Button */}
-              <Button
-                onClick={() => {
-                  // Cycle through modes: natural -> technical -> freestyle -> natural
-                  if (currentMode === 'natural') {
-                    switchMode('technical');
-                  } else if (currentMode === 'technical') {
-                    switchMode('freestyle');
-                  } else {
-                    switchMode('natural');
-                  }
-                }}
-                variant="outline"
-                size="sm"
-                className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors text-xs px-2 py-1 min-h-[44px]"
-                data-testid="button-mode-toggle"
-              >
-                <Radio className="w-4 h-4 mr-1" />
-                <span className="hidden sm:inline">
-                  {currentMode === 'technical' ? 'TECH MODE' : currentMode === 'freestyle' ? 'FREESTYLE' : 'CHAT MODE'}
-                </span>
-                <span className="sm:hidden">
-                  {currentMode === 'technical' ? 'TECH' : currentMode === 'freestyle' ? 'FREE' : 'CHAT'}
-                </span>
-              </Button>
-
-              {/* Freestyle Mode Toggle Button */}
-              <Button
-                onClick={() => {
-                  // Activate freestyle mode in terminal
-                  switchMode('freestyle');
-                }}
-                variant="outline"
-                size="sm"
-                className={`bg-black border-purple-500 transition-colors text-xs px-2 py-1 min-h-[44px] ${
-                  currentMode === 'freestyle' 
-                    ? 'bg-purple-500 text-black' 
-                    : 'text-purple-400 hover:bg-purple-500 hover:text-black'
-                }`}
-                data-testid="button-freestyle-mode"
-              >
-                <MessageSquare className="w-4 h-4 mr-1" />
-                <span className="hidden sm:inline">FREESTYLE</span>
-                <span className="sm:hidden">FREE</span>
-              </Button>
 
               {/* Python IDE Button */}
               <Tooltip>
