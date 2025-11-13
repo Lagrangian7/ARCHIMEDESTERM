@@ -1694,6 +1694,8 @@ calculator()
   const [inputPrompts, setInputPrompts] = useState<string[]>([]);
   const [inputValues, setInputValues] = useState<string[]>([]);
   const [needsInput, setNeedsInput] = useState(false);
+  const [guiOutput, setGuiOutput] = useState<string | null>(null);
+  const [hasGuiElements, setHasGuiElements] = useState(false);
   const [showGuidance, setShowGuidance] = useState(savedSession?.showGuidance ?? false);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set(savedSession?.completedTasks || []));
   const [showChat, setShowChat] = useState(true);
@@ -2361,9 +2363,21 @@ calculator()
       if (data.success) {
         const timeInfo = data.executionTime ? ` ✓ Completed in ${data.executionTime}s\n\n` : '\n';
         setOutput(timeInfo + (data.output || '(No output)'));
+        
+        // Check if GUI output was generated
+        if (data.guiOutput) {
+          setGuiOutput(data.guiOutput);
+          setHasGuiElements(true);
+          setShowPreview(true); // Auto-show preview for GUI apps
+        } else {
+          setGuiOutput(null);
+          setHasGuiElements(false);
+        }
       } else {
         const timeInfo = data.executionTime ? `⏱️ Execution time: ${data.executionTime}s\n\n` : '\n';
         setOutput(timeInfo + `Error:\n${data.error || 'Unknown error occurred'}` + (data.output ? `\n\nPartial output:\n${data.output}` : ''));
+        setGuiOutput(null);
+        setHasGuiElements(false);
       }
     } catch (error) {
       clearInterval(timer);
@@ -2989,10 +3003,32 @@ calculator()
                         color: currentPythonTheme.highlight,
                         borderBottom: `1px solid ${currentPythonTheme.border}`
                       }}>
-                        {needsInput ? '⌨️ INTERACTIVE INPUT REQUIRED' : '📺 LIVE OUTPUT PREVIEW'}
+                        {needsInput ? '⌨️ INTERACTIVE INPUT REQUIRED' : hasGuiElements ? '🎨 GUI APPLICATION PREVIEW' : '📺 LIVE OUTPUT PREVIEW'}
                       </div>
                       
-                      {needsInput ? (
+                      {hasGuiElements && guiOutput ? (
+                        <div className="space-y-4">
+                          <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
+                            ✨ GUI application rendered successfully:
+                          </div>
+                          <div 
+                            className="rounded p-4"
+                            style={{ 
+                              backgroundColor: 'white',
+                              border: `2px solid ${currentPythonTheme.border}`
+                            }}
+                            dangerouslySetInnerHTML={{ __html: guiOutput }}
+                          />
+                          <div className="mt-4 p-3 rounded" style={{ 
+                            backgroundColor: `${currentPythonTheme.highlight}10`,
+                            border: `1px solid ${currentPythonTheme.border}`
+                          }}>
+                            <div className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
+                              💡 <strong>GUI Support:</strong> Your Python code generated visual output! The preview shows tkinter windows, matplotlib plots, or other GUI elements.
+                            </div>
+                          </div>
+                        </div>
+                      ) : needsInput ? (
                         <div className="space-y-4">
                           <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
                             Your code requires user input. Fill in the values below:

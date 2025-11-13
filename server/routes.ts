@@ -18,13 +18,21 @@ import { scholarService } from "./scholar-service";
 import multer from "multer";
 import { z } from "zod";
 import compression from "compression";
+import { spawn } from "child_process";
+import * as dns from 'dns';
+import { URL } from 'url';
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { ObjectPermission } from "./objectAcl";
+import { writeFile, unlink } from 'fs/promises';
+import { tmpdir } from 'os';
+
 export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check endpoint - MUST be first, before any middleware
   // This allows deployment health checks to succeed quickly
   app.get('/health', (req, res) => {
-    res.status(200).json({ 
-      status: 'ok', 
+    res.status(200).json({
+      status: 'ok',
       timestamp: new Date().toISOString(),
       uptime: process.uptime()
     });
@@ -2724,7 +2732,7 @@ function windowResized() {
       }
 
       const fileName = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.txt`;
-      
+
       const document = await knowledgeService.processDocument(content, {
         userId,
         fileName,
@@ -2738,14 +2746,14 @@ function windowResized() {
 
       console.log('✅ Note saved successfully:', document.id);
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         document: { ...document, isNote: true },
-        message: "Note saved to knowledge base" 
+        message: "Note saved to knowledge base"
       });
     } catch (error) {
       console.error("❌ Save note error:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: "Failed to save note",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -2765,7 +2773,7 @@ function windowResized() {
       }
 
       const fileName = title ? `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.txt` : document.fileName;
-      
+
       await storage.updateDocument(documentId, {
         originalName: title || document.originalName,
         fileName,
@@ -2794,7 +2802,6 @@ function windowResized() {
 
       // If it's an audio file with object storage path, stream it
       if (document.objectPath && document.mimeType && document.mimeType.startsWith('audio/')) {
-        const { ObjectStorageService } = await import("./objectStorage");
         const objectStorageService = new ObjectStorageService();
 
         try {
@@ -2819,7 +2826,6 @@ function windowResized() {
   // Get upload URL for object storage
   app.post("/api/objects/upload", isAuthenticated, async (req: any, res) => {
     try {
-      const { ObjectStorageService } = await import("./objectStorage");
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
       res.json({ uploadURL });
@@ -2833,9 +2839,6 @@ function windowResized() {
   app.get("/objects/:objectPath(*)", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { ObjectStorageService, ObjectNotFoundError } = await import("./objectStorage");
-      const { ObjectPermission } = await import("./objectAcl");
-
       const objectStorageService = new ObjectStorageService();
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
 
@@ -2852,7 +2855,6 @@ function windowResized() {
       objectStorageService.downloadObject(objectFile, res);
     } catch (error: any) {
       console.error("Error accessing object:", error);
-      const { ObjectNotFoundError } = await import("./objectStorage");
       if (error instanceof ObjectNotFoundError) {
         return res.sendStatus(404);
       }
@@ -2871,7 +2873,6 @@ function windowResized() {
         return res.status(400).json({ error: "objectURL is required" });
       }
 
-      const { ObjectStorageService } = await import("./objectStorage");
       const objectStorageService = new ObjectStorageService();
 
       // Set ACL policy for the uploaded file
@@ -3160,99 +3161,122 @@ function windowResized() {
   });
 
   // Python code execution endpoint
-  app.post("/api/execute/python", async (req, res) => {
+  app.post('/api/execute/python', async (req, res) => {
     try {
       const { code } = req.body;
 
       if (!code || typeof code !== 'string') {
-        return res.status(400).json({ error: "Python code is required" });
-      }
-
-      if (code.length > 50000) {
-        return res.status(400).json({ error: "Code too large (max 50KB)" });
-      }
-
-      // Create a temporary Python file using ES module imports
-      const { writeFile, unlink } = await import('fs/promises');
-      const { join } = await import('path');
-      const { tmpdir } = await import('os');
-      const tmpFile = join(tmpdir(), `python_${Date.now()}_${Math.random().toString(36).substring(7)}.py`);
-
-      await writeFile(tmpFile, code, 'utf8');
-
-      // Execute Python with timeout and resource limits
-      const execPromise = promisify(exec);
-      const startTime = Date.now();
-
-      try {
-        const { stdout, stderr } = await execPromise(
-          `timeout 30s python3 "${tmpFile}"`,
-          {
-            maxBuffer: 1024 * 1024 * 5, // 5MB max output
-            env: {
-              ...process.env,
-              PYTHONUNBUFFERED: '1'
-            }
-          }
-        );
-
-        const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
-
-        // Clean up temp file
-        try {
-          await unlink(tmpFile);
-        } catch (e) {
-          console.error('Failed to delete temp file:', e);
-        }
-
-        res.json({
-          success: true,
-          output: stdout || '',
-          error: stderr || '',
-          executionTime: parseFloat(executionTime),
-          formatted: `╭─ Python Execution Result (${executionTime}s)\n${stdout ? `├─ Output:\n${stdout}` : ''}${stderr ? `├─ Errors:\n${stderr}` : ''}╰─ Execution complete in ${executionTime} seconds`
-        });
-
-      } catch (execError: any) {
-        // Clean up temp file on error
-        try {
-          await unlink(tmpFile);
-        } catch (e) {
-          console.error('Failed to delete temp file:', e);
-        }
-
-        const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
-
-        // Check if it's a timeout error (process was killed or error message mentions timeout)
-        const isTimeout = execError.killed || 
-                         execError.signal === 'SIGTERM' || 
-                         (execError.message && execError.message.includes('timeout'));
-        
-        if (isTimeout) {
-          const partialOutput = execError.stdout || '';
-          return res.json({
-            success: false,
-            output: partialOutput,
-            error: 'Execution timeout (30 seconds) - Code took too long to execute',
-            executionTime: 30.0,
-            formatted: `╭─ Python Execution Result (timed out after 30s)\n${partialOutput ? `├─ Partial Output (before timeout):\n${partialOutput}\n├─\n` : ''}├─ ⏱️ Error: Execution timeout (30 seconds)\n├─ Code took too long to execute\n├─ \n├─ 💡 Debug tips:\n├─    • Check for infinite loops or missing break statements\n├─    • Look for large data processing (reduce data size)\n├─    • Remove any input() calls (they wait indefinitely)\n├─    • Add print() statements to track progress\n├─    • Consider using time.sleep() to slow down loops for debugging\n╰─ Try optimizing your code or reducing the workload`
-          });
-        }
-
-        res.json({
+        return res.status(400).json({
           success: false,
-          output: execError.stdout || '',
-          error: execError.stderr || execError.message,
-          executionTime: parseFloat(executionTime),
-          formatted: `╭─ Python Execution Result (${executionTime}s)\n├─ Error: ${execError.stderr || execError.message}\n╰─ Execution failed after ${executionTime} seconds`
+          error: 'Code is required and must be a string'
         });
       }
 
+      // Check if code uses GUI libraries
+      const hasGuiLibraries = /import\s+(tkinter|matplotlib|pygame|turtle|PyQt|PySide)/i.test(code);
+
+      // Wrap GUI code to capture output as HTML/image
+      const wrappedCode = hasGuiLibraries ? `
+import sys
+import io
+import base64
+
+# Capture GUI output
+_gui_output = None
+
+${code}
+
+# For matplotlib, capture plot as base64 image
+try:
+    import matplotlib.pyplot as plt
+    if plt.get_fignums():
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', bbox_inches='tight')
+        buf.seek(0)
+        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
+        plt.close('all')
+except ImportError:
+    pass
+except Exception as e:
+    print(f'GUI rendering error: {e}', file=sys.stderr)
+
+# For tkinter, we can't render in headless but we'll note it
+try:
+    import tkinter as tk
+    if tk._default_root:
+        print('__GUI_OUTPUT__:<div style="padding:20px; background:#f0f0f0; border-radius:8px;"><strong>🖼️ Tkinter GUI Application</strong><br/>GUI window was created but cannot be displayed in headless mode.<br/>Run this code locally to see the interface.</div>')
+except:
+    pass
+` : code;
+
+      const startTime = Date.now();
+      const timeout = 30000; // 30 second timeout
+
+      const result = await new Promise<{ stdout: string; stderr: string; code: number }>((resolve, reject) => {
+        const pythonProcess = spawn('python3', ['-c', wrappedCode]);
+        let stdout = '';
+        let stderr = '';
+        let killed = false;
+
+        const timer = setTimeout(() => {
+          killed = true;
+          pythonProcess.kill();
+          reject(new Error('Execution timeout (30 seconds) - Code took too long to execute'));
+        }, timeout);
+
+        pythonProcess.stdout.on('data', (data) => {
+          stdout += data.toString();
+        });
+
+        pythonProcess.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
+
+        pythonProcess.on('close', (code) => {
+          clearTimeout(timer);
+          if (!killed) {
+            resolve({ stdout, stderr, code: code || 0 });
+          }
+        });
+
+        pythonProcess.on('error', (error) => {
+          clearTimeout(timer);
+          reject(error);
+        });
+      });
+
+      const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+      // Extract GUI output if present
+      let guiOutput = null;
+      let textOutput = result.stdout;
+      const guiMatch = result.stdout.match(/__GUI_OUTPUT__:(.*)/);
+      if (guiMatch) {
+        guiOutput = guiMatch[1];
+        textOutput = result.stdout.replace(/__GUI_OUTPUT__:.*/, '').trim();
+      }
+
+      if (result.code !== 0) {
+        return res.json({
+          success: false,
+          error: result.stderr,
+          output: textOutput,
+          guiOutput,
+          executionTime
+        });
+      }
+
+      res.json({
+        success: true,
+        output: textOutput,
+        guiOutput,
+        executionTime
+      });
     } catch (error) {
-      console.error("Python execution error:", error);
       res.status(500).json({
-        error: "Failed to execute Python code",
-        formatted: '╭─ Python Execution Result\n├─ Error: Internal server error\n╰─ Failed to execute code'
+        success: false,
+        error: error instanceof Error ? error.message : 'Execution failed'
       });
     }
   });
@@ -3608,7 +3632,7 @@ function windowResized() {
     }
   });
 
-  app.get('/api/osint/geoip/:ip', async (req, res) => {
+  app.get("/api/osint/geoip/:ip", async (req, res) => {
     try {
       const { ip } = req.params;
 
@@ -4521,8 +4545,7 @@ function windowResized() {
       console.log('🎯 Fetching MISP Galaxy threat actors...');
 
       const response = await fetch('https://raw.githubusercontent.com/MISP/misp-galaxy/main/clusters/threat-actor.json', {
-        signal: AbortSignal.timeout(10000),
-        headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
+        signal: AbortSignal.timeout(10000),        headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
       });
 
       if (!response.ok) {
