@@ -233,7 +233,21 @@ export function VoiceControls({
 
               {/* Mode Toggle Button */}
               <Button
-                onClick={() => switchMode('natural')} // Assuming switchMode can take 'natural' or 'technical'
+                onClick={() => {
+                  // Cycle through modes: natural -> technical -> freestyle -> natural
+                  if (currentMode === 'natural') {
+                    switchMode('technical');
+                  } else if (currentMode === 'technical') {
+                    switchMode('freestyle');
+                    setShowPythonIDE(true);
+                    setTimeout(() => {
+                      const freestyleBtn = document.querySelector('[data-freestyle-mode]') as HTMLButtonElement;
+                      if (freestyleBtn) freestyleBtn.click();
+                    }, 200);
+                  } else {
+                    switchMode('natural');
+                  }
+                }}
                 variant="outline"
                 size="sm"
                 className="bg-black border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black transition-colors text-xs px-2 py-1 min-h-[44px]"
@@ -241,10 +255,10 @@ export function VoiceControls({
               >
                 <Radio className="w-4 h-4 mr-1" />
                 <span className="hidden sm:inline">
-                  {currentMode === 'technical' ? 'TECH MODE' : 'CHAT MODE'}
+                  {currentMode === 'technical' ? 'TECH MODE' : currentMode === 'freestyle' ? 'FREESTYLE' : 'CHAT MODE'}
                 </span>
                 <span className="sm:hidden">
-                  {currentMode === 'technical' ? 'TECH' : 'CHAT'}
+                  {currentMode === 'technical' ? 'TECH' : currentMode === 'freestyle' ? 'FREE' : 'CHAT'}
                 </span>
               </Button>
 
