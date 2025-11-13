@@ -5,6 +5,7 @@ import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquar
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import { useSpeech } from '@/contexts/SpeechContext';
+import { registerCompletion, type CompletionProvider } from 'monacopilot';
 
 interface PythonIDEProps {
   onClose: () => void;
@@ -1794,8 +1795,57 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     }
   });
 
-  const handleEditorDidMount = (editor: any) => {
+  const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
+
+    // Setup Monacopilot AI completions
+    const completionProvider: CompletionProvider = {
+      async provideCompletionItems(model, position) {
+        const textUntilPosition = model.getValueInRange({
+          startLineNumber: 1,
+          startColumn: 1,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column,
+        });
+
+        try {
+          // Call your Mistral API for code completion
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: `Complete this Python code. Only respond with the completion, no explanations:\n\n${textUntilPosition}`,
+              mode: 'freestyle',
+              sessionId: `copilot-${Date.now()}`,
+              language: 'english'
+            })
+          });
+
+          const data = await response.json();
+          
+          // Extract clean code from response
+          let completion = data.response;
+          const pythonBlockMatch = completion.match(/```(?:python|py)?\s*\n([\s\S]*?)```/);
+          if (pythonBlockMatch && pythonBlockMatch[1]) {
+            completion = pythonBlockMatch[1].trim();
+          }
+
+          return completion;
+        } catch (error) {
+          console.error('Monacopilot error:', error);
+          return '';
+        }
+      }
+    };
+
+    // Register the completion provider
+    registerCompletion(monaco, editor, completionProvider, {
+      language: 'python',
+      // Trigger on specific keywords or always
+      trigger: 'auto', // or 'manual' to only trigger on Ctrl+Space
+      // Debounce delay before triggering
+      debounceTime: 500,
+    });
   };
 
   const handleChatSubmit = (e: React.FormEvent) => {
@@ -2215,7 +2265,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   defaultLanguage="python"
                   value={code}
                   onChange={(value) => setCode(value || '')}
-                  onMount={handleEditorDidMount}
+                  onMount={(editor, monaco) => handleEditorDidMount(editor, monaco)}
                   theme="vs-dark"
                   options={{
                     // Display
