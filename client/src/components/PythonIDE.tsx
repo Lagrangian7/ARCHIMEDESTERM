@@ -1859,17 +1859,16 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         // Delay to ensure editor is fully initialized
         setTimeout(() => {
           try {
-            // Note: Monacopilot requires a backend endpoint
-            // Commenting out for now as it needs proper backend setup
-            // registerCompletion(monaco, editor, {
-            //   endpoint: '/api/code-completion',
-            //   language: 'python',
-            //   trigger: 'onIdle'
-            // });
-            console.debug('Monacopilot available but not configured - needs backend endpoint');
+            // Enable Mistral-powered code completions via monacopilot
+            registerCompletion(monaco, editor, {
+              endpoint: '/api/code-completion',
+              language: 'python',
+              trigger: 'onIdle'
+            });
+            console.debug('Monacopilot enabled with Mistral AI code completions');
           } catch (error) {
             // AI completions are optional - IDE works without them
-            console.debug('Monacopilot registration skipped');
+            console.debug('Monacopilot registration failed:', error);
           }
         }, 1500);
       }
