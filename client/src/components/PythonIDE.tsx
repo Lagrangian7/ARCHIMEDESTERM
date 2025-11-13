@@ -1636,9 +1636,10 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
 
   // Python IDE independent theme system - easy on the eyes
-  const [pythonTheme, setPythonTheme] = useState('solarized-light');
+  const [pythonTheme, setPythonTheme] = useState('nord-dark');
 
   const PYTHON_THEMES = {
+    // Light themes
     'solarized-light': {
       bg: 'hsl(44 87% 94%)',
       text: 'hsl(192 15% 40%)',
@@ -1680,6 +1681,78 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       highlight: 'hsl(221 87% 60%)',
       subtle: 'hsl(230 5% 94%)',
       border: 'hsl(230 8% 88%)',
+    },
+    
+    // Dark themes - easy on the eyes
+    'nord-dark': {
+      bg: 'hsl(220 16% 22%)',
+      text: 'hsl(218 27% 94%)',
+      highlight: 'hsl(193 43% 67%)',
+      subtle: 'hsl(220 17% 17%)',
+      border: 'hsl(220 16% 28%)',
+    },
+    'dracula': {
+      bg: 'hsl(231 15% 18%)',
+      text: 'hsl(60 30% 96%)',
+      highlight: 'hsl(326 100% 74%)',
+      subtle: 'hsl(232 14% 22%)',
+      border: 'hsl(231 15% 25%)',
+    },
+    'one-dark': {
+      bg: 'hsl(220 13% 18%)',
+      text: 'hsl(220 14% 71%)',
+      highlight: 'hsl(207 82% 66%)',
+      subtle: 'hsl(220 12% 22%)',
+      border: 'hsl(220 13% 26%)',
+    },
+    'gruvbox-dark': {
+      bg: 'hsl(0 0% 16%)',
+      text: 'hsl(39 57% 85%)',
+      highlight: 'hsl(24 100% 68%)',
+      subtle: 'hsl(0 0% 20%)',
+      border: 'hsl(0 0% 25%)',
+    },
+    'tokyo-night': {
+      bg: 'hsl(235 16% 15%)',
+      text: 'hsl(218 13% 65%)',
+      highlight: 'hsl(187 71% 68%)',
+      subtle: 'hsl(235 18% 18%)',
+      border: 'hsl(235 16% 22%)',
+    },
+    'monokai': {
+      bg: 'hsl(70 8% 15%)',
+      text: 'hsl(60 30% 96%)',
+      highlight: 'hsl(31 89% 65%)',
+      subtle: 'hsl(70 8% 18%)',
+      border: 'hsl(70 8% 22%)',
+    },
+    'night-owl': {
+      bg: 'hsl(209 61% 16%)',
+      text: 'hsl(210 40% 85%)',
+      highlight: 'hsl(207 89% 75%)',
+      subtle: 'hsl(209 61% 12%)',
+      border: 'hsl(209 61% 20%)',
+    },
+    'material-dark': {
+      bg: 'hsl(233 14% 16%)',
+      text: 'hsl(0 0% 95%)',
+      highlight: 'hsl(199 89% 68%)',
+      subtle: 'hsl(233 14% 20%)',
+      border: 'hsl(233 14% 24%)',
+    },
+    'oceanic-next': {
+      bg: 'hsl(209 18% 18%)',
+      text: 'hsl(0 0% 91%)',
+      highlight: 'hsl(187 80% 70%)',
+      subtle: 'hsl(209 18% 15%)',
+      border: 'hsl(209 18% 22%)',
+    },
+    'palenight': {
+      bg: 'hsl(233 22% 18%)',
+      text: 'hsl(0 0% 87%)',
+      highlight: 'hsl(267 57% 78%)',
+      subtle: 'hsl(233 22% 15%)',
+      border: 'hsl(233 22% 24%)',
     },
   };
 
@@ -2026,12 +2099,26 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 border: `1px solid ${currentPythonTheme.border}`,
               }}
             >
-              <option value="solarized-light">Solarized Light</option>
-              <option value="github-light">GitHub Light</option>
-              <option value="sepia">Sepia</option>
-              <option value="nord-light">Nord Light</option>
-              <option value="gruvbox-light">Gruvbox Light</option>
-              <option value="one-light">One Light</option>
+              <optgroup label="Light Themes">
+                <option value="solarized-light">Solarized Light</option>
+                <option value="github-light">GitHub Light</option>
+                <option value="sepia">Sepia</option>
+                <option value="nord-light">Nord Light</option>
+                <option value="gruvbox-light">Gruvbox Light</option>
+                <option value="one-light">One Light</option>
+              </optgroup>
+              <optgroup label="Dark Themes (Easy on Eyes)">
+                <option value="nord-dark">Nord Dark</option>
+                <option value="dracula">Dracula</option>
+                <option value="one-dark">One Dark</option>
+                <option value="gruvbox-dark">Gruvbox Dark</option>
+                <option value="tokyo-night">Tokyo Night</option>
+                <option value="monokai">Monokai</option>
+                <option value="night-owl">Night Owl</option>
+                <option value="material-dark">Material Dark</option>
+                <option value="oceanic-next">Oceanic Next</option>
+                <option value="palenight">Palenight</option>
+              </optgroup>
             </select>
             <Button
               onClick={toggleMaximize}
