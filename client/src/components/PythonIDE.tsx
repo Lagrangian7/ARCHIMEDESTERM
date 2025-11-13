@@ -1618,6 +1618,8 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>(
     (savedSession?.chatHistory as Array<{ role: 'user' | 'assistant', content: string }>) || []
   );
+  const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
+  const [isFreestyleMode, setIsFreestyleMode] = useState(false);
   const editorRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const { speak } = useSpeech();
@@ -1736,12 +1738,16 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
+      const contextMessage = isFreestyleMode 
+        ? `As a Python programming expert in FREESTYLE MODE, help the user create functional Python code. ${message}\n\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nGenerate complete, runnable Python code snippets based on the user's request. Be creative and provide fully functional examples.`
+        : `As a Python programming expert analyzing code in the Python IDE, ${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nProvide focused Python programming guidance.`;
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `As a Python programming expert analyzing code in the Python IDE, ${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nProvide focused Python programming guidance.`,
-          mode: 'natural'
+          message: contextMessage,
+          mode: isFreestyleMode ? 'technical' : 'natural'
         })
       });
       return response.json();
@@ -1818,10 +1824,20 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   };
 
   const loadLesson = (lessonKey: keyof typeof LESSONS) => {
+    setIsFreestyleMode(false);
     setSelectedLesson(lessonKey);
     setCode(LESSONS[lessonKey].code);
     setOutput('');
     setShowGuidance(true);
+  };
+
+  const activateFreestyleMode = () => {
+    setIsFreestyleMode(true);
+    setSelectedLesson('basics'); // Keep a default lesson selected
+    setCode('# FREESTYLE MODE - Chat with ARCHIMEDES to create code\n# Ask for anything you want to build!\n\n');
+    setOutput('');
+    setShowGuidance(false);
+    setShowChat(true);
   };
 
   const toggleTask = (task: string) => {
@@ -1924,31 +1940,70 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Sidebar - Lessons */}
-          <div className="w-72 border-r border-[var(--terminal-highlight)]/30 bg-black/30 overflow-y-auto">
-            <div className="p-3 border-b border-[var(--terminal-highlight)]/20">
-              <div className="flex items-center gap-2 text-[var(--terminal-highlight)] font-mono text-xs">
-                <BookOpen className="w-4 h-4" />
-                <span>COMPREHENSIVE LESSONS</span>
-              </div>
-            </div>
-            <div className="p-2 space-y-1">
-              {Object.entries(LESSONS).map(([key, lesson]) => (
+          {/* Sidebar - Lessons (Collapsible) */}
+          {showLessonsSidebar && (
+            <div className="w-72 border-r border-[var(--terminal-highlight)]/30 bg-black/30 overflow-y-auto">
+              <div className="p-3 border-b border-[var(--terminal-highlight)]/20 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[var(--terminal-highlight)] font-mono text-xs">
+                  <BookOpen className="w-4 h-4" />
+                  <span>COMPREHENSIVE LESSONS</span>
+                </div>
                 <button
-                  key={key}
-                  onClick={() => loadLesson(key as keyof typeof LESSONS)}
+                  onClick={() => setShowLessonsSidebar(false)}
+                  className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)]"
+                  title="Close lessons sidebar"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-2 space-y-1">
+                {/* FREESTYLE Mode Option */}
+                <button
+                  onClick={activateFreestyleMode}
                   className={`w-full text-left px-3 py-2 rounded font-mono text-xs transition-colors ${
-                    selectedLesson === key
+                    isFreestyleMode
                       ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)] border border-[var(--terminal-highlight)]/50'
                       : 'text-[var(--terminal-highlight)]/70 hover:bg-[var(--terminal-highlight)]/10 hover:text-[var(--terminal-highlight)]'
                   }`}
                 >
-                  <div className="font-bold">{lesson.title}</div>
-                  <div className="text-[10px] opacity-70 mt-1">{lesson.description}</div>
+                  <div className="font-bold flex items-center gap-2">
+                    <MessageSquare className="w-3 h-3" />
+                    FREESTYLE MODE
+                  </div>
+                  <div className="text-[10px] opacity-70 mt-1">Vibe code with AI chat - create anything!</div>
                 </button>
-              ))}
+
+                {/* Regular Lessons */}
+                {Object.entries(LESSONS).map(([key, lesson]) => (
+                  <button
+                    key={key}
+                    onClick={() => loadLesson(key as keyof typeof LESSONS)}
+                    className={`w-full text-left px-3 py-2 rounded font-mono text-xs transition-colors ${
+                      selectedLesson === key && !isFreestyleMode
+                        ? 'bg-[var(--terminal-highlight)]/20 text-[var(--terminal-highlight)] border border-[var(--terminal-highlight)]/50'
+                        : 'text-[var(--terminal-highlight)]/70 hover:bg-[var(--terminal-highlight)]/10 hover:text-[var(--terminal-highlight)]'
+                    }`}
+                  >
+                    <div className="font-bold">{lesson.title}</div>
+                    <div className="text-[10px] opacity-70 mt-1">{lesson.description}</div>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Show Lessons Button (when sidebar is closed) */}
+          {!showLessonsSidebar && (
+            <div className="w-12 border-r border-[var(--terminal-highlight)]/30 bg-black/30 flex flex-col items-center py-3">
+              <button
+                onClick={() => setShowLessonsSidebar(true)}
+                className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] p-2 rounded hover:bg-[var(--terminal-highlight)]/10"
+                title="Show lessons sidebar"
+              >
+                <BookOpen className="w-5 h-5" />
+              </button>
+            </div>
+          )}
 
           {/* Editor and Output Split */}
           <div className="flex-1 flex">
@@ -1958,7 +2013,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                 <div className="p-3 border-b border-[var(--terminal-highlight)]/20">
                   <div className="flex items-center gap-2 text-[var(--terminal-highlight)] font-mono text-xs">
                     <MessageSquare className="w-4 h-4" />
-                    <span>PYTHON PROGRAMMING ASSISTANT</span>
+                    <span>{isFreestyleMode ? '🎨 FREESTYLE CODE VIBE' : 'PYTHON PROGRAMMING ASSISTANT'}</span>
                   </div>
                 </div>
 
@@ -2009,7 +2064,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="Ask about Python code..."
+                      placeholder={isFreestyleMode ? "Describe code you want to create..." : "Ask about Python code..."}
                       className="flex-1 bg-black/50 border border-[var(--terminal-highlight)]/30 rounded px-3 py-2 text-[var(--terminal-text)] font-mono text-xs focus:outline-none focus:border-[var(--terminal-highlight)]"
                       disabled={chatMutation.isPending}
                     />
@@ -2028,8 +2083,33 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
             {/* Editor/Output Section */}
             <div className="flex-1 flex flex-col min-w-0">
+            {/* FREESTYLE Mode Banner */}
+            {isFreestyleMode && (
+              <div className="p-4 bg-[var(--terminal-highlight)]/10 border-b border-[var(--terminal-highlight)]/30">
+                <div className="flex items-start gap-3">
+                  <MessageSquare className="w-5 h-5 text-[var(--terminal-highlight)] mt-1 flex-shrink-0" />
+                  <div className="flex-1">
+                    <div className="text-[var(--terminal-highlight)] font-mono text-xs font-bold mb-2">
+                      🎨 FREESTYLE MODE - VIBE CODE WITH ARCHIMEDES
+                    </div>
+                    <p className="text-[var(--terminal-text)] font-mono text-xs leading-relaxed">
+                      Chat freely with ARCHIMEDES in the AI panel to create any Python code you can imagine. 
+                      Describe what you want to build, ask for examples, or request code snippets. 
+                      ARCHIMEDES will generate fully functional code based on your vibe!
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsFreestyleMode(false)}
+                    className="text-[var(--terminal-highlight)]/50 hover:text-[var(--terminal-highlight)]"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Archimedes Guidance Panel */}
-            {showGuidance && (
+            {showGuidance && !isFreestyleMode && (
               <div className="p-4 bg-[var(--terminal-highlight)]/5 border-b border-[var(--terminal-highlight)]/30">
                 <div className="flex items-start gap-3">
                   <Lightbulb className="w-5 h-5 text-[var(--terminal-highlight)] mt-1 flex-shrink-0" />
