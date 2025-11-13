@@ -865,12 +865,12 @@ Code Execution:
         addEntry('system', '🚀 Launching SPACEWAR game...');
         break;
 
-      case 'python':
+      case 'workshop':
       case 'pythonide':
       case 'learnpython':
       case 'pyide':
         setShowPythonIDE(true);
-        addEntry('response', 'Opening Python IDE...', 'technical');
+        addEntry('response', 'Opening Archimedes Workshop...', 'technical');
         break;
 
       case 'python lessons':
