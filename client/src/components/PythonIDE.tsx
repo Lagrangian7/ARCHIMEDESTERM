@@ -1747,12 +1747,15 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: contextMessage,
-          mode: isFreestyleMode ? 'freestyle' : 'technical'
+          mode: isFreestyleMode ? 'freestyle' : 'technical',
+          sessionId: `python-ide-${Date.now()}`, // Generate unique session ID for Python IDE chats
+          language: 'english'
         })
       });
       
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `API error: ${response.status}`);
       }
       
       return response.json();
