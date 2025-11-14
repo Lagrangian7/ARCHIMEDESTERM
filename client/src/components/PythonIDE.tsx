@@ -2701,7 +2701,7 @@ calculator()
                       <div className="font-mono text-xs" style={{ color: currentPythonTheme.text, opacity: 0.7 }}>
                         <p className="mb-2">💡 Ask me about:</p>
                         <ul className="list-disc list-inside space-y-1 text-[10px]">
-                          <li>Python syntax and best practices</li>
+                          <li>Syntax and best practices</li>
                           <li>Code improvements and optimization</li>
                           <li>Debugging current errors</li>
                           <li>Lesson-specific questions</li>
@@ -2796,7 +2796,7 @@ calculator()
                       🎨 FREESTYLE MODE - VIBE CODE WITH ARCHIMEDES
                     </div>
                     <p className="font-mono text-xs leading-relaxed" style={{ color: currentPythonTheme.text }}>
-                      Chat freely with ARCHIMEDES in the AI panel to create any Python code you can imagine. 
+                      Chat freely with ARCHIMEDES in the AI panel to create any code you can imagine. 
                       Describe what you want to build, ask for examples, or request code snippets. 
                       ARCHIMEDES will generate fully functional code based on your vibe!
                     </p>
