@@ -45,7 +45,8 @@ def greet_user(name: str, age: int) -> str:
     Returns:
         A formatted greeting string
     """
-    return f"Hello, {name}! You are {age} years old."
+    greeting = f"Hello, {name}! You are {age} years old."
+    return greeting
 
 # Best practice: Use main guard
 if __name__ == "__main__":
@@ -125,9 +126,12 @@ def demonstrate_data_types():
     # Set operations
     set_a = {1, 2, 3, 4}
     set_b = {3, 4, 5, 6}
-    print(f"Union: {set_a | set_b}")
-    print(f"Intersection: {set_a & set_b}")
-    print(f"Difference: {set_a - set_b}")
+    union = set_a | set_b
+    intersection = set_a & set_b
+    difference = set_a - set_b
+    print(f"Union: {union}")
+    print(f"Intersection: {intersection}")
+    print(f"Difference: {difference}")
 
     # Dict operations
     user_data['last_login'] = datetime.now().isoformat()
@@ -557,6 +561,7 @@ def timedelta_examples():
     birthday = date(1990, 5, 15)
     today = date.today()
     age_days = (today - birthday).days
+    # Approximate conversion (accounting for leap years)
     age_years = age_days / 365.25
 
     print(f"Days since birthday: {age_days}")
