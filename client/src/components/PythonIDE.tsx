@@ -1727,7 +1727,7 @@ calculator()
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
 
   // Python IDE independent theme system - easy on the eyes
-  const [pythonTheme, setPythonTheme] = useState('nord-dark');
+  const [pythonTheme, setPythonTheme] = useState('palenight');
 
   const PYTHON_THEMES = {
     // Light themes
