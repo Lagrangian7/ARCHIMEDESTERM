@@ -458,12 +458,14 @@ export function Terminal() {
   const MemoizedPythonIDE = useMemo(() => memo(PythonIDE), []); // Memoized PythonIDE
   const MemoizedPythonLessons = useMemo(() => memo(PythonLessons), []); // Memoized PythonLessons
 
+  // Themes that don't use background images
+  const noBgThemes = ['nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light'];
+  const shouldShowBackground = !noBgThemes.includes(currentTheme);
+
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={{
-        backgroundImage: getComputedStyle(document.documentElement).getPropertyValue('--terminal-no-bg').trim() === '1' 
-          ? 'none' 
-          : `url(${customBackgroundUrl || wallpaperImage})`,
+        backgroundImage: shouldShowBackground ? `url(${customBackgroundUrl || wallpaperImage})` : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -472,9 +474,7 @@ export function Terminal() {
       }}>
         {/* Matrix Rain Background Effect - with reduced opacity to show wallpaper */}
         <div style={{ 
-          opacity: getComputedStyle(document.documentElement).getPropertyValue('--terminal-no-bg').trim() === '1' 
-            ? 0.05 
-            : 0.3 
+          opacity: shouldShowBackground ? 0.3 : 0.05 
         }}>
           <MemoizedMatrixRain />
         </div>
