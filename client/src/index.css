@@ -714,6 +714,62 @@
   transform: translateX(50%) rotateZ(-45deg);
 }
 
+/* Twilight theme - Purple stars moving diagonally down-left */
+.theme-twilight-gradient .shooting_star {
+  background: linear-gradient(-135deg, rgba(180, 95, 255, 1), rgba(180, 0, 255, 0));
+  filter: drop-shadow(0 0 6px rgba(190, 105, 255, 1));
+  animation:
+    tail 3000ms ease-in-out infinite,
+    shooting-down-left 3000ms ease-in-out infinite;
+}
+
+.theme-twilight-gradient .shooting_star::before,
+.theme-twilight-gradient .shooting_star::after {
+  background: linear-gradient(-135deg, rgba(180, 0, 255, 0), rgba(180, 95, 255, 1), rgba(180, 0, 255, 0));
+}
+
+/* Forest theme - Green stars moving straight down */
+.theme-forest-gradient .shooting_star {
+  background: linear-gradient(180deg, rgba(95, 255, 145, 1), rgba(0, 255, 100, 0));
+  filter: drop-shadow(0 0 6px rgba(105, 255, 155, 1));
+  animation:
+    tail 3000ms ease-in-out infinite,
+    shooting-down 3000ms ease-in-out infinite;
+}
+
+.theme-forest-gradient .shooting_star::before,
+.theme-forest-gradient .shooting_star::after {
+  background: linear-gradient(180deg, rgba(0, 255, 100, 0), rgba(95, 255, 145, 1), rgba(0, 255, 100, 0));
+}
+
+/* Ocean theme - Cyan stars moving diagonally down-right */
+.theme-ocean-gradient .shooting_star {
+  background: linear-gradient(-45deg, rgba(95, 220, 255, 1), rgba(0, 200, 255, 0));
+  filter: drop-shadow(0 0 6px rgba(105, 230, 255, 1));
+  animation:
+    tail 3000ms ease-in-out infinite,
+    shooting-down-right 3000ms ease-in-out infinite;
+}
+
+.theme-ocean-gradient .shooting_star::before,
+.theme-ocean-gradient .shooting_star::after {
+  background: linear-gradient(-45deg, rgba(0, 200, 255, 0), rgba(95, 220, 255, 1), rgba(0, 200, 255, 0));
+}
+
+/* Ember theme - Orange/red stars moving upward diagonally */
+.theme-ember-gradient .shooting_star {
+  background: linear-gradient(45deg, rgba(255, 145, 95, 1), rgba(255, 100, 0, 0));
+  filter: drop-shadow(0 0 6px rgba(255, 155, 105, 1));
+  animation:
+    tail 3000ms ease-in-out infinite,
+    shooting-up 3000ms ease-in-out infinite;
+}
+
+.theme-ember-gradient .shooting_star::before,
+.theme-ember-gradient .shooting_star::after {
+  background: linear-gradient(45deg, rgba(255, 100, 0, 0), rgba(255, 145, 95, 1), rgba(255, 100, 0, 0));
+}
+
 /* Individual shooting star positioning and delays - spread across full screen */
 .shooting_star:nth-child(1) { top: 10%; left: 15%; animation-delay: 1200ms; }
 .shooting_star:nth-child(1)::before, .shooting_star:nth-child(1)::after { animation-delay: 1200ms; }
@@ -751,6 +807,26 @@
 @keyframes shooting {
   0% { transform: translateX(0); }
   100% { transform: translateX(300px); }
+}
+
+@keyframes shooting-down-left {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-250px, 250px); }
+}
+
+@keyframes shooting-down {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(400px); }
+}
+
+@keyframes shooting-down-right {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(250px, 250px); }
+}
+
+@keyframes shooting-up {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(200px, -200px); }
 }
 
 /* Matrix Rain Background Effect - Optimized */

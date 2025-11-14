@@ -484,8 +484,8 @@ export function Terminal() {
               }
             : { backgroundColor: 'var(--terminal-bg)' }
       }>
-        {/* Shooting Stars for midnight-gradient theme */}
-        {currentTheme === 'midnight-gradient' && (
+        {/* Shooting Stars for gradient themes */}
+        {gradientThemes.includes(currentTheme) && (
           <div className="night">
             {Array.from({ length: 10 }, (_, i) => (
               <div key={i} className="shooting_star" />
