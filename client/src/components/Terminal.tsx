@@ -475,11 +475,12 @@ export function Terminal() {
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={
         isMidnightTheme
           ? {
-              backgroundImage: `url(https://archimedes-terminal-hutchensbrent.replit.app/attached_assets/midnight_1763159442152.jpeg)`,
+              backgroundImage: `url(/attached_assets/midnight_1763159442152.jpeg)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              backgroundColor: 'var(--terminal-bg)'
+              backgroundColor: '#0a0f14',
+              backgroundBlendMode: 'darken'
             }
           : isGradientTheme 
             ? { background: 'var(--terminal-bg)' }

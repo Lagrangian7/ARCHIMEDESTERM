@@ -716,7 +716,7 @@
 }
 
 .theme-midnight-gradient .firefly::after {
-  background: white;
+  background: #ffeb3b;
   opacity: 0;
   box-shadow: 0 0 0vw 0vw #ffeb3b;
   animation: drift ease alternate infinite, flash ease infinite;
@@ -878,7 +878,7 @@
   }
   5% {
     opacity: 1;
-    box-shadow: 0 0 2vw 0.4vw #ffeb3b;
+    box-shadow: 0 0 3vw 0.8vw #ffeb3b, 0 0 1.5vw 0.4vw #fff;
   }
 }
 
