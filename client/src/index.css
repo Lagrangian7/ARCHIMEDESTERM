@@ -621,8 +621,9 @@
   --terminal-logo-green: hsl(200 80% 70%);
   --terminal-bright-green: hsl(210 70% 75%);
   --terminal-orange: hsl(30 85% 65%);
-  --terminal-no-bg: 1;
+  --terminal-no-bg: 0;
   --terminal-use-gradient: 1;
+  --terminal-forest-bg: 1;
 }
 
 .theme-twilight-gradient {

@@ -468,21 +468,30 @@ export function Terminal() {
   const gradientThemes = ['midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'];
   const shouldShowBackground = !noBgThemes.includes(currentTheme) && !gradientThemes.includes(currentTheme);
   const isGradientTheme = gradientThemes.includes(currentTheme);
+  const isMidnightTheme = currentTheme === 'midnight-gradient';
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={
-        isGradientTheme 
-          ? { background: 'var(--terminal-bg)' }
-          : shouldShowBackground
-            ? {
-                backgroundImage: `url(${customBackgroundUrl || wallpaperImage})`,
-                backgroundSize: '100% 100%',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                backgroundColor: 'var(--terminal-bg)'
-              }
-            : { backgroundColor: 'var(--terminal-bg)' }
+        isMidnightTheme
+          ? {
+              backgroundImage: `url(https://archimedes-terminal-hutchensbrent.replit.app/attached_assets/midnight_1763159442152.jpeg)`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              backgroundColor: 'var(--terminal-bg)'
+            }
+          : isGradientTheme 
+            ? { background: 'var(--terminal-bg)' }
+            : shouldShowBackground
+              ? {
+                  backgroundImage: `url(${customBackgroundUrl || wallpaperImage})`,
+                  backgroundSize: '100% 100%',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundColor: 'var(--terminal-bg)'
+                }
+              : { backgroundColor: 'var(--terminal-bg)' }
       }>
         {/* Shooting Stars for gradient themes (except midnight) */}
         {gradientThemes.includes(currentTheme) && currentTheme !== 'midnight-gradient' && (
