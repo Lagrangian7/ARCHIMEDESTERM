@@ -22,6 +22,7 @@ const LESSONS = {
 """
 Python Basics and Best Practices
 Author: Your Name
+Date: ${new Date().toLocaleDateString()}
 """
 
 # PEP 8: Use descriptive variable names with lowercase and underscores
@@ -45,8 +46,7 @@ def greet_user(name: str, age: int) -> str:
     Returns:
         A formatted greeting string
     """
-    greeting = f"Hello, {name}! You are {age} years old."
-    return greeting
+    return f"Hello, {name}! You are {age} years old."
 
 # Best practice: Use main guard
 if __name__ == "__main__":
@@ -126,12 +126,9 @@ def demonstrate_data_types():
     # Set operations
     set_a = {1, 2, 3, 4}
     set_b = {3, 4, 5, 6}
-    union = set_a | set_b
-    intersection = set_a & set_b
-    difference = set_a - set_b
-    print(f"Union: {union}")
-    print(f"Intersection: {intersection}")
-    print(f"Difference: {difference}")
+    print(f"Union: {set_a | set_b}")
+    print(f"Intersection: {set_a & set_b}")
+    print(f"Difference: {set_a - set_b}")
 
     # Dict operations
     user_data['last_login'] = datetime.now().isoformat()
@@ -561,7 +558,6 @@ def timedelta_examples():
     birthday = date(1990, 5, 15)
     today = date.today()
     age_days = (today - birthday).days
-    # Approximate conversion (accounting for leap years)
     age_years = age_days / 365.25
 
     print(f"Days since birthday: {age_days}")
@@ -1707,30 +1703,19 @@ calculator()
   const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>(
     (savedSession?.chatHistory as Array<{ role: 'user' | 'assistant', content: string }>) || []
   );
-  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Set document title when component mounts
+  useEffect(() => {
+    const originalTitle = document.title;
+    document.title = 'Archimedes Workshop - Python IDE';
+    return () => { document.title = originalTitle; };
+  }, []);
   const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
   const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
   const editorRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const { speak } = useSpeech();
   const lastSpokenChatIdRef = useRef<string>('');
-
-  // Set document title when component mounts
-  useEffect(() => {
-    const originalTitle = document.title;
-    document.title = 'Archimedes Workshop - Python IDE';
-    // Prevent flash by delaying render slightly
-    const timer = setTimeout(() => setIsInitialized(true), 10);
-    return () => { 
-      document.title = originalTitle;
-      clearTimeout(timer);
-    };
-  }, []);
-
-  // Don't render until initialized
-  if (!isInitialized) {
-    return null;
-  }
 
   // Resizable window state
   const [isMaximized, setIsMaximized] = useState(false);
