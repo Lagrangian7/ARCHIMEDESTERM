@@ -692,9 +692,9 @@
   position: fixed;
   left: 50%;
   top: 50%;
-  width: 0.4vw;
-  height: 0.4vw;
-  margin: -0.2vw 0 0 9.8vw;
+  width: 0.2vw;
+  height: 0.2vw;
+  margin: -0.1vw 0 0 9.8vw;
   animation: ease 200s alternate infinite;
   pointer-events: none;
 }
@@ -878,7 +878,7 @@
   }
   5% {
     opacity: 1;
-    box-shadow: 0 0 3vw 0.8vw #ffeb3b, 0 0 1.5vw 0.4vw #fff;
+    box-shadow: 0 0 1.5vw 0.4vw #ffeb3b, 0 0 0.75vw 0.2vw #fff;
   }
 }
 

@@ -490,11 +490,11 @@ export function Terminal() {
           <div 
             className="absolute inset-0 z-0"
             style={{
-              backgroundImage: `url(/attached_assets/midnight_1763159442152.jpeg)`,
+              backgroundImage: `url(/attached_assets/midnight_1763160246697.jpeg)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              opacity: 0.8
+              opacity: 0.9
             }}
           />
         )}
