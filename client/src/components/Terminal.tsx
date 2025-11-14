@@ -161,7 +161,8 @@ export function Terminal() {
     'vaporwave', 'desert', 'toxic', 'crimson', 'lavender', 'emerald', 'midnight', 'sakura', 'copper', 'plasma',
     'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle',
     'nord-dark', 'gruvbox-dark', 'tokyo-night-dark', 'catppuccin-mocha', 'everforest-dark',
-    'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light'
+    'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light',
+    'midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>(() => {
     // Load theme from localStorage or default to spectrum
@@ -464,17 +465,20 @@ export function Terminal() {
     'nord-dark', 'gruvbox-dark', 'tokyo-night-dark', 'catppuccin-mocha', 'everforest-dark',
     'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light'
   ];
-  const shouldShowBackground = !noBgThemes.includes(currentTheme);
+  const gradientThemes = ['midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'];
+  const shouldShowBackground = !noBgThemes.includes(currentTheme) && !gradientThemes.includes(currentTheme);
+  const isGradientTheme = gradientThemes.includes(currentTheme);
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={{
-        backgroundImage: shouldShowBackground ? `url(${customBackgroundUrl || wallpaperImage})` : 'none',
+        background: isGradientTheme ? 'var(--terminal-bg)' : undefined,
+        backgroundImage: shouldShowBackground ? `url(${customBackgroundUrl || wallpaperImage})` : (isGradientTheme ? undefined : 'none'),
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed',
-        backgroundColor: 'var(--terminal-bg)'
+        backgroundColor: isGradientTheme ? undefined : 'var(--terminal-bg)'
       }}>
         {/* Matrix Rain Background Effect - with reduced opacity to show wallpaper */}
         <div style={{ 
