@@ -484,11 +484,20 @@ export function Terminal() {
               }
             : { backgroundColor: 'var(--terminal-bg)' }
       }>
-        {/* Shooting Stars for gradient themes */}
-        {gradientThemes.includes(currentTheme) && (
+        {/* Shooting Stars for gradient themes (except midnight) */}
+        {gradientThemes.includes(currentTheme) && currentTheme !== 'midnight-gradient' && (
           <div className="night">
             {Array.from({ length: 10 }, (_, i) => (
               <div key={i} className="shooting_star" />
+            ))}
+          </div>
+        )}
+
+        {/* Fireflies for midnight theme */}
+        {currentTheme === 'midnight-gradient' && (
+          <div className="night">
+            {Array.from({ length: 15 }, (_, i) => (
+              <div key={i} className="firefly" />
             ))}
           </div>
         )}

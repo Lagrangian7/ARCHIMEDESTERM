@@ -686,6 +686,41 @@
   z-index: 1;
 }
 
+/* Firefly Animation for Midnight Theme */
+.theme-midnight-gradient .firefly {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 0.4vw;
+  height: 0.4vw;
+  margin: -0.2vw 0 0 9.8vw;
+  animation: ease 200s alternate infinite;
+  pointer-events: none;
+}
+
+.theme-midnight-gradient .firefly::before,
+.theme-midnight-gradient .firefly::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform-origin: -10vw;
+}
+
+.theme-midnight-gradient .firefly::before {
+  background: black;
+  opacity: 0.4;
+  animation: drift ease alternate infinite;
+}
+
+.theme-midnight-gradient .firefly::after {
+  background: white;
+  opacity: 0;
+  box-shadow: 0 0 0vw 0vw #ffeb3b;
+  animation: drift ease alternate infinite, flash ease infinite;
+}
+
 .shooting_star {
   position: absolute;
   height: 2px;
@@ -827,6 +862,205 @@
 @keyframes shooting-up {
   0% { transform: translate(0, 0); }
   100% { transform: translate(200px, -200px); }
+}
+
+/* Firefly animations */
+@keyframes drift {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes flash {
+  0%, 30%, 100% {
+    opacity: 0;
+    box-shadow: 0 0 0vw 0vw #ffeb3b;
+  }
+  5% {
+    opacity: 1;
+    box-shadow: 0 0 2vw 0.4vw #ffeb3b;
+  }
+}
+
+/* Individual firefly movement patterns */
+.theme-midnight-gradient .firefly:nth-child(1) { animation-name: move1; }
+.theme-midnight-gradient .firefly:nth-child(1)::before { animation-duration: 12s; }
+.theme-midnight-gradient .firefly:nth-child(1)::after { animation-duration: 12s, 7500ms; animation-delay: 0ms, 3200ms; }
+
+.theme-midnight-gradient .firefly:nth-child(2) { animation-name: move2; }
+.theme-midnight-gradient .firefly:nth-child(2)::before { animation-duration: 15s; }
+.theme-midnight-gradient .firefly:nth-child(2)::after { animation-duration: 15s, 9200ms; animation-delay: 0ms, 1800ms; }
+
+.theme-midnight-gradient .firefly:nth-child(3) { animation-name: move3; }
+.theme-midnight-gradient .firefly:nth-child(3)::before { animation-duration: 10s; }
+.theme-midnight-gradient .firefly:nth-child(3)::after { animation-duration: 10s, 8100ms; animation-delay: 0ms, 4500ms; }
+
+.theme-midnight-gradient .firefly:nth-child(4) { animation-name: move4; }
+.theme-midnight-gradient .firefly:nth-child(4)::before { animation-duration: 13s; }
+.theme-midnight-gradient .firefly:nth-child(4)::after { animation-duration: 13s, 10500ms; animation-delay: 0ms, 2100ms; }
+
+.theme-midnight-gradient .firefly:nth-child(5) { animation-name: move5; }
+.theme-midnight-gradient .firefly:nth-child(5)::before { animation-duration: 11s; }
+.theme-midnight-gradient .firefly:nth-child(5)::after { animation-duration: 11s, 6800ms; animation-delay: 0ms, 5300ms; }
+
+.theme-midnight-gradient .firefly:nth-child(6) { animation-name: move6; }
+.theme-midnight-gradient .firefly:nth-child(6)::before { animation-duration: 14s; }
+.theme-midnight-gradient .firefly:nth-child(6)::after { animation-duration: 14s, 8900ms; animation-delay: 0ms, 1200ms; }
+
+.theme-midnight-gradient .firefly:nth-child(7) { animation-name: move7; }
+.theme-midnight-gradient .firefly:nth-child(7)::before { animation-duration: 9s; }
+.theme-midnight-gradient .firefly:nth-child(7)::after { animation-duration: 9s, 7200ms; animation-delay: 0ms, 6100ms; }
+
+.theme-midnight-gradient .firefly:nth-child(8) { animation-name: move8; }
+.theme-midnight-gradient .firefly:nth-child(8)::before { animation-duration: 16s; }
+.theme-midnight-gradient .firefly:nth-child(8)::after { animation-duration: 16s, 9800ms; animation-delay: 0ms, 3800ms; }
+
+.theme-midnight-gradient .firefly:nth-child(9) { animation-name: move9; }
+.theme-midnight-gradient .firefly:nth-child(9)::before { animation-duration: 12s; }
+.theme-midnight-gradient .firefly:nth-child(9)::after { animation-duration: 12s, 8500ms; animation-delay: 0ms, 2700ms; }
+
+.theme-midnight-gradient .firefly:nth-child(10) { animation-name: move10; }
+.theme-midnight-gradient .firefly:nth-child(10)::before { animation-duration: 11s; }
+.theme-midnight-gradient .firefly:nth-child(10)::after { animation-duration: 11s, 7800ms; animation-delay: 0ms, 4900ms; }
+
+.theme-midnight-gradient .firefly:nth-child(11) { animation-name: move11; }
+.theme-midnight-gradient .firefly:nth-child(11)::before { animation-duration: 13s; }
+.theme-midnight-gradient .firefly:nth-child(11)::after { animation-duration: 13s, 6500ms; animation-delay: 0ms, 5800ms; }
+
+.theme-midnight-gradient .firefly:nth-child(12) { animation-name: move12; }
+.theme-midnight-gradient .firefly:nth-child(12)::before { animation-duration: 10s; }
+.theme-midnight-gradient .firefly:nth-child(12)::after { animation-duration: 10s, 9500ms; animation-delay: 0ms, 1500ms; }
+
+.theme-midnight-gradient .firefly:nth-child(13) { animation-name: move13; }
+.theme-midnight-gradient .firefly:nth-child(13)::before { animation-duration: 15s; }
+.theme-midnight-gradient .firefly:nth-child(13)::after { animation-duration: 15s, 7100ms; animation-delay: 0ms, 4200ms; }
+
+.theme-midnight-gradient .firefly:nth-child(14) { animation-name: move14; }
+.theme-midnight-gradient .firefly:nth-child(14)::before { animation-duration: 14s; }
+.theme-midnight-gradient .firefly:nth-child(14)::after { animation-duration: 14s, 8300ms; animation-delay: 0ms, 3500ms; }
+
+.theme-midnight-gradient .firefly:nth-child(15) { animation-name: move15; }
+.theme-midnight-gradient .firefly:nth-child(15)::before { animation-duration: 12s; }
+.theme-midnight-gradient .firefly:nth-child(15)::after { animation-duration: 12s, 10200ms; animation-delay: 0ms, 2400ms; }
+
+/* Firefly movement keyframes */
+@keyframes move1 {
+  0% { transform: translateX(-15vw) translateY(-20vh) scale(0.8); }
+  25% { transform: translateX(10vw) translateY(15vh) scale(0.5); }
+  50% { transform: translateX(-25vw) translateY(-10vh) scale(0.9); }
+  75% { transform: translateX(20vw) translateY(25vh) scale(0.4); }
+  100% { transform: translateX(-5vw) translateY(-30vh) scale(0.7); }
+}
+
+@keyframes move2 {
+  0% { transform: translateX(30vw) translateY(10vh) scale(0.6); }
+  25% { transform: translateX(-10vw) translateY(-25vh) scale(0.8); }
+  50% { transform: translateX(15vw) translateY(20vh) scale(0.5); }
+  75% { transform: translateX(-20vw) translateY(-5vh) scale(0.9); }
+  100% { transform: translateX(25vw) translateY(15vh) scale(0.7); }
+}
+
+@keyframes move3 {
+  0% { transform: translateX(-20vw) translateY(30vh) scale(0.9); }
+  25% { transform: translateX(5vw) translateY(-15vh) scale(0.6); }
+  50% { transform: translateX(-30vw) translateY(5vh) scale(0.8); }
+  75% { transform: translateX(15vw) translateY(-20vh) scale(0.5); }
+  100% { transform: translateX(-10vw) translateY(25vh) scale(0.7); }
+}
+
+@keyframes move4 {
+  0% { transform: translateX(20vw) translateY(-25vh) scale(0.7); }
+  25% { transform: translateX(-15vw) translateY(10vh) scale(0.9); }
+  50% { transform: translateX(25vw) translateY(-15vh) scale(0.5); }
+  75% { transform: translateX(-5vw) translateY(20vh) scale(0.8); }
+  100% { transform: translateX(10vw) translateY(-30vh) scale(0.6); }
+}
+
+@keyframes move5 {
+  0% { transform: translateX(-25vw) translateY(-10vh) scale(0.8); }
+  25% { transform: translateX(20vw) translateY(25vh) scale(0.5); }
+  50% { transform: translateX(-10vw) translateY(-20vh) scale(0.9); }
+  75% { transform: translateX(30vw) translateY(5vh) scale(0.6); }
+  100% { transform: translateX(-15vw) translateY(15vh) scale(0.7); }
+}
+
+@keyframes move6 {
+  0% { transform: translateX(15vw) translateY(20vh) scale(0.6); }
+  25% { transform: translateX(-20vw) translateY(-15vh) scale(0.8); }
+  50% { transform: translateX(10vw) translateY(30vh) scale(0.5); }
+  75% { transform: translateX(-25vw) translateY(-5vh) scale(0.9); }
+  100% { transform: translateX(20vw) translateY(10vh) scale(0.7); }
+}
+
+@keyframes move7 {
+  0% { transform: translateX(-30vw) translateY(15vh) scale(0.9); }
+  25% { transform: translateX(10vw) translateY(-20vh) scale(0.6); }
+  50% { transform: translateX(-15vw) translateY(25vh) scale(0.8); }
+  75% { transform: translateX(25vw) translateY(-10vh) scale(0.5); }
+  100% { transform: translateX(-20vw) translateY(5vh) scale(0.7); }
+}
+
+@keyframes move8 {
+  0% { transform: translateX(25vw) translateY(-15vh) scale(0.7); }
+  25% { transform: translateX(-10vw) translateY(20vh) scale(0.9); }
+  50% { transform: translateX(20vw) translateY(-25vh) scale(0.5); }
+  75% { transform: translateX(-30vw) translateY(10vh) scale(0.8); }
+  100% { transform: translateX(15vw) translateY(-5vh) scale(0.6); }
+}
+
+@keyframes move9 {
+  0% { transform: translateX(-10vw) translateY(25vh) scale(0.8); }
+  25% { transform: translateX(30vw) translateY(-10vh) scale(0.5); }
+  50% { transform: translateX(-20vw) translateY(15vh) scale(0.9); }
+  75% { transform: translateX(10vw) translateY(-25vh) scale(0.6); }
+  100% { transform: translateX(-25vw) translateY(20vh) scale(0.7); }
+}
+
+@keyframes move10 {
+  0% { transform: translateX(10vw) translateY(-30vh) scale(0.6); }
+  25% { transform: translateX(-25vw) translateY(15vh) scale(0.8); }
+  50% { transform: translateX(20vw) translateY(-10vh) scale(0.5); }
+  75% { transform: translateX(-15vw) translateY(25vh) scale(0.9); }
+  100% { transform: translateX(30vw) translateY(-20vh) scale(0.7); }
+}
+
+@keyframes move11 {
+  0% { transform: translateX(-15vw) translateY(-25vh) scale(0.9); }
+  25% { transform: translateX(25vw) translateY(10vh) scale(0.6); }
+  50% { transform: translateX(-30vw) translateY(-15vh) scale(0.8); }
+  75% { transform: translateX(10vw) translateY(20vh) scale(0.5); }
+  100% { transform: translateX(-20vw) translateY(-10vh) scale(0.7); }
+}
+
+@keyframes move12 {
+  0% { transform: translateX(30vw) translateY(20vh) scale(0.7); }
+  25% { transform: translateX(-20vw) translateY(-15vh) scale(0.9); }
+  50% { transform: translateX(15vw) translateY(25vh) scale(0.5); }
+  75% { transform: translateX(-25vw) translateY(-20vh) scale(0.8); }
+  100% { transform: translateX(20vw) translateY(10vh) scale(0.6); }
+}
+
+@keyframes move13 {
+  0% { transform: translateX(-20vw) translateY(10vh) scale(0.8); }
+  25% { transform: translateX(15vw) translateY(-25vh) scale(0.5); }
+  50% { transform: translateX(-25vw) translateY(15vh) scale(0.9); }
+  75% { transform: translateX(30vw) translateY(-10vh) scale(0.6); }
+  100% { transform: translateX(-10vw) translateY(20vh) scale(0.7); }
+}
+
+@keyframes move14 {
+  0% { transform: translateX(20vw) translateY(-20vh) scale(0.6); }
+  25% { transform: translateX(-30vw) translateY(15vh) scale(0.8); }
+  50% { transform: translateX(10vw) translateY(-30vh) scale(0.5); }
+  75% { transform: translateX(-15vw) translateY(25vh) scale(0.9); }
+  100% { transform: translateX(25vw) translateY(-15vh) scale(0.7); }
+}
+
+@keyframes move15 {
+  0% { transform: translateX(-25vw) translateY(25vh) scale(0.9); }
+  25% { transform: translateX(20vw) translateY(-15vh) scale(0.6); }
+  50% { transform: translateX(-10vw) translateY(30vh) scale(0.8); }
+  75% { transform: translateX(25vw) translateY(-25vh) scale(0.5); }
+  100% { transform: translateX(-30vw) translateY(10vh) scale(0.7); }
 }
 
 /* Matrix Rain Background Effect - Optimized */
