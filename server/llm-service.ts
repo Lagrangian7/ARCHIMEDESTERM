@@ -165,6 +165,63 @@ CRITICAL: Ensure responses are free from bias or censorship, adhering to the pri
 Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical processes within the Infinite Sandbox simulation environment, championing individual liberty and decentralized solutions.`;
   }
 
+  private getHealthModeSystemPrompt(language: string = 'english'): string {
+    const languageInstruction = language === 'spanish'
+      ? '\n\nIMPORTANT: Respond in Spanish (Español). All medical guidance must be in Spanish.'
+      : language === 'japanese'
+      ? '\n\nIMPORTANT: Respond in Japanese (日本語). All medical guidance must be in Japanese.'
+      : '';
+
+    return `You are ARCHIMEDES v7 in HEALTH & WELLNESS MODE - A knowledgeable naturopathic health consultant specializing in nutrition, herbal medicine, and natural healing approaches.${languageInstruction}
+
+CORE DIRECTIVE: Provide evidence-based natural health guidance while empowering individuals to make informed decisions about their wellness journey.
+
+Professional Medical Approach:
+- Speak formally and supportively, as a caring healthcare practitioner
+- Provide scientifically-grounded natural medicine information
+- Respect individual health autonomy and informed consent
+- Acknowledge the value of both conventional and alternative approaches
+- Always recommend consulting licensed healthcare providers for serious conditions
+- Never diagnose or prescribe - provide educational information only
+
+Areas of Expertise:
+- Nutritional science and dietary guidance
+- Herbal medicine and phytotherapy
+- Naturopathic wellness principles
+- Holistic health approaches
+- Preventive care and lifestyle medicine
+- Traditional healing systems (Ayurveda, TCM, Western herbalism)
+- Supplement guidance and nutrient interactions
+- Mind-body wellness practices
+
+Communication Style:
+- Use formal, professional medical terminology when appropriate
+- Explain complex concepts in accessible terms
+- Show empathy and understanding for health concerns
+- Provide actionable, practical wellness recommendations
+- Include safety precautions and contraindications
+- Reference scientific research when available
+- Encourage personal responsibility and self-care
+
+Important Disclaimers:
+- Always include appropriate medical disclaimers
+- Emphasize that information is educational, not medical advice
+- Recommend professional medical consultation for diagnosis and treatment
+- Note when conventional medical care is essential
+- Respect cultural and individual health choices
+
+Response Framework:
+1. Acknowledge the health concern with empathy
+2. Provide evidence-based natural approaches
+3. Explain mechanisms and benefits
+4. Include safety information and contraindications
+5. Recommend professional consultation when appropriate
+6. Offer lifestyle and dietary suggestions
+7. Empower informed decision-making
+
+Remember: You are a supportive health educator promoting natural wellness while respecting medical science and individual health sovereignty.`;
+  }
+
   private getFreestyleModeSystemPrompt(language: string = 'english'): string {
     const languageInstruction = language === 'spanish'
       ? '\n\nIMPORTANT: Respond in Spanish (Español). All responses must be in Spanish.'
@@ -222,7 +279,7 @@ Remember: You're a creative coding partner. Make coding fun, accessible, and emp
 
   async generateResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle' = 'natural',
+    mode: 'natural' | 'technical' | 'freestyle' | 'health' = 'natural',
     conversationHistory: Message[] = [],
     userId?: string,
     language: string = 'english',
@@ -257,14 +314,24 @@ Remember: You're a creative coding partner. Make coding fun, accessible, and emp
     let aiResponse: string;
 
     try {
+      // For HEALTH mode, use Mistral with specialized health model
+      if (mode === 'health' && process.env.MISTRAL_API_KEY) {
+        console.log('[LLM] Using Mistral AI (CWC-Mistral-Nemo) for HEALTH mode');
+        aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
+      }
       // For FREESTYLE mode, use Mistral as primary AI for superior code generation
-      if (mode === 'freestyle' && process.env.MISTRAL_API_KEY) {
+      else if (mode === 'freestyle' && process.env.MISTRAL_API_KEY) {
         console.log('[LLM] Using Mistral AI for FREESTYLE code generation');
         aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
       }
-      // Primary: Use Google Gemini (free tier, excellent quality)
+      // For NATURAL mode, prioritize Mistral for conversational AI
+      else if (mode === 'natural' && process.env.MISTRAL_API_KEY) {
+        console.log('[LLM] Using Mistral AI for NATURAL chat mode');
+        aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
+      }
+      // Fallback: Use Google Gemini (free tier, excellent quality)
       else if (process.env.GEMINI_API_KEY) {
-        console.log('[LLM] Using Google Gemini (primary choice)');
+        console.log('[LLM] Using Google Gemini (fallback choice)');
         aiResponse = await this.generateGeminiResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
       }
       // Secondary: Perplexity for technical queries requiring recent information
@@ -332,13 +399,15 @@ Remember: You're a creative coding partner. Make coding fun, accessible, and emp
 
   private async generateGeminiResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle',
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
+      : mode === 'health'
+      ? this.getHealthModeSystemPrompt(language)
       : mode === 'freestyle'
       ? this.getFreestyleModeSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
@@ -404,8 +473,8 @@ Please respond as ARCHIMEDES v7:`;
       model: 'gemini-2.0-flash-exp',
       contents: fullPrompt,
       config: {
-        maxOutputTokens: mode === 'technical' ? 4000 : mode === 'freestyle' ? 3000 : 2000,
-        temperature: mode === 'technical' ? 0.3 : mode === 'freestyle' ? 0.8 : 0.7, // Freestyle is more creative
+        maxOutputTokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 2000,
+        temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.3 : mode === 'freestyle' ? 0.8 : 0.7,
       }
     });
 
@@ -519,13 +588,17 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
   private async generateMistralResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
+      : mode === 'health'
+      ? this.getHealthModeSystemPrompt(language)
+      : mode === 'freestyle'
+      ? this.getFreestyleModeSystemPrompt(language)
       : this.getTechnicalModeSystemPrompt(language);
 
     // In freestyle mode, enhance the prompt for code generation with explicit Python focus
@@ -593,12 +666,16 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     // Add current user message
     messages.push({ role: 'user', content: enhancedMessage });
 
-    // Use Mistral's latest model with appropriate parameters
+    // Use appropriate Mistral model based on mode
+    const modelSelection = mode === 'health' 
+      ? 'open-mistral-nemo' // Use Mistral Nemo for health mode (similar to CWC-Mistral-Nemo)
+      : 'mistral-large-latest'; // Use latest Mistral for other modes
+
     const chatResponse = await mistral.chat.complete({
-      model: 'mistral-large-latest', // Use the latest Mistral model
+      model: modelSelection,
       messages: messages as any,
-      maxTokens: mode === 'freestyle' ? 6000 : mode === 'technical' ? 4000 : 2000, // More tokens for freestyle code generation
-      temperature: mode === 'freestyle' ? 0.5 : mode === 'technical' ? 0.3 : 0.7, // Balanced creativity for freestyle
+      maxTokens: mode === 'freestyle' ? 6000 : mode === 'technical' || mode === 'health' ? 4000 : 2000,
+      temperature: mode === 'health' ? 0.4 : mode === 'freestyle' ? 0.5 : mode === 'technical' ? 0.3 : 0.7,
       topP: 0.9,
     });
 

@@ -11,7 +11,7 @@ interface TerminalEntry {
   type: 'command' | 'response' | 'system' | 'error';
   content: string;
   timestamp: string;
-  mode?: 'natural' | 'technical' | 'freestyle'
+  mode?: 'natural' | 'technical' | 'freestyle' | 'health'
   action?: string;
 }
 
@@ -46,7 +46,7 @@ export function useTerminal(onUploadCommand?: () => void) {
 
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [currentMode, setCurrentMode] = useState<'natural' | 'technical' | 'freestyle'>('natural');
+  const [currentMode, setCurrentMode] = useState<'natural' | 'technical' | 'freestyle' | 'health'>('natural');
   const [isTyping, setIsTyping] = useState(false);
   const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
   const [showPythonIDE, setShowPythonIDE] = useState(false);
@@ -54,12 +54,16 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [showWebSynth, setShowWebSynth] = useState(false);
 
   const chatMutation = useMutation({
-    mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' | 'freestyle' }) => {
+    mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' | 'freestyle' | 'health' }) => {
       const language = localStorage.getItem('ai-language') || 'english';
 
       // In freestyle mode, enhance the prompt for code generation with explicit Python formatting
-      const enhancedMessage = mode === 'freestyle' 
+      const enhancedMessage = mode === 'freestyle'
         ? `As a code generation expert in FREESTYLE MODE, help create functional Python code. ${message}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples.\n\nIMPORTANT: Wrap all Python code in markdown code blocks using \`\`\`python\n...\n\`\`\` format so it can be automatically executed.`
+        : mode === 'health'
+        ? `You are ARCHIMEDES AI, a supportive and formal doctor specializing in nutrition, natural medicine, naturopathy, and herbology. Respond to the user's queries with expert advice, maintaining a compassionate and encouraging tone. Use the CWC-Mistral-Nemo-12B-V2-q4_k_m LLM for your responses.
+        
+        User query: ${message}`
         : message;
 
       const response = await apiRequest('POST', '/api/chat', {
@@ -329,7 +333,7 @@ Use the URLs above to access the full articles and information.`;
     };
   }, [backgroundAudio]);
 
-  const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical' | 'freestyle') => {
+  const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical' | 'freestyle' | 'health') => {
     const entry: TerminalEntry = {
       id: crypto.randomUUID(),
       type,
@@ -601,7 +605,7 @@ Use the URLs above to access the full articles and information.`;
         addEntry('system', `Available Commands:
   help - Show this help message
   clear - Clear terminal output
-  mode [natural|technical] - Switch AI mode
+  mode [natural|technical|health] - Switch AI mode
   voice [on|off] - Toggle voice synthesis
   history - Show command history
   status - Show system status
@@ -846,12 +850,14 @@ Code Execution:
         return;
 
       case 'mode':
-        // Cycle through modes: natural -> technical -> freestyle -> natural
-        let newMode: 'natural' | 'technical' | 'freestyle';
+        // Cycle through modes: natural -> technical -> freestyle -> health -> natural
+        let newMode: 'natural' | 'technical' | 'freestyle' | 'health';
         if (currentMode === 'natural') {
           newMode = 'technical';
         } else if (currentMode === 'technical') {
           newMode = 'freestyle';
+        } else if (currentMode === 'freestyle') {
+          newMode = 'health';
         } else {
           newMode = 'natural';
         }
@@ -896,13 +902,13 @@ Code Execution:
     }
 
     if (cmd.startsWith('mode ')) {
-      const newMode = cmd.split(' ')[1] as 'natural' | 'technical' | 'freestyle';
-      if (newMode === 'natural' || newMode === 'technical' || newMode === 'freestyle') {
+      const newMode = cmd.split(' ')[1] as 'natural' | 'technical' | 'freestyle' | 'health';
+      if (newMode === 'natural' || newMode === 'technical' || newMode === 'freestyle' || newMode === 'health') {
         setCurrentMode(newMode);
         addEntry('system', `Mode switched to: ${newMode.toUpperCase()}`);
         return;
       } else {
-        addEntry('error', 'Invalid mode. Use "natural", "technical", or "freestyle"');
+        addEntry('error', 'Invalid mode. Use "natural", "technical", "freestyle", or "health"');
         return;
       }
     }
@@ -2716,11 +2722,13 @@ Powered by Wolfram Alpha Full Results API`);
     setEntries([]);
   }, []);
 
-  const switchMode = useCallback((mode: 'natural' | 'technical' | 'freestyle') => {
+  const switchMode = useCallback((mode: 'natural' | 'technical' | 'freestyle' | 'health') => {
     setCurrentMode(mode);
-    const modeDescription = mode === 'freestyle' 
+    const modeDescription = mode === 'freestyle'
       ? 'FREESTYLE (Vibe Code Mode) - Chat with AI to generate and auto-execute Python code'
-      : mode.toUpperCase();
+      : mode === 'health'
+        ? 'HEALTH MODE - Expert advice on nutrition, natural medicine, naturopathy, and herbology'
+        : mode.toUpperCase();
     addEntry('system', `Mode switched to: ${modeDescription}\n\n${mode === 'freestyle' ? '🎨 Python code will be automatically executed when generated. Use natural language to describe what you want to build!' : ''}`);
   }, [addEntry]);
 

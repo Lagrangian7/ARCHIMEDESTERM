@@ -92,7 +92,7 @@ export const messageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
   content: z.string(),
   timestamp: z.string(),
-  mode: z.enum(["natural", "technical"]),
+  mode: z.enum(["natural", "technical", "health"]).optional(),
 });
 
 // Type exports
@@ -350,7 +350,3 @@ export type BbsRating = typeof bbsRatings.$inferSelect;
 export type VirtualSystem = typeof virtualSystems.$inferSelect;
 export type InsertVirtualSystem = z.infer<typeof insertVirtualSystemSchema>;
 export type NetworkConnection = typeof networkConnections.$inferSelect;
-
-
-
-

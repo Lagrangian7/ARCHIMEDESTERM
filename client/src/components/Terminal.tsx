@@ -62,10 +62,14 @@ export function Terminal() {
     setPreviewCode,
     showWebSynth, // Destructure showWebSynth
     setShowWebSynth, // Destructure setShowWebSynth
+    // New: add natural speech initialization and health mode support to useTerminal hook
+    setMode, // Assuming useTerminal can set the mode
   } = useTerminal(() => {
     if (isAuthenticated) {
       setShowUpload(true);
     }
+    // Initialize natural speech mode with Mistral on startup
+    switchMode('natural'); // Assuming switchMode can set the initial mode
   });
 
   // Update system message when mode changes
@@ -357,7 +361,37 @@ export function Terminal() {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (input.trim() && !isLoading) {
-        processCommand(input.trim());
+        // Custom command processing logic
+        const [command, ...args] = input.trim().split(' ');
+        switch (command.toLowerCase()) {
+          case 'mode':
+            const newMode = args[0]?.toLowerCase();
+            if (newMode === 'natural' || newMode === 'technical' || newMode === 'health') {
+              setMode(newMode as 'natural' | 'technical' | 'health');
+              const modeDescriptions = {
+                natural: 'Conversational AI with personality',
+                technical: 'Detailed technical documentation mode',
+                health: 'Natural medicine & wellness guidance'
+              };
+              addEntry({
+                type: 'output',
+                content: `🔧 Switched to ${newMode.toUpperCase()} mode\n${modeDescriptions[newMode as keyof typeof modeDescriptions]}`
+              });
+            } else {
+              addEntry({
+                type: 'output',
+                content: 'Usage: mode [natural|technical|health]\n\n' +
+                         '  natural  - Conversational AI with personality\n' +
+                         '  technical - Detailed technical documentation\n' +
+                         '  health   - Natural medicine & wellness guidance'
+              });
+            }
+            break;
+          default:
+            // If not a custom command, process as usual
+            processCommand(input.trim());
+            break;
+        }
         setInput('');
         // Reset pagination when new command is entered
         setVisibleEntries(entries.length + 1); // +1 for the new entry that will be added
@@ -382,7 +416,7 @@ export function Terminal() {
       e.preventDefault();
       // Auto-complete logic could go here
     }
-  }, [input, isLoading, processCommand, getHistoryCommand, showContinuePrompt, handleContinue, entries.length, scrollToBottom]);
+  }, [input, isLoading, processCommand, getHistoryCommand, showContinuePrompt, handleContinue, entries.length, scrollToBottom, addEntry, setMode, currentMode]);
 
   const handleVoiceInput = useCallback((transcript: string) => {
     setInput(transcript);
@@ -518,7 +552,7 @@ export function Terminal() {
                   {entry.type === 'response' && (
                     <div className="mt-2">
                       <div className="text-terminal-highlight">
-                        ARCHIMEDES v7 {entry.mode === 'technical' ? '(Technical Mode)' : entry.mode === 'freestyle' ? '(Freestyle Vibe Code Mode)' : '(Natural Chat Mode)'}:
+                        ARCHIMEDES v7 {currentMode === 'technical' ? 'PROTOCOL' : currentMode === 'health' ? 'HEALTH' : 'TERMINAL'}
                       </div>
                       <MemoizedDraggableResponse
                         isTyping={typingEntriesSet.has(entry.id)}

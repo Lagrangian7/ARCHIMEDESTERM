@@ -2137,7 +2137,7 @@ function windowResized() {
         return res.status(400).json({ error: "Message is required" });
       }
 
-      const validModes = ["natural", "technical", "freestyle"];
+      const validModes = ["natural", "technical", "freestyle", "health"];
       if (!validModes.includes(mode)) {
         return res.status(400).json({ error: "Invalid mode" });
       }
