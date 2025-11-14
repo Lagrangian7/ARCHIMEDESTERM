@@ -165,8 +165,8 @@ export function Terminal() {
     'midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>(() => {
-    // Load theme from localStorage or default to spectrum
-    return localStorage.getItem('terminal-theme') || 'spectrum';
+    // Load theme from localStorage or default to midnight-gradient
+    return localStorage.getItem('terminal-theme') || 'midnight-gradient';
   });
 
   // Switch theme function
