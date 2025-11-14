@@ -159,7 +159,8 @@ export function Terminal() {
     'commodore64', 'green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized',
     'cyberpunk', 'forest', 'ocean', 'sunset', 'neon', 'vintage', 'arctic', 'amber', 'hacker', 'royal',
     'vaporwave', 'desert', 'toxic', 'crimson', 'lavender', 'emerald', 'midnight', 'sakura', 'copper', 'plasma',
-    'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
+    'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle',
+    'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light'
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>(() => {
     // Load theme from localStorage or default to spectrum
@@ -460,15 +461,21 @@ export function Terminal() {
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={{
-        backgroundImage: `url(${customBackgroundUrl || wallpaperImage})`,
+        backgroundImage: getComputedStyle(document.documentElement).getPropertyValue('--terminal-no-bg').trim() === '1' 
+          ? 'none' 
+          : `url(${customBackgroundUrl || wallpaperImage})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed',
-        backgroundColor: 'rgba(0, 0, 0, 0.3)'
+        backgroundColor: 'var(--terminal-bg)'
       }}>
         {/* Matrix Rain Background Effect - with reduced opacity to show wallpaper */}
-        <div style={{ opacity: 0.3 }}>
+        <div style={{ 
+          opacity: getComputedStyle(document.documentElement).getPropertyValue('--terminal-no-bg').trim() === '1' 
+            ? 0.05 
+            : 0.3 
+        }}>
           <MemoizedMatrixRain />
         </div>
 

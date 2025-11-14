@@ -101,6 +101,7 @@
   --terminal-logo-green: hsl(118 100% 75%);
   --terminal-bright-green: hsl(118 100% 75%);
   --terminal-orange: hsl(30 100% 50%);
+  --terminal-no-bg: 0; /* Flag to hide background image */
 }
 
 /* Terminal Theme Classes */
@@ -487,6 +488,67 @@
   --terminal-logo-green: hsl(320 100% 65%);
   --terminal-bright-green: hsl(180 100% 60%);
   --terminal-orange: hsl(50 100% 60%);
+}
+
+/* New Eye-Friendly Themes - No Background Image */
+.theme-nord-light {
+  --terminal-bg: hsl(218 27% 94%);
+  --terminal-text: hsl(220 16% 36%);
+  --terminal-highlight: hsl(213 32% 52%);
+  --terminal-subtle: hsl(220 17% 88%);
+  --terminal-subtle-rgb: 216, 222, 233;
+  --terminal-logo-green: hsl(213 32% 52%);
+  --terminal-bright-green: hsl(179 25% 65%);
+  --terminal-orange: hsl(14 51% 63%);
+  --terminal-no-bg: 1;
+}
+
+.theme-gruvbox-light {
+  --terminal-bg: hsl(39 57% 95%);
+  --terminal-text: hsl(0 0% 20%);
+  --terminal-highlight: hsl(24 100% 50%);
+  --terminal-subtle: hsl(39 57% 88%);
+  --terminal-subtle-rgb: 235, 219, 178;
+  --terminal-logo-green: hsl(142 60% 40%);
+  --terminal-bright-green: hsl(142 60% 40%);
+  --terminal-orange: hsl(24 100% 50%);
+  --terminal-no-bg: 1;
+}
+
+.theme-tokyo-night-light {
+  --terminal-bg: hsl(230 25% 98%);
+  --terminal-text: hsl(230 8% 24%);
+  --terminal-highlight: hsl(187 71% 48%);
+  --terminal-subtle: hsl(230 20% 93%);
+  --terminal-subtle-rgb: 230, 233, 240;
+  --terminal-logo-green: hsl(166 70% 42%);
+  --terminal-bright-green: hsl(166 70% 42%);
+  --terminal-orange: hsl(25 90% 55%);
+  --terminal-no-bg: 1;
+}
+
+.theme-catppuccin-latte {
+  --terminal-bg: hsl(220 23% 95%);
+  --terminal-text: hsl(234 16% 35%);
+  --terminal-highlight: hsl(220 91% 54%);
+  --terminal-subtle: hsl(228 24% 88%);
+  --terminal-subtle-rgb: 220, 224, 232;
+  --terminal-logo-green: hsl(109 58% 40%);
+  --terminal-bright-green: hsl(109 58% 40%);
+  --terminal-orange: hsl(22 99% 52%);
+  --terminal-no-bg: 1;
+}
+
+.theme-everforest-light {
+  --terminal-bg: hsl(49 28% 95%);
+  --terminal-text: hsl(0 0% 28%);
+  --terminal-highlight: hsl(35 61% 56%);
+  --terminal-subtle: hsl(49 28% 89%);
+  --terminal-subtle-rgb: 238, 234, 220;
+  --terminal-logo-green: hsl(142 55% 45%);
+  --terminal-bright-green: hsl(142 55% 45%);
+  --terminal-orange: hsl(35 61% 56%);
+  --terminal-no-bg: 1;
 }
 
 /* Matrix Rain Background Effect - Optimized */
