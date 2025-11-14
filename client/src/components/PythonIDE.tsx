@@ -1707,13 +1707,24 @@ calculator()
   const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>(
     (savedSession?.chatHistory as Array<{ role: 'user' | 'assistant', content: string }>) || []
   );
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Set document title when component mounts
   useEffect(() => {
     const originalTitle = document.title;
     document.title = 'Archimedes Workshop - Python IDE';
-    return () => { document.title = originalTitle; };
+    // Prevent flash by delaying render slightly
+    const timer = setTimeout(() => setIsInitialized(true), 10);
+    return () => { 
+      document.title = originalTitle;
+      clearTimeout(timer);
+    };
   }, []);
+
+  // Don't render until initialized
+  if (!isInitialized) {
+    return null;
+  }
   const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
   const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
   const editorRef = useRef<any>(null);
