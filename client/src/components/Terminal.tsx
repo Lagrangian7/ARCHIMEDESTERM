@@ -471,15 +471,19 @@ export function Terminal() {
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
-      <div className={`terminal-container flex flex-col h-full relative z-0`} style={{
-        background: isGradientTheme ? 'var(--terminal-bg)' : undefined,
-        backgroundImage: shouldShowBackground ? `url(${customBackgroundUrl || wallpaperImage})` : (isGradientTheme ? undefined : 'none'),
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
-        backgroundColor: isGradientTheme ? undefined : 'var(--terminal-bg)'
-      }}>
+      <div className={`terminal-container flex flex-col h-full relative z-0`} style={
+        isGradientTheme 
+          ? { background: 'var(--terminal-bg)' }
+          : shouldShowBackground
+            ? {
+                backgroundImage: `url(${customBackgroundUrl || wallpaperImage})`,
+                backgroundSize: '100% 100%',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: 'var(--terminal-bg)'
+              }
+            : { backgroundColor: 'var(--terminal-bg)' }
+      }>
         {/* Shooting Stars for midnight-gradient theme */}
         {currentTheme === 'midnight-gradient' && (
           <div className="night">
