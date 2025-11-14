@@ -22,7 +22,6 @@ const LESSONS = {
 """
 Python Basics and Best Practices
 Author: Your Name
-Date: ${new Date().toLocaleDateString()}
 """
 
 # PEP 8: Use descriptive variable names with lowercase and underscores
