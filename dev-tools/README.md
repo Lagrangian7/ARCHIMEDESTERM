@@ -1,37 +1,61 @@
+
 # Development Tools
 
-## Python TTS Scripts
+This directory contains development utilities and services for the Archimedes Terminal.
 
-These scripts are for **local development and testing only**. They are **NOT** used in production deployments.
+## Text-to-Speech Services
 
-### Files:
-- `tts_japanese.py` - Japanese text-to-speech using Coqui TTS
-- `tts_spanish.py` - Spanish text-to-speech using Coqui TTS
+### Japanese TTS (`tts_japanese.py`)
+Converts Japanese text to speech using Google Text-to-Speech (gTTS).
 
-### Requirements:
-These scripts require Python packages that are several GB in size:
-```
-TTS>=0.22.0
-jaconv>=0.3.4
-unidecode>=0.3.8
-```
-
-### Installation (Local Development Only):
-
-**Option 1: Minimal install (recommended - saves disk space)**
+**Usage:**
 ```bash
-cd dev-tools
+python tts_japanese.py "こんにちは、世界"
+```
+
+### Spanish TTS (`tts_spanish.py`)
+Converts Spanish text to speech using Google Text-to-Speech (gTTS).
+
+**Usage:**
+```bash
+python tts_spanish.py "Hola, mundo"
+```
+
+## Code Quality
+
+All Python code in this directory follows:
+- **PEP 8** style guidelines
+- **Type hints** where appropriate
+- **Docstrings** for all functions and modules
+- **Error handling** with proper exception management
+- **Imports** organized: standard library, third-party, local
+
+## Dependencies
+
+Install required packages:
+```bash
 pip install -r requirements.txt
 ```
 
-**Option 2: Full install with all language models (requires ~3GB+)**
+### Package List
+- `gTTS`: Google Text-to-Speech library for multilingual TTS
+
+## Testing
+
+Run individual TTS services to verify functionality:
 ```bash
-pip install TTS>=0.22.0 jaconv>=0.3.4 unidecode>=0.3.8
+# Test Japanese TTS
+python tts_japanese.py "テストメッセージ"
+
+# Test Spanish TTS
+python tts_spanish.py "mensaje de prueba"
 ```
 
-Note: The minimal install excludes heavy language models like `gruut_lang_de` (German) and `gruut_lang_ja` (Japanese) to save disk space (several GB).
+## Contributing
 
-### Production App:
-The main ARCHIMEDES application uses **Web Speech API** (browser-based) for all text-to-speech functionality. This requires zero server dependencies and supports multiple languages including English, Japanese, Spanish, and more.
-
-See `client/src/hooks/use-speech.ts` for the production TTS implementation.
+When adding new Python tools:
+1. Follow PEP 8 style guidelines (use `flake8` or `black` for formatting)
+2. Add comprehensive docstrings
+3. Include error handling
+4. Update this README
+5. Add dependencies to `requirements.txt`
