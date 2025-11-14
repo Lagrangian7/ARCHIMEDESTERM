@@ -1708,6 +1708,12 @@ calculator()
     (savedSession?.chatHistory as Array<{ role: 'user' | 'assistant', content: string }>) || []
   );
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
+  const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
+  const editorRef = useRef<any>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const { speak } = useSpeech();
+  const lastSpokenChatIdRef = useRef<string>('');
 
   // Set document title when component mounts
   useEffect(() => {
@@ -1725,12 +1731,6 @@ calculator()
   if (!isInitialized) {
     return null;
   }
-  const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
-  const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
-  const editorRef = useRef<any>(null);
-  const chatScrollRef = useRef<HTMLDivElement>(null);
-  const { speak } = useSpeech();
-  const lastSpokenChatIdRef = useRef<string>('');
 
   // Resizable window state
   const [isMaximized, setIsMaximized] = useState(false);
