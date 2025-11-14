@@ -2138,8 +2138,10 @@ function windowResized() {
       }
 
       const validModes = ["natural", "technical", "freestyle", "health"];
-      if (!validModes.includes(mode)) {
-        return res.status(400).json({ error: "Invalid mode" });
+      if (!mode || !validModes.includes(mode)) {
+        return res.status(400).json({ 
+          error: "Invalid mode. Valid modes are: natural, technical, freestyle, health" 
+        });
       }
 
       const currentSessionId = req.body.sessionId || randomUUID();

@@ -281,6 +281,15 @@ Remember: You're a creative coding partner. Make coding fun, accessible, and emp
     isNewSession: boolean = false
   ): Promise<string> {
     const lang = language || 'english';
+    
+    // Validate mode to ensure it's one of the allowed values
+    const validModes: ('natural' | 'technical' | 'freestyle' | 'health')[] = ['natural', 'technical', 'freestyle', 'health'];
+    const safeMode = validModes.includes(mode) ? mode : 'natural';
+    
+    if (safeMode !== mode) {
+      console.warn(`[LLM] Invalid mode "${mode}" provided, defaulting to "natural"`);
+    }
+    
     let contextualMessage = userMessage;
     let relevantDocuments: { fileName: string; snippet: string }[] = [];
 
@@ -310,66 +319,52 @@ Remember: You're a creative coding partner. Make coding fun, accessible, and emp
 
     try {
       // For HEALTH mode, use Mistral with specialized health model
-      if (mode === 'health' && process.env.MISTRAL_API_KEY) {
+      if (safeMode === 'health' && process.env.MISTRAL_API_KEY) {
         console.log('[LLM] Using Mistral AI (CWC-Mistral-Nemo) for HEALTH mode');
-        aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
+        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
       // For FREESTYLE mode, use Mistral as primary AI for superior code generation
-      else if (mode === 'freestyle' && process.env.MISTRAL_API_KEY) {
+      else if (safeMode === 'freestyle' && process.env.MISTRAL_API_KEY) {
         console.log('[LLM] Using Mistral AI for FREESTYLE code generation');
-        aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
+        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      }
+      // For TECHNICAL mode, use Mistral for detailed technical responses
+      else if (safeMode === 'technical' && process.env.MISTRAL_API_KEY) {
+        console.log('[LLM] Using Mistral AI for TECHNICAL mode');
+        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
       // For NATURAL mode, prioritize Mistral for conversational AI
-      else if (mode === 'natural' && process.env.MISTRAL_API_KEY) {
+      else if (safeMode === 'natural' && process.env.MISTRAL_API_KEY) {
         console.log('[LLM] Using Mistral AI for NATURAL chat mode');
-        aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
+        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
       // Fallback: Use Google Gemini (free tier, excellent quality)
       else if (process.env.GEMINI_API_KEY) {
-        console.log('[LLM] Using Google Gemini (fallback choice)');
-        aiResponse = await this.generateGeminiResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
-      }
-      // Secondary: Perplexity for technical queries requiring recent information
-      else if (mode === 'technical' && process.env.PERPLEXITY_API_KEY) {
-        console.log('[LLM] Using Perplexity for technical query');
-        aiResponse = await this.generatePerplexityResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
+        console.log(`[LLM] Using Google Gemini for ${safeMode.toUpperCase()} mode (fallback)`);
+        aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
       // Tertiary: Enhanced Hugging Face models
       else {
-        console.log('[LLM] Using enhanced Hugging Face models');
-        aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
+        console.log(`[LLM] Using enhanced Hugging Face models for ${safeMode.toUpperCase()} mode`);
+        aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
 
     } catch (primaryError) {
       console.error('Primary AI models error:', primaryError);
 
       try {
-        // Backup: Mistral AI fallback
-        if (process.env.MISTRAL_API_KEY) {
-          aiResponse = await this.generateMistralResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
-        }
-        // If no Mistral key, try OpenAI
-        else if (process.env.OPENAI_API_KEY) {
-          aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
+        // Backup: Google Gemini fallback (works for all modes)
+        if (process.env.GEMINI_API_KEY) {
+          console.log(`[LLM] Falling back to Google Gemini for ${safeMode.toUpperCase()} mode`);
+          aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         }
         // Final fallback
         else {
-          aiResponse = this.getEnhancedFallbackResponse(contextualMessage, mode);
+          aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
         }
       } catch (secondaryError) {
         console.error('Fallback AI models error:', secondaryError);
-
-        try {
-          // Final paid option: OpenAI fallback
-          if (process.env.OPENAI_API_KEY) {
-            aiResponse = await this.generateOpenAIResponse(contextualMessage, mode, conversationHistory, lang, isNewSession);
-          } else {
-            aiResponse = this.getEnhancedFallbackResponse(contextualMessage, mode);
-          }
-        } catch (tertiaryError) {
-          console.error('OpenAI fallback error:', tertiaryError);
-          aiResponse = this.getEnhancedFallbackResponse(contextualMessage, mode);
-        }
+        aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
       }
     }
 

@@ -46,8 +46,21 @@ export function useTerminal(onUploadCommand?: () => void) {
 
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [currentMode, setCurrentMode] = useState<'natural' | 'technical' | 'freestyle' | 'health'>('natural');
+  const [currentMode, setCurrentMode] = useState<'natural' | 'technical' | 'freestyle' | 'health'>(() => {
+    // Initialize from localStorage if available, default to 'natural'
+    const savedMode = localStorage.getItem('ai-mode');
+    return (savedMode === 'natural' || savedMode === 'technical' || savedMode === 'freestyle' || savedMode === 'health') 
+      ? savedMode 
+      : 'natural';
+  });
   const [isTyping, setIsTyping] = useState(false);
+  
+  // Save mode to localStorage whenever it changes
+  useEffect(() => {
+    if (currentMode) {
+      localStorage.setItem('ai-mode', currentMode);
+    }
+  }, [currentMode]);
   const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
   const [showPythonIDE, setShowPythonIDE] = useState(false);
   const [showPythonLessons, setShowPythonLessons] = useState(false);
@@ -902,13 +915,32 @@ Code Execution:
     }
 
     if (cmd.startsWith('mode ')) {
-      const newMode = cmd.split(' ')[1] as 'natural' | 'technical' | 'freestyle' | 'health';
+      const newMode = cmd.split(' ')[1]?.toLowerCase() as 'natural' | 'technical' | 'freestyle' | 'health';
+      
+      if (!newMode) {
+        addEntry('system', `Current mode: ${currentMode.toUpperCase()}\n\nAvailable modes:\n• natural - Conversational AI chat\n• technical - Detailed technical documentation\n• freestyle - Creative code generation\n• health - Natural medicine & wellness guidance`);
+        return;
+      }
+      
       if (newMode === 'natural' || newMode === 'technical' || newMode === 'freestyle' || newMode === 'health') {
+        const previousMode = currentMode;
         setCurrentMode(newMode);
-        addEntry('system', `Mode switched to: ${newMode.toUpperCase()}`);
+        
+        const modeDescriptions = {
+          natural: 'Conversational AI - Natural language chat with personality',
+          technical: 'Technical Mode - Detailed step-by-step documentation',
+          freestyle: 'Freestyle Mode - Creative code generation and experimentation',
+          health: 'Health Mode - Natural medicine, nutrition, and wellness guidance'
+        };
+        
+        addEntry('system', `Mode switched: ${previousMode.toUpperCase()} → ${newMode.toUpperCase()}\n${modeDescriptions[newMode]}`);
+        
+        // Clear any typing state to prevent conflicts
+        setIsTyping(false);
+        
         return;
       } else {
-        addEntry('error', 'Invalid mode. Use "natural", "technical", "freestyle", or "health"');
+        addEntry('error', `Invalid mode: "${newMode}"\n\nAvailable modes: natural, technical, freestyle, health\nExample: mode freestyle`);
         return;
       }
     }
