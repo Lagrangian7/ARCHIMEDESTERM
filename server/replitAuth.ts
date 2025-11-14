@@ -26,7 +26,7 @@ export function getSession() {
     return sessionMiddleware;
   }
 
-  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
+  const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 days
   
   try {
     const PostgresStore = connectPg(session);
@@ -38,7 +38,8 @@ export function getSession() {
       tableName: 'sessions',
       createTableIfMissing: true,
       ttl: sessionTtl / 1000, // PostgreSQL store expects TTL in seconds
-      pruneSessionInterval: 60 * 15, // Prune expired sessions every 15 minutes
+      pruneSessionInterval: 60 * 60, // Prune expired sessions every hour (less aggressive)
+      touchAfter: 24 * 60 * 60, // Only update session once per day to reduce DB load
     });
     
     store.on('error', (err) => {
@@ -49,7 +50,7 @@ export function getSession() {
     sessionMiddleware = session({
       store,
       secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
-      resave: true, // Save session on every request to extend expiration
+      resave: false, // Don't save session if unmodified (better performance)
       saveUninitialized: false, // Don't create session until something stored
       rolling: true, // Reset expiration on every response
       cookie: {
@@ -59,6 +60,8 @@ export function getSession() {
         sameSite: 'lax',
         path: '/',
       },
+      // Ensure session regeneration doesn't lose data
+      name: 'archimedes.sid',
     });
     
     return sessionMiddleware;
@@ -218,14 +221,19 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     updateUserSession(user, tokenResponse);
     
-    // Ensure session is saved after token refresh
-    req.session.save((err) => {
-      if (err) {
-        console.error('Session save error:', err);
-      }
-    });
+    // Mark session as modified and save to ensure persistence
+    req.session.touch();
     
-    return next();
+    return new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+          reject(err);
+        } else {
+          resolve(next());
+        }
+      });
+    });
   } catch (error) {
     console.error('Token refresh error:', error);
     res.status(401).json({ message: "Unauthorized" });
