@@ -473,27 +473,32 @@ export function Terminal() {
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={
-        isMidnightTheme
-          ? {
+        isGradientTheme 
+          ? { background: 'var(--terminal-bg)' }
+          : shouldShowBackground
+            ? {
+                backgroundImage: `url(${customBackgroundUrl || wallpaperImage})`,
+                backgroundSize: '100% 100%',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: 'var(--terminal-bg)'
+              }
+            : { backgroundColor: 'var(--terminal-bg)' }
+      }>
+        {/* Background layer for midnight theme */}
+        {currentTheme === 'midnight-gradient' && (
+          <div 
+            className="absolute inset-0 z-0"
+            style={{
               backgroundImage: `url(/attached_assets/midnight_1763159442152.jpeg)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              backgroundColor: '#0a0f14',
-              backgroundBlendMode: 'darken'
-            }
-          : isGradientTheme 
-            ? { background: 'var(--terminal-bg)' }
-            : shouldShowBackground
-              ? {
-                  backgroundImage: `url(${customBackgroundUrl || wallpaperImage})`,
-                  backgroundSize: '100% 100%',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundColor: 'var(--terminal-bg)'
-                }
-              : { backgroundColor: 'var(--terminal-bg)' }
-      }>
+              opacity: 0.8
+            }}
+          />
+        )}
+
         {/* Shooting Stars for gradient themes (except midnight) */}
         {gradientThemes.includes(currentTheme) && currentTheme !== 'midnight-gradient' && (
           <div className="night">
@@ -505,7 +510,7 @@ export function Terminal() {
 
         {/* Fireflies for midnight theme */}
         {currentTheme === 'midnight-gradient' && (
-          <div className="night">
+          <div className="night" style={{ zIndex: 2 }}>
             {Array.from({ length: 15 }, (_, i) => (
               <div key={i} className="firefly" />
             ))}
