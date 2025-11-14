@@ -480,6 +480,15 @@ export function Terminal() {
         backgroundAttachment: 'fixed',
         backgroundColor: isGradientTheme ? undefined : 'var(--terminal-bg)'
       }}>
+        {/* Shooting Stars for midnight-gradient theme */}
+        {currentTheme === 'midnight-gradient' && (
+          <div className="night">
+            {Array.from({ length: 10 }, (_, i) => (
+              <div key={i} className="shooting_star" />
+            ))}
+          </div>
+        )}
+
         {/* Matrix Rain Background Effect - with reduced opacity to show wallpaper */}
         <div style={{ 
           opacity: shouldShowBackground ? 0.3 : 0.05 
