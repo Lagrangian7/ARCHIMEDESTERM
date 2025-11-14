@@ -160,6 +160,7 @@ export function Terminal() {
     'cyberpunk', 'forest', 'ocean', 'sunset', 'neon', 'vintage', 'arctic', 'amber', 'hacker', 'royal',
     'vaporwave', 'desert', 'toxic', 'crimson', 'lavender', 'emerald', 'midnight', 'sakura', 'copper', 'plasma',
     'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle',
+    'nord-dark', 'gruvbox-dark', 'tokyo-night-dark', 'catppuccin-mocha', 'everforest-dark',
     'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light'
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>(() => {
@@ -459,7 +460,10 @@ export function Terminal() {
   const MemoizedPythonLessons = useMemo(() => memo(PythonLessons), []); // Memoized PythonLessons
 
   // Themes that don't use background images
-  const noBgThemes = ['nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light'];
+  const noBgThemes = [
+    'nord-dark', 'gruvbox-dark', 'tokyo-night-dark', 'catppuccin-mocha', 'everforest-dark',
+    'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light'
+  ];
   const shouldShowBackground = !noBgThemes.includes(currentTheme);
 
   return (

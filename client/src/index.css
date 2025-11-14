@@ -491,6 +491,66 @@
 }
 
 /* New Eye-Friendly Themes - No Background Image */
+.theme-nord-dark {
+  --terminal-bg: hsl(220 16% 22%);
+  --terminal-text: hsl(218 27% 92%);
+  --terminal-highlight: hsl(193 43% 67%);
+  --terminal-subtle: hsl(220 16% 28%);
+  --terminal-subtle-rgb: 59, 66, 82;
+  --terminal-logo-green: hsl(193 43% 67%);
+  --terminal-bright-green: hsl(179 25% 65%);
+  --terminal-orange: hsl(14 51% 63%);
+  --terminal-no-bg: 1;
+}
+
+.theme-gruvbox-dark {
+  --terminal-bg: hsl(0 0% 16%);
+  --terminal-text: hsl(39 57% 78%);
+  --terminal-highlight: hsl(24 86% 67%);
+  --terminal-subtle: hsl(0 0% 22%);
+  --terminal-subtle-rgb: 60, 56, 54;
+  --terminal-logo-green: hsl(142 60% 60%);
+  --terminal-bright-green: hsl(142 60% 60%);
+  --terminal-orange: hsl(24 86% 67%);
+  --terminal-no-bg: 1;
+}
+
+.theme-tokyo-night-dark {
+  --terminal-bg: hsl(230 23% 18%);
+  --terminal-text: hsl(224 18% 79%);
+  --terminal-highlight: hsl(187 47% 55%);
+  --terminal-subtle: hsl(230 23% 24%);
+  --terminal-subtle-rgb: 47, 52, 73;
+  --terminal-logo-green: hsl(166 51% 54%);
+  --terminal-bright-green: hsl(166 51% 54%);
+  --terminal-orange: hsl(25 90% 65%);
+  --terminal-no-bg: 1;
+}
+
+.theme-catppuccin-mocha {
+  --terminal-bg: hsl(240 21% 15%);
+  --terminal-text: hsl(226 64% 88%);
+  --terminal-highlight: hsl(220 91% 54%);
+  --terminal-subtle: hsl(237 16% 23%);
+  --terminal-subtle-rgb: 48, 52, 70;
+  --terminal-logo-green: hsl(115 54% 76%);
+  --terminal-bright-green: hsl(115 54% 76%);
+  --terminal-orange: hsl(22 88% 67%);
+  --terminal-no-bg: 1;
+}
+
+.theme-everforest-dark {
+  --terminal-bg: hsl(160 12% 17%);
+  --terminal-text: hsl(45 24% 79%);
+  --terminal-highlight: hsl(35 55% 63%);
+  --terminal-subtle: hsl(160 12% 23%);
+  --terminal-subtle-rgb: 45, 54, 51;
+  --terminal-logo-green: hsl(142 40% 60%);
+  --terminal-bright-green: hsl(142 40% 60%);
+  --terminal-orange: hsl(35 55% 63%);
+  --terminal-no-bg: 1;
+}
+
 .theme-nord-light {
   --terminal-bg: hsl(218 27% 94%);
   --terminal-text: hsl(220 16% 36%);
