@@ -2025,6 +2025,191 @@ function windowResized() {
     res.send(gameHtml);
   });
 
+  // Multi-language code execution endpoints
+  app.post('/api/execute/javascript', isAuthenticated, async (req, res) => {
+    const { code } = req.body;
+
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Code is required and must be a string'
+      });
+    }
+
+    try {
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      const execAsync = promisify(exec);
+
+      const startTime = Date.now();
+      const { stdout, stderr } = await execAsync(`node -e ${JSON.stringify(code)}`, {
+        timeout: 10000,
+        maxBuffer: 1024 * 1024
+      });
+      const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+      res.json({
+        success: !stderr,
+        output: stdout,
+        error: stderr,
+        executionTime
+      });
+    } catch (error: any) {
+      res.json({
+        success: false,
+        error: error.message || 'JavaScript execution failed',
+        executionTime: 0
+      });
+    }
+  });
+
+  app.post('/api/execute/typescript', isAuthenticated, async (req, res) => {
+    const { code } = req.body;
+
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Code is required and must be a string'
+      });
+    }
+
+    let tmpFile: string | null = null;
+    try {
+      const fs = await import('fs/promises');
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      const execAsync = promisify(exec);
+      const path = await import('path');
+
+      tmpFile = path.join('/tmp', `code_${Date.now()}.ts`);
+      await fs.writeFile(tmpFile, code);
+
+      const startTime = Date.now();
+      const { stdout, stderr } = await execAsync(`npx tsx ${tmpFile}`, {
+        timeout: 15000,
+        maxBuffer: 1024 * 1024
+      });
+      const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+      res.json({
+        success: !stderr,
+        output: stdout,
+        error: stderr,
+        executionTime
+      });
+    } catch (error: any) {
+      res.json({
+        success: false,
+        error: error.message || 'TypeScript execution failed',
+        executionTime: 0
+      });
+    } finally {
+      if (tmpFile) {
+        try {
+          const fs = await import('fs/promises');
+          await fs.unlink(tmpFile);
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+      }
+    }
+  });
+
+  app.post('/api/execute/bash', isAuthenticated, async (req, res) => {
+    const { code } = req.body;
+
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Code is required and must be a string'
+      });
+    }
+
+    try {
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      const execAsync = promisify(exec);
+
+      const startTime = Date.now();
+      const { stdout, stderr } = await execAsync(code, {
+        shell: '/bin/bash',
+        timeout: 10000,
+        maxBuffer: 1024 * 1024
+      });
+      const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+      res.json({
+        success: !stderr,
+        output: stdout,
+        error: stderr,
+        executionTime
+      });
+    } catch (error: any) {
+      res.json({
+        success: false,
+        error: error.message || 'Bash execution failed',
+        executionTime: 0
+      });
+    }
+  });
+
+  app.post('/api/execute/cpp', isAuthenticated, async (req, res) => {
+    const { code } = req.body;
+
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Code is required and must be a string'
+      });
+    }
+
+    let tmpFile: string | null = null;
+    let tmpExec: string | null = null;
+    try {
+      const fs = await import('fs/promises');
+      const { exec } = await import('child_process');
+      const { promisify } = await import('util');
+      const execAsync = promisify(exec);
+      const path = await import('path');
+
+      tmpFile = path.join('/tmp', `code_${Date.now()}.cpp`);
+      tmpExec = path.join('/tmp', `exec_${Date.now()}`);
+      await fs.writeFile(tmpFile, code);
+
+      // Compile
+      await execAsync(`g++ ${tmpFile} -o ${tmpExec}`, { timeout: 15000 });
+
+      // Execute
+      const startTime = Date.now();
+      const { stdout, stderr } = await execAsync(tmpExec, {
+        timeout: 10000,
+        maxBuffer: 1024 * 1024
+      });
+      const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+      res.json({
+        success: !stderr,
+        output: stdout,
+        error: stderr,
+        executionTime
+      });
+    } catch (error: any) {
+      res.json({
+        success: false,
+        error: error.message || 'C++ execution failed',
+        executionTime: 0
+      });
+    } finally {
+      try {
+        const fs = await import('fs/promises');
+        if (tmpFile) await fs.unlink(tmpFile);
+        if (tmpExec) await fs.unlink(tmpExec);
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    }
+  });
+
   // Create HTTP server first
   const httpServer = createServer(app);
 
