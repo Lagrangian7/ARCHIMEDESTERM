@@ -463,7 +463,8 @@ export function Terminal() {
   // Themes that don't use background images
   const noBgThemes = [
     'nord-dark', 'gruvbox-dark', 'tokyo-night-dark', 'catppuccin-mocha', 'everforest-dark',
-    'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light'
+    'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light',
+    'commodore64'
   ];
   const gradientThemes = ['midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'];
   const shouldShowBackground = !noBgThemes.includes(currentTheme) && !gradientThemes.includes(currentTheme);

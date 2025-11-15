@@ -202,6 +202,7 @@
   --terminal-logo-green: hsl(195 100% 85%);
   --terminal-bright-green: hsl(195 100% 85%);
   --terminal-orange: hsl(195 100% 65%);
+  --terminal-no-bg: 1;
 }
 
 /* Commodore 64 CRT Effects */
@@ -218,12 +219,12 @@
   pointer-events: none;
 }
 
-.theme-commodore64 .crt-scanlines {
-  position: fixed;
+.theme-commodore64 .terminal-container .crt-scanlines {
+  position: absolute;
   left: 0;
   top: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   z-index: 300;
   opacity: .6;
@@ -245,12 +246,12 @@
   animation: crtScanlines .2s linear infinite;
 }
 
-.theme-commodore64 .crt-noise {
-  position: fixed;
+.theme-commodore64 .terminal-container .crt-noise {
+  position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   z-index: 400;
   opacity: .8;
