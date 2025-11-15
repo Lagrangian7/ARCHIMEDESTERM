@@ -468,51 +468,23 @@ export function Terminal() {
   const gradientThemes = ['midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'];
   const shouldShowBackground = !noBgThemes.includes(currentTheme) && !gradientThemes.includes(currentTheme);
   const isGradientTheme = gradientThemes.includes(currentTheme);
-  const isMidnightTheme = currentTheme === 'midnight-gradient';
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
-      <div className={`terminal-container flex flex-col h-full relative z-0`} style={
-        isGradientTheme 
-          ? { background: 'var(--terminal-bg)' }
-          : shouldShowBackground
-            ? {
-                backgroundImage: `url(${customBackgroundUrl || wallpaperImage})`,
-                backgroundSize: '100% 100%',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                backgroundColor: 'var(--terminal-bg)'
-              }
-            : { backgroundColor: 'var(--terminal-bg)' }
-      }>
-        {/* Background layer for midnight theme */}
+      <div className={`terminal-container flex flex-col h-full relative z-0`} style={{
+        background: isGradientTheme ? 'var(--terminal-bg)' : undefined,
+        backgroundImage: shouldShowBackground ? `url(${customBackgroundUrl || wallpaperImage})` : (isGradientTheme ? undefined : 'none'),
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        backgroundColor: isGradientTheme ? undefined : 'var(--terminal-bg)'
+      }}>
+        {/* Shooting Stars for midnight-gradient theme */}
         {currentTheme === 'midnight-gradient' && (
-          <div 
-            className="absolute inset-0 z-0"
-            style={{
-              backgroundImage: `url(/attached_assets/midnight_1763160246697.jpeg)`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              opacity: 0.9
-            }}
-          />
-        )}
-
-        {/* Shooting Stars for gradient themes (except midnight) */}
-        {gradientThemes.includes(currentTheme) && currentTheme !== 'midnight-gradient' && (
           <div className="night">
             {Array.from({ length: 10 }, (_, i) => (
               <div key={i} className="shooting_star" />
-            ))}
-          </div>
-        )}
-
-        {/* Fireflies for midnight theme */}
-        {currentTheme === 'midnight-gradient' && (
-          <div className="night" style={{ zIndex: 2 }}>
-            {Array.from({ length: 15 }, (_, i) => (
-              <div key={i} className="firefly" />
             ))}
           </div>
         )}
