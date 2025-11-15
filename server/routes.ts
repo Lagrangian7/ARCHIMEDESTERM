@@ -640,10 +640,6 @@ function draw() {
       });
     }
   });
-
-  const limbOffsetBg = sin(frameCount * limbAnimationSpeed) * 1;
-  for (let invader of backgroundInvaders) {
-    invader.z -= 1;
     if (invader.z < 600) {
       invader.z = 1200;
       invader.x = (floor(random(-2, 3))) * 100;
