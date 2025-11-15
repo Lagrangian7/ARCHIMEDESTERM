@@ -2251,6 +2251,15 @@ function windowResized() {
     }
   });
 
+  // Session keep-alive heartbeat endpoint
+  // This endpoint triggers token refresh via isAuthenticated middleware
+  app.get('/api/auth/heartbeat', isAuthenticated, async (req, res) => {
+    res.json({ 
+      status: 'ok',
+      timestamp: new Date().toISOString() 
+    });
+  });
+
   // User preferences routes
   app.get("/api/user/preferences", isAuthenticated, async (req: any, res) => {
     try {

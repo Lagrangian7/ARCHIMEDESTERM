@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SpeechProvider } from "@/contexts/SpeechContext";
 import { SplashScreen } from "@/components/SplashScreen";
+import { useSessionKeepAlive } from "@/hooks/useSessionKeepAlive";
 import TerminalPage from "@/pages/terminal";
 
 function Router() {
@@ -17,6 +18,20 @@ function Router() {
         <TerminalPage />
       </Route>
     </Switch>
+  );
+}
+
+function AppContent({ showSplash, onSplashComplete }: { showSplash: boolean; onSplashComplete: () => void }) {
+  // Keep session alive by refreshing tokens every 15 minutes
+  // This must be inside QueryClientProvider since useAuth uses react-query
+  useSessionKeepAlive();
+
+  return (
+    <>
+      <Toaster />
+      {showSplash && <SplashScreen onComplete={onSplashComplete} />}
+      <Router />
+    </>
   );
 }
 
@@ -46,9 +61,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SpeechProvider>
-          <Toaster />
-          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-          <Router />
+          <AppContent showSplash={showSplash} onSplashComplete={handleSplashComplete} />
         </SpeechProvider>
       </TooltipProvider>
     </QueryClientProvider>
