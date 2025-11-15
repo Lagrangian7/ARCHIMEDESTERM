@@ -1021,7 +1021,7 @@ Technical Implementation Archives: Complete protocols available for detailed fab
 
   /**
    * Generate code completions using Mistral AI for monacopilot
-   * Optimized for Python code completion in the IDE
+   * Supports multiple programming languages with proper cleanup
    */
   async generateCodeCompletion(
     code: string,
@@ -1029,6 +1029,23 @@ Technical Implementation Archives: Complete protocols available for detailed fab
     filename?: string
   ): Promise<string> {
     try {
+      // Language-specific style guidelines
+      const styleGuides: Record<string, string> = {
+        python: 'follow PEP 8 style guidelines',
+        javascript: 'use modern ES6+ syntax and conventions',
+        typescript: 'use proper TypeScript types and interfaces',
+        java: 'follow Java naming conventions (camelCase for methods, PascalCase for classes)',
+        cpp: 'follow C++ best practices with proper memory management',
+        c: 'follow C99 standard conventions',
+        go: 'follow Go formatting conventions (gofmt style)',
+        rust: 'follow Rust idioms and ownership patterns',
+        ruby: 'follow Ruby style guide conventions',
+        php: 'follow PSR-12 coding standards',
+        bash: 'follow shell scripting best practices'
+      };
+
+      const styleGuide = styleGuides[language.toLowerCase()] || 'follow best practices';
+
       const systemPrompt = `You are an expert ${language} code completion assistant. Your task is to provide concise, accurate code completions.
 
 CRITICAL RULES:
@@ -1036,7 +1053,7 @@ CRITICAL RULES:
 2. Complete the code naturally from where it ends
 3. Keep completions focused and relevant
 4. Provide syntactically correct code
-5. For Python: follow PEP 8 style guidelines
+5. ${styleGuide}
 6. Return ONLY the code that should be added, nothing else`;
 
       const userPrompt = `Complete this ${language} code${filename ? ` from ${filename}` : ''}:
@@ -1063,9 +1080,15 @@ ${code}`;
       // Clean up the response - remove any markdown code blocks
       let cleanedCompletion = typeof completion === 'string' ? completion : completion.map((chunk: any) => chunk.text).join('');
       
-      // Remove markdown code blocks if present
-      cleanedCompletion = cleanedCompletion.replace(/```(?:python|py|javascript|js|typescript|ts)?\n?/g, '');
-      cleanedCompletion = cleanedCompletion.replace(/```\n?/g, '');
+      // Remove markdown code blocks for all supported languages
+      const codeBlockPatterns = [
+        /```(?:python|py|javascript|js|typescript|ts|java|cpp|c|go|rust|ruby|php|bash|sql|r|perl|html|css)?\n?/g,
+        /```\n?/g
+      ];
+      
+      codeBlockPatterns.forEach(pattern => {
+        cleanedCompletion = cleanedCompletion.replace(pattern, '');
+      });
       
       // Trim excessive whitespace
       cleanedCompletion = cleanedCompletion.trim();
