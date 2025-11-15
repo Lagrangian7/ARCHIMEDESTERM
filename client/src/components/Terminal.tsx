@@ -485,6 +485,15 @@ export function Terminal() {
               }
             : { backgroundColor: 'var(--terminal-bg)' }
       }>
+        {/* CRT Effects for Commodore 64 theme */}
+        {currentTheme === 'commodore64' && (
+          <>
+            <div className="crt-scanlines" />
+            <div className="crt-noise" />
+            <div className="crt-noise crt-noise-moving" />
+          </>
+        )}
+
         {/* Background layer for midnight theme */}
         {currentTheme === 'midnight-gradient' && customBackgroundUrl && (
           <div 
