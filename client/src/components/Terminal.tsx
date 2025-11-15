@@ -474,7 +474,7 @@ export function Terminal() {
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={
-        isGradientTheme 
+        isGradientTheme
           ? { background: 'var(--terminal-bg)' }
           : shouldShowBackground
             ? {
@@ -488,10 +488,10 @@ export function Terminal() {
       }>
         {/* Background layer for midnight theme */}
         {currentTheme === 'midnight-gradient' && customBackgroundUrl && (
-          <div 
+          <div
             className="absolute inset-0 z-0"
             style={{
-              backgroundImage: customBackgroundUrl.includes('attached_assets') 
+              backgroundImage: customBackgroundUrl.includes('attached_assets')
                 ? `url(${customBackgroundUrl})`
                 : `url(/attached_assets/midnight_1763160246697.jpeg)`,
               backgroundSize: 'cover',
@@ -502,14 +502,7 @@ export function Terminal() {
           />
         )}
 
-        {/* Shooting Stars for gradient themes (except midnight) */}
-        {gradientThemes.includes(currentTheme) && currentTheme !== 'midnight-gradient' && (
-          <div className="night">
-            {Array.from({ length: 10 }, (_, i) => (
-              <div key={i} className="shooting_star" />
-            ))}
-          </div>
-        )}
+        {/* Shooting Stars removed from all gradient themes */}
 
         {/* Fireflies for midnight theme */}
         {currentTheme === 'midnight-gradient' && (
@@ -521,8 +514,8 @@ export function Terminal() {
         )}
 
         {/* Matrix Rain Background Effect - with reduced opacity to show wallpaper */}
-        <div style={{ 
-          opacity: shouldShowBackground ? 0.3 : 0.05 
+        <div style={{
+          opacity: shouldShowBackground ? 0.3 : 0.05
         }}>
           <MemoizedMatrixRain />
         </div>
