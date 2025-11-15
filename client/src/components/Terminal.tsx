@@ -502,8 +502,6 @@ export function Terminal() {
           />
         )}
 
-        {/* Shooting Stars removed from all gradient themes */}
-
         {/* Fireflies for midnight theme */}
         {currentTheme === 'midnight-gradient' && (
           <div className="night" style={{ zIndex: 2 }}>
