@@ -641,12 +641,6 @@ function draw() {
     }
   });
 
-    let size = map(star.z, 1000, 0, 1, 4);
-    fill(255, 255, 255, 100);
-    noStroke();
-    rect(sx, sy, size, size);
-  }
-
   const limbOffsetBg = sin(frameCount * limbAnimationSpeed) * 1;
   for (let invader of backgroundInvaders) {
     invader.z -= 1;
