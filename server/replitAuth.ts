@@ -45,26 +45,10 @@ export function getSession() {
       createTableIfMissing: true,
       ttl: sessionTtl / 1000,
       pruneSessionInterval: 60 * 60,
-      touchAfter: 24 * 60 * 60,
     });
     
     store.on('error', (err) => {
       console.error('Session store error:', err);
-    });
-    
-    // Test the connection before using it
-    await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Database connection timeout'));
-      }, 5000);
-      
-      store.on('connect', () => {
-        clearTimeout(timeout);
-        resolve(true);
-      });
-    }).catch(() => {
-      console.warn('⚠️  Database connection failed - falling back to memory store');
-      throw new Error('Database connection failed');
     });
     
     sessionMiddleware = session({
