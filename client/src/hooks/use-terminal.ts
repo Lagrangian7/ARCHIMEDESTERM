@@ -2149,8 +2149,13 @@ Powered by Wolfram Alpha Full Results API`);
               addEntry('system', '💭 Archimedes AI analyzing results...');
 
               chatMutation.mutate({
-                message: `Please provide a brief, insightful commentary on these Wolfram Alpha results for the query "${query}":\n\n${resultSummary}\n\nGive a short analysis (2-3 sentences) explaining the significance or practical application of these results.`,
+                message: `As ARCHIMEDES, analyze these Wolfram Alpha results with personality and insight. Query: "${query}"\n\nResults:\n${resultSummary}\n\nProvide your unique perspective on what these results mean, why they matter, or how they could be applied. Be conversational and engaging - this is natural mode, not a robotic analysis.`,
                 mode: currentMode
+              }, {
+                onError: (error) => {
+                  setIsTyping(false);
+                  addEntry('error', `AI analysis failed: ${error.message}. The Wolfram results above are still valid though!`);
+                }
               });
             }, speechDuration);
           } else {

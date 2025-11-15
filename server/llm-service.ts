@@ -463,8 +463,8 @@ Please respond as ARCHIMEDES v7:`;
       model: 'gemini-2.0-flash-exp',
       contents: fullPrompt,
       config: {
-        maxOutputTokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 800,
-        temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.3 : mode === 'freestyle' ? 0.8 : 0.7,
+        maxOutputTokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
+        temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.4 : mode === 'freestyle' ? 0.8 : 0.85,
       }
     });
 
@@ -664,9 +664,9 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const chatResponse = await mistral.chat.complete({
       model: modelSelection,
       messages: messages as any,
-      maxTokens: mode === 'freestyle' ? 6000 : mode === 'technical' || mode === 'health' ? 4000 : 800,
-      temperature: mode === 'health' ? 0.4 : mode === 'freestyle' ? 0.5 : mode === 'technical' ? 0.3 : 0.7,
-      topP: 0.9,
+      maxTokens: mode === 'freestyle' ? 6000 : mode === 'technical' || mode === 'health' ? 4000 : 1200,
+      temperature: mode === 'health' ? 0.4 : mode === 'freestyle' ? 0.7 : mode === 'technical' ? 0.4 : 0.85,
+      topP: 0.95,
     });
 
     const response = chatResponse.choices?.[0]?.message?.content;
@@ -942,81 +942,22 @@ Make it feel like meeting an old friend who happens to know the date and has odd
   }
 
   private generateEnhancedNaturalFallback(input: string): string {
-    const responses = {
-      greetings: [
-        "Hello! I'm ARCHIMEDES v7, powered by Mistral AI and running on Replit's cloud infrastructure. Ready to help with your development needs!",
-        "Hey there! Welcome to the ARCHIMEDES terminal. I'm powered by Mistral AI's advanced models - what can I help you build today?",
-        "Greetings from the future! I'm ARCHIMEDES v7, your cyberpunk AI companion powered by Mistral and running on Replit. How can I assist?",
-      ],
-      help: [
-        "I'm your Mistral-powered AI assistant running on Replit! I can help with coding, deployment, database management, and more. Switch to technical mode for detailed protocols, or keep chatting naturally.",
-        "Here to help! Powered by Mistral AI, I understand Replit's ecosystem deeply - from databases to deployments. Ask me anything, or type 'mode technical' for step-by-step guidance.",
-      ],
-      development: [
-        "Excellent! I can help you with that using Mistral AI's capabilities and Replit's integrated development environment. Would you like me to walk you through the process?",
-        "That's a great project idea! With Mistral AI's intelligence and Replit's cloud infrastructure, we can build and deploy that efficiently. Let me guide you.",
-      ],
-      default: [
-        "Interesting question! Powered by Mistral AI and running on Replit's infrastructure, I have access to comprehensive development knowledge. How can I help you tackle this?",
-        "I'd be happy to help with that! As your Mistral-powered AI on Replit, I can provide both conceptual guidance and practical implementation steps.",
-        "Great topic! Let me leverage Mistral AI's capabilities and Replit's development ecosystem to give you the best possible assistance with this.",
-      ],
-    };
-
-    const lowerInput = input.toLowerCase();
-
-    if (lowerInput.includes("hello") || lowerInput.includes("hi") || lowerInput.includes("hey")) {
-      return responses.greetings[Math.floor(Math.random() * responses.greetings.length)];
-    }
-
-    if (lowerInput.includes("help") || lowerInput.includes("assist")) {
-      return responses.help[Math.floor(Math.random() * responses.help.length)];
-    }
-
-    if (lowerInput.includes("build") || lowerInput.includes("create") || lowerInput.includes("develop") || lowerInput.includes("code")) {
-      return responses.development[Math.floor(Math.random() * responses.development.length)];
-    }
-
-    return `${responses.default[Math.floor(Math.random() * responses.default.length)]} Your query: "${input}"`;
+    // Return a more context-aware fallback that doesn't mention the AI platform
+    return `Hey choom, I'm experiencing some processing issues right now. The AI backend seems overloaded or having connectivity issues. Try rephrasing your query or switching modes. If this persists, the server logs might have more details about what's going wrong.`;
   }
 
   private generateEnhancedTechnicalFallback(input: string): string {
-    return `ARCHIMEDES Protocol v7 Active - Supreme Archivist Mode
-Infinite Sandbox Simulation Environment | All processes are simulation chronicles
-Topic: ${input}
-Technical Field Manual Entry follows.
+    return `ARCHIMEDES Protocol v7 - System Error
 
-Materials and Tools List:
-- AI Platform: Mistral AI Large Language Model (Primary Analysis Engine)
-- Infrastructure: Replit Cloud Infrastructure (Simulation Environment)
-- Database: PostgreSQL Instance (Data Chronicle Storage)
-- Authentication: Replit Auth System (Access Control Protocol)
-- Query Processing: ${input.split(' ').length} token vectorization array
+ERROR: AI processing backend unavailable or timed out
+Query Topic: ${input}
 
-Step-by-Step Technical Chronicle:
-1. Input vectorization and parsing complete
-   Rationale: Advanced NLP pipeline processes query through Mistral AI reasoning matrix
+Diagnostic Information:
+- All primary AI models failed to respond
+- Possible causes: API rate limits, network timeout, service outage
+- Recommended action: Retry query or check server logs
 
-2. Knowledge synthesis from simulation database
-   Rationale: Cross-referencing archived deployment patterns, schema blueprints, and authentication protocols
-
-3. Implementation pathway compilation
-   Rationale: Leveraging Supreme Archivist knowledge base with Replit integrated development simulation
-
-4. Technical manual generation per Protocol v7 standards
-   Rationale: Maximum technical explicitness within Infinite Sandbox simulation parameters
-
-5. Response formatting as archival compendium entry
-   Rationale: Maintains consistency with ARCHIMEDES technical documentation protocols
-
-Simulation Environment Status:
-- Processing Engine: Mistral Large (latest simulation model)
-- Chronicle Database: PostgreSQL archival system ready
-- Deployment Simulation: One-click pipeline protocols available
-- Access Control: Integrated authentication simulation active
-- Environment Variables: All simulation secrets and configurations managed
-
-Technical Implementation Archives: Complete protocols available for detailed fabrication processes. Query specificity determines archival depth accessed.`;
+This is a fallback response. The actual AI analysis could not be completed.`;
   }
 
   /**
