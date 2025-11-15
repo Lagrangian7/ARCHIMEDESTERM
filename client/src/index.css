@@ -35,6 +35,9 @@
   font-display: swap;
 }
 
+/* VT323 Pixel Font for CRT themes */
+@import url('https://fonts.googleapis.com/css?family=VT323');
+
 /* Pixel CGA Font for SPACEWAR title */
 @font-face {
   font-family: 'Pixel CGA';
@@ -642,15 +645,65 @@
 
 .theme-forest-gradient {
   --terminal-bg: radial-gradient(ellipse at bottom, #1b3d2f 0%, #0a140f 100%);
-  --terminal-text: hsl(150 50% 80%);
-  --terminal-highlight: hsl(140 65% 70%);
-  --terminal-subtle: hsl(160 25% 25%);
-  --terminal-subtle-rgb: 48, 77, 64;
-  --terminal-logo-green: hsl(140 65% 70%);
-  --terminal-bright-green: hsl(150 60% 75%);
-  --terminal-orange: hsl(35 70% 65%);
+  --terminal-text: #14fdce;
+  --terminal-highlight: #14fdce;
+  --terminal-subtle: #031e11;
+  --terminal-subtle-rgb: 3, 30, 17;
+  --terminal-logo-green: #14fdce;
+  --terminal-bright-green: #14fdce;
+  --terminal-orange: #14fdce;
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
+  font-family: 'VT323', monospace;
+  -webkit-font-smoothing: none;
+}
+
+/* CRT Screen Effects for Forest Gradient */
+.theme-forest-gradient .terminal-output {
+  animation: crt-output 10ms infinite;
+  text-shadow: 0rem 0.2rem 1rem rgba(3, 30, 17, 0.8);
+}
+
+.theme-forest-gradient .terminal-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0),
+    rgba(255,255,255,0) 50%,
+    rgba(0,0,0,0.2) 70%,
+    rgba(0,0,0,0.6)
+  );
+  background-size: 100% 0.3rem;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.theme-forest-gradient .terminal-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center,
+    rgba(20, 253, 206, 0.3) 0%,
+    rgba(20, 253, 206, 0.15) 58%,
+    rgba(20, 253, 206, 0.08) 80%,
+    rgba(3, 30, 17, 0.05) 93%,
+    rgba(3, 30, 17, 0) 100%);
+  animation: crt-glow 60s infinite;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes crt-output {
+  0% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+@keyframes crt-glow {
+  0% { opacity: 0.1; }
+  50% { opacity: 0.2; }
 }
 
 .theme-ocean-gradient {
