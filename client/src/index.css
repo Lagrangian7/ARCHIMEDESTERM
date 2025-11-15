@@ -205,8 +205,8 @@
   --terminal-no-bg: 1;
 }
 
-/* Commodore 64 CRT Effects */
-.theme-commodore64 .terminal-container::before {
+/* Commodore 64 CRT Effects - Scoped to terminal output only */
+.theme-commodore64 .terminal-output::before {
   content: '';
   position: absolute;
   left: 0;
@@ -214,25 +214,25 @@
   right: 0;
   bottom: 0;
   background: radial-gradient(ellipse at center, rgba(0,0,0,0) 0%, rgba(0,0,0,.4) 100%);
-  z-index: 500;
+  z-index: 1;
   mix-blend-mode: overlay;
   pointer-events: none;
 }
 
-.theme-commodore64 .terminal-container .crt-scanlines {
+.theme-commodore64 .terminal-output .crt-scanlines {
   position: absolute;
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 300;
+  z-index: 2;
   opacity: .6;
   will-change: opacity;
   animation: crtOpacity 3s linear infinite;
 }
 
-.theme-commodore64 .crt-scanlines::before {
+.theme-commodore64 .terminal-output .crt-scanlines::before {
   content: '';
   position: absolute;
   left: 0;
@@ -246,14 +246,14 @@
   animation: crtScanlines .2s linear infinite;
 }
 
-.theme-commodore64 .terminal-container .crt-noise {
+.theme-commodore64 .terminal-output .crt-noise {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  z-index: 400;
+  z-index: 2;
   opacity: .8;
   pointer-events: none;
 }
@@ -1295,6 +1295,7 @@
   }
 
   .terminal-output {
+    position: relative;
     scrollbar-width: thin;
     scrollbar-color: var(--terminal-subtle) transparent;
   }

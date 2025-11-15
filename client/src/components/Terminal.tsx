@@ -486,15 +486,6 @@ export function Terminal() {
               }
             : { backgroundColor: 'var(--terminal-bg)' }
       }>
-        {/* CRT Effects for Commodore 64 theme */}
-        {currentTheme === 'commodore64' && (
-          <>
-            <div className="crt-scanlines" />
-            <div className="crt-noise" />
-            <div className="crt-noise crt-noise-moving" />
-          </>
-        )}
-
         {/* Background layer for midnight theme */}
         {currentTheme === 'midnight-gradient' && customBackgroundUrl && (
           <div 
@@ -566,6 +557,15 @@ export function Terminal() {
               className="terminal-output p-2 md:p-4 font-mono text-xs md:text-sm leading-relaxed relative z-10"
               data-testid="terminal-output"
             >
+              {/* CRT Effects for Commodore 64 theme - only in terminal output */}
+              {currentTheme === 'commodore64' && (
+                <>
+                  <div className="crt-scanlines" />
+                  <div className="crt-noise" />
+                  <div className="crt-noise crt-noise-moving" />
+                </>
+              )}
+              
               {entries.slice(0, visibleEntries).map((entry) => (
                 <div
                   key={entry.id}
