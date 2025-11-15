@@ -497,149 +497,18 @@ function draw() {
     }
     let sx = (star.x / star.z) * 200;
     let sy = (star.y / star.z) * 200;
+    
+    let size = map(star.z, 0, 1000, 3, 0);
+    fill(255);
+    noStroke();
+    ellipse(sx, sy, size, size);
+  }
 
+  let limbOffsetBg = sin(frameCount * limbAnimationSpeed) * limbAnimationAmplitude;
+  let blinkInterval = 30;
 
-// Multi-language code execution endpoints
-  app.post('/api/execute/javascript', async (req, res) => {
-    const { code } = req.body;
-
-    try {
-      const { exec } = await import('child_process');
-      const { promisify } = await import('util');
-      const execAsync = promisify(exec);
-
-      const startTime = Date.now();
-      const { stdout, stderr } = await execAsync(`node -e ${JSON.stringify(code)}`, {
-        timeout: 10000,
-        maxBuffer: 1024 * 1024
-      });
-      const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
-
-      res.json({
-        success: !stderr,
-        output: stdout,
-        error: stderr,
-        executionTime
-      });
-    } catch (error: any) {
-      res.json({
-        success: false,
-        error: error.message || 'JavaScript execution failed',
-        executionTime: 0
-      });
-    }
-  });
-
-  app.post('/api/execute/typescript', async (req, res) => {
-    const { code } = req.body;
-
-    try {
-      const fs = await import('fs/promises');
-      const { exec } = await import('child_process');
-      const { promisify } = await import('util');
-      const execAsync = promisify(exec);
-      const path = await import('path');
-
-      const tmpFile = path.join('/tmp', `code_${Date.now()}.ts`);
-      await fs.writeFile(tmpFile, code);
-
-      const startTime = Date.now();
-      const { stdout, stderr } = await execAsync(`npx tsx ${tmpFile}`, {
-        timeout: 15000,
-        maxBuffer: 1024 * 1024
-      });
-      const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
-
-      await fs.unlink(tmpFile);
-
-      res.json({
-        success: !stderr,
-        output: stdout,
-        error: stderr,
-        executionTime
-      });
-    } catch (error: any) {
-      res.json({
-        success: false,
-        error: error.message || 'TypeScript execution failed',
-        executionTime: 0
-      });
-    }
-  });
-
-  app.post('/api/execute/bash', async (req, res) => {
-    const { code } = req.body;
-
-    try {
-      const { exec } = await import('child_process');
-      const { promisify } = await import('util');
-      const execAsync = promisify(exec);
-
-      const startTime = Date.now();
-      const { stdout, stderr } = await execAsync(code, {
-        shell: '/bin/bash',
-        timeout: 10000,
-        maxBuffer: 1024 * 1024
-      });
-      const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
-
-      res.json({
-        success: !stderr,
-        output: stdout,
-        error: stderr,
-        executionTime
-      });
-    } catch (error: any) {
-      res.json({
-        success: false,
-        error: error.message || 'Bash execution failed',
-        executionTime: 0
-      });
-    }
-  });
-
-  app.post('/api/execute/cpp', async (req, res) => {
-    const { code } = req.body;
-
-    try {
-      const fs = await import('fs/promises');
-      const { exec } = await import('child_process');
-      const { promisify } = await import('util');
-      const execAsync = promisify(exec);
-      const path = await import('path');
-
-      const tmpFile = path.join('/tmp', `code_${Date.now()}.cpp`);
-      const tmpExec = path.join('/tmp', `exec_${Date.now()}`);
-      await fs.writeFile(tmpFile, code);
-
-      // Compile
-      await execAsync(`g++ ${tmpFile} -o ${tmpExec}`, { timeout: 15000 });
-
-      // Execute
-      const startTime = Date.now();
-      const { stdout, stderr } = await execAsync(tmpExec, {
-        timeout: 10000,
-        maxBuffer: 1024 * 1024
-      });
-      const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
-
-      await fs.unlink(tmpFile);
-      await fs.unlink(tmpExec);
-
-      res.json({
-        success: !stderr,
-        output: stdout,
-        error: stderr,
-        executionTime
-      });
-    } catch (error: any) {
-      res.json({
-        success: false,
-        error: error.message || 'C++ execution failed',
-        executionTime: 0
-      });
-    }
-  });
+  for (let invader of backgroundInvaders) {
+    invader.z -= 2;
     if (invader.z < 600) {
       invader.z = 1200;
       invader.x = (floor(random(-2, 3))) * 100;
