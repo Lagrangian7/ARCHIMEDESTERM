@@ -486,11 +486,13 @@ export function Terminal() {
             : { backgroundColor: 'var(--terminal-bg)' }
       }>
         {/* Background layer for midnight theme */}
-        {currentTheme === 'midnight-gradient' && (
+        {currentTheme === 'midnight-gradient' && customBackgroundUrl && (
           <div 
             className="absolute inset-0 z-0"
             style={{
-              backgroundImage: `url(/attached_assets/midnight_1763160246697.jpeg)`,
+              backgroundImage: customBackgroundUrl.includes('attached_assets') 
+                ? `url(${customBackgroundUrl})`
+                : `url(/attached_assets/midnight_1763160246697.jpeg)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',

@@ -29,6 +29,12 @@ export function getSession() {
   const sessionTtl = 30 * 24 * 60 * 60 * 1000; // 30 days
   
   try {
+    // Check if DATABASE_URL is available
+    if (!process.env.DATABASE_URL) {
+      console.warn('⚠️  DATABASE_URL not set - using memory store for sessions');
+      throw new Error('DATABASE_URL not configured');
+    }
+
     const PostgresStore = connectPg(session);
     
     const store = new PostgresStore({
@@ -37,36 +43,51 @@ export function getSession() {
       },
       tableName: 'sessions',
       createTableIfMissing: true,
-      ttl: sessionTtl / 1000, // PostgreSQL store expects TTL in seconds
-      pruneSessionInterval: 60 * 60, // Prune expired sessions every hour (less aggressive)
-      touchAfter: 24 * 60 * 60, // Only update session once per day to reduce DB load
+      ttl: sessionTtl / 1000,
+      pruneSessionInterval: 60 * 60,
+      touchAfter: 24 * 60 * 60,
     });
     
     store.on('error', (err) => {
       console.error('Session store error:', err);
-      // Don't crash on session store errors
+    });
+    
+    // Test the connection before using it
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Database connection timeout'));
+      }, 5000);
+      
+      store.on('connect', () => {
+        clearTimeout(timeout);
+        resolve(true);
+      });
+    }).catch(() => {
+      console.warn('⚠️  Database connection failed - falling back to memory store');
+      throw new Error('Database connection failed');
     });
     
     sessionMiddleware = session({
       store,
       secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
-      resave: false, // Don't save session if unmodified (better performance)
-      saveUninitialized: false, // Don't create session until something stored
-      rolling: true, // Reset expiration on every response
+      resave: false,
+      saveUninitialized: false,
+      rolling: true,
       cookie: {
         httpOnly: true,
-        secure: false, // Set to false for Replit environment
+        secure: false,
         maxAge: sessionTtl,
         sameSite: 'lax',
         path: '/',
       },
-      // Ensure session regeneration doesn't lose data
       name: 'archimedes.sid',
     });
     
+    console.log('✅ PostgreSQL session store initialized');
     return sessionMiddleware;
   } catch (error) {
-    console.error('Failed to initialize session store:', error);
+    console.error('Failed to initialize PostgreSQL session store:', error);
+    console.log('📝 Using memory store (sessions will not persist across restarts)');
     // Fallback to memory store if database connection fails
     sessionMiddleware = session({
       secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
