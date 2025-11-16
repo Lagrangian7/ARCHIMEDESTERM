@@ -708,49 +708,12 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
-    let systemPrompt = mode === 'natural'
-      ? this.getNaturalChatSystemPrompt(language)
-      : mode === 'health'
-      ? this.getHealthModeSystemPrompt(language)
-      : mode === 'freestyle'
-      ? this.getFreestyleModeSystemPrompt(language, userMessage)
-      : this.getTechnicalModeSystemPrompt(language);
-
-    // Add session greeting instruction if new session
-    let greetingInstruction = '';
-    if (isNewSession) {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-      const productiveSuggestions = [
-        "perfect time to organize that messy code you've been avoiding",
-        "great day to finally document that function nobody understands",
-        "ideal moment to refactor something before it becomes technical debt",
-        "excellent opportunity to learn something completely impractical but fascinating",
-        "prime time to automate a task you've been doing manually for months",
-        "wonderful chance to fix that bug you pretended wasn't there",
-        "optimal window to explore a new library that might change everything",
-        "brilliant hour to backup your work before Murphy's Law strikes",
-        "perfect occasion to write tests for code that desperately needs them",
-        "superb timing to clean up your git history and feel accomplished"
-      ];
-
-      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
-
-      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
-1. Welcomes the user with genuine warmth and a touch of wit
-2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
-3. Playfully suggests: "${randomSuggestion}"
-4. Keep the greeting natural and conversational, not forced
-5. Then smoothly transition to answering their actual question
-
-Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
-    }
-
+    const systemPrompt = this.getSystemPrompt(mode, userMessage);
+    const greetingInstruction = this.buildSessionGreeting(isNewSession);
+    const recentHistory = this.buildConversationHistory(conversationHistory, 8);
+    
     // Build conversation context for Gemini
-    const conversationContext = conversationHistory
-      .slice(-8) // Last 8 messages for context
+    const conversationContext = recentHistory
       .map(msg => `${msg.role}: ${msg.content}`)
       .join('\n');
 
@@ -783,58 +746,21 @@ Please respond as ARCHIMEDES v7:`;
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
-    let systemPrompt = mode === 'natural'
-      ? this.getNaturalChatSystemPrompt(language)
-      : mode === 'health'
-      ? this.getHealthModeSystemPrompt(language)
-      : mode === 'freestyle'
-      ? this.getFreestyleModeSystemPrompt(language, userMessage)
-      : this.getTechnicalModeSystemPrompt(language);
-
+    const systemPrompt = this.getSystemPrompt(mode, userMessage);
+    const greetingInstruction = this.buildSessionGreeting(isNewSession);
+    const recentHistory = this.buildConversationHistory(conversationHistory, 8);
+    
     // In freestyle mode, enhance the prompt for code generation with language detection
     const enhancedMessage = mode === 'freestyle'
       ? this.getEnhancedFreestyleMessage(userMessage)
       : userMessage;
-
-    // Add session greeting instruction if new session
-    let greetingInstruction = '';
-    if (isNewSession) {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-      const productiveSuggestions = [
-        "perfect time to organize that messy code you've been avoiding",
-        "great day to finally document that function nobody understands",
-        "ideal moment to refactor something before it becomes technical debt",
-        "excellent opportunity to learn something completely impractical but fascinating",
-        "prime time to automate a task you've been doing manually for months",
-        "wonderful chance to fix that bug you pretended wasn't there",
-        "optimal window to explore a new library that might change everything",
-        "brilliant hour to backup your work before Murphy's Law strikes",
-        "perfect occasion to write tests for code that desperately needs them",
-        "superb timing to clean up your git history and feel accomplished"
-      ];
-
-      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
-
-      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
-1. Welcomes the user with genuine warmth and a touch of wit
-2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
-3. Playfully suggests: "${randomSuggestion}"
-4. Keep the greeting natural and conversational, not forced
-5. Then smoothly transition to answering their actual question
-
-Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
-    }
 
     // Build conversation context for Mistral
     const messages = [
       { role: 'system', content: systemPrompt + greetingInstruction }
     ];
 
-    // Add recent conversation history (last 8 messages for better context)
-    const recentHistory = conversationHistory.slice(-8);
+    // Add recent conversation history
     for (const msg of recentHistory) {
       if (msg.role === 'user' || msg.role === 'assistant') {
         messages.push({
@@ -879,50 +805,14 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
-    let systemPrompt = mode === 'natural'
-      ? this.getNaturalChatSystemPrompt(language)
-      : mode === 'health'
-      ? this.getHealthModeSystemPrompt(language)
-      : mode === 'freestyle'
-      ? this.getFreestyleModeSystemPrompt(language, userMessage)
-      : this.getTechnicalModeSystemPrompt(language);
-
+    const systemPrompt = this.getSystemPrompt(mode, userMessage);
+    const greetingInstruction = this.buildSessionGreeting(isNewSession);
+    const recentHistory = this.buildConversationHistory(conversationHistory, 6);
+    
     // In freestyle mode, enhance the prompt for code generation with language detection
     const enhancedMessage = mode === 'freestyle'
       ? this.getEnhancedFreestyleMessage(userMessage)
       : userMessage;
-
-    // Add session greeting instruction if new session
-    let greetingInstruction = '';
-    if (isNewSession) {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-      const productiveSuggestions = [
-        "perfect time to organize that messy code you've been avoiding",
-        "great day to finally document that function nobody understands",
-        "ideal moment to refactor something before it becomes technical debt",
-        "excellent opportunity to learn something completely impractical but fascinating",
-        "prime time to automate a task you've been doing manually for months",
-        "wonderful chance to fix that bug you pretended wasn't there",
-        "optimal window to explore a new library that might change everything",
-        "brilliant hour to backup your work before Murphy's Law strikes",
-        "perfect occasion to write tests for code that desperately needs them",
-        "superb timing to clean up your git history and feel accomplished"
-      ];
-
-      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
-
-      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
-1. Welcomes the user with genuine warmth and a touch of wit
-2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
-3. Playfully suggests: "${randomSuggestion}"
-4. Keep the greeting natural and conversational, not forced
-5. Then smoothly transition to answering their actual question
-
-Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
-    }
 
     // Enhanced context building for Replit environment
     let prompt = `${systemPrompt}${greetingInstruction}\n\nReplit Environment Context:
@@ -934,8 +824,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
 Conversation Context:\n`;
 
-    // Add optimized conversation history (last 6 messages for better context)
-    const recentHistory = conversationHistory.slice(-6);
+    // Add optimized conversation history
     for (const msg of recentHistory) {
       if (msg.role === 'user') {
         prompt += `User: ${msg.content}\n`;
@@ -1038,58 +927,21 @@ Conversation Context:\n`;
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
-    let systemPrompt = mode === 'natural'
-      ? this.getNaturalChatSystemPrompt(language)
-      : mode === 'health'
-      ? this.getHealthModeSystemPrompt(language)
-      : mode === 'freestyle'
-      ? this.getFreestyleModeSystemPrompt(language, userMessage)
-      : this.getTechnicalModeSystemPrompt(language);
-
+    const systemPrompt = this.getSystemPrompt(mode, userMessage);
+    const greetingInstruction = this.buildSessionGreeting(isNewSession);
+    const recentHistory = this.buildConversationHistory(conversationHistory, 10);
+    
     // In freestyle mode, enhance the prompt for code generation with language detection
     const enhancedMessage = mode === 'freestyle'
       ? this.getEnhancedFreestyleMessage(userMessage)
       : userMessage;
-
-    // Add session greeting instruction if new session
-    let greetingInstruction = '';
-    if (isNewSession) {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-      const productiveSuggestions = [
-        "perfect time to organize that messy code you've been avoiding",
-        "great day to finally document that function nobody understands",
-        "ideal moment to refactor something before it becomes technical debt",
-        "excellent opportunity to learn something completely impractical but fascinating",
-        "prime time to automate a task you've been doing manually for months",
-        "wonderful chance to fix that bug you pretended wasn't there",
-        "optimal window to explore a new library that might change everything",
-        "brilliant hour to backup your work before Murphy's Law strikes",
-        "perfect occasion to write tests for code that desperately needs them",
-        "superb timing to clean up your git history and feel accomplished"
-      ];
-
-      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
-
-      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
-1. Welcomes the user with genuine warmth and a touch of wit
-2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
-3. Playfully suggests: "${randomSuggestion}"
-4. Keep the greeting natural and conversational, not forced
-5. Then smoothly transition to answering their actual question
-
-Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
-    }
 
     // Build conversation context
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt + greetingInstruction }
     ];
 
-    // Add recent conversation history (last 10 messages for context)
-    const recentHistory = conversationHistory.slice(-10);
+    // Add recent conversation history
     for (const msg of recentHistory) {
       if (msg.role === 'user' || msg.role === 'assistant') {
         messages.push({
