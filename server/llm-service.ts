@@ -42,14 +42,68 @@ const REPLIT_AI_CONFIG = {
   }
 };
 
+// Timeout configuration
+const API_TIMEOUTS = {
+  mistral: 10000,   // 10 seconds for Mistral
+  gemini: 10000,    // 10 seconds for Gemini
+  huggingface: 6000 // 6 seconds for HuggingFace (kept same)
+};
+
 export class LLMService {
   private static instance: LLMService;
+  private responseCache: Map<string, { response: string; timestamp: number }> = new Map();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
 
   public static getInstance(): LLMService {
     if (!LLMService.instance) {
       LLMService.instance = new LLMService();
     }
     return LLMService.instance;
+  }
+
+  // Timeout wrapper utility
+  private withTimeout<T>(promise: Promise<T>, timeoutMs: number, serviceName: string): Promise<T> {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error(`${serviceName} timeout after ${timeoutMs}ms`)), timeoutMs)
+      )
+    ]);
+  }
+
+  // Generate cache key
+  private getCacheKey(message: string, mode: string): string {
+    return `${mode}:${message.slice(0, 100)}`;
+  }
+
+  // Get cached response
+  private getCachedResponse(message: string, mode: string): string | null {
+    const key = this.getCacheKey(message, mode);
+    const cached = this.responseCache.get(key);
+    
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      console.log(`[CACHE HIT] Returning cached response for ${mode} mode`);
+      return cached.response;
+    }
+    
+    if (cached) {
+      this.responseCache.delete(key); // Remove expired cache
+    }
+    return null;
+  }
+
+  // Cache response
+  private cacheResponse(message: string, mode: string, response: string): void {
+    const key = this.getCacheKey(message, mode);
+    this.responseCache.set(key, { response, timestamp: Date.now() });
+    
+    // Cleanup old cache entries (keep last 100)
+    if (this.responseCache.size > 100) {
+      const firstKey = this.responseCache.keys().next().value;
+      if (firstKey) {
+        this.responseCache.delete(firstKey);
+      }
+    }
   }
 
   private getNaturalChatSystemPrompt(language: string = 'english'): string {
@@ -563,6 +617,7 @@ FORMAT REQUIREMENTS:
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
+    const startTime = Date.now();
     const lang = language || 'english';
     
     // Validate mode to ensure it's one of the allowed values
@@ -571,6 +626,16 @@ FORMAT REQUIREMENTS:
     
     if (safeMode !== mode) {
       console.warn(`[LLM] Invalid mode "${mode}" provided, defaulting to "natural"`);
+    }
+
+    // Check cache first (skip for new sessions to ensure fresh greeting)
+    if (!isNewSession) {
+      const cachedResponse = this.getCachedResponse(userMessage, safeMode);
+      if (cachedResponse) {
+        const latency = Date.now() - startTime;
+        console.log(`[LATENCY] Cache hit: ${latency}ms for ${safeMode} mode`);
+        return cachedResponse;
+      }
     }
     
     let contextualMessage = userMessage;
@@ -599,54 +664,67 @@ FORMAT REQUIREMENTS:
     }
 
     let aiResponse: string;
+    let serviceName = 'unknown';
 
     try {
       // For HEALTH mode, use Mistral with specialized health model
       if (safeMode === 'health' && process.env.MISTRAL_API_KEY) {
+        serviceName = 'Mistral (HEALTH)';
         console.log('[LLM] Using Mistral AI (CWC-Mistral-Nemo) for HEALTH mode');
         aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
       // For FREESTYLE mode, use Mistral as primary AI for superior code generation
       else if (safeMode === 'freestyle' && process.env.MISTRAL_API_KEY) {
+        serviceName = 'Mistral (FREESTYLE)';
         console.log('[LLM] Using Mistral AI for FREESTYLE code generation');
         aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
       // For TECHNICAL mode, use Mistral for detailed technical responses
       else if (safeMode === 'technical' && process.env.MISTRAL_API_KEY) {
+        serviceName = 'Mistral (TECHNICAL)';
         console.log('[LLM] Using Mistral AI for TECHNICAL mode');
         aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
       // For NATURAL mode, prioritize Mistral for conversational AI
       else if (safeMode === 'natural' && process.env.MISTRAL_API_KEY) {
+        serviceName = 'Mistral (NATURAL)';
         console.log('[LLM] Using Mistral AI for NATURAL chat mode');
         aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
       // Fallback: Use Google Gemini (free tier, excellent quality)
       else if (process.env.GEMINI_API_KEY) {
+        serviceName = 'Google Gemini';
         console.log(`[LLM] Using Google Gemini for ${safeMode.toUpperCase()} mode (fallback)`);
         aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
       // Tertiary: Enhanced Hugging Face models
       else {
+        serviceName = 'HuggingFace';
         console.log(`[LLM] Using enhanced Hugging Face models for ${safeMode.toUpperCase()} mode`);
         aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
 
     } catch (primaryError) {
-      console.error('Primary AI models error:', primaryError);
+      const errorLatency = Date.now() - startTime;
+      console.error(`[ERROR] Primary AI model (${serviceName}) failed after ${errorLatency}ms:`, primaryError);
 
       try {
         // Backup: Google Gemini fallback (works for all modes)
         if (process.env.GEMINI_API_KEY) {
+          serviceName = 'Google Gemini (fallback)';
           console.log(`[LLM] Falling back to Google Gemini for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         }
         // Final fallback
         else {
+          serviceName = 'Hardcoded Fallback';
+          console.log('[LLM] All AI services failed, using hardcoded fallback');
           aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
         }
       } catch (secondaryError) {
-        console.error('Fallback AI models error:', secondaryError);
+        const totalLatency = Date.now() - startTime;
+        console.error(`[ERROR] Fallback AI models failed after ${totalLatency}ms:`, secondaryError);
+        serviceName = 'Hardcoded Fallback';
         aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
       }
     }
@@ -665,6 +743,15 @@ FORMAT REQUIREMENTS:
       if (documentRefs) {
         aiResponse = `${aiResponse}\n\n📚 Related documents from your knowledge base:\n${documentRefs}`;
       }
+    }
+
+    // Log total latency and cache the response
+    const totalLatency = Date.now() - startTime;
+    console.log(`[LATENCY] Total response time: ${totalLatency}ms (Service: ${serviceName}, Mode: ${safeMode})`);
+    
+    // Cache successful responses (skip hardcoded fallbacks)
+    if (serviceName !== 'Hardcoded Fallback' && !isNewSession) {
+      this.cacheResponse(userMessage, safeMode, aiResponse);
     }
 
     return aiResponse;
@@ -742,14 +829,21 @@ Current User Message: ${userMessage}
 
 Please respond as ARCHIMEDES v7:`;
 
-    const response = await gemini.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
-      contents: fullPrompt,
-      config: {
-        maxOutputTokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
-        temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.4 : mode === 'freestyle' ? 0.8 : 0.85,
-      }
-    });
+    const apiCallStart = Date.now();
+    const response = await this.withTimeout(
+      gemini.models.generateContent({
+        model: 'gemini-2.0-flash-exp',
+        contents: fullPrompt,
+        config: {
+          maxOutputTokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
+          temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.4 : mode === 'freestyle' ? 0.8 : 0.85,
+        }
+      }),
+      API_TIMEOUTS.gemini,
+      'Gemini API'
+    );
+    const apiCallTime = Date.now() - apiCallStart;
+    console.log(`[API TIMING] Gemini API responded in ${apiCallTime}ms`);
 
     const responseText = response.text || 'I apologize, but I encountered an error processing your request.';
     return this.postProcessResponse(responseText, mode);
@@ -944,13 +1038,20 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       ? 'open-mistral-nemo' // Use Mistral Nemo for health mode (similar to CWC-Mistral-Nemo)
       : 'mistral-large-latest'; // Use latest Mistral for other modes
 
-    const chatResponse = await mistral.chat.complete({
-      model: modelSelection,
-      messages: messages as any,
-      maxTokens: mode === 'freestyle' ? 6000 : mode === 'technical' || mode === 'health' ? 4000 : 1200,
-      temperature: mode === 'health' ? 0.4 : mode === 'freestyle' ? 0.7 : mode === 'technical' ? 0.4 : 0.85,
-      topP: 0.95,
-    });
+    const apiCallStart = Date.now();
+    const chatResponse = await this.withTimeout(
+      mistral.chat.complete({
+        model: modelSelection,
+        messages: messages as any,
+        maxTokens: mode === 'freestyle' ? 6000 : mode === 'technical' || mode === 'health' ? 4000 : 1200,
+        temperature: mode === 'health' ? 0.4 : mode === 'freestyle' ? 0.7 : mode === 'technical' ? 0.4 : 0.85,
+        topP: 0.95,
+      }),
+      API_TIMEOUTS.mistral,
+      'Mistral API'
+    );
+    const apiCallTime = Date.now() - apiCallStart;
+    console.log(`[API TIMING] Mistral API responded in ${apiCallTime}ms`);
 
     const response = chatResponse.choices?.[0]?.message?.content;
 
