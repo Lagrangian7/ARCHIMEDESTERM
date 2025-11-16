@@ -1161,8 +1161,15 @@ Conversation Context:\n`;
       ...REPLIT_AI_CONFIG.fallbackModels
     ];
 
-    for (const model of models) {
+    console.log(`[HF DEBUG] Trying ${models.length} HuggingFace models...`);
+
+    for (let i = 0; i < models.length; i++) {
+      const model = models[i];
+      const modelStart = Date.now();
+      
       try {
+        console.log(`[HF DEBUG] Attempt ${i + 1}/${models.length}: ${model}`);
+        
         const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
           method: 'POST',
           headers: {
@@ -1183,23 +1190,50 @@ Conversation Context:\n`;
           })
         });
 
+        const modelLatency = Date.now() - modelStart;
+        console.log(`[HF DEBUG] ${model} responded in ${modelLatency}ms with status ${response.status}`);
+
         if (response.ok) {
           const result = await response.json();
+          console.log(`[HF DEBUG] ${model} response type:`, typeof result, Array.isArray(result) ? `array[${result.length}]` : 'object');
 
           if (Array.isArray(result) && result[0]?.generated_text) {
+            console.log(`[HF DEBUG] SUCCESS: ${model} generated ${result[0].generated_text.length} chars`);
             return result[0].generated_text;
           }
 
           if (typeof result === 'object' && result.generated_text) {
+            console.log(`[HF DEBUG] SUCCESS: ${model} generated ${result.generated_text.length} chars`);
             return result.generated_text;
+          }
+
+          console.log(`[HF DEBUG] ${model} returned unexpected format:`, JSON.stringify(result).slice(0, 200));
+        } else {
+          // Log error details
+          const errorText = await response.text();
+          console.error(`[HF DEBUG] ${model} failed with status ${response.status}:`, errorText.slice(0, 300));
+          
+          // Parse error JSON if possible
+          try {
+            const errorJson = JSON.parse(errorText);
+            if (errorJson.error) {
+              console.error(`[HF DEBUG] ${model} error message:`, errorJson.error);
+            }
+            if (errorJson.estimated_time) {
+              console.error(`[HF DEBUG] ${model} model loading, estimated time: ${errorJson.estimated_time}s`);
+            }
+          } catch (e) {
+            // Error text wasn't JSON, already logged above
           }
         }
       } catch (error) {
-        console.log(`Replit-optimized model ${model} failed, trying next...`);
+        const modelLatency = Date.now() - modelStart;
+        console.error(`[HF DEBUG] ${model} exception after ${modelLatency}ms:`, error instanceof Error ? error.message : String(error));
         continue;
       }
     }
 
+    console.error('[HF DEBUG] All HuggingFace models exhausted');
     throw new Error('All Replit-optimized models failed');
   }
 
