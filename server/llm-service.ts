@@ -1161,7 +1161,7 @@ Conversation Context:\n`;
       ...REPLIT_AI_CONFIG.fallbackModels
     ];
 
-    console.log(`[HF DEBUG] Trying ${models.length} HuggingFace models...`);
+    console.log(`[HF DEBUG] Trying ${models.length} HuggingFace models using SDK...`);
 
     for (let i = 0; i < models.length; i++) {
       const model = models[i];
@@ -1170,65 +1170,41 @@ Conversation Context:\n`;
       try {
         console.log(`[HF DEBUG] Attempt ${i + 1}/${models.length}: ${model}`);
         
-        const response = await fetch(`https://router.huggingface.co/hf-inference/models/${model}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-            'Content-Type': 'application/json',
-            'User-Agent': 'ARCHIMEDES-v7-Replit-Terminal/1.0'
-          },
-          body: JSON.stringify({
-            inputs: prompt,
-            parameters: {
-              max_new_tokens: REPLIT_AI_CONFIG.maxTokens[mode === 'freestyle' || mode === 'health' ? 'technical' : mode],
-              temperature: REPLIT_AI_CONFIG.temperature[mode === 'freestyle' || mode === 'health' ? 'technical' : mode],
-              return_full_text: false,
-              do_sample: true,
-              top_p: 0.9,
-              repetition_penalty: 1.1
-            }
-          })
+        // Use HuggingFace SDK instead of raw fetch
+        const result = await hf.textGeneration({
+          model: model,
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: REPLIT_AI_CONFIG.maxTokens[mode === 'freestyle' || mode === 'health' ? 'technical' : mode],
+            temperature: REPLIT_AI_CONFIG.temperature[mode === 'freestyle' || mode === 'health' ? 'technical' : mode],
+            return_full_text: false,
+            do_sample: true,
+            top_p: 0.9,
+            repetition_penalty: 1.1
+          }
         });
 
         const modelLatency = Date.now() - modelStart;
-        console.log(`[HF DEBUG] ${model} responded in ${modelLatency}ms with status ${response.status}`);
+        console.log(`[HF DEBUG] ${model} responded in ${modelLatency}ms`);
 
-        if (response.ok) {
-          const result = await response.json();
-          console.log(`[HF DEBUG] ${model} response type:`, typeof result, Array.isArray(result) ? `array[${result.length}]` : 'object');
-
-          if (Array.isArray(result) && result[0]?.generated_text) {
-            console.log(`[HF DEBUG] SUCCESS: ${model} generated ${result[0].generated_text.length} chars`);
-            return result[0].generated_text;
-          }
-
-          if (typeof result === 'object' && result.generated_text) {
-            console.log(`[HF DEBUG] SUCCESS: ${model} generated ${result.generated_text.length} chars`);
-            return result.generated_text;
-          }
-
-          console.log(`[HF DEBUG] ${model} returned unexpected format:`, JSON.stringify(result).slice(0, 200));
-        } else {
-          // Log error details
-          const errorText = await response.text();
-          console.error(`[HF DEBUG] ${model} failed with status ${response.status}:`, errorText.slice(0, 300));
-          
-          // Parse error JSON if possible
-          try {
-            const errorJson = JSON.parse(errorText);
-            if (errorJson.error) {
-              console.error(`[HF DEBUG] ${model} error message:`, errorJson.error);
-            }
-            if (errorJson.estimated_time) {
-              console.error(`[HF DEBUG] ${model} model loading, estimated time: ${errorJson.estimated_time}s`);
-            }
-          } catch (e) {
-            // Error text wasn't JSON, already logged above
-          }
+        if (result && result.generated_text) {
+          console.log(`[HF DEBUG] SUCCESS: ${model} generated ${result.generated_text.length} chars`);
+          return result.generated_text;
         }
-      } catch (error) {
+
+        console.log(`[HF DEBUG] ${model} returned no generated_text:`, JSON.stringify(result).slice(0, 200));
+      } catch (error: any) {
         const modelLatency = Date.now() - modelStart;
-        console.error(`[HF DEBUG] ${model} exception after ${modelLatency}ms:`, error instanceof Error ? error.message : String(error));
+        console.error(`[HF DEBUG] ${model} failed after ${modelLatency}ms:`, error?.message || String(error));
+        
+        // Log additional error details if available
+        if (error?.response) {
+          console.error(`[HF DEBUG] ${model} error response:`, error.response);
+        }
+        if (error?.statusCode) {
+          console.error(`[HF DEBUG] ${model} status code:`, error.statusCode);
+        }
+        
         continue;
       }
     }
