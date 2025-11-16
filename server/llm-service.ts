@@ -528,6 +528,64 @@ FORMAT REQUIREMENTS:
 4. Make the code immediately runnable - include all necessary imports and proper structure`;
   }
 
+  // Helper: Consolidates system prompt selection logic
+  private getSystemPrompt(
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
+    userMessage: string = ''
+  ): string {
+    switch (mode) {
+      case 'natural':
+        return this.getNaturalChatSystemPrompt();
+      case 'health':
+        return this.getHealthModeSystemPrompt();
+      case 'freestyle':
+        return this.getFreestyleModeSystemPrompt('', userMessage);
+      case 'technical':
+      default:
+        return this.getTechnicalModeSystemPrompt();
+    }
+  }
+
+  // Helper: Consolidates session greeting logic
+  private buildSessionGreeting(isNewSession: boolean): string {
+    if (!isNewSession) {
+      return '';
+    }
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    const productiveSuggestions = [
+      "perfect time to organize that messy code you've been avoiding",
+      "great day to finally document that function nobody understands",
+      "ideal moment to refactor something before it becomes technical debt",
+      "excellent opportunity to learn something completely impractical but fascinating",
+      "prime time to automate a task you've been doing manually for months",
+      "wonderful chance to fix that bug you pretended wasn't there",
+      "optimal window to explore a new library that might change everything",
+      "brilliant hour to backup your work before Murphy's Law strikes",
+      "perfect occasion to write tests for code that desperately needs them",
+      "superb timing to clean up your git history and feel accomplished"
+    ];
+
+    const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
+
+    return `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
+1. Welcomes the user with genuine warmth and a touch of wit
+2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
+3. Playfully suggests: "${randomSuggestion}"
+4. Keep the greeting natural and conversational, not forced
+5. Then smoothly transition to answering their actual question
+
+Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
+  }
+
+  // Helper: Consolidates conversation history building
+  private buildConversationHistory(conversationHistory: Message[], maxMessages: number = 8): Message[] {
+    return conversationHistory.slice(-maxMessages);
+  }
+
   async generateResponse(
     userMessage: string,
     mode: 'natural' | 'technical' | 'freestyle' | 'health' = 'natural',
