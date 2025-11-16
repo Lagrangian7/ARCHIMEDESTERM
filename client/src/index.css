@@ -1,6 +1,3 @@
-/* VT323 Pixel Font for CRT themes */
-@import url('https://fonts.googleapis.com/css?family=VT323');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,6 +34,9 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* VT323 Pixel Font for CRT themes */
+@import url('https://fonts.googleapis.com/css?family=VT323');
 
 /* Pixel CGA Font for SPACEWAR title */
 @font-face {

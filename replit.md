@@ -20,11 +20,6 @@ Preferred communication style: Simple, everyday language.
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js server
 - **API Design**: RESTful API with AI chat endpoint (`/api/chat`) for terminal-based interactions with Archimedes AI assistant
-- **AI Services Fallback Chain**: Google Gemini (free) → OpenRouter (free) → Mistral API (paid backup) → OpenAI (reliable final AI fallback)
-  - **Quad-redundancy system**: Four AI providers ensure responses always work
-  - Two free services (Gemini + OpenRouter) before hitting paid tiers
-  - OpenRouter provides access to free Llama 3.1 8B and other open-source models
-  - OpenAI uses cost-effective `gpt-4o-mini` model for balance of quality and cost
 - **Academic Search**: Semantic Scholar API integration for academic paper search (FREE, no API key required)
 - **Wolfram Alpha**: Full Results API integration for computational queries, math solving, data lookup, and knowledge queries with enhanced graphical and mathematical rendering
   - Graphics rendering: Images from Wolfram Alpha (plots, diagrams) rendered as HTML <img> tags
@@ -33,30 +28,6 @@ Preferred communication style: Simple, everyday language.
 - **Development Setup**: Vite development server with hot module replacement
 - **Error Handling**: Centralized error middleware with structured error responses
 - **Request Logging**: Custom middleware for API request/response logging
-
-## Performance Optimizations
-- **AI Response Caching**: In-memory cache (Map-based) for frequently asked questions with 5-minute TTL
-  - Automatically invalidates expired entries before enforcing size limit
-  - Skips caching for new sessions to ensure fresh greetings
-  - Maintains last 100 cache entries to prevent memory bloat
-  - Cache eviction prioritizes staleness over insertion order (deterministic cleanup)
-- **Aggressive Timeout Management** - Total worst-case failover: 16 seconds across 4 services
-  - Gemini API: 3-second timeout (free tier, tried first)
-  - OpenRouter API: 4-second timeout (free Llama 3.1 8B model)
-  - Mistral API: 5-second timeout (paid backup)
-  - OpenAI API: 4-second timeout (reliable final AI fallback before hardcoded response)
-  - Timeouts wrap ONLY network calls, excluding preprocessing (prompt assembly, message building)
-  - Sequential fallback chain with individual try/catch per service ensures maximum reliability
-- **Comprehensive Latency Tracking**:
-  - Per-service response time logging (Mistral, Gemini, HuggingFace)
-  - Total request latency metrics with service name attribution
-  - Cache hit/miss tracking for performance insights
-  - Per-attempt timing logs for fallover analysis
-- **Enhanced Error Diagnostics**:
-  - Detailed error logs with timestamp and service identification
-  - Latency-aware error reporting showing exactly where failures occur
-  - Fallback chain logging to track degradation paths
-  - Timeout rejections properly caught and logged at each stage
 
 ## Data Storage Solutions
 - **Database**: PostgreSQL with Drizzle ORM (DatabaseStorage implementation)

@@ -1593,16 +1593,6 @@ interface PythonSession {
   chatHistory: Array<{ role: 'user' | 'assistant', content: string }>;
 }
 
-// Supported programming languages
-const SUPPORTED_LANGUAGES = [
-  { id: 'python', name: 'Python', extension: 'py', defaultCode: '# Python code here\nprint("Hello, World!")' },
-  { id: 'javascript', name: 'JavaScript', extension: 'js', defaultCode: '// JavaScript code here\nconsole.log("Hello, World!");' },
-  { id: 'typescript', name: 'TypeScript', extension: 'ts', defaultCode: '// TypeScript code here\nconst greeting: string = "Hello, World!";\nconsole.log(greeting);' },
-  { id: 'cpp', name: 'C++', extension: 'cpp', defaultCode: '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}' },
-  { id: 'bash', name: 'Bash', extension: 'sh', defaultCode: '#!/bin/bash\necho "Hello, World!"' },
-  { id: 'html', name: 'HTML', extension: 'html', defaultCode: '<!DOCTYPE html>\n<html>\n<head>\n    <title>Hello</title>\n</head>\n<body>\n    <h1>Hello, World!</h1>\n</body>\n</html>' },
-] as const;
-
 export function PythonIDE({ onClose }: PythonIDEProps) {
   // Load session from localStorage or use defaults
   const loadSession = (): PythonSession | null => {
@@ -1619,7 +1609,6 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   const savedSession = loadSession();
 
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('python');
   const [code, setCode] = useState(savedSession?.code || `# FREESTYLE MODE - Interactive Calculator with Visual Interface
 # This calculator uses input() to create an interactive experience
 # The preview panel will show input fields for you to fill in!
@@ -2368,7 +2357,7 @@ calculator()
     }, 100); // Update every 100ms for smooth animation
 
     try {
-      const response = await fetch(`/api/execute/${selectedLanguage}`, {
+      const response = await fetch('/api/execute/python', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: codeToRun })
@@ -2434,20 +2423,10 @@ calculator()
   const activateFreestyleMode = () => {
     setIsFreestyleMode(true); // Explicitly set to Freestyle Mode
     setSelectedLesson('basics'); // Keep a default lesson selected
-    const lang = SUPPORTED_LANGUAGES.find(l => l.id === selectedLanguage);
-    setCode(lang?.defaultCode || '// Code here\n');
+    setCode('# FREESTYLE MODE - Chat with ARCHIMEDES to create code\n# Ask for anything you want to build!\n\n');
     setOutput('');
     setShowGuidance(false);
     setShowChat(true);
-  };
-
-  const handleLanguageChange = (langId: string) => {
-    setSelectedLanguage(langId);
-    const lang = SUPPORTED_LANGUAGES.find(l => l.id === langId);
-    if (lang && isFreestyleMode) {
-      setCode(lang.defaultCode);
-      setOutput(`Language changed to ${lang.name}`);
-    }
   };
 
   const toggleTask = (task: string) => {
@@ -2517,21 +2496,6 @@ calculator()
           </div>
           <div className="flex items-center gap-2">
             <select
-              value={selectedLanguage}
-              onChange={(e) => handleLanguageChange(e.target.value)}
-              className="font-mono text-xs px-2 py-1 rounded"
-              style={{
-                backgroundColor: currentPythonTheme.bg,
-                color: currentPythonTheme.text,
-                border: `1px solid ${currentPythonTheme.border}`,
-              }}
-              title="Select programming language"
-            >
-              {SUPPORTED_LANGUAGES.map(lang => (
-                <option key={lang.id} value={lang.id}>{lang.name}</option>
-              ))}
-            </select>
-            <select
               value={pythonTheme}
               onChange={(e) => setPythonTheme(e.target.value)}
               className="font-mono text-xs px-2 py-1 rounded"
@@ -2540,7 +2504,6 @@ calculator()
                 color: currentPythonTheme.text,
                 border: `1px solid ${currentPythonTheme.border}`,
               }}
-              title="Select editor theme"
             >
               <optgroup label="Light Themes">
                 <option value="solarized-light">Solarized Light</option>
@@ -2913,7 +2876,7 @@ calculator()
                       <Editor
                         height="100%"
                         width="100%"
-                        defaultLanguage={selectedLanguage}
+                        defaultLanguage="python"
                         value={code}
                         onChange={(value) => setCode(value || '')}
                         onMount={(editor, monaco) => {
@@ -3155,7 +3118,7 @@ calculator()
                   <Editor
                     height="100%"
                     width="100%"
-                    defaultLanguage={selectedLanguage}
+                    defaultLanguage="python"
                     value={code}
                     onChange={(value) => setCode(value || '')}
                     onMount={(editor, monaco) => {

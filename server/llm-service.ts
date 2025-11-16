@@ -18,12 +18,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// OpenRouter client for accessing free models (Llama, Mistral, DeepSeek, etc.)
-const openrouter = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: 'https://openrouter.ai/api/v1',
-});
-
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 
 // Perplexity configuration for up-to-date information
@@ -48,83 +42,14 @@ const REPLIT_AI_CONFIG = {
   }
 };
 
-// Timeout configuration - reasonable timeouts for reliable responses
-// Fallback order: Google Gemini (free) → OpenRouter (free) → Mistral API (paid backup) → OpenAI (reliable final fallback)
-const API_TIMEOUTS = {
-  gemini: 3000,      // 3 seconds for Gemini (free, tried first)
-  openrouter: 4000,  // 4 seconds for OpenRouter free models (Llama, DeepSeek, etc.)
-  mistral: 5000,     // 5 seconds for Mistral (paid backup)
-  openai: 4000       // 4 seconds for OpenAI (reliable final fallback)
-  // Total worst-case: 16 seconds across all four services
-};
-
 export class LLMService {
   private static instance: LLMService;
-  private responseCache: Map<string, { response: string; timestamp: number }> = new Map();
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache
 
   public static getInstance(): LLMService {
     if (!LLMService.instance) {
       LLMService.instance = new LLMService();
     }
     return LLMService.instance;
-  }
-
-  // Timeout wrapper utility
-  private withTimeout<T>(promise: Promise<T>, timeoutMs: number, serviceName: string): Promise<T> {
-    return Promise.race([
-      promise,
-      new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error(`${serviceName} timeout after ${timeoutMs}ms`)), timeoutMs)
-      )
-    ]);
-  }
-
-  // Generate cache key
-  private getCacheKey(message: string, mode: string): string {
-    return `${mode}:${message.slice(0, 100)}`;
-  }
-
-  // Get cached response
-  private getCachedResponse(message: string, mode: string): string | null {
-    const key = this.getCacheKey(message, mode);
-    const cached = this.responseCache.get(key);
-    
-    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
-      console.log(`[CACHE HIT] Returning cached response for ${mode} mode`);
-      return cached.response;
-    }
-    
-    if (cached) {
-      this.responseCache.delete(key); // Remove expired cache
-    }
-    return null;
-  }
-
-  // Cache response
-  private cacheResponse(message: string, mode: string, response: string): void {
-    const key = this.getCacheKey(message, mode);
-    
-    // First, prune expired entries BEFORE adding new entry (collect keys first to avoid iterator issues)
-    const now = Date.now();
-    const keysToDelete: string[] = [];
-    this.responseCache.forEach((cached, cacheKey) => {
-      if (now - cached.timestamp >= this.CACHE_TTL) {
-        keysToDelete.push(cacheKey);
-      }
-    });
-    keysToDelete.forEach(k => this.responseCache.delete(k));
-    
-    // Now add the new entry
-    this.responseCache.set(key, { response, timestamp: Date.now() });
-    
-    // Then enforce size limit (keep last 100) - only if still over limit after pruning
-    if (this.responseCache.size > 100) {
-      const firstKey = this.responseCache.keys().next().value;
-      if (firstKey) {
-        this.responseCache.delete(firstKey);
-      }
-    }
   }
 
   private getNaturalChatSystemPrompt(language: string = 'english'): string {
@@ -638,7 +563,6 @@ FORMAT REQUIREMENTS:
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
-    const startTime = Date.now();
     const lang = language || 'english';
     
     // Validate mode to ensure it's one of the allowed values
@@ -647,16 +571,6 @@ FORMAT REQUIREMENTS:
     
     if (safeMode !== mode) {
       console.warn(`[LLM] Invalid mode "${mode}" provided, defaulting to "natural"`);
-    }
-
-    // Check cache first (skip for new sessions to ensure fresh greeting)
-    if (!isNewSession) {
-      const cachedResponse = this.getCachedResponse(userMessage, safeMode);
-      if (cachedResponse) {
-        const latency = Date.now() - startTime;
-        console.log(`[LATENCY] Cache hit: ${latency}ms for ${safeMode} mode`);
-        return cachedResponse;
-      }
     }
     
     let contextualMessage = userMessage;
@@ -684,66 +598,57 @@ FORMAT REQUIREMENTS:
       }
     }
 
-    let aiResponse: string | null = null;
-    let serviceName = 'unknown';
+    let aiResponse: string;
 
-    // Try Google Gemini first (free)
-    if (process.env.GEMINI_API_KEY && !aiResponse) {
-      try {
-        serviceName = 'Google Gemini';
-        console.log(`[LLM] Attempting Google Gemini for ${safeMode.toUpperCase()} mode`);
-        aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      } catch (geminiError) {
-        const errorLatency = Date.now() - startTime;
-        console.error(`[ERROR] Gemini AI failed after ${errorLatency}ms:`, geminiError);
-        aiResponse = null; // Proceed to next fallback
-      }
-    }
-
-    // Fallback to OpenRouter if Gemini failed (free models: Llama, DeepSeek, etc.)
-    if (process.env.OPENROUTER_API_KEY && !aiResponse) {
-      try {
-        serviceName = 'OpenRouter';
-        console.log(`[LLM] Falling back to OpenRouter for ${safeMode.toUpperCase()} mode`);
-        aiResponse = await this.generateOpenRouterResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      } catch (openrouterError) {
-        const errorLatency = Date.now() - startTime;
-        console.error(`[ERROR] OpenRouter failed after ${errorLatency}ms:`, openrouterError);
-        aiResponse = null; // Proceed to Mistral fallback
-      }
-    }
-
-    // Fallback to Mistral API if both free services failed (paid backup)
-    if (process.env.MISTRAL_API_KEY && !aiResponse) {
-      try {
-        serviceName = `Mistral API (${safeMode.toUpperCase()})`;
-        console.log(`[LLM] Falling back to Mistral API for ${safeMode.toUpperCase()} mode`);
+    try {
+      // For HEALTH mode, use Mistral with specialized health model
+      if (safeMode === 'health' && process.env.MISTRAL_API_KEY) {
+        console.log('[LLM] Using Mistral AI (CWC-Mistral-Nemo) for HEALTH mode');
         aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      } catch (mistralError) {
-        const errorLatency = Date.now() - startTime;
-        console.error(`[ERROR] Mistral API failed after ${errorLatency}ms:`, mistralError);
-        aiResponse = null; // Proceed to OpenAI fallback
       }
-    }
+      // For FREESTYLE mode, use Mistral as primary AI for superior code generation
+      else if (safeMode === 'freestyle' && process.env.MISTRAL_API_KEY) {
+        console.log('[LLM] Using Mistral AI for FREESTYLE code generation');
+        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      }
+      // For TECHNICAL mode, use Mistral for detailed technical responses
+      else if (safeMode === 'technical' && process.env.MISTRAL_API_KEY) {
+        console.log('[LLM] Using Mistral AI for TECHNICAL mode');
+        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      }
+      // For NATURAL mode, prioritize Mistral for conversational AI
+      else if (safeMode === 'natural' && process.env.MISTRAL_API_KEY) {
+        console.log('[LLM] Using Mistral AI for NATURAL chat mode');
+        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      }
+      // Fallback: Use Google Gemini (free tier, excellent quality)
+      else if (process.env.GEMINI_API_KEY) {
+        console.log(`[LLM] Using Google Gemini for ${safeMode.toUpperCase()} mode (fallback)`);
+        aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      }
+      // Tertiary: Enhanced Hugging Face models
+      else {
+        console.log(`[LLM] Using enhanced Hugging Face models for ${safeMode.toUpperCase()} mode`);
+        aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      }
 
-    // Fallback to OpenAI if both Gemini and Mistral failed (reliable final AI fallback)
-    if (process.env.OPENAI_API_KEY && !aiResponse) {
+    } catch (primaryError) {
+      console.error('Primary AI models error:', primaryError);
+
       try {
-        serviceName = 'OpenAI';
-        console.log(`[LLM] Falling back to OpenAI for ${safeMode.toUpperCase()} mode`);
-        aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      } catch (openaiError) {
-        const errorLatency = Date.now() - startTime;
-        console.error(`[ERROR] OpenAI failed after ${errorLatency}ms:`, openaiError);
-        aiResponse = null; // Final hardcoded fallback needed
+        // Backup: Google Gemini fallback (works for all modes)
+        if (process.env.GEMINI_API_KEY) {
+          console.log(`[LLM] Falling back to Google Gemini for ${safeMode.toUpperCase()} mode`);
+          aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+        }
+        // Final fallback
+        else {
+          aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
+        }
+      } catch (secondaryError) {
+        console.error('Fallback AI models error:', secondaryError);
+        aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
       }
-    }
-
-    // Final hardcoded fallback if all AI services failed
-    if (!aiResponse) {
-      serviceName = 'Hardcoded Fallback';
-      console.log('[LLM] All AI services failed, using hardcoded fallback');
-      aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
     }
 
     // Append document references at the end if relevant documents were found
@@ -760,15 +665,6 @@ FORMAT REQUIREMENTS:
       if (documentRefs) {
         aiResponse = `${aiResponse}\n\n📚 Related documents from your knowledge base:\n${documentRefs}`;
       }
-    }
-
-    // Log total latency and cache the response
-    const totalLatency = Date.now() - startTime;
-    console.log(`[LATENCY] Total response time: ${totalLatency}ms (Service: ${serviceName}, Mode: ${safeMode})`);
-    
-    // Cache successful responses (skip hardcoded fallbacks)
-    if (serviceName !== 'Hardcoded Fallback' && !isNewSession) {
-      this.cacheResponse(userMessage, safeMode, aiResponse);
     }
 
     return aiResponse;
@@ -846,117 +742,16 @@ Current User Message: ${userMessage}
 
 Please respond as ARCHIMEDES v7:`;
 
-    // Wrap ONLY the network call with timeout (excludes preprocessing time)
-    const apiCallStart = Date.now();
-    const apiCall = gemini.models.generateContent({
-      model: 'gemini-2.0-flash-exp',  // Back to experimental model
+    const response = await gemini.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
       contents: fullPrompt,
       config: {
         maxOutputTokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
         temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.4 : mode === 'freestyle' ? 0.8 : 0.85,
       }
     });
-    const response = await this.withTimeout(apiCall, API_TIMEOUTS.gemini, 'Gemini API');
-    const apiCallTime = Date.now() - apiCallStart;
-    console.log(`[API TIMING] Gemini API responded in ${apiCallTime}ms`);
 
     const responseText = response.text || 'I apologize, but I encountered an error processing your request.';
-    return this.postProcessResponse(responseText, mode);
-  }
-
-  private async generateOpenRouterResponse(
-    userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle' | 'health',
-    conversationHistory: Message[] = [],
-    language: string = 'english',
-    isNewSession: boolean = false
-  ): Promise<string> {
-    let systemPrompt = mode === 'natural'
-      ? this.getNaturalChatSystemPrompt(language)
-      : mode === 'health'
-      ? this.getHealthModeSystemPrompt(language)
-      : mode === 'freestyle'
-      ? this.getFreestyleModeSystemPrompt(language, userMessage)
-      : this.getTechnicalModeSystemPrompt(language);
-
-    // In freestyle mode, enhance the prompt for code generation with language detection
-    const enhancedMessage = mode === 'freestyle'
-      ? this.getEnhancedFreestyleMessage(userMessage)
-      : userMessage;
-
-    // Add language instruction to system message if not English
-    if (language && language !== 'english') {
-      const languageInstructions = {
-        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
-        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
-      };
-      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
-    }
-
-    // Add session greeting instruction if new session
-    let greetingInstruction = '';
-    if (isNewSession) {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-      const productiveSuggestions = [
-        "perfect time to organize that messy code you've been avoiding",
-        "great day to finally document that function nobody understands",
-        "ideal moment to refactor something before it becomes technical debt",
-        "excellent opportunity to learn something completely impractical but fascinating",
-        "prime time to automate a task you've been doing manually for months",
-        "wonderful chance to fix that bug you pretended wasn't there",
-        "optimal window to explore a new library that might change everything",
-        "brilliant hour to backup your work before Murphy's Law strikes",
-        "perfect occasion to write tests for code that desperately needs them",
-        "superb timing to clean up your git history and feel accomplished"
-      ];
-
-      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
-
-      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
-1. Welcomes the user with genuine warmth and a touch of wit
-2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
-3. Playfully suggests: "${randomSuggestion}"
-4. Keep the greeting natural and conversational, not forced
-5. Then smoothly transition to answering their actual question
-
-Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
-    }
-
-    // Build messages array for OpenRouter
-    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      { role: 'system', content: systemPrompt + greetingInstruction }
-    ];
-
-    // Add recent conversation history (last 8 messages for better context)
-    const recentHistory = conversationHistory.slice(-8);
-    for (const msg of recentHistory) {
-      if (msg.role === 'user' || msg.role === 'assistant') {
-        messages.push({
-          role: msg.role,
-          content: msg.content
-        });
-      }
-    }
-
-    // Add current user message
-    messages.push({ role: 'user', content: enhancedMessage });
-
-    // Wrap ONLY the network call with timeout (excludes preprocessing time)
-    const apiCallStart = Date.now();
-    const apiCall = openrouter.chat.completions.create({
-      model: 'deepseek/deepseek-chat-v3-0324:free',  // Free DeepSeek Chat model via OpenRouter
-      messages: messages,
-      max_tokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
-      temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.4 : mode === 'freestyle' ? 0.8 : 0.85,
-    });
-    const response = await this.withTimeout(apiCall, API_TIMEOUTS.openrouter, 'OpenRouter API');
-    const apiCallTime = Date.now() - apiCallStart;
-    console.log(`[API TIMING] OpenRouter API responded in ${apiCallTime}ms`);
-
-    const responseText = response.choices?.[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
     return this.postProcessResponse(responseText, mode);
   }
 
@@ -1149,18 +944,13 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       ? 'open-mistral-nemo' // Use Mistral Nemo for health mode (similar to CWC-Mistral-Nemo)
       : 'mistral-large-latest'; // Use latest Mistral for other modes
 
-    // Wrap ONLY the network call with timeout (excludes preprocessing time)
-    const apiCallStart = Date.now();
-    const apiCall = mistral.chat.complete({
+    const chatResponse = await mistral.chat.complete({
       model: modelSelection,
       messages: messages as any,
       maxTokens: mode === 'freestyle' ? 6000 : mode === 'technical' || mode === 'health' ? 4000 : 1200,
       temperature: mode === 'health' ? 0.4 : mode === 'freestyle' ? 0.7 : mode === 'technical' ? 0.4 : 0.85,
       topP: 0.95,
     });
-    const chatResponse = await this.withTimeout(apiCall, API_TIMEOUTS.mistral, 'Mistral API');
-    const apiCallTime = Date.now() - apiCallStart;
-    console.log(`[API TIMING] Mistral API responded in ${apiCallTime}ms`);
 
     const response = chatResponse.choices?.[0]?.message?.content;
 
@@ -1176,7 +966,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
   private async generateReplitOptimizedResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle' | 'health',
+    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
@@ -1270,66 +1060,56 @@ Conversation Context:\n`;
     throw new Error('No valid response from Replit-optimized AI pipeline');
   }
 
-  private async tryReplitOptimizedModels(prompt: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): Promise<string> {
+  private async tryReplitOptimizedModels(prompt: string, mode: 'natural' | 'technical' | 'freestyle'): Promise<string> { // Added 'freestyle'
     // Primary model: Fast and efficient for Replit
     const models = [
       REPLIT_AI_CONFIG.primaryModel,
       ...REPLIT_AI_CONFIG.fallbackModels
     ];
 
-    console.log(`[HF DEBUG] Trying ${models.length} HuggingFace models using SDK...`);
-
-    for (let i = 0; i < models.length; i++) {
-      const model = models[i];
-      const modelStart = Date.now();
-      
+    for (const model of models) {
       try {
-        console.log(`[HF DEBUG] Attempt ${i + 1}/${models.length}: ${model}`);
-        
-        // Use HuggingFace SDK instead of raw fetch
-        const result = await hf.textGeneration({
-          model: model,
-          inputs: prompt,
-          parameters: {
-            max_new_tokens: REPLIT_AI_CONFIG.maxTokens[mode === 'freestyle' || mode === 'health' ? 'technical' : mode],
-            temperature: REPLIT_AI_CONFIG.temperature[mode === 'freestyle' || mode === 'health' ? 'technical' : mode],
-            return_full_text: false,
-            do_sample: true,
-            top_p: 0.9,
-            repetition_penalty: 1.1
-          }
+        const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+            'Content-Type': 'application/json',
+            'User-Agent': 'ARCHIMEDES-v7-Replit-Terminal/1.0'
+          },
+          body: JSON.stringify({
+            inputs: prompt,
+            parameters: {
+              max_new_tokens: REPLIT_AI_CONFIG.maxTokens[mode === 'freestyle' ? 'technical' : mode], // Use technical maxTokens for freestyle
+              temperature: REPLIT_AI_CONFIG.temperature[mode === 'freestyle' ? 'technical' : mode], // Use technical temperature for freestyle
+              return_full_text: false,
+              do_sample: true,
+              top_p: 0.9,
+              repetition_penalty: 1.1
+            }
+          })
         });
 
-        const modelLatency = Date.now() - modelStart;
-        console.log(`[HF DEBUG] ${model} responded in ${modelLatency}ms`);
+        if (response.ok) {
+          const result = await response.json();
 
-        if (result && result.generated_text) {
-          console.log(`[HF DEBUG] SUCCESS: ${model} generated ${result.generated_text.length} chars`);
-          return result.generated_text;
-        }
+          if (Array.isArray(result) && result[0]?.generated_text) {
+            return result[0].generated_text;
+          }
 
-        console.log(`[HF DEBUG] ${model} returned no generated_text:`, JSON.stringify(result).slice(0, 200));
-      } catch (error: any) {
-        const modelLatency = Date.now() - modelStart;
-        console.error(`[HF DEBUG] ${model} failed after ${modelLatency}ms:`, error?.message || String(error));
-        
-        // Log additional error details if available
-        if (error?.response) {
-          console.error(`[HF DEBUG] ${model} error response:`, error.response);
+          if (typeof result === 'object' && result.generated_text) {
+            return result.generated_text;
+          }
         }
-        if (error?.statusCode) {
-          console.error(`[HF DEBUG] ${model} status code:`, error.statusCode);
-        }
-        
+      } catch (error) {
+        console.log(`Replit-optimized model ${model} failed, trying next...`);
         continue;
       }
     }
 
-    console.error('[HF DEBUG] All HuggingFace models exhausted');
     throw new Error('All Replit-optimized models failed');
   }
 
-  private postProcessResponse(response: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): string {
+  private postProcessResponse(response: string, mode: 'natural' | 'technical' | 'freestyle'): string { // Added 'freestyle'
     // Clean up the response
     let cleaned = response.trim();
 
@@ -1350,17 +1130,13 @@ Conversation Context:\n`;
 
   private async generateOpenAIResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle' | 'health',
+    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
-      : mode === 'health'
-      ? this.getHealthModeSystemPrompt(language)
-      : mode === 'freestyle'
-      ? this.getFreestyleModeSystemPrompt(language, userMessage)
       : this.getTechnicalModeSystemPrompt(language);
 
     // In freestyle mode, enhance the prompt for code generation with language detection
@@ -1440,7 +1216,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     return completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
   }
 
-  private getEnhancedFallbackResponse(input: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): string {
+  private getEnhancedFallbackResponse(input: string, mode: 'natural' | 'technical' | 'freestyle'): string { // Added 'freestyle'
     if (mode === 'natural') {
       return this.generateEnhancedNaturalFallback(input);
     } else { // Technical or Freestyle mode
