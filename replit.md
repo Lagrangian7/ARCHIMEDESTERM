@@ -29,6 +29,29 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: Centralized error middleware with structured error responses
 - **Request Logging**: Custom middleware for API request/response logging
 
+## Performance Optimizations
+- **AI Response Caching**: In-memory cache (Map-based) for frequently asked questions with 5-minute TTL
+  - Automatically invalidates expired entries before enforcing size limit
+  - Skips caching for new sessions to ensure fresh greetings
+  - Maintains last 100 cache entries to prevent memory bloat
+  - Cache eviction prioritizes staleness over insertion order (deterministic cleanup)
+- **Aggressive Timeout Management** - Total worst-case failover: 4 seconds
+  - Mistral API: 1.5-second timeout (down from SDK default 30+ seconds)
+  - Gemini API: 1.5-second timeout (down from SDK default 30+ seconds)
+  - HuggingFace: 1-second timeout for fastest failure detection
+  - Timeouts wrap ONLY network calls, excluding preprocessing (prompt assembly, message building)
+  - Sequential fallback chain with individual try/catch per service
+- **Comprehensive Latency Tracking**:
+  - Per-service response time logging (Mistral, Gemini, HuggingFace)
+  - Total request latency metrics with service name attribution
+  - Cache hit/miss tracking for performance insights
+  - Per-attempt timing logs for fallover analysis
+- **Enhanced Error Diagnostics**:
+  - Detailed error logs with timestamp and service identification
+  - Latency-aware error reporting showing exactly where failures occur
+  - Fallback chain logging to track degradation paths
+  - Timeout rejections properly caught and logged at each stage
+
 ## Data Storage Solutions
 - **Database**: PostgreSQL with Drizzle ORM (DatabaseStorage implementation)
 - **Schema**: Users table for authentication, conversations table with JSONB message storage, documents table for knowledge base
