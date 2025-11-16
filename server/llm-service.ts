@@ -46,9 +46,9 @@ const REPLIT_AI_CONFIG = {
 // Fallback order: HuggingFace CWC-Mistral-Nemo → Gemini → Mistral API (paid)
 const API_TIMEOUTS = {
   huggingface: 1000, // 1 second for HuggingFace CWC-Mistral-Nemo (tried first, free)
-  gemini: 1500,      // 1.5 seconds for Gemini (free backup)
-  mistral: 1500      // 1.5 seconds for Mistral (paid, last resort)
-  // Total worst-case: 4 seconds across all services
+  gemini: 2000,      // 2 seconds for Gemini (free backup)
+  mistral: 4000      // 4 seconds for Mistral (paid, needs more time)
+  // Total worst-case: 7 seconds across all services
 };
 
 export class LLMService {
