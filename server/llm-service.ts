@@ -966,7 +966,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
   private async generateReplitOptimizedResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
@@ -1060,7 +1060,7 @@ Conversation Context:\n`;
     throw new Error('No valid response from Replit-optimized AI pipeline');
   }
 
-  private async tryReplitOptimizedModels(prompt: string, mode: 'natural' | 'technical' | 'freestyle'): Promise<string> { // Added 'freestyle'
+  private async tryReplitOptimizedModels(prompt: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): Promise<string> {
     // Primary model: Fast and efficient for Replit
     const models = [
       REPLIT_AI_CONFIG.primaryModel,
@@ -1079,8 +1079,8 @@ Conversation Context:\n`;
           body: JSON.stringify({
             inputs: prompt,
             parameters: {
-              max_new_tokens: REPLIT_AI_CONFIG.maxTokens[mode === 'freestyle' ? 'technical' : mode], // Use technical maxTokens for freestyle
-              temperature: REPLIT_AI_CONFIG.temperature[mode === 'freestyle' ? 'technical' : mode], // Use technical temperature for freestyle
+              max_new_tokens: REPLIT_AI_CONFIG.maxTokens[mode === 'freestyle' || mode === 'health' ? 'technical' : mode],
+              temperature: REPLIT_AI_CONFIG.temperature[mode === 'freestyle' || mode === 'health' ? 'technical' : mode],
               return_full_text: false,
               do_sample: true,
               top_p: 0.9,
@@ -1109,7 +1109,7 @@ Conversation Context:\n`;
     throw new Error('All Replit-optimized models failed');
   }
 
-  private postProcessResponse(response: string, mode: 'natural' | 'technical' | 'freestyle'): string { // Added 'freestyle'
+  private postProcessResponse(response: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): string {
     // Clean up the response
     let cleaned = response.trim();
 
@@ -1216,7 +1216,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     return completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
   }
 
-  private getEnhancedFallbackResponse(input: string, mode: 'natural' | 'technical' | 'freestyle'): string { // Added 'freestyle'
+  private getEnhancedFallbackResponse(input: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): string {
     if (mode === 'natural') {
       return this.generateEnhancedNaturalFallback(input);
     } else { // Technical or Freestyle mode
