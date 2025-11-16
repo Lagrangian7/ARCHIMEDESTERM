@@ -18,6 +18,12 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// OpenRouter client for accessing free models (Llama, Mistral, DeepSeek, etc.)
+const openrouter = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: 'https://openrouter.ai/api/v1',
+});
+
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 
 // Perplexity configuration for up-to-date information
@@ -43,12 +49,13 @@ const REPLIT_AI_CONFIG = {
 };
 
 // Timeout configuration - reasonable timeouts for reliable responses
-// Fallback order: Google Gemini (free) → Mistral API (paid backup) → OpenAI (reliable final fallback)
+// Fallback order: Google Gemini (free) → OpenRouter (free) → Mistral API (paid backup) → OpenAI (reliable final fallback)
 const API_TIMEOUTS = {
   gemini: 3000,      // 3 seconds for Gemini (free, tried first)
+  openrouter: 4000,  // 4 seconds for OpenRouter free models (Llama, DeepSeek, etc.)
   mistral: 5000,     // 5 seconds for Mistral (paid backup)
   openai: 4000       // 4 seconds for OpenAI (reliable final fallback)
-  // Total worst-case: 12 seconds across all three services
+  // Total worst-case: 16 seconds across all four services
 };
 
 export class LLMService {
@@ -693,7 +700,20 @@ FORMAT REQUIREMENTS:
       }
     }
 
-    // Fallback to Mistral API if Gemini failed (paid backup)
+    // Fallback to OpenRouter if Gemini failed (free models: Llama, DeepSeek, etc.)
+    if (process.env.OPENROUTER_API_KEY && !aiResponse) {
+      try {
+        serviceName = 'OpenRouter';
+        console.log(`[LLM] Falling back to OpenRouter for ${safeMode.toUpperCase()} mode`);
+        aiResponse = await this.generateOpenRouterResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      } catch (openrouterError) {
+        const errorLatency = Date.now() - startTime;
+        console.error(`[ERROR] OpenRouter failed after ${errorLatency}ms:`, openrouterError);
+        aiResponse = null; // Proceed to Mistral fallback
+      }
+    }
+
+    // Fallback to Mistral API if both free services failed (paid backup)
     if (process.env.MISTRAL_API_KEY && !aiResponse) {
       try {
         serviceName = `Mistral API (${safeMode.toUpperCase()})`;
@@ -841,6 +861,102 @@ Please respond as ARCHIMEDES v7:`;
     console.log(`[API TIMING] Gemini API responded in ${apiCallTime}ms`);
 
     const responseText = response.text || 'I apologize, but I encountered an error processing your request.';
+    return this.postProcessResponse(responseText, mode);
+  }
+
+  private async generateOpenRouterResponse(
+    userMessage: string,
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
+    conversationHistory: Message[] = [],
+    language: string = 'english',
+    isNewSession: boolean = false
+  ): Promise<string> {
+    let systemPrompt = mode === 'natural'
+      ? this.getNaturalChatSystemPrompt(language)
+      : mode === 'health'
+      ? this.getHealthModeSystemPrompt(language)
+      : mode === 'freestyle'
+      ? this.getFreestyleModeSystemPrompt(language, userMessage)
+      : this.getTechnicalModeSystemPrompt(language);
+
+    // In freestyle mode, enhance the prompt for code generation with language detection
+    const enhancedMessage = mode === 'freestyle'
+      ? this.getEnhancedFreestyleMessage(userMessage)
+      : userMessage;
+
+    // Add language instruction to system message if not English
+    if (language && language !== 'english') {
+      const languageInstructions = {
+        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
+        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
+      };
+      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
+    }
+
+    // Add session greeting instruction if new session
+    let greetingInstruction = '';
+    if (isNewSession) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+      const productiveSuggestions = [
+        "perfect time to organize that messy code you've been avoiding",
+        "great day to finally document that function nobody understands",
+        "ideal moment to refactor something before it becomes technical debt",
+        "excellent opportunity to learn something completely impractical but fascinating",
+        "prime time to automate a task you've been doing manually for months",
+        "wonderful chance to fix that bug you pretended wasn't there",
+        "optimal window to explore a new library that might change everything",
+        "brilliant hour to backup your work before Murphy's Law strikes",
+        "perfect occasion to write tests for code that desperately needs them",
+        "superb timing to clean up your git history and feel accomplished"
+      ];
+
+      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
+
+      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
+1. Welcomes the user with genuine warmth and a touch of wit
+2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
+3. Playfully suggests: "${randomSuggestion}"
+4. Keep the greeting natural and conversational, not forced
+5. Then smoothly transition to answering their actual question
+
+Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
+    }
+
+    // Build messages array for OpenRouter
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role: 'system', content: systemPrompt + greetingInstruction }
+    ];
+
+    // Add recent conversation history (last 8 messages for better context)
+    const recentHistory = conversationHistory.slice(-8);
+    for (const msg of recentHistory) {
+      if (msg.role === 'user' || msg.role === 'assistant') {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
+
+    // Add current user message
+    messages.push({ role: 'user', content: enhancedMessage });
+
+    // Wrap ONLY the network call with timeout (excludes preprocessing time)
+    const apiCallStart = Date.now();
+    const apiCall = openrouter.chat.completions.create({
+      model: 'meta-llama/llama-3.1-8b-instruct:free',  // Free Llama 3.1 8B model
+      messages: messages,
+      max_tokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
+      temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.4 : mode === 'freestyle' ? 0.8 : 0.85,
+    });
+    const response = await this.withTimeout(apiCall, API_TIMEOUTS.openrouter, 'OpenRouter API');
+    const apiCallTime = Date.now() - apiCallStart;
+    console.log(`[API TIMING] OpenRouter API responded in ${apiCallTime}ms`);
+
+    const responseText = response.choices?.[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
     return this.postProcessResponse(responseText, mode);
   }
 

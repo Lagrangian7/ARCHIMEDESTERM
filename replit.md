@@ -20,8 +20,10 @@ Preferred communication style: Simple, everyday language.
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js server
 - **API Design**: RESTful API with AI chat endpoint (`/api/chat`) for terminal-based interactions with Archimedes AI assistant
-- **AI Services Fallback Chain**: Google Gemini (free, primary) → Mistral API (paid backup) → OpenAI (reliable final AI fallback)
-  - **Triple-redundancy system**: Three AI providers ensure responses always work
+- **AI Services Fallback Chain**: Google Gemini (free) → OpenRouter (free) → Mistral API (paid backup) → OpenAI (reliable final AI fallback)
+  - **Quad-redundancy system**: Four AI providers ensure responses always work
+  - Two free services (Gemini + OpenRouter) before hitting paid tiers
+  - OpenRouter provides access to free Llama 3.1 8B and other open-source models
   - OpenAI uses cost-effective `gpt-4o-mini` model for balance of quality and cost
 - **Academic Search**: Semantic Scholar API integration for academic paper search (FREE, no API key required)
 - **Wolfram Alpha**: Full Results API integration for computational queries, math solving, data lookup, and knowledge queries with enhanced graphical and mathematical rendering
@@ -38,8 +40,9 @@ Preferred communication style: Simple, everyday language.
   - Skips caching for new sessions to ensure fresh greetings
   - Maintains last 100 cache entries to prevent memory bloat
   - Cache eviction prioritizes staleness over insertion order (deterministic cleanup)
-- **Aggressive Timeout Management** - Total worst-case failover: 12 seconds across 3 services
+- **Aggressive Timeout Management** - Total worst-case failover: 16 seconds across 4 services
   - Gemini API: 3-second timeout (free tier, tried first)
+  - OpenRouter API: 4-second timeout (free Llama 3.1 8B model)
   - Mistral API: 5-second timeout (paid backup)
   - OpenAI API: 4-second timeout (reliable final AI fallback before hardcoded response)
   - Timeouts wrap ONLY network calls, excluding preprocessing (prompt assembly, message building)
