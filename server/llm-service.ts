@@ -43,10 +43,11 @@ const REPLIT_AI_CONFIG = {
 };
 
 // Timeout configuration - aggressive timeouts for fast failover (<5s total)
+// Fallback order: HuggingFace CWC-Mistral-Nemo → Gemini → Mistral API (paid)
 const API_TIMEOUTS = {
-  mistral: 1500,    // 1.5 seconds for Mistral (fast failover)
-  gemini: 1500,     // 1.5 seconds for Gemini (fast failover)
-  huggingface: 1000 // 1 second for HuggingFace (fast failover)
+  huggingface: 1000, // 1 second for HuggingFace CWC-Mistral-Nemo (tried first, free)
+  gemini: 1500,      // 1.5 seconds for Gemini (free backup)
+  mistral: 1500      // 1.5 seconds for Mistral (paid, last resort)
   // Total worst-case: 4 seconds across all services
 };
 
@@ -679,24 +680,24 @@ FORMAT REQUIREMENTS:
     let aiResponse: string | null = null;
     let serviceName = 'unknown';
 
-    // Try Mistral first if API key is available
-    if (process.env.MISTRAL_API_KEY && !aiResponse) {
+    // Try HuggingFace CWC-Mistral-Nemo first (free, high-quality)
+    if (!aiResponse) {
       try {
-        serviceName = `Mistral (${safeMode.toUpperCase()})`;
-        console.log(`[LLM] Attempting Mistral AI for ${safeMode.toUpperCase()} mode`);
-        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      } catch (mistralError) {
+        serviceName = 'HuggingFace CWC-Mistral-Nemo';
+        console.log(`[LLM] Attempting HuggingFace CWC-Mistral-Nemo for ${safeMode.toUpperCase()} mode`);
+        aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      } catch (hfError) {
         const errorLatency = Date.now() - startTime;
-        console.error(`[ERROR] Mistral AI failed after ${errorLatency}ms:`, mistralError);
+        console.error(`[ERROR] HuggingFace CWC-Mistral-Nemo failed after ${errorLatency}ms:`, hfError);
         aiResponse = null; // Proceed to next fallback
       }
     }
 
-    // Fallback to Google Gemini if Mistral failed or unavailable
+    // Fallback to Google Gemini if HuggingFace failed
     if (process.env.GEMINI_API_KEY && !aiResponse) {
       try {
         serviceName = 'Google Gemini';
-        console.log(`[LLM] ${process.env.MISTRAL_API_KEY ? 'Falling back to' : 'Using'} Google Gemini for ${safeMode.toUpperCase()} mode`);
+        console.log(`[LLM] Falling back to Google Gemini for ${safeMode.toUpperCase()} mode`);
         aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       } catch (geminiError) {
         const errorLatency = Date.now() - startTime;
@@ -705,15 +706,15 @@ FORMAT REQUIREMENTS:
       }
     }
 
-    // Fallback to HuggingFace models if both Mistral and Gemini failed
-    if (!aiResponse) {
+    // Fallback to Mistral API if both free services failed (paid, last resort)
+    if (process.env.MISTRAL_API_KEY && !aiResponse) {
       try {
-        serviceName = 'HuggingFace';
-        console.log(`[LLM] Using HuggingFace models for ${safeMode.toUpperCase()} mode`);
-        aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      } catch (hfError) {
+        serviceName = `Mistral API (${safeMode.toUpperCase()})`;
+        console.log(`[LLM] Falling back to Mistral API (paid) for ${safeMode.toUpperCase()} mode`);
+        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      } catch (mistralError) {
         const errorLatency = Date.now() - startTime;
-        console.error(`[ERROR] HuggingFace models failed after ${errorLatency}ms:`, hfError);
+        console.error(`[ERROR] Mistral API failed after ${errorLatency}ms:`, mistralError);
         aiResponse = null; // Final fallback needed
       }
     }
