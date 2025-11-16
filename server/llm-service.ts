@@ -1170,7 +1170,7 @@ Conversation Context:\n`;
       try {
         console.log(`[HF DEBUG] Attempt ${i + 1}/${models.length}: ${model}`);
         
-        const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+        const response = await fetch(`https://router.huggingface.co/hf-inference/models/${model}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
