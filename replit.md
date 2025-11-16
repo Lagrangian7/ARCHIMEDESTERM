@@ -60,9 +60,10 @@ Preferred communication style: Simple, everyday language.
   - Zod for schema validation with Drizzle integration
 
 ## Key Design Patterns
-- **Multi-Mode AI Operation**: 
+- **Multi-Mode AI Operation** (English-only system): 
   - Natural chat mode for conversational interactions
   - Technical protocol mode for detailed technical responses
+  - Health mode for health and wellness guidance
   - **Freestyle mode with intelligent multi-language support** - automatically detects and generates code in Python, TypeScript, JavaScript, C++, or Bash based on user intent
 - **Intelligent Language Detection**: Freestyle mode analyzes user requests to detect target programming language using:
   - Explicit language mentions (highest priority)
