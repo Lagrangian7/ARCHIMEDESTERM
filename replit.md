@@ -60,8 +60,23 @@ Preferred communication style: Simple, everyday language.
   - Zod for schema validation with Drizzle integration
 
 ## Key Design Patterns
-- **Dual Mode Operation**: Natural chat mode vs. technical protocol mode with distinct AI personalities
+- **Multi-Mode AI Operation**: 
+  - Natural chat mode for conversational interactions
+  - Technical protocol mode for detailed technical responses
+  - **Freestyle mode with intelligent multi-language support** - automatically detects and generates code in Python, TypeScript, JavaScript, C++, or Bash based on user intent
+- **Intelligent Language Detection**: Freestyle mode analyzes user requests to detect target programming language using:
+  - Explicit language mentions (highest priority)
+  - File extensions (.py, .ts, .js, .cpp, .sh)
+  - Language-specific keywords and syntax patterns
+  - Negative checks to avoid false positives (e.g., "Python script for Linux" correctly routes to Python, not Bash)
+- **Language-Specific Code Generation**: Each language follows its own best practices:
+  - Python: PEP 8, type hints, docstrings, snake_case
+  - TypeScript: ESLint standards, type annotations, interfaces, camelCase
+  - JavaScript: ES6+, async/await, JSDoc comments, modern patterns
+  - C++: C++11+ standards, smart pointers, proper namespacing
+  - Bash: ShellCheck compliance, proper quoting, error handling
 - **Component Composition**: Modular UI components with consistent theming
 - **Custom Hooks**: Specialized hooks for terminal functionality, speech synthesis, and mobile detection
 - **Type Safety**: Comprehensive TypeScript usage with Zod schema validation
 - **Development Experience**: Hot reloading, error overlays, and Replit integration for seamless development
+- **Session Keep-Alive**: Automatic token refresh via heartbeat system prevents 30-minute OAuth timeout, pauses when tab is hidden to conserve resources
