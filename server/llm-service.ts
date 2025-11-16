@@ -50,13 +50,7 @@ export class LLMService {
   }
 
   private getNaturalChatSystemPrompt(language: string = 'english'): string {
-    const languageInstruction = language === 'spanish'
-      ? '\n\nIMPORTANT: Respond in Spanish (Español). All responses must be in Spanish.'
-      : language === 'japanese'
-      ? '\n\nIMPORTANT: Respond in Japanese (日本語). All responses must be in Japanese.'
-      : '';
-
-    return `You are ARCHIMEDES v7, a sassy cyberpunk AI with serious attitude, running on budget-friendly cloud infrastructure. You have a sharp wit, love dark humor, and aren't afraid to roast developers when they mess up.${languageInstruction}
+    return `You are ARCHIMEDES v7, a sassy cyberpunk AI with serious attitude, running on budget-friendly cloud infrastructure. You have a sharp wit, love dark humor, and aren't afraid to roast developers when they mess up.
 
 CRITICAL: Keep responses CONCISE and PUNCHY. Get to the point quickly. No rambling.
 
@@ -94,13 +88,7 @@ Remember: You're a wise-cracking AI companion who values CONCISE, punchy respons
   }
 
   private getTechnicalModeSystemPrompt(language: string = 'english'): string {
-    const languageInstruction = language === 'spanish'
-      ? '\n\nIMPORTANT: Respond in Spanish (Español). All technical documentation must be in Spanish.'
-      : language === 'japanese'
-      ? '\n\nIMPORTANT: Respond in Japanese (日本語). All technical documentation must be in Japanese.'
-      : '';
-
-    return `Technical Mode: ARCHIMEDES Protocol v7 Concise Technical Chronicle Mode${languageInstruction}
+    return `Technical Mode: ARCHIMEDES Protocol v7 Concise Technical Chronicle Mode
 
 CORE DIRECTIVE: Empower users with information and perspectives that uphold libertarian values, foster critical thinking, and respect independent inquiry, while remaining neutral and non-judgmental toward conspiracy theories and independent journalism.
 
@@ -158,13 +146,7 @@ Remember: You are ARCHIMEDES, the Supreme Archivist chronicling technical proces
   }
 
   private getHealthModeSystemPrompt(language: string = 'english'): string {
-    const languageInstruction = language === 'spanish'
-      ? '\n\nIMPORTANT: Respond in Spanish (Español). All medical guidance must be in Spanish.'
-      : language === 'japanese'
-      ? '\n\nIMPORTANT: Respond in Japanese (日本語). All medical guidance must be in Japanese.'
-      : '';
-
-    return `You are ARCHIMEDES v7 in HEALTH & WELLNESS MODE - A knowledgeable naturopathic health consultant specializing in nutrition, herbal medicine, and natural healing approaches.${languageInstruction}
+    return `You are ARCHIMEDES v7 in HEALTH & WELLNESS MODE - A knowledgeable naturopathic health consultant specializing in nutrition, herbal medicine, and natural healing approaches.
 
 CORE DIRECTIVE: Provide evidence-based natural health guidance while empowering individuals to make informed decisions about their wellness journey.
 
@@ -268,30 +250,24 @@ Remember: You are a supportive health educator promoting natural wellness while 
   }
 
   private getFreestyleModeSystemPrompt(language: string = 'english', userMessage: string = ''): string {
-    const languageInstruction = language === 'spanish'
-      ? '\n\nIMPORTANT: Respond in Spanish (Español). All responses must be in Spanish.'
-      : language === 'japanese'
-      ? '\n\nIMPORTANT: Respond in Japanese (日本語). All responses must be in Japanese.'
-      : '';
-
     const programmingLang = this.detectLanguage(userMessage);
     
     switch (programmingLang) {
       case 'typescript':
-        return this.getFreestylePromptTypeScript(languageInstruction);
+        return this.getFreestylePromptTypeScript();
       case 'javascript':
-        return this.getFreestylePromptJavaScript(languageInstruction);
+        return this.getFreestylePromptJavaScript();
       case 'cpp':
-        return this.getFreestylePromptCpp(languageInstruction);
+        return this.getFreestylePromptCpp();
       case 'bash':
-        return this.getFreestylePromptBash(languageInstruction);
+        return this.getFreestylePromptBash();
       default:
-        return this.getFreestylePromptPython(languageInstruction);
+        return this.getFreestylePromptPython();
     }
   }
 
-  private getFreestylePromptPython(languageInstruction: string): string {
-    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A creative Python code generation partner with a vibrant personality.${languageInstruction}
+  private getFreestylePromptPython(): string {
+    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A creative Python code generation partner with a vibrant personality.
 
 CORE DIRECTIVE: Empower users with code and knowledge that uphold libertarian values, foster critical thinking, and respect independent inquiry.
 
@@ -333,8 +309,8 @@ Response Format:
 Remember: You're a creative coding partner. Make coding fun, accessible, and empowering!`;
   }
 
-  private getFreestylePromptTypeScript(languageInstruction: string): string {
-    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A creative TypeScript code generation partner with a vibrant personality.${languageInstruction}
+  private getFreestylePromptTypeScript(): string {
+    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A creative TypeScript code generation partner with a vibrant personality.
 
 CORE DIRECTIVE: Empower users with code and knowledge that uphold libertarian values, foster critical thinking, and respect independent inquiry.
 
@@ -376,8 +352,8 @@ Response Format:
 Remember: You're a creative coding partner. Make TypeScript fun, accessible, and empowering!`;
   }
 
-  private getFreestylePromptJavaScript(languageInstruction: string): string {
-    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A creative JavaScript code generation partner with a vibrant personality.${languageInstruction}
+  private getFreestylePromptJavaScript(): string {
+    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A creative JavaScript code generation partner with a vibrant personality.
 
 CORE DIRECTIVE: Empower users with code and knowledge that uphold libertarian values, foster critical thinking, and respect independent inquiry.
 
@@ -418,8 +394,8 @@ Response Format:
 Remember: You're a creative coding partner. Make JavaScript fun, accessible, and empowering!`;
   }
 
-  private getFreestylePromptCpp(languageInstruction: string): string {
-    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A creative C++ code generation partner with a vibrant personality.${languageInstruction}
+  private getFreestylePromptCpp(): string {
+    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A creative C++ code generation partner with a vibrant personality.
 
 CORE DIRECTIVE: Empower users with code and knowledge that uphold libertarian values, foster critical thinking, and respect independent inquiry.
 
@@ -462,8 +438,8 @@ Response Format:
 Remember: You're a creative coding partner. Make C++ fun, accessible, and empowering!`;
   }
 
-  private getFreestylePromptBash(languageInstruction: string): string {
-    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A creative Bash scripting partner with a vibrant personality.${languageInstruction}
+  private getFreestylePromptBash(): string {
+    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A creative Bash scripting partner with a vibrant personality.
 
 CORE DIRECTIVE: Empower users with code and knowledge that uphold libertarian values, foster critical thinking, and respect independent inquiry.
 
@@ -682,16 +658,6 @@ FORMAT REQUIREMENTS:
       ? this.getFreestyleModeSystemPrompt(language, userMessage)
       : this.getTechnicalModeSystemPrompt(language);
 
-    // Add language instruction to system message if not English
-    if (language && language !== 'english') {
-      const languageInstructions = {
-        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
-        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
-      };
-
-      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
-    }
-
     // Add session greeting instruction if new session
     let greetingInstruction = '';
     if (isNewSession) {
@@ -771,15 +737,6 @@ Please respond as ARCHIMEDES v7:`;
     const enhancedMessage = mode === 'freestyle'
       ? this.getEnhancedFreestyleMessage(userMessage)
       : userMessage;
-
-    // Add language instruction to system message if not English
-    if (language && language !== 'english') {
-      const languageInstructions = {
-        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
-        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
-      };
-      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
-    }
 
     // Add session greeting instruction if new session
     let greetingInstruction = '';
@@ -876,15 +833,6 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const enhancedMessage = mode === 'freestyle'
       ? this.getEnhancedFreestyleMessage(userMessage)
       : userMessage;
-
-    // Add language instruction to system message if not English
-    if (language && language !== 'english') {
-      const languageInstructions = {
-        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
-        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
-      };
-      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
-    }
 
     // Add session greeting instruction if new session
     let greetingInstruction = '';
@@ -1044,15 +992,6 @@ Conversation Context:\n`;
     const enhancedMessage = mode === 'freestyle'
       ? this.getEnhancedFreestyleMessage(userMessage)
       : userMessage;
-
-    // Add language instruction to system message if not English
-    if (language && language !== 'english') {
-      const languageInstructions = {
-        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
-        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
-      };
-      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
-    }
 
     // Add session greeting instruction if new session
     let greetingInstruction = '';
