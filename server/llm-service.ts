@@ -20,9 +20,6 @@ const openai = new OpenAI({
 
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 
-// Perplexity configuration for up-to-date information
-const PERPLEXITY_API_URL = 'https://api.perplexity.ai/chat/completions';
-
 // Replit-specific AI configuration
 const REPLIT_AI_CONFIG = {
   primaryModel: 'mlabonne/CWC-Mistral-Nemo-12B-V2-q4_k_m', // Quantized Mistral Nemo model
@@ -755,110 +752,6 @@ Please respond as ARCHIMEDES v7:`;
     return this.postProcessResponse(responseText, mode);
   }
 
-  private async generatePerplexityResponse(
-    userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
-    conversationHistory: Message[] = [],
-    language: string = 'english',
-    isNewSession: boolean = false
-  ): Promise<string> {
-    let systemPrompt = mode === 'natural'
-      ? this.getNaturalChatSystemPrompt(language)
-      : this.getTechnicalModeSystemPrompt(language);
-
-    // In freestyle mode, enhance the prompt for code generation with language detection
-    const enhancedMessage = mode === 'freestyle'
-      ? this.getEnhancedFreestyleMessage(userMessage)
-      : userMessage;
-
-    // Add language instruction to system message if not English
-    if (language && language !== 'english') {
-      const languageInstructions = {
-        spanish: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Spanish (Español). Every single word of your response must be in Spanish. Do not use English at all. Respond completely in Spanish.',
-        japanese: 'CRITICAL INSTRUCTION: You MUST respond EXCLUSIVELY in Japanese (日本語). Every single word of your response must be in Japanese. Do not use English at all. Respond completely in Japanese.'
-      };
-      systemPrompt = `${languageInstructions[language as keyof typeof languageInstructions] || ''}\n\n${systemPrompt}`;
-    }
-
-    // Add session greeting instruction if new session
-    let greetingInstruction = '';
-    if (isNewSession) {
-      const now = new Date();
-      const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
-      const productiveSuggestions = [
-        "perfect time to organize that messy code you've been avoiding",
-        "great day to finally document that function nobody understands",
-        "ideal moment to refactor something before it becomes technical debt",
-        "excellent opportunity to learn something completely impractical but fascinating",
-        "prime time to automate a task you've been doing manually for months",
-        "wonderful chance to fix that bug you pretended wasn't there",
-        "optimal window to explore a new library that might change everything",
-        "brilliant hour to backup your work before Murphy's Law strikes",
-        "perfect occasion to write tests for code that desperately needs them",
-        "superb timing to clean up your git history and feel accomplished"
-      ];
-
-      const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
-
-      greetingInstruction = `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
-1. Welcomes the user with genuine warmth and a touch of wit
-2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
-3. Playfully suggests: "${randomSuggestion}"
-4. Keep the greeting natural and conversational, not forced
-5. Then smoothly transition to answering their actual question
-
-Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
-    }
-
-    // Build messages array for Perplexity
-    const messages = [
-      { role: 'system', content: systemPrompt + greetingInstruction }
-    ];
-
-    // Add recent conversation history
-    const recentHistory = conversationHistory.slice(-6);
-    for (const msg of recentHistory) {
-      if (msg.role === 'user' || msg.role === 'assistant') {
-        messages.push({
-          role: msg.role,
-          content: msg.content
-        });
-      }
-    }
-
-    // Add current user message
-    messages.push({ role: 'user', content: enhancedMessage });
-
-    const response = await fetch(PERPLEXITY_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
-        messages,
-        max_tokens: mode === 'technical' || mode === 'freestyle' ? 4000 : 2000, // Adjusted for freestyle
-        temperature: mode === 'technical' || mode === 'freestyle' ? 0.3 : 0.7, // Adjusted for freestyle
-        top_p: 0.9,
-        search_recency_filter: 'month',
-        return_related_questions: false,
-        stream: false
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Perplexity API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const responseText = data.choices?.[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
-
-    return this.postProcessResponse(responseText, mode);
-  }
-
   private async generateMistralResponse(
     userMessage: string,
     mode: 'natural' | 'technical' | 'freestyle' | 'health',
@@ -966,13 +859,17 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
   private async generateReplitOptimizedResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
+      : mode === 'health'
+      ? this.getHealthModeSystemPrompt(language)
+      : mode === 'freestyle'
+      ? this.getFreestyleModeSystemPrompt(language, userMessage)
       : this.getTechnicalModeSystemPrompt(language);
 
     // In freestyle mode, enhance the prompt for code generation with language detection
@@ -1060,7 +957,7 @@ Conversation Context:\n`;
     throw new Error('No valid response from Replit-optimized AI pipeline');
   }
 
-  private async tryReplitOptimizedModels(prompt: string, mode: 'natural' | 'technical' | 'freestyle'): Promise<string> { // Added 'freestyle'
+  private async tryReplitOptimizedModels(prompt: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): Promise<string> {
     // Primary model: Fast and efficient for Replit
     const models = [
       REPLIT_AI_CONFIG.primaryModel,
@@ -1079,8 +976,8 @@ Conversation Context:\n`;
           body: JSON.stringify({
             inputs: prompt,
             parameters: {
-              max_new_tokens: REPLIT_AI_CONFIG.maxTokens[mode === 'freestyle' ? 'technical' : mode], // Use technical maxTokens for freestyle
-              temperature: REPLIT_AI_CONFIG.temperature[mode === 'freestyle' ? 'technical' : mode], // Use technical temperature for freestyle
+              max_new_tokens: REPLIT_AI_CONFIG.maxTokens[(mode === 'freestyle' || mode === 'health') ? 'technical' : mode],
+              temperature: REPLIT_AI_CONFIG.temperature[(mode === 'freestyle' || mode === 'health') ? 'technical' : mode],
               return_full_text: false,
               do_sample: true,
               top_p: 0.9,
@@ -1109,7 +1006,7 @@ Conversation Context:\n`;
     throw new Error('All Replit-optimized models failed');
   }
 
-  private postProcessResponse(response: string, mode: 'natural' | 'technical' | 'freestyle'): string { // Added 'freestyle'
+  private postProcessResponse(response: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): string {
     // Clean up the response
     let cleaned = response.trim();
 
@@ -1130,13 +1027,17 @@ Conversation Context:\n`;
 
   private async generateOpenAIResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
+      : mode === 'health'
+      ? this.getHealthModeSystemPrompt(language)
+      : mode === 'freestyle'
+      ? this.getFreestyleModeSystemPrompt(language, userMessage)
       : this.getTechnicalModeSystemPrompt(language);
 
     // In freestyle mode, enhance the prompt for code generation with language detection
@@ -1216,10 +1117,10 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     return completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
   }
 
-  private getEnhancedFallbackResponse(input: string, mode: 'natural' | 'technical' | 'freestyle'): string { // Added 'freestyle'
+  private getEnhancedFallbackResponse(input: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): string {
     if (mode === 'natural') {
       return this.generateEnhancedNaturalFallback(input);
-    } else { // Technical or Freestyle mode
+    } else { // Technical, Freestyle, or Health mode
       return this.generateEnhancedTechnicalFallback(input);
     }
   }
