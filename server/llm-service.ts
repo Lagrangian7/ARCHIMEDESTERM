@@ -947,7 +947,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     // Wrap ONLY the network call with timeout (excludes preprocessing time)
     const apiCallStart = Date.now();
     const apiCall = openrouter.chat.completions.create({
-      model: 'deepseek/deepseek-v3:free',  // Free DeepSeek V3 model (community favorite)
+      model: 'google/gemini-2.0-flash-exp:free',  // Free Google Gemini via OpenRouter
       messages: messages,
       max_tokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
       temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.4 : mode === 'freestyle' ? 0.8 : 0.85,
