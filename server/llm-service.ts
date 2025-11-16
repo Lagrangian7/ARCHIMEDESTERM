@@ -43,11 +43,12 @@ const REPLIT_AI_CONFIG = {
 };
 
 // Timeout configuration - reasonable timeouts for reliable responses
-// Fallback order: Google Gemini (free) → Mistral API (paid backup)
+// Fallback order: Google Gemini (free) → Mistral API (paid backup) → OpenAI (reliable final fallback)
 const API_TIMEOUTS = {
   gemini: 3000,      // 3 seconds for Gemini (free, tried first)
-  mistral: 5000      // 5 seconds for Mistral (paid backup)
-  // Total worst-case: 8 seconds across both services
+  mistral: 5000,     // 5 seconds for Mistral (paid backup)
+  openai: 4000       // 4 seconds for OpenAI (reliable final fallback)
+  // Total worst-case: 12 seconds across all three services
 };
 
 export class LLMService {
@@ -701,7 +702,20 @@ FORMAT REQUIREMENTS:
       } catch (mistralError) {
         const errorLatency = Date.now() - startTime;
         console.error(`[ERROR] Mistral API failed after ${errorLatency}ms:`, mistralError);
-        aiResponse = null; // Final fallback needed
+        aiResponse = null; // Proceed to OpenAI fallback
+      }
+    }
+
+    // Fallback to OpenAI if both Gemini and Mistral failed (reliable final AI fallback)
+    if (process.env.OPENAI_API_KEY && !aiResponse) {
+      try {
+        serviceName = 'OpenAI';
+        console.log(`[LLM] Falling back to OpenAI for ${safeMode.toUpperCase()} mode`);
+        aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      } catch (openaiError) {
+        const errorLatency = Date.now() - startTime;
+        console.error(`[ERROR] OpenAI failed after ${errorLatency}ms:`, openaiError);
+        aiResponse = null; // Final hardcoded fallback needed
       }
     }
 
@@ -1220,13 +1234,17 @@ Conversation Context:\n`;
 
   private async generateOpenAIResponse(
     userMessage: string,
-    mode: 'natural' | 'technical' | 'freestyle', // Added 'freestyle'
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
     conversationHistory: Message[] = [],
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
     let systemPrompt = mode === 'natural'
       ? this.getNaturalChatSystemPrompt(language)
+      : mode === 'health'
+      ? this.getHealthModeSystemPrompt(language)
+      : mode === 'freestyle'
+      ? this.getFreestyleModeSystemPrompt(language, userMessage)
       : this.getTechnicalModeSystemPrompt(language);
 
     // In freestyle mode, enhance the prompt for code generation with language detection
