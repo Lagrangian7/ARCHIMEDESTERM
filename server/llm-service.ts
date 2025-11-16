@@ -815,7 +815,7 @@ Please respond as ARCHIMEDES v7:`;
     // Wrap ONLY the network call with timeout (excludes preprocessing time)
     const apiCallStart = Date.now();
     const apiCall = gemini.models.generateContent({
-      model: 'gemini-1.5-flash',  // Use stable model instead of experimental
+      model: 'gemini-2.0-flash-exp',  // Back to experimental model
       contents: fullPrompt,
       config: {
         maxOutputTokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
