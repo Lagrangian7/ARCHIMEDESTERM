@@ -20,7 +20,7 @@ Preferred communication style: Simple, everyday language.
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js server
 - **API Design**: RESTful API with AI chat endpoint (`/api/chat`) for terminal-based interactions with Archimedes AI assistant
-- **AI Services Fallback Chain**: HuggingFace CWC-Mistral-Nemo (free, primary) → Google Gemini (free backup) → Mistral API (paid, last resort)
+- **AI Services Fallback Chain**: Google Gemini (free, primary) → Mistral API (paid backup)
 - **Academic Search**: Semantic Scholar API integration for academic paper search (FREE, no API key required)
 - **Wolfram Alpha**: Full Results API integration for computational queries, math solving, data lookup, and knowledge queries with enhanced graphical and mathematical rendering
   - Graphics rendering: Images from Wolfram Alpha (plots, diagrams) rendered as HTML <img> tags
