@@ -2997,10 +2997,10 @@ calculator()
                         e.stopPropagation();
                         deleteFile(file.id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-red-500/20"
-                      title="Delete file"
+                      className="ml-1 p-0.5 rounded hover:bg-red-500/30 transition-colors"
+                      title="Close file"
                     >
-                      <Trash2 className="w-3 h-3" style={{ color: 'hsl(0 70% 50%)' }} />
+                      <X className="w-3 h-3" style={{ color: currentPythonTheme.text, opacity: 0.6 }} />
                     </button>
                   )}
                 </div>
@@ -3019,15 +3019,33 @@ calculator()
             
             {/* Language Selector */}
             <select
-              value={currentLanguage}
-              onChange={(e) => setCurrentLanguage(e.target.value)}
+              value={activeFile?.language || currentLanguage}
+              onChange={(e) => {
+                const newLang = e.target.value;
+                setCurrentLanguage(newLang);
+                if (activeFile) {
+                  const langConfig = LANGUAGE_CONFIG[newLang];
+                  const currentName = activeFile.name;
+                  const baseName = currentName.replace(/\.[^.]+$/, '');
+                  const newName = baseName + langConfig.extension;
+                  setFiles(prev => prev.map(f => 
+                    f.id === activeFile.id 
+                      ? { ...f, language: newLang, name: newName }
+                      : f
+                  ));
+                  toast({
+                    title: `${langConfig.icon} ${langConfig.displayName} Mode`,
+                    description: `Assistant is now set to program in ${langConfig.displayName}.`,
+                  });
+                }
+              }}
               className="ml-2 px-1 py-0.5 rounded text-xs font-mono"
               style={{
                 backgroundColor: currentPythonTheme.bg,
                 color: currentPythonTheme.text,
                 border: `1px solid ${currentPythonTheme.border}`,
               }}
-              title="Language for new files"
+              title="Set programming language (updates current file)"
             >
               {Object.entries(LANGUAGE_CONFIG).map(([lang, config]) => (
                 <option key={lang} value={lang}>
