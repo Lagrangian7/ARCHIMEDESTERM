@@ -360,27 +360,42 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
               alert('Failed to run diagnostic. Check console for details.');
             }
           }}
-          variant="ghost" 
+          variant="outline" 
           size="sm" 
-          className="text-terminal-highlight hover:bg-terminal-highlight/20 text-xs mr-2"
+          className="text-xs mr-2 font-mono"
+          style={{
+            backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
+            borderColor: 'rgba(var(--terminal-subtle-rgb), 0.4)',
+            color: 'var(--terminal-text)'
+          }}
         >
           Check DB
         </Button>
         <Button 
           onClick={() => migrateMutation.mutate()}
           disabled={migrateMutation.isPending}
-          variant="ghost" 
+          variant="outline" 
           size="sm" 
-          className="text-terminal-highlight hover:bg-terminal-highlight/20 text-xs mr-2"
+          className="text-xs mr-2 font-mono"
+          style={{
+            backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
+            borderColor: 'rgba(var(--terminal-subtle-rgb), 0.4)',
+            color: 'var(--terminal-text)'
+          }}
         >
           {migrateMutation.isPending ? 'Migrating...' : 'Migrate Docs'}
         </Button>
         <Button 
           onClick={handleExport}
           disabled={isExporting || documents.length === 0}
-          variant="ghost" 
+          variant="outline" 
           size="sm" 
-          className="text-terminal-highlight hover:bg-terminal-highlight/20 text-xs mr-2"
+          className="text-xs mr-2 font-mono"
+          style={{
+            backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
+            borderColor: 'rgba(var(--terminal-subtle-rgb), 0.4)',
+            color: 'var(--terminal-text)'
+          }}
           data-testid="button-export-documents"
         >
           <Download size={14} className="mr-1" />
@@ -389,9 +404,14 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
         <Button 
           onClick={() => fileInputRef.current?.click()}
           disabled={importMutation.isPending}
-          variant="ghost" 
+          variant="outline" 
           size="sm" 
-          className="text-terminal-highlight hover:bg-terminal-highlight/20 text-xs mr-2"
+          className="text-xs mr-2 font-mono"
+          style={{
+            backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
+            borderColor: 'rgba(var(--terminal-subtle-rgb), 0.4)',
+            color: 'var(--terminal-text)'
+          }}
           data-testid="button-import-documents"
         >
           <Upload size={14} className="mr-1" />
@@ -406,7 +426,17 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
           data-testid="input-import-file"
         />
         {onClose && (
-          <Button onClick={onClose} variant="ghost" size="sm" className="text-terminal-text hover:bg-terminal-highlight/20">
+          <Button 
+            onClick={onClose} 
+            variant="outline" 
+            size="sm" 
+            className="hover:opacity-80"
+            style={{
+              backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
+              borderColor: 'rgba(var(--terminal-subtle-rgb), 0.4)',
+              color: 'var(--terminal-text)'
+            }}
+          >
             <X size={18} />
           </Button>
         )}
@@ -544,10 +574,14 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
                   <div className="flex items-center space-x-2 ml-4 flex-shrink-0">
                     <Button
                       onClick={() => handleRenameStart(document.id, document.originalName)}
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      className="hover:bg-terminal-highlight/20 p-1 h-8 w-8"
-                      style={{ color: 'var(--terminal-text)' }}
+                      className="p-1 h-8 w-8 hover:opacity-80"
+                      style={{ 
+                        backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
+                        borderColor: 'rgba(var(--terminal-subtle-rgb), 0.4)',
+                        color: 'var(--terminal-text)' 
+                      }}
                       disabled={renamingId !== null || deleteMutation.isPending}
                       data-testid={`button-rename-${document.id}`}
                     >
@@ -555,9 +589,14 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
                     </Button>
                     <Button
                       onClick={() => handleDelete(document.id, document.originalName)}
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      className="text-red-400 hover:text-red-300 hover:bg-red-900/20 p-1 h-8 w-8"
+                      className="p-1 h-8 w-8 hover:opacity-80"
+                      style={{ 
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderColor: 'rgba(239, 68, 68, 0.4)',
+                        color: '#f87171' 
+                      }}
                       disabled={deleteMutation.isPending || renamingId !== null}
                       data-testid={`button-delete-${document.id}`}
                     >

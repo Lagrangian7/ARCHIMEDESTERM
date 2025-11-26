@@ -132,14 +132,18 @@ export function Notepad({ onClose }: NotepadProps) {
 
       {/* Toolbar */}
       <div 
-        className="flex items-center gap-1 p-2 border-b flex-wrap"
+        className="flex items-center gap-1.5 p-2 border-b flex-wrap"
         style={{ borderColor: 'var(--terminal-subtle)' }}
       >
         <Button
           onClick={handleSave}
           size="sm"
-          className="font-mono text-xs h-7 px-2"
-          style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}
+          className="font-mono text-xs h-7 px-2.5"
+          style={{ 
+            backgroundColor: 'var(--terminal-highlight)', 
+            color: 'var(--terminal-bg)',
+            fontWeight: 500
+          }}
           disabled={saveMutation.isPending}
         >
           <Save className="w-3 h-3 mr-1" />
@@ -149,8 +153,12 @@ export function Notepad({ onClose }: NotepadProps) {
           onClick={handleClear}
           size="sm"
           variant="outline"
-          className="font-mono text-xs h-7 px-2"
-          style={{ borderColor: 'var(--terminal-subtle)', color: 'var(--terminal-text)' }}
+          className="font-mono text-xs h-7 px-2.5 hover:opacity-80"
+          style={{ 
+            backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
+            borderColor: 'rgba(var(--terminal-subtle-rgb), 0.4)', 
+            color: 'var(--terminal-text)' 
+          }}
         >
           <Trash2 className="w-3 h-3 mr-1" />
           Clear
