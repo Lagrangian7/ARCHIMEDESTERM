@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FileText, Save, Trash2, X } from 'lucide-react';
@@ -16,6 +16,12 @@ export function Notepad({ onClose }: NotepadProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Drag state
+  const [position, setPosition] = useState({ x: window.innerWidth - 370, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
   // Load saved content and title from localStorage on mount
   useEffect(() => {
     const savedContent = localStorage.getItem('notepad-content');
@@ -27,6 +33,47 @@ export function Notepad({ onClose }: NotepadProps) {
       setTitle(savedTitle);
     }
   }, []);
+
+  // Dragging handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+  }, [position]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging) return;
+
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
+
+    const maxX = window.innerWidth - 350;
+    const maxY = window.innerHeight - 100;
+
+    setPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  }, [isDragging, dragOffset]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Setup drag event listeners
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   // Auto-save content to localStorage whenever it changes
   useEffect(() => {
@@ -95,34 +142,44 @@ export function Notepad({ onClose }: NotepadProps) {
 
   return (
     <div 
-      className="w-[350px] max-w-[50vw] h-[calc(100%-16px)] my-2 mr-2 flex flex-col border rounded-lg flex-shrink-0"
+      ref={containerRef}
+      className="fixed z-50 w-[350px] h-[600px] flex flex-col border-2 rounded-lg shadow-2xl"
       style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
         backgroundColor: 'var(--terminal-bg)',
         borderColor: 'var(--terminal-highlight)',
-        animation: 'notepad-slide-in 200ms ease-out forwards',
+        boxShadow: `0 0 20px var(--terminal-text)`,
         willChange: 'transform',
         transform: 'translateZ(0)',
-        isolation: 'isolate'
+        isolation: 'isolate',
+        cursor: isDragging ? 'grabbing' : 'default'
       }}
       data-testid="notepad-panel"
     >
       {/* Header with Close Button */}
       <div 
-        className="flex items-center justify-between p-2 border-b"
+        className="flex items-center justify-between p-2 border-b cursor-move select-none"
         style={{ borderColor: 'var(--terminal-subtle)' }}
+        onMouseDown={handleMouseDown}
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <FileText className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--terminal-highlight)' }} />
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            onMouseDown={(e) => e.stopPropagation()}
             className="font-bold font-mono text-sm border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto"
             style={{ color: 'var(--terminal-text)' }}
             placeholder="Note title..."
           />
+          <div className="text-terminal-subtle text-xs opacity-50 ml-1" title="Drag to move">
+            ⋮⋮
+          </div>
         </div>
         <Button
           onClick={onClose}
+          onMouseDown={(e) => e.stopPropagation()}
           variant="ghost"
           size="sm"
           className="h-8 w-8 p-0 flex-shrink-0"
@@ -137,6 +194,7 @@ export function Notepad({ onClose }: NotepadProps) {
       <div 
         className="flex items-center gap-1.5 p-2 border-b flex-wrap"
         style={{ borderColor: 'var(--terminal-subtle)' }}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         <Button
           onClick={handleSave}
@@ -175,6 +233,7 @@ export function Notepad({ onClose }: NotepadProps) {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
+        onMouseDown={(e) => e.stopPropagation()}
         className="flex-1 p-3 bg-transparent border-none outline-none resize-none font-mono text-xs"
         style={{ 
           color: 'var(--terminal-text)',
