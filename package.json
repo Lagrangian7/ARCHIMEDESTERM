@@ -16,6 +16,7 @@
     "@hookform/resolvers": "^3.10.0",
     "@huggingface/inference": "^4.7.1",
     "@jridgewell/trace-mapping": "^0.3.25",
+    "@live-codes/monaco-codeium-provider": "^0.2.2",
     "@mistralai/mistralai": "^1.10.0",
     "@monaco-editor/react": "^4.7.0",
     "@neondatabase/serverless": "^0.10.4",
