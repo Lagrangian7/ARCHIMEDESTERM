@@ -559,14 +559,16 @@ export function Terminal() {
           />
         </div>
 
-        {/* Terminal Output - Scrollable middle section */}
-        <div className="flex-1 min-h-0 relative">
-          <ScrollArea className="h-full" ref={scrollAreaRef}>
-            <div
-              ref={outputRef}
-              className="terminal-output p-2 md:p-4 font-mono text-xs md:text-sm leading-relaxed relative z-10"
-              data-testid="terminal-output"
-            >
+        {/* Terminal Output and Notepad - Scrollable middle section */}
+        <div className="flex-1 min-h-0 relative flex">
+          {/* Terminal Output */}
+          <div className="flex-1 min-w-0 relative">
+            <ScrollArea className="h-full" ref={scrollAreaRef}>
+              <div
+                ref={outputRef}
+                className="terminal-output p-2 md:p-4 font-mono text-xs md:text-sm leading-relaxed relative z-10"
+                data-testid="terminal-output"
+              >
               {entries.slice(0, visibleEntries).map((entry) => (
                 <div
                   key={entry.id}
@@ -657,13 +659,19 @@ export function Terminal() {
             </div>
           </ScrollArea>
 
-          {/* Command History Popup */}
-          <CommandHistory
-            history={commandHistory}
-            isVisible={showHistory}
-            onSelectCommand={setInput}
-            onClose={() => setShowHistory(false)}
-          />
+            {/* Command History Popup */}
+            <CommandHistory
+              history={commandHistory}
+              isVisible={showHistory}
+              onSelectCommand={setInput}
+              onClose={() => setShowHistory(false)}
+            />
+          </div>
+
+          {/* Notepad Panel - slides in from right */}
+          {showNotepad && (
+            <Notepad onClose={() => setShowNotepad(false)} />
+          )}
         </div>
 
         {/* Command Input - Fixed at bottom */}
@@ -958,11 +966,6 @@ export function Terminal() {
             />
           </div>
         </div>
-      )}
-
-      {/* Notepad */}
-      {showNotepad && (
-        <Notepad onClose={() => setShowNotepad(false)} />
       )}
 
       {/* Python IDE */}

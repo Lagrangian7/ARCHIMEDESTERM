@@ -94,23 +94,25 @@ export function Notepad({ onClose }: NotepadProps) {
   };
 
   return (
-    <div className="fixed top-0 right-0 h-full w-[400px] max-w-[90vw] z-50 shadow-2xl flex flex-col border-l"
+    <div 
+      className="w-[350px] max-w-[50vw] h-full flex flex-col border-l animate-in slide-in-from-right duration-200"
       style={{
         backgroundColor: 'var(--terminal-bg)',
         borderColor: 'var(--terminal-highlight)'
       }}
+      data-testid="notepad-panel"
     >
-      {/* Header */}
+      {/* Header with Close Button */}
       <div 
-        className="flex items-center justify-between p-3 border-b"
+        className="flex items-center justify-between p-2 border-b"
         style={{ borderColor: 'var(--terminal-subtle)' }}
       >
-        <div className="flex items-center gap-2 flex-1">
-          <FileText className="w-5 h-5" style={{ color: 'var(--terminal-highlight)' }} />
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <FileText className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--terminal-highlight)' }} />
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="font-bold font-mono text-lg border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="font-bold font-mono text-sm border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto"
             style={{ color: 'var(--terminal-text)' }}
             placeholder="Note title..."
           />
@@ -119,40 +121,41 @@ export function Notepad({ onClose }: NotepadProps) {
           onClick={onClose}
           variant="ghost"
           size="sm"
-          className="text-xl"
+          className="h-8 w-8 p-0 flex-shrink-0"
           style={{ color: 'var(--terminal-text)' }}
+          data-testid="button-close-notepad"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </Button>
       </div>
 
       {/* Toolbar */}
       <div 
-        className="flex items-center gap-2 p-2 border-b"
+        className="flex items-center gap-1 p-2 border-b flex-wrap"
         style={{ borderColor: 'var(--terminal-subtle)' }}
       >
         <Button
           onClick={handleSave}
           size="sm"
-          className="font-mono"
+          className="font-mono text-xs h-7 px-2"
           style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}
           disabled={saveMutation.isPending}
         >
-          <Save className="w-4 h-4 mr-2" />
-          {saveMutation.isPending ? 'Saving...' : 'Save to Knowledge Base'}
+          <Save className="w-3 h-3 mr-1" />
+          {saveMutation.isPending ? 'Saving...' : 'Save'}
         </Button>
         <Button
           onClick={handleClear}
           size="sm"
           variant="outline"
-          className="font-mono"
+          className="font-mono text-xs h-7 px-2"
           style={{ borderColor: 'var(--terminal-subtle)', color: 'var(--terminal-text)' }}
         >
-          <Trash2 className="w-4 h-4 mr-2" />
+          <Trash2 className="w-3 h-3 mr-1" />
           Clear
         </Button>
         <div className="ml-auto text-xs font-mono" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
-          {content.length} characters
+          {content.length}
         </div>
       </div>
 
@@ -160,7 +163,7 @@ export function Notepad({ onClose }: NotepadProps) {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        className="flex-1 p-4 bg-transparent border-none outline-none resize-none font-mono text-sm"
+        className="flex-1 p-3 bg-transparent border-none outline-none resize-none font-mono text-xs"
         style={{ 
           color: 'var(--terminal-text)',
           caretColor: 'var(--terminal-highlight)'
@@ -168,6 +171,7 @@ export function Notepad({ onClose }: NotepadProps) {
         placeholder="Start typing or paste your notes here..."
         autoFocus
         data-no-terminal-autofocus
+        data-testid="notepad-textarea"
       />
     </div>
   );
