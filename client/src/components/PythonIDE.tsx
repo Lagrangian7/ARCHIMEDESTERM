@@ -135,57 +135,6 @@ function generateLocalInstructions(language: string): string {
   return instructions[language] || `**${config.displayName} Setup:**\n1. Save with ${config.extension} extension\n2. Run: \`${config.runCommand}\``;
 }
 
-function generateLocalInstructions(language: string): string {
-  const config = LANGUAGE_CONFIG[language];
-  if (!config) return '';
-
-  const instructions: Record<string, string> = {
-    python: `**Python Setup:**
-1. Save file as \`filename.py\`
-2. Install Python 3.x from python.org
-3. Run: \`python3 filename.py\`
-4. For packages: \`pip install package-name\``,
-    javascript: `**JavaScript (Node.js) Setup:**
-1. Save file as \`filename.js\`
-2. Install Node.js from nodejs.org
-3. Run: \`node filename.js\`
-4. For packages: \`npm install package-name\``,
-    typescript: `**TypeScript Setup:**
-1. Save file as \`filename.ts\`
-2. Install: \`npm install -g typescript ts-node\`
-3. Run: \`npx ts-node filename.ts\`
-4. Or compile: \`tsc filename.ts && node filename.js\``,
-    java: `**Java Setup:**
-1. Save file as \`ClassName.java\` (match class name)
-2. Install JDK from adoptium.net
-3. Compile: \`javac ClassName.java\`
-4. Run: \`java ClassName\``,
-    cpp: `**C++ Setup:**
-1. Save file as \`filename.cpp\`
-2. Install g++ (MinGW on Windows, Xcode on Mac, build-essential on Linux)
-3. Compile: \`g++ -o program filename.cpp\`
-4. Run: \`./program\``,
-    html: `**HTML Setup:**
-1. Save file as \`index.html\`
-2. Open directly in any web browser
-3. Or use VS Code Live Server extension for auto-reload`,
-    bash: `**Bash Setup:**
-1. Save file as \`script.sh\`
-2. Make executable: \`chmod +x script.sh\`
-3. Run: \`./script.sh\` or \`bash script.sh\``,
-    rust: `**Rust Setup:**
-1. Install Rust from rustup.rs
-2. Create project: \`cargo new project_name\`
-3. Run: \`cargo run\``,
-    go: `**Go Setup:**
-1. Install Go from go.dev
-2. Save as \`main.go\`
-3. Run: \`go run main.go\``,
-  };
-
-  return instructions[language] || `**${config.displayName} Setup:**\n1. Save with ${config.extension} extension\n2. Run: \`${config.runCommand}\``;
-}
-
 // Comprehensive lesson structure with Archimedes guidance
 const LESSONS = {
   basics: {
