@@ -170,9 +170,6 @@ export function VoiceControls({
             backgroundColor: isAuthenticated ? 'var(--terminal-highlight)' : 'rgba(var(--terminal-subtle-rgb), 0.5)',
             boxShadow: isAuthenticated ? '0 0 4px var(--terminal-highlight)' : 'none'
           }} />
-          <span className="text-xs font-mono" style={{ color: 'var(--terminal-text)' }}>
-            {isAuthenticated ? (user?.email || 'Logged In') : 'Guest'}
-          </span>
         </div>
 
         <TooltipProvider>
