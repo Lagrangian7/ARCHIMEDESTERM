@@ -111,21 +111,10 @@ export function Terminal() {
       setCustomBackgroundUrl(newUrl);
     };
 
-    // Listen for default background toggle events
-    const handleDefaultBgToggle = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const hide = customEvent.detail;
-      console.log('Default background toggle:', hide ? 'hidden' : 'visible');
-      setHideDefaultBackground(hide);
-      localStorage.setItem('terminal-hide-default-bg', String(hide));
-    };
-
     window.addEventListener('terminal-background-change', handleBackgroundChange);
-    window.addEventListener('terminal-default-bg-toggle', handleDefaultBgToggle);
 
     return () => {
       window.removeEventListener('terminal-background-change', handleBackgroundChange);
-      window.removeEventListener('terminal-default-bg-toggle', handleDefaultBgToggle);
     };
   }, []);
 
@@ -161,10 +150,6 @@ export function Terminal() {
   const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>(() => {
     // Load saved background on mount
     return localStorage.getItem('terminal-background-url') || '';
-  });
-  const [hideDefaultBackground, setHideDefaultBackground] = useState<boolean>(() => {
-    // Load preference for hiding default background
-    return localStorage.getItem('terminal-hide-default-bg') === 'true';
   });
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
@@ -475,37 +460,18 @@ export function Terminal() {
   const MemoizedPythonIDE = useMemo(() => memo(PythonIDE), []); // Memoized PythonIDE
   const MemoizedPythonLessons = useMemo(() => memo(PythonLessons), []); // Memoized PythonLessons
 
-  // Themes that don't use background images
-  const noBgThemes = [
-    'nord-dark', 'gruvbox-dark', 'tokyo-night-dark', 'catppuccin-mocha', 'everforest-dark',
-    'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light',
-    'commodore64'
-  ];
   const gradientThemes = ['midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'];
   const isGradientTheme = gradientThemes.includes(currentTheme);
-  const isMidnightTheme = currentTheme === 'midnight-gradient';
   
   // Check if user has set a custom background (from Background Manager)
   const hasCustomBackground = customBackgroundUrl && customBackgroundUrl.length > 0;
-  
-  // For non-gradient, non-noBg themes, use default behavior with custom background override
-  // Also respect the hideDefaultBackground preference
-  const shouldShowDefaultBackground = !noBgThemes.includes(currentTheme) && !gradientThemes.includes(currentTheme) && !hasCustomBackground && !hideDefaultBackground;
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={
         isGradientTheme
           ? { background: 'var(--terminal-bg)' }
-          : shouldShowDefaultBackground
-            ? {
-                backgroundImage: `url(${wallpaperImage})`,
-                backgroundSize: '100% 100%',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                backgroundColor: 'var(--terminal-bg)'
-              }
-            : { backgroundColor: 'var(--terminal-bg)' }
+          : { backgroundColor: 'var(--terminal-bg)' }
       }>
         {/* Custom Background Layer - works on ALL themes when user sets a custom background */}
         {hasCustomBackground && (
@@ -516,7 +482,8 @@ export function Terminal() {
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              opacity: 0.85
+              opacity: 0.85,
+              imageRendering: 'auto'
             }}
           />
         )}
@@ -532,7 +499,7 @@ export function Terminal() {
 
         {/* Matrix Rain Background Effect - with reduced opacity to show wallpaper */}
         <div style={{
-          opacity: (hasCustomBackground || shouldShowDefaultBackground) ? 0.3 : 0.05
+          opacity: hasCustomBackground ? 0.3 : 0.05
         }}>
           <MemoizedMatrixRain />
         </div>
@@ -983,8 +950,6 @@ export function Terminal() {
         <BackgroundManager
           onClose={() => setShowBackgroundManager(false)}
           onBackgroundChange={(url) => setCustomBackgroundUrl(url)}
-          hideDefaultBackground={hideDefaultBackground}
-          onDefaultBgToggle={(hide) => setHideDefaultBackground(hide)}
         />
       )}
 

@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Upload, Trash2, ImageOff, Eye, EyeOff } from 'lucide-react';
+import { X, Upload, Trash2, ImageOff } from 'lucide-react';
+import wallpaperImage from '../assets/terminal-bg-new.png';
 
 interface BackgroundManagerProps {
   onClose: () => void;
@@ -14,25 +15,38 @@ interface WallpaperSlot {
   id: string;
   url: string;
   name: string;
+  isBuiltIn?: boolean;
 }
 
-export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBackground: initialHideDefault, onDefaultBgToggle }: BackgroundManagerProps) {
+export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundManagerProps) {
   const [dragOver, setDragOver] = useState(false);
   const [wallpapers, setWallpapers] = useState<WallpaperSlot[]>([]);
   const [selectedWallpaper, setSelectedWallpaper] = useState<string>('');
-  const [isDefaultHidden, setIsDefaultHidden] = useState<boolean>(initialHideDefault || false);
+
+  // Built-in wallpaper
+  const builtInWallpaper: WallpaperSlot = {
+    id: 'built-in-wallpaper',
+    url: wallpaperImage,
+    name: 'Default Terminal Background',
+    isBuiltIn: true
+  };
 
   // Load wallpapers from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem('terminal-wallpapers');
+    let userWallpapers: WallpaperSlot[] = [];
+    
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        setWallpapers(parsed);
+        userWallpapers = parsed.filter((w: WallpaperSlot) => !w.isBuiltIn);
       } catch (e) {
         console.error('Failed to load wallpapers:', e);
       }
     }
+
+    // Always include built-in wallpaper as first item
+    setWallpapers([builtInWallpaper, ...userWallpapers]);
 
     const currentBg = localStorage.getItem('terminal-background-url');
     if (currentBg) {
@@ -40,17 +54,11 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
     }
   }, []);
 
-  // Sync isDefaultHidden with prop when it changes (e.g., when manager reopens)
+  // Save wallpapers to localStorage whenever they change (exclude built-in)
   useEffect(() => {
-    const storedValue = localStorage.getItem('terminal-hide-default-bg') === 'true';
-    // Use prop if available, otherwise fall back to localStorage
-    setIsDefaultHidden(initialHideDefault !== undefined ? initialHideDefault : storedValue);
-  }, [initialHideDefault]);
-
-  // Save wallpapers to localStorage whenever they change
-  useEffect(() => {
-    if (wallpapers.length > 0) {
-      localStorage.setItem('terminal-wallpapers', JSON.stringify(wallpapers));
+    const userWallpapers = wallpapers.filter(w => !w.isBuiltIn);
+    if (userWallpapers.length > 0 || wallpapers.some(w => w.isBuiltIn)) {
+      localStorage.setItem('terminal-wallpapers', JSON.stringify(userWallpapers));
     }
   }, [wallpapers]);
 
@@ -66,10 +74,11 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
       return;
     }
 
-    // Limit to 10 wallpapers
-    const availableSlots = 10 - wallpapers.length;
+    // Limit to 10 wallpapers (9 user + 1 built-in)
+    const userWallpapers = wallpapers.filter(w => !w.isBuiltIn);
+    const availableSlots = 9 - userWallpapers.length;
     if (availableSlots === 0) {
-      alert('Maximum 10 wallpapers allowed. Please delete some to add new ones.');
+      alert('Maximum 9 custom wallpapers allowed (plus 1 built-in). Please delete some to add new ones.');
       return;
     }
 
@@ -102,9 +111,10 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
       return;
     }
 
-    const availableSlots = 10 - wallpapers.length;
+    const userWallpapers = wallpapers.filter(w => !w.isBuiltIn);
+    const availableSlots = 9 - userWallpapers.length;
     if (availableSlots === 0) {
-      alert('Maximum 10 wallpapers allowed. Please delete some to add new ones.');
+      alert('Maximum 9 custom wallpapers allowed (plus 1 built-in). Please delete some to add new ones.');
       return;
     }
 
@@ -155,6 +165,12 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
   };
 
   const deleteWallpaper = (id: string) => {
+    // Prevent deleting built-in wallpaper
+    const wallpaper = wallpapers.find(w => w.id === id);
+    if (wallpaper?.isBuiltIn) {
+      return;
+    }
+
     setWallpapers(prev => {
       const updated = prev.filter(w => w.id !== id);
       
@@ -164,11 +180,6 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
         setSelectedWallpaper('');
         localStorage.removeItem('terminal-background-url');
         onBackgroundChange('');
-      }
-
-      // Update localStorage
-      if (updated.length === 0) {
-        localStorage.removeItem('terminal-wallpapers');
       }
 
       return updated;
@@ -190,24 +201,7 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
     console.log('Background cleared');
   };
 
-  const toggleDefaultBackground = () => {
-    const newState = !isDefaultHidden;
-    setIsDefaultHidden(newState);
-    localStorage.setItem('terminal-hide-default-bg', String(newState));
-    
-    // Dispatch event to update Terminal immediately
-    const event = new CustomEvent('terminal-default-bg-toggle', { 
-      detail: newState,
-      bubbles: true 
-    });
-    window.dispatchEvent(event);
-    
-    if (onDefaultBgToggle) {
-      onDefaultBgToggle(newState);
-    }
-    
-    console.log('Default background:', newState ? 'hidden' : 'visible');
-  };
+  
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -276,56 +270,8 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
             Browse Files
           </Button>
           <p className="text-xs mt-4" style={{ color: 'var(--terminal-subtle)' }}>
-            {wallpapers.length}/10 slots used
+            {wallpapers.filter(w => !w.isBuiltIn).length}/9 custom slots used (1 built-in included)
           </p>
-        </div>
-
-        {/* Default Theme Background Toggle */}
-        <div className="mb-4 p-4 rounded-lg" style={{ 
-          backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.1)',
-          border: '1px solid var(--terminal-subtle)'
-        }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div 
-                className="w-3 h-3 rounded-full"
-                style={{ 
-                  backgroundColor: isDefaultHidden ? 'var(--terminal-subtle)' : 'var(--terminal-highlight)'
-                }}
-              />
-              <div>
-                <p className="text-sm font-medium" style={{ color: 'var(--terminal-text)' }}>
-                  Default Theme Background
-                </p>
-                <p className="text-xs" style={{ color: 'var(--terminal-subtle)' }}>
-                  {isDefaultHidden ? 'Hidden - showing solid color' : 'Visible - showing theme wallpaper'}
-                </p>
-              </div>
-            </div>
-            <Button
-              onClick={toggleDefaultBackground}
-              size="sm"
-              variant="outline"
-              className="flex items-center gap-2"
-              style={{
-                borderColor: isDefaultHidden ? 'var(--terminal-highlight)' : 'var(--terminal-subtle)',
-                color: isDefaultHidden ? 'var(--terminal-highlight)' : 'var(--terminal-text)'
-              }}
-              data-testid="button-toggle-default-bg"
-            >
-              {isDefaultHidden ? (
-                <>
-                  <Eye className="w-4 h-4" />
-                  Show Default
-                </>
-              ) : (
-                <>
-                  <EyeOff className="w-4 h-4" />
-                  Hide Default
-                </>
-              )}
-            </Button>
-          </div>
         </div>
 
         {/* Custom Background Status and Remove Option */}
@@ -393,23 +339,42 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
                 >
                   <div
                     className="aspect-video bg-cover bg-center"
-                    style={{ backgroundImage: `url(${wallpaper.url})` }}
+                    style={{ 
+                      backgroundImage: `url(${wallpaper.url})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}
                   />
                   
-                  {/* Delete button - positioned in corner, doesn't block clicks */}
-                  <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteWallpaper(wallpaper.id);
+                  {/* Delete button - positioned in corner, doesn't block clicks - hidden for built-in */}
+                  {!wallpaper.isBuiltIn && (
+                    <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteWallpaper(wallpaper.id);
+                        }}
+                        size="sm"
+                        variant="destructive"
+                        className="bg-red-600 hover:bg-red-700 w-6 h-6 p-0"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* Built-in badge */}
+                  {wallpaper.isBuiltIn && (
+                    <div 
+                      className="absolute top-1 left-1 px-2 py-1 rounded text-xs font-bold"
+                      style={{ 
+                        backgroundColor: 'var(--terminal-highlight)',
+                        color: 'var(--terminal-bg)'
                       }}
-                      size="sm"
-                      variant="destructive"
-                      className="bg-red-600 hover:bg-red-700 w-6 h-6 p-0"
                     >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+                      Built-in
+                    </div>
+                  )}
 
                   {/* Name label */}
                   <div 
@@ -448,9 +413,10 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
             <strong>Tips:</strong>
           </p>
           <ul className="text-sm mt-2 space-y-1" style={{ color: 'var(--terminal-subtle)' }}>
-            <li>• Upload up to 10 wallpapers to your library</li>
+            <li>• Upload up to 9 custom wallpapers (1 built-in included for total of 10)</li>
             <li>• Click a wallpaper to set it as your terminal background</li>
-            <li>• Hover over a wallpaper and click the trash icon to delete it</li>
+            <li>• Images automatically fit to screen while maintaining aspect ratio</li>
+            <li>• Hover over custom wallpapers and click trash icon to delete</li>
             <li>• Your wallpapers are saved in browser storage</li>
           </ul>
         </div>
