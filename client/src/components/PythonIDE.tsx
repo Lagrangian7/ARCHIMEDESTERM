@@ -6,6 +6,7 @@ import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { registerCompletion } from 'monacopilot';
+import { registerCodeiumProvider } from '@live-codes/monaco-codeium-provider';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useToast } from '@/hooks/use-toast';
 
@@ -2367,28 +2368,41 @@ calculator()
         }
       }, 100);
 
-      // Optional: Setup Monacopilot AI completions (non-blocking, graceful failure)
-      // Only attempt if registerCompletion is available
-      if (typeof registerCompletion === 'function') {
-        // Delay to ensure editor is fully initialized
-        setTimeout(() => {
+      // Setup AI code completions with Codeium as default, Monacopilot as fallback
+      setTimeout(() => {
+        let codeiumEnabled = false;
+        
+        // Try Codeium first (FREE, unlimited, no API key needed)
+        try {
+          if (typeof registerCodeiumProvider === 'function') {
+            registerCodeiumProvider(monaco, {
+              onAutocomplete: (acceptedText: string) => {
+                console.debug('Codeium completion accepted:', acceptedText.substring(0, 50) + '...');
+              }
+            });
+            codeiumEnabled = true;
+            console.debug('✓ Codeium AI code completions enabled (FREE, unlimited)');
+          }
+        } catch (codeiumError) {
+          console.debug('Codeium registration failed, trying fallback:', codeiumError);
+        }
+
+        // Fallback to Monacopilot/Mistral if Codeium failed
+        if (!codeiumEnabled && typeof registerCompletion === 'function') {
           try {
-            // Enable Mistral-powered code completions via monacopilot
             registerCompletion(monaco, editor, {
               endpoint: '/api/code-completion',
               language: 'python',
               trigger: 'onIdle'
             });
-            console.debug('Monacopilot enabled with Mistral AI code completions');
-          } catch (error) {
-            // AI completions are optional - IDE works without them
-            console.debug('Monacopilot registration failed:', error);
+            console.debug('Monacopilot enabled as fallback (Mistral AI)');
+          } catch (monacopilotError) {
+            console.debug('Monacopilot fallback also failed:', monacopilotError);
           }
-        }, 1500);
-      }
+        }
+      }, 1000);
     } catch (error) {
       console.error('Editor initialization error:', error);
-      // Don't set error output - just log it
       console.warn('IDE will work without AI completions');
     }
   };
