@@ -16,13 +16,27 @@ export function Notepad({ onClose }: NotepadProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Load saved content from localStorage on mount (legacy support)
+  // Load saved content and title from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('notepad-content');
-    if (saved) {
-      setContent(saved);
+    const savedContent = localStorage.getItem('notepad-content');
+    const savedTitle = localStorage.getItem('notepad-title');
+    if (savedContent) {
+      setContent(savedContent);
+    }
+    if (savedTitle) {
+      setTitle(savedTitle);
     }
   }, []);
+
+  // Auto-save content to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('notepad-content', content);
+  }, [content]);
+
+  // Auto-save title to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('notepad-title', title);
+  }, [title]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -44,7 +58,8 @@ export function Notepad({ onClose }: NotepadProps) {
         description: `"${title}" has been saved to your knowledge base. Use 'docs' or 'read ${title}' to access it.`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      localStorage.removeItem('notepad-content'); // Clear legacy storage
+      localStorage.removeItem('notepad-content');
+      localStorage.removeItem('notepad-title');
       setContent('');
       setTitle('Untitled Note');
     },
@@ -74,6 +89,7 @@ export function Notepad({ onClose }: NotepadProps) {
       setContent('');
       setTitle('Untitled Note');
       localStorage.removeItem('notepad-content');
+      localStorage.removeItem('notepad-title');
     }
   };
 
