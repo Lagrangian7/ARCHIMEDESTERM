@@ -730,118 +730,119 @@ export function Terminal() {
       )}
 
       {showUpload && isAuthenticated && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-2 md:p-4">
-          <div className="border rounded-lg p-3 md:p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto" style={{
+        <div 
+          className="fixed top-4 right-4 border rounded-lg p-3 md:p-6 w-[90vw] md:w-[600px] max-h-[85vh] overflow-y-auto shadow-2xl z-50"
+          style={{
             backgroundColor: 'var(--terminal-bg)',
-            borderColor: 'var(--terminal-subtle)'
-          }}>
-            <div className="flex justify-between items-center mb-3 md:mb-6">
-              <h2 className="text-sm md:text-xl font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
-                Knowledge Base Manager
-              </h2>
-              <Button
-                onClick={() => setShowUpload(false)}
-                variant="ghost"
-                size="sm"
-                className="text-xl md:text-2xl"
-                style={{ color: 'var(--terminal-text)' }}
-                data-testid="close-upload-modal"
-              >
-                ×
-              </Button>
-            </div>
-
-            {/* Tab Navigation */}
-            <div className="flex gap-1 md:gap-2 mb-3 md:mb-6 border-b" style={{ borderColor: 'var(--terminal-subtle)' }}>
-              <Button
-                onClick={() => setUploadTab('list')}
-                variant={uploadTab === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                className="text-xs md:text-sm"
-                style={uploadTab === 'list'
-                  ? {
-                      backgroundColor: '#123329',
-                      color: 'var(--terminal-bg)',
-                      borderBottom: '2px solid var(--terminal-highlight)',
-                      borderRadius: '0.375rem 0.375rem 0 0'
-                    }
-                  : {
-                      backgroundColor: '#123329',
-                      color: 'var(--terminal-text)',
-                      borderBottom: '2px solid transparent'
-                    }
-                }
-                data-testid="tab-documents-list"
-              >
-                <span className="hidden sm:inline text-[#6cfdcd]">📂 My Documents</span>
-                <span className="sm:hidden">📂 Docs</span>
-              </Button>
-              <Button
-                onClick={() => setUploadTab('upload')}
-                variant={uploadTab === 'upload' ? 'default' : 'ghost'}
-                size="sm"
-                className="text-xs md:text-sm text-[#2b2c37]"
-                style={uploadTab === 'upload'
-                  ? {
-                      backgroundColor: 'var(--terminal-highlight)',
-                      color: 'var(--terminal-bg)',
-                      borderBottom: '2px solid var(--terminal-highlight)',
-                      borderRadius: '0.375rem 0.375rem 0 0'
-                    }
-                  : {
-                      backgroundColor: '#193329',
-                      color: 'var(--terminal-text)',
-                      borderBottom: '2px solid transparent'
-                    }
-                }
-                data-testid="tab-upload-documents"
-              >
-                <span className="hidden sm:inline text-[#2b2c37]">⬆️ Upload New</span>
-                <span className="sm:hidden">⬆️ Upload</span>
-              </Button>
-              {/* New Music Upload Tab */}
-              <Button
-                onClick={() => setUploadTab('music')}
-                variant={uploadTab === 'music' ? 'default' : 'ghost'}
-                size="sm"
-                className="text-xs md:text-sm"
-                style={uploadTab === 'music'
-                  ? {
-                      backgroundColor: 'var(--terminal-highlight)',
-                      color: 'var(--terminal-bg)',
-                      borderBottom: '2px solid var(--terminal-highlight)',
-                      borderRadius: '0.375rem 0.375rem 0 0'
-                    }
-                  : {
-                      backgroundColor: '#2b2c37',
-                      color: 'var(--terminal-text)',
-                      borderBottom: '2px solid transparent'
-                    }
-                }
-                data-testid="tab-upload-music"
-              >
-                <span className="hidden sm:inline">🎵 Upload Music</span>
-                <span className="sm:hidden">🎵 Music</span>
-              </Button>
-            </div>
-
-            {/* Tab Content */}
-            {uploadTab === 'list' ? (
-              <MemoizedDocumentsList onClose={() => setShowUpload(false)} />
-            ) : uploadTab === 'upload' ? (
-              <MemoizedDocumentUpload
-                onUploadComplete={(document) => {
-                  // Switch to documents list to show the uploaded file
-                  setUploadTab('list');
-                  // Add success entry to terminal
-                  processCommand(`Echo: Document "${document.originalName}" uploaded successfully! Switching to documents view.`);
-                }}
-              />
-            ) : (
-              // Music Upload Tab Content
-              <MemoizedMusicUpload />
-            )}
+            borderColor: 'var(--terminal-highlight)',
+            willChange: 'transform',
+            transform: 'translateZ(0)',
+            isolation: 'isolate'
+          }}
+          data-testid="knowledge-base-panel"
+        >
+          <div className="flex justify-between items-center mb-3 md:mb-6">
+            <h2 className="text-sm md:text-xl font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
+              📚 Knowledge Base
+            </h2>
+            <Button
+              onClick={() => setShowUpload(false)}
+              variant="ghost"
+              size="sm"
+              className="text-xl md:text-2xl hover:bg-terminal-highlight hover:text-terminal-bg transition-colors"
+              style={{ color: 'var(--terminal-text)' }}
+              data-testid="close-upload-modal"
+            >
+              ✕
+            </Button>
           </div>
+
+          {/* Tab Navigation */}
+          <div className="flex gap-1 md:gap-2 mb-3 md:mb-6 border-b" style={{ borderColor: 'var(--terminal-subtle)' }}>
+            <Button
+              onClick={() => setUploadTab('list')}
+              variant={uploadTab === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              className="text-xs md:text-sm"
+              style={uploadTab === 'list'
+                ? {
+                    backgroundColor: 'var(--terminal-highlight)',
+                    color: 'var(--terminal-bg)',
+                    borderBottom: '2px solid var(--terminal-highlight)',
+                    borderRadius: '0.375rem 0.375rem 0 0'
+                  }
+                : {
+                    backgroundColor: 'transparent',
+                    color: 'var(--terminal-text)',
+                    borderBottom: '2px solid transparent'
+                  }
+              }
+              data-testid="tab-documents-list"
+            >
+              <span className="hidden sm:inline">📂 My Documents</span>
+              <span className="sm:hidden">📂 Docs</span>
+            </Button>
+            <Button
+              onClick={() => setUploadTab('upload')}
+              variant={uploadTab === 'upload' ? 'default' : 'ghost'}
+              size="sm"
+              className="text-xs md:text-sm"
+              style={uploadTab === 'upload'
+                ? {
+                    backgroundColor: 'var(--terminal-highlight)',
+                    color: 'var(--terminal-bg)',
+                    borderBottom: '2px solid var(--terminal-highlight)',
+                    borderRadius: '0.375rem 0.375rem 0 0'
+                  }
+                : {
+                    backgroundColor: 'transparent',
+                    color: 'var(--terminal-text)',
+                    borderBottom: '2px solid transparent'
+                  }
+              }
+              data-testid="tab-upload-documents"
+            >
+              <span className="hidden sm:inline">⬆️ Upload New</span>
+              <span className="sm:hidden">⬆️ Upload</span>
+            </Button>
+            <Button
+              onClick={() => setUploadTab('music')}
+              variant={uploadTab === 'music' ? 'default' : 'ghost'}
+              size="sm"
+              className="text-xs md:text-sm"
+              style={uploadTab === 'music'
+                ? {
+                    backgroundColor: 'var(--terminal-highlight)',
+                    color: 'var(--terminal-bg)',
+                    borderBottom: '2px solid var(--terminal-highlight)',
+                    borderRadius: '0.375rem 0.375rem 0 0'
+                  }
+                : {
+                    backgroundColor: 'transparent',
+                    color: 'var(--terminal-text)',
+                    borderBottom: '2px solid transparent'
+                  }
+              }
+              data-testid="tab-upload-music"
+            >
+              <span className="hidden sm:inline">🎵 Upload Music</span>
+              <span className="sm:hidden">🎵 Music</span>
+            </Button>
+          </div>
+
+          {/* Tab Content */}
+          {uploadTab === 'list' ? (
+            <MemoizedDocumentsList onClose={() => setShowUpload(false)} />
+          ) : uploadTab === 'upload' ? (
+            <MemoizedDocumentUpload
+              onUploadComplete={(document) => {
+                setUploadTab('list');
+                processCommand(`Echo: Document "${document.originalName}" uploaded successfully! Switching to documents view.`);
+              }}
+            />
+          ) : (
+            <MemoizedMusicUpload />
+          )}
         </div>
       )}
 

@@ -986,6 +986,12 @@
   }
 }
 
+/* Knowledge Base panel performance optimization */
+[data-testid="knowledge-base-panel"] {
+  contain: layout style paint;
+  content-visibility: auto;
+}
+
 .dark {
   --background: hsl(0 0% 0%);
   --foreground: hsl(200 6.6667% 91.1765%);
