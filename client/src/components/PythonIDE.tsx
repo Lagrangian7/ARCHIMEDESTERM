@@ -1954,6 +1954,17 @@ calculator()
     document.title = 'Archimedes Workshop - Multi-Language IDE';
     return () => { document.title = originalTitle; };
   }, []);
+
+  // Cleanup execution timer on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (executionTimerRef.current) {
+        clearInterval(executionTimerRef.current);
+        executionTimerRef.current = null;
+      }
+    };
+  }, []);
+
   const [showLessonsSidebar, setShowLessonsSidebar] = useState(false);
   const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
   const editorRef = useRef<any>(null);
@@ -1969,6 +1980,7 @@ calculator()
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
+  const executionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Python IDE independent theme system - easy on the eyes
   const [pythonTheme, setPythonTheme] = useState('terminal-green');
@@ -2691,9 +2703,14 @@ calculator()
     setNeedsInput(false);
     setOutput('⏳ Running...\n');
 
+    // Clear any existing timer before starting a new one
+    if (executionTimerRef.current) {
+      clearInterval(executionTimerRef.current);
+    }
+
     // Start timer
     const startTime = Date.now();
-    const timer = setInterval(() => {
+    executionTimerRef.current = setInterval(() => {
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
       setElapsedTime(parseFloat(elapsed));
       setOutput(`⏳ Running... (${elapsed}s elapsed)\n`);
@@ -2708,7 +2725,10 @@ calculator()
 
       const data = await response.json();
 
-      clearInterval(timer);
+      if (executionTimerRef.current) {
+        clearInterval(executionTimerRef.current);
+        executionTimerRef.current = null;
+      }
 
       if (data.success) {
         const timeInfo = data.executionTime ? ` ✓ Completed in ${data.executionTime}s\n\n` : '\n';
@@ -2730,10 +2750,16 @@ calculator()
         setHasGuiElements(false);
       }
     } catch (error) {
-      clearInterval(timer);
+      if (executionTimerRef.current) {
+        clearInterval(executionTimerRef.current);
+        executionTimerRef.current = null;
+      }
       setOutput(`Execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
-      clearInterval(timer);
+      if (executionTimerRef.current) {
+        clearInterval(executionTimerRef.current);
+        executionTimerRef.current = null;
+      }
       setIsRunning(false);
     }
   };
