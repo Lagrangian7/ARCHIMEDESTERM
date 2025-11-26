@@ -1971,7 +1971,7 @@ calculator()
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
 
   // Python IDE independent theme system - easy on the eyes
-  const [pythonTheme, setPythonTheme] = useState('palenight');
+  const [pythonTheme, setPythonTheme] = useState('terminal-green');
 
   const PYTHON_THEMES = {
     // Light themes
@@ -2849,6 +2849,7 @@ calculator()
                 <option value="one-light">One Light</option>
               </optgroup>
               <optgroup label="Dark Themes (Easy on Eyes)">
+                <option value="terminal-green">Terminal Green</option>
                 <option value="nord-dark">Nord Dark</option>
                 <option value="dracula">Dracula</option>
                 <option value="one-dark">One Dark</option>
