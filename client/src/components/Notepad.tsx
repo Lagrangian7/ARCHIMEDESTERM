@@ -95,10 +95,11 @@ export function Notepad({ onClose }: NotepadProps) {
 
   return (
     <div 
-      className="w-[350px] max-w-[50vw] h-[calc(100%-16px)] my-2 mr-2 flex flex-col border rounded-lg animate-in slide-in-from-right duration-200"
+      className="w-[350px] max-w-[50vw] h-[calc(100%-16px)] my-2 mr-2 flex flex-col border rounded-lg flex-shrink-0"
       style={{
         backgroundColor: 'var(--terminal-bg)',
-        borderColor: 'var(--terminal-highlight)'
+        borderColor: 'var(--terminal-highlight)',
+        animation: 'notepad-slide-in 200ms ease-out forwards'
       }}
       data-testid="notepad-panel"
     >

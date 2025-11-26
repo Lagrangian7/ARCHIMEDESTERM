@@ -757,6 +757,18 @@
   }
 }
 
+/* Notepad slide-in animation */
+@keyframes notepad-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* Individual firefly movement patterns */
 .theme-midnight-gradient .firefly:nth-child(1) { animation-name: move1; }
 .theme-midnight-gradient .firefly:nth-child(1)::before { animation-duration: 12s; }

@@ -561,9 +561,9 @@ export function Terminal() {
         </div>
 
         {/* Terminal Output and Notepad - Scrollable middle section */}
-        <div className="flex-1 min-h-0 relative flex">
+        <div className="flex-1 min-h-0 relative flex overflow-hidden">
           {/* Terminal Output */}
-          <div className="flex-1 min-w-0 relative">
+          <div className="flex-1 min-w-0 relative transition-all duration-200 ease-out">
             <ScrollArea className="h-full" ref={scrollAreaRef}>
               <div
                 ref={outputRef}
