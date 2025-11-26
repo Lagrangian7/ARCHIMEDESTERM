@@ -95,7 +95,7 @@ export function Notepad({ onClose }: NotepadProps) {
 
   return (
     <div 
-      className="w-[350px] max-w-[50vw] h-full flex flex-col border-l animate-in slide-in-from-right duration-200"
+      className="w-[350px] max-w-[50vw] h-[calc(100%-16px)] my-2 mr-2 flex flex-col border rounded-lg animate-in slide-in-from-right duration-200"
       style={{
         backgroundColor: 'var(--terminal-bg)',
         borderColor: 'var(--terminal-highlight)'
