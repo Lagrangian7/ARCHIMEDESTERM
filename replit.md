@@ -16,6 +16,12 @@ Preferred communication style: Simple, everyday language.
 - **State Management**: React Query (TanStack Query) for server state, React hooks for local state
 - **Terminal Interface**: Custom terminal component with phosphor display aesthetic, scanlines, and authentic terminal features
 - **Music Player**: Webamp integration with butterchurn Milkdrop visualizer, launchable via "webamp" command, "play our song" command, or cassette tape icon in header
+- **Code Playground**: Multi-language code editor with Monaco supporting 15+ languages (Python, JavaScript, TypeScript, Java, C++, Rust, Go, Ruby, PHP, C#, Swift, Kotlin, Bash, SQL, HTML/CSS). Features include:
+  - Automatic language detection from code content and fenced blocks
+  - Multi-file extraction from AI responses (separates HTML, JS, Python, etc. into individual files)
+  - Download buttons for individual code files with proper extensions
+  - Local preview/run instructions for each language type
+  - Accessible via `code` or `playground` terminal command
 
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js server

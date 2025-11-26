@@ -190,6 +190,31 @@ function generateLocalInstructions(files: CodeFile[]): string {
   return instructions;
 }
 
+const STORAGE_KEY = 'archimedes-code-playground-session';
+
+function loadSavedSession(): { files: CodeFile[]; activeFileId: string } | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.files && Array.isArray(parsed.files) && parsed.files.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load code playground session:', e);
+  }
+  return null;
+}
+
+function saveSession(files: CodeFile[], activeFileId: string): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ files, activeFileId }));
+  } catch (e) {
+    console.error('Failed to save code playground session:', e);
+  }
+}
+
 export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePlaygroundProps) {
   const { toast } = useToast();
   const [files, setFiles] = useState<CodeFile[]>([]);
@@ -199,8 +224,12 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   const [showInstructions, setShowInstructions] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const editorRef = useRef<any>(null);
+  const isInitialized = useRef(false);
   
   useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+    
     if (initialCode) {
       const extractedFiles = extractCodeBlocksFromText(initialCode);
       if (extractedFiles.length > 0) {
@@ -218,16 +247,28 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
         setActiveFileId(newFile.id);
       }
     } else {
-      const defaultFile: CodeFile = {
-        id: `file-${Date.now()}`,
-        name: 'main.py',
-        language: 'python',
-        content: '# Start coding here\nprint("Hello, World!")'
-      };
-      setFiles([defaultFile]);
-      setActiveFileId(defaultFile.id);
+      const savedSession = loadSavedSession();
+      if (savedSession) {
+        setFiles(savedSession.files);
+        setActiveFileId(savedSession.activeFileId);
+      } else {
+        const defaultFile: CodeFile = {
+          id: `file-${Date.now()}`,
+          name: 'main.py',
+          language: 'python',
+          content: '# Start coding here\nprint("Hello, World!")'
+        };
+        setFiles([defaultFile]);
+        setActiveFileId(defaultFile.id);
+      }
     }
   }, [initialCode, initialLanguage]);
+  
+  useEffect(() => {
+    if (files.length > 0 && activeFileId) {
+      saveSession(files, activeFileId);
+    }
+  }, [files, activeFileId]);
   
   const activeFile = files.find(f => f.id === activeFileId);
   

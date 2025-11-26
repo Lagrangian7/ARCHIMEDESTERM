@@ -629,6 +629,7 @@ Use the URLs above to access the full articles and information.`;
   chat - Open user-to-user chat interface
   python - Launch Python IDE
   python lessons - Launch Python lessons guide
+  code / playground - Open multi-language Code Playground
 
 Network & BBS Commands:
   telnet <host> <port> - Connect via web-based telnet client
@@ -895,6 +896,15 @@ Code Execution:
       case 'python lessons':
         setShowPythonLessons(true);
         addEntry('response', 'Opening Python Lessons Guide...', 'technical');
+        break;
+
+      case 'code':
+      case 'playground':
+      case 'codeplayground':
+      case 'code-playground':
+      case 'editor':
+        (window as any).openCodePlayground?.();
+        addEntry('system', '📝 Opening Code Playground...\n\nMulti-language editor with:\n• Python, JavaScript, TypeScript, Java, C++, Rust, Go, Ruby, PHP\n• Auto-detection from code content\n• Download files with proper extensions\n• Local execution instructions');
         break;
 
       case 'synth':
