@@ -1,15 +1,137 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, ChevronDown, Info } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { registerCompletion } from 'monacopilot';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { useToast } from '@/hooks/use-toast';
 
 interface PythonIDEProps {
   onClose: () => void;
+}
+
+interface CodeFile {
+  id: string;
+  name: string;
+  language: string;
+  content: string;
+}
+
+const LANGUAGE_CONFIG: Record<string, {
+  extension: string;
+  monacoLang: string;
+  displayName: string;
+  runCommand: string;
+  icon: string;
+}> = {
+  python: { extension: '.py', monacoLang: 'python', displayName: 'Python', runCommand: 'python3', icon: '🐍' },
+  javascript: { extension: '.js', monacoLang: 'javascript', displayName: 'JavaScript', runCommand: 'node', icon: '🟨' },
+  typescript: { extension: '.ts', monacoLang: 'typescript', displayName: 'TypeScript', runCommand: 'npx ts-node', icon: '🔷' },
+  html: { extension: '.html', monacoLang: 'html', displayName: 'HTML', runCommand: 'open in browser', icon: '🌐' },
+  css: { extension: '.css', monacoLang: 'css', displayName: 'CSS', runCommand: 'link in HTML', icon: '🎨' },
+  java: { extension: '.java', monacoLang: 'java', displayName: 'Java', runCommand: 'javac && java', icon: '☕' },
+  cpp: { extension: '.cpp', monacoLang: 'cpp', displayName: 'C++', runCommand: 'g++ -o output && ./output', icon: '⚙️' },
+  c: { extension: '.c', monacoLang: 'c', displayName: 'C', runCommand: 'gcc -o output && ./output', icon: '🔧' },
+  bash: { extension: '.sh', monacoLang: 'shell', displayName: 'Bash', runCommand: 'bash', icon: '💻' },
+  sql: { extension: '.sql', monacoLang: 'sql', displayName: 'SQL', runCommand: 'sql client', icon: '🗄️' },
+  json: { extension: '.json', monacoLang: 'json', displayName: 'JSON', runCommand: 'N/A', icon: '📋' },
+  yaml: { extension: '.yaml', monacoLang: 'yaml', displayName: 'YAML', runCommand: 'N/A', icon: '📝' },
+  markdown: { extension: '.md', monacoLang: 'markdown', displayName: 'Markdown', runCommand: 'preview', icon: '📄' },
+  rust: { extension: '.rs', monacoLang: 'rust', displayName: 'Rust', runCommand: 'cargo run', icon: '🦀' },
+  go: { extension: '.go', monacoLang: 'go', displayName: 'Go', runCommand: 'go run', icon: '🐹' },
+  php: { extension: '.php', monacoLang: 'php', displayName: 'PHP', runCommand: 'php', icon: '🐘' },
+  ruby: { extension: '.rb', monacoLang: 'ruby', displayName: 'Ruby', runCommand: 'ruby', icon: '💎' },
+  swift: { extension: '.swift', monacoLang: 'swift', displayName: 'Swift', runCommand: 'swift', icon: '🍎' },
+  kotlin: { extension: '.kt', monacoLang: 'kotlin', displayName: 'Kotlin', runCommand: 'kotlinc && kotlin', icon: '🟣' },
+};
+
+function detectLanguageFromCode(code: string): string {
+  const patterns: [RegExp, string][] = [
+    [/^#!.*python|import\s+(os|sys|json|re|typing)|def\s+\w+\(.*\):|from\s+\w+\s+import|if\s+__name__\s*==\s*['"]__main__['"]/m, 'python'],
+    [/^#!.*node|const\s+\w+\s*=\s*require|module\.exports|console\.log|\.forEach\(|\.map\(|=>\s*\{|async\s+function/m, 'javascript'],
+    [/interface\s+\w+\s*\{|type\s+\w+\s*=|:\s*(string|number|boolean|any)\b|<T>|import\s+.*from\s*['"]|export\s+(default\s+)?(class|function|const|interface)/m, 'typescript'],
+    [/<!DOCTYPE\s+html|<html|<head|<body|<div|<script|<style|<link\s+rel/im, 'html'],
+    [/^\s*\.([\w-]+)\s*\{|@media|@keyframes|^\s*#[\w-]+\s*\{|color:|background:|margin:|padding:|display:/m, 'css'],
+    [/public\s+class\s+\w+|public\s+static\s+void\s+main|System\.out\.print|import\s+java\./m, 'java'],
+    [/#include\s*<.*>|std::|cout\s*<<|cin\s*>>|using\s+namespace\s+std|int\s+main\s*\(/m, 'cpp'],
+    [/#include\s*<stdio\.h>|printf\s*\(|scanf\s*\(|int\s+main\s*\(\s*void\s*\)/m, 'c'],
+    [/^#!.*bash|^#!.*sh|\$\(.*\)|\$\{.*\}|echo\s+|if\s+\[\[|\bgrep\b|\bsed\b|\bawk\b/m, 'bash'],
+    [/SELECT\s+.*\s+FROM|INSERT\s+INTO|UPDATE\s+.*\s+SET|CREATE\s+TABLE|DROP\s+TABLE|ALTER\s+TABLE/im, 'sql'],
+    [/^\s*\{[\s\n]*".*":/m, 'json'],
+    [/^---\n|^\w+:\s*\n?\s+/m, 'yaml'],
+    [/^#+\s+|^\*\*.*\*\*$|^\[.*\]\(.*\)/m, 'markdown'],
+    [/fn\s+main\s*\(\)|let\s+mut\s+|impl\s+\w+|use\s+std::|println!\(/m, 'rust'],
+    [/package\s+main|func\s+main\s*\(\)|import\s*\(|fmt\.Print/m, 'go'],
+    [/<\?php|\$_GET|\$_POST|echo\s+|function\s+\w+\s*\(/m, 'php'],
+    [/def\s+\w+\s*\n|puts\s+|require\s+['"]|class\s+\w+\s*<\s*\w+/m, 'ruby'],
+  ];
+  
+  for (const [pattern, lang] of patterns) {
+    if (pattern.test(code)) return lang;
+  }
+  return 'python';
+}
+
+function getLanguageFromFilename(filename: string): string {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  for (const [lang, config] of Object.entries(LANGUAGE_CONFIG)) {
+    if (config.extension === `.${ext}`) return lang;
+  }
+  return 'python';
+}
+
+function generateLocalInstructions(language: string): string {
+  const config = LANGUAGE_CONFIG[language];
+  if (!config) return '';
+  
+  const instructions: Record<string, string> = {
+    python: `**Python Setup:**
+1. Save file as \`filename.py\`
+2. Install Python 3.x from python.org
+3. Run: \`python3 filename.py\`
+4. For packages: \`pip install package-name\``,
+    javascript: `**JavaScript (Node.js) Setup:**
+1. Save file as \`filename.js\`
+2. Install Node.js from nodejs.org
+3. Run: \`node filename.js\`
+4. For packages: \`npm install package-name\``,
+    typescript: `**TypeScript Setup:**
+1. Save file as \`filename.ts\`
+2. Install: \`npm install -g typescript ts-node\`
+3. Run: \`npx ts-node filename.ts\`
+4. Or compile: \`tsc filename.ts && node filename.js\``,
+    java: `**Java Setup:**
+1. Save file as \`ClassName.java\` (match class name)
+2. Install JDK from adoptium.net
+3. Compile: \`javac ClassName.java\`
+4. Run: \`java ClassName\``,
+    cpp: `**C++ Setup:**
+1. Save file as \`filename.cpp\`
+2. Install g++ (MinGW on Windows, Xcode on Mac, build-essential on Linux)
+3. Compile: \`g++ -o program filename.cpp\`
+4. Run: \`./program\``,
+    html: `**HTML Setup:**
+1. Save file as \`index.html\`
+2. Open directly in any web browser
+3. Or use VS Code Live Server extension for auto-reload`,
+    bash: `**Bash Setup:**
+1. Save file as \`script.sh\`
+2. Make executable: \`chmod +x script.sh\`
+3. Run: \`./script.sh\` or \`bash script.sh\``,
+    rust: `**Rust Setup:**
+1. Install Rust from rustup.rs
+2. Create project: \`cargo new project_name\`
+3. Run: \`cargo run\``,
+    go: `**Go Setup:**
+1. Install Go from go.dev
+2. Save as \`main.go\`
+3. Run: \`go run main.go\``,
+  };
+  
+  return instructions[language] || `**${config.displayName} Setup:**\n1. Save with ${config.extension} extension\n2. Run: \`${config.runCommand}\``;
 }
 
 // Comprehensive lesson structure with Archimedes guidance
@@ -1583,6 +1705,7 @@ if __name__ == "__main__":
 
 // Storage key for session persistence
 const PYTHON_SESSION_KEY = 'python-ide-session';
+const MULTI_FILE_SESSION_KEY = 'archimedes-workshop-files';
 
 interface PythonSession {
   code: string;
@@ -1593,7 +1716,14 @@ interface PythonSession {
   chatHistory: Array<{ role: 'user' | 'assistant', content: string }>;
 }
 
+interface MultiFileSession {
+  files: CodeFile[];
+  activeFileId: string;
+}
+
 export function PythonIDE({ onClose }: PythonIDEProps) {
+  const { toast } = useToast();
+  
   // Load session from localStorage or use defaults
   const loadSession = (): PythonSession | null => {
     const saved = localStorage.getItem(PYTHON_SESSION_KEY);
@@ -1606,8 +1736,24 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     }
     return null;
   };
+  
+  const loadMultiFileSession = (): MultiFileSession | null => {
+    const saved = localStorage.getItem(MULTI_FILE_SESSION_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.files && Array.isArray(parsed.files) && parsed.files.length > 0) {
+          return parsed;
+        }
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
 
   const savedSession = loadSession();
+  const savedMultiFileSession = loadMultiFileSession();
 
   const [code, setCode] = useState(savedSession?.code || `# FREESTYLE MODE - Interactive Calculator with Visual Interface
 # This calculator uses input() to create an interactive experience
@@ -1703,11 +1849,108 @@ calculator()
   const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>(
     (savedSession?.chatHistory as Array<{ role: 'user' | 'assistant', content: string }>) || []
   );
+  
+  // Multi-file state for multi-language support
+  const [files, setFiles] = useState<CodeFile[]>(() => {
+    if (savedMultiFileSession?.files) {
+      return savedMultiFileSession.files;
+    }
+    return [{
+      id: 'default-file',
+      name: 'main.py',
+      language: 'python',
+      content: ''
+    }];
+  });
+  const [activeFileId, setActiveFileId] = useState<string>(
+    savedMultiFileSession?.activeFileId || 'default-file'
+  );
+  const [showMultiFileMode, setShowMultiFileMode] = useState(false);
+  const [showLocalInstructions, setShowLocalInstructions] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState('python');
+  
+  // Sync current file content with main code state when in multi-file mode
+  const activeFile = files.find(f => f.id === activeFileId);
+  
+  // Save multi-file session to localStorage
+  useEffect(() => {
+    if (showMultiFileMode && files.length > 0) {
+      localStorage.setItem(MULTI_FILE_SESSION_KEY, JSON.stringify({ files, activeFileId }));
+    }
+  }, [files, activeFileId, showMultiFileMode]);
+  
+  // Multi-file management functions
+  const addNewFile = useCallback(() => {
+    const langConfig = LANGUAGE_CONFIG[currentLanguage] || LANGUAGE_CONFIG.javascript;
+    const newFile: CodeFile = {
+      id: `file-${Date.now()}`,
+      name: `file${files.length + 1}${langConfig.extension}`,
+      language: currentLanguage,
+      content: currentLanguage === 'python' ? '# New file\n' : '// New file\n'
+    };
+    setFiles(prev => [...prev, newFile]);
+    setActiveFileId(newFile.id);
+  }, [files.length, currentLanguage]);
+  
+  const deleteFile = useCallback((id: string) => {
+    if (files.length <= 1) {
+      toast({ title: "Cannot delete", description: "Must have at least one file.", variant: "destructive" });
+      return;
+    }
+    setFiles(prev => {
+      const newFiles = prev.filter(f => f.id !== id);
+      if (activeFileId === id && newFiles.length > 0) {
+        setActiveFileId(newFiles[0].id);
+      }
+      return newFiles;
+    });
+  }, [files.length, activeFileId, toast]);
+  
+  const updateFileName = useCallback((id: string, name: string) => {
+    const newLang = getLanguageFromFilename(name);
+    setFiles(prev => prev.map(f => 
+      f.id === id ? { ...f, name, language: newLang } : f
+    ));
+  }, []);
+  
+  const updateFileContent = useCallback((id: string, content: string) => {
+    setFiles(prev => prev.map(f => 
+      f.id === id ? { ...f, content } : f
+    ));
+  }, []);
+  
+  const downloadFile = useCallback((file: CodeFile) => {
+    const blob = new Blob([file.content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: "Downloaded", description: `${file.name} saved to your computer.` });
+  }, [toast]);
+  
+  const downloadAllFiles = useCallback(() => {
+    files.forEach(file => {
+      const blob = new Blob([file.content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+    toast({ title: "Downloaded", description: `${files.length} files saved to your computer.` });
+  }, [files, toast]);
 
   // Set document title when component mounts
   useEffect(() => {
     const originalTitle = document.title;
-    document.title = 'Archimedes Workshop - Python IDE';
+    document.title = 'Archimedes Workshop - Multi-Language IDE';
     return () => { document.title = originalTitle; };
   }, []);
   const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
@@ -2527,6 +2770,21 @@ calculator()
               </optgroup>
             </select>
             <Button
+              onClick={() => setShowMultiFileMode(!showMultiFileMode)}
+              variant="outline"
+              size="sm"
+              className="font-mono text-xs"
+              data-testid="button-toggle-multifile"
+              style={{
+                backgroundColor: showMultiFileMode ? currentPythonTheme.highlight : currentPythonTheme.bg,
+                color: showMultiFileMode ? currentPythonTheme.bg : currentPythonTheme.highlight,
+                borderColor: currentPythonTheme.border,
+              }}
+            >
+              <FileCode className="w-4 h-4 mr-1" />
+              {showMultiFileMode ? 'Single File' : 'Multi-File'}
+            </Button>
+            <Button
               onClick={toggleMaximize}
               variant="outline"
               size="sm"
@@ -2595,6 +2853,140 @@ calculator()
             </Button>
           </div>
         </div>
+
+        {/* Multi-File Tabs Bar */}
+        {showMultiFileMode && (
+          <div 
+            className="flex items-center gap-1 px-2 py-1 overflow-x-auto"
+            style={{ 
+              backgroundColor: currentPythonTheme.subtle,
+              borderBottom: `1px solid ${currentPythonTheme.border}` 
+            }}
+          >
+            {/* File Tabs */}
+            {files.map(file => {
+              const langConfig = LANGUAGE_CONFIG[file.language] || LANGUAGE_CONFIG.javascript;
+              return (
+                <div
+                  key={file.id}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-t text-xs font-mono cursor-pointer group ${
+                    activeFileId === file.id ? 'border-b-2' : ''
+                  }`}
+                  style={{
+                    backgroundColor: activeFileId === file.id ? currentPythonTheme.bg : 'transparent',
+                    color: activeFileId === file.id ? currentPythonTheme.highlight : currentPythonTheme.text,
+                    borderColor: currentPythonTheme.highlight,
+                  }}
+                  onClick={() => setActiveFileId(file.id)}
+                >
+                  <span>{langConfig.icon}</span>
+                  <input
+                    type="text"
+                    value={file.name}
+                    onChange={(e) => updateFileName(file.id, e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-transparent border-none outline-none w-20 text-xs"
+                    style={{ color: 'inherit' }}
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadFile(file);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-black/20"
+                    title="Download file"
+                  >
+                    <Download className="w-3 h-3" />
+                  </button>
+                  {files.length > 1 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteFile(file.id);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-red-500/20"
+                      title="Delete file"
+                    >
+                      <Trash2 className="w-3 h-3" style={{ color: 'hsl(0 70% 50%)' }} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            
+            {/* Add New File Button */}
+            <button
+              onClick={addNewFile}
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs font-mono hover:opacity-70"
+              style={{ color: currentPythonTheme.highlight }}
+              title="Add new file"
+            >
+              <Plus className="w-3 h-3" />
+            </button>
+            
+            {/* Language Selector */}
+            <select
+              value={currentLanguage}
+              onChange={(e) => setCurrentLanguage(e.target.value)}
+              className="ml-2 px-1 py-0.5 rounded text-xs font-mono"
+              style={{
+                backgroundColor: currentPythonTheme.bg,
+                color: currentPythonTheme.text,
+                border: `1px solid ${currentPythonTheme.border}`,
+              }}
+              title="Language for new files"
+            >
+              {Object.entries(LANGUAGE_CONFIG).map(([lang, config]) => (
+                <option key={lang} value={lang}>
+                  {config.icon} {config.displayName}
+                </option>
+              ))}
+            </select>
+            
+            {/* Download All Files */}
+            <button
+              onClick={downloadAllFiles}
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs font-mono hover:opacity-70 ml-auto"
+              style={{ 
+                color: currentPythonTheme.highlight,
+                border: `1px solid ${currentPythonTheme.border}`,
+              }}
+              title="Download all files"
+            >
+              <Download className="w-3 h-3" />
+              All ({files.length})
+            </button>
+            
+            {/* Local Instructions Toggle */}
+            <button
+              onClick={() => setShowLocalInstructions(!showLocalInstructions)}
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs font-mono hover:opacity-70"
+              style={{ 
+                color: showLocalInstructions ? currentPythonTheme.bg : currentPythonTheme.highlight,
+                backgroundColor: showLocalInstructions ? currentPythonTheme.highlight : 'transparent',
+                border: `1px solid ${currentPythonTheme.border}`,
+              }}
+              title="Show local run instructions"
+            >
+              <Info className="w-3 h-3" />
+              Run Locally
+            </button>
+          </div>
+        )}
+        
+        {/* Local Instructions Panel */}
+        {showMultiFileMode && showLocalInstructions && activeFile && (
+          <div 
+            className="px-4 py-2 text-xs font-mono overflow-x-auto"
+            style={{ 
+              backgroundColor: `${currentPythonTheme.highlight}15`,
+              borderBottom: `1px solid ${currentPythonTheme.border}`,
+              color: currentPythonTheme.text,
+            }}
+          >
+            <pre className="whitespace-pre-wrap">{generateLocalInstructions(activeFile.language)}</pre>
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
@@ -2876,9 +3268,15 @@ calculator()
                       <Editor
                         height="100%"
                         width="100%"
-                        defaultLanguage="python"
-                        value={code}
-                        onChange={(value) => setCode(value || '')}
+                        language={showMultiFileMode && activeFile ? (LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'python') : 'python'}
+                        value={showMultiFileMode && activeFile ? activeFile.content : code}
+                        onChange={(value) => {
+                          if (showMultiFileMode && activeFile) {
+                            updateFileContent(activeFile.id, value || '');
+                          } else {
+                            setCode(value || '');
+                          }
+                        }}
                         onMount={(editor, monaco) => {
                           try {
                             handleEditorDidMount(editor, monaco);
@@ -3118,9 +3516,15 @@ calculator()
                   <Editor
                     height="100%"
                     width="100%"
-                    defaultLanguage="python"
-                    value={code}
-                    onChange={(value) => setCode(value || '')}
+                    language={showMultiFileMode && activeFile ? (LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'python') : 'python'}
+                    value={showMultiFileMode && activeFile ? activeFile.content : code}
+                    onChange={(value) => {
+                      if (showMultiFileMode && activeFile) {
+                        updateFileContent(activeFile.id, value || '');
+                      } else {
+                        setCode(value || '');
+                      }
+                    }}
                     onMount={(editor, monaco) => {
                       try {
                         handleEditorDidMount(editor, monaco);

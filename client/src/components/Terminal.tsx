@@ -24,7 +24,6 @@ import { TheHarvester } from './TheHarvester';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { PythonIDE } from './PythonIDE';
 import { PythonLessons } from './PythonLessons'; // Import the new PythonLessons component
-import { CodePlayground } from './CodePlayground'; // Import the multi-language code playground
 import { CodePreview } from './CodePreview';
 import { BackgroundManager } from './BackgroundManager';
 import WebampPlayer from './WebampPlayer';
@@ -101,10 +100,6 @@ export function Terminal() {
     (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
     (window as any).openPythonLessons = () => setShowPythonLessons(true); // Add Python lessons opener
     (window as any).openWebSynth = () => setShowWebSynth(true); // Add WebSynth opener
-    (window as any).openCodePlayground = (code?: string, language?: string) => {
-      setCodePlaygroundData({ code, language });
-      setShowCodePlayground(true);
-    };
 
     // Listen for background change events
     const handleBackgroundChange = (event: Event) => {
@@ -151,8 +146,6 @@ export function Terminal() {
   const [showNotepad, setShowNotepad] = useState(false);
   const [showPythonIDE, setShowPythonIDE] = useState(false);
   const [showPythonLessons, setShowPythonLessons] = useState(false); // New state for Python lessons
-  const [showCodePlayground, setShowCodePlayground] = useState(false); // Multi-language code playground
-  const [codePlaygroundData, setCodePlaygroundData] = useState<{ code?: string; language?: string }>({});
   const [showBackgroundManager, setShowBackgroundManager] = useState(false);
   const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>(() => {
     // Load saved background on mount
@@ -466,7 +459,6 @@ export function Terminal() {
   const MemoizedDraggableResponse = useMemo(() => memo(DraggableResponse), []);
   const MemoizedPythonIDE = useMemo(() => memo(PythonIDE), []); // Memoized PythonIDE
   const MemoizedPythonLessons = useMemo(() => memo(PythonLessons), []); // Memoized PythonLessons
-  const MemoizedCodePlayground = useMemo(() => memo(CodePlayground), []); // Memoized CodePlayground
 
   // Themes that don't use background images
   const noBgThemes = [
@@ -958,17 +950,6 @@ export function Terminal() {
       {showPythonIDE && <MemoizedPythonIDE onClose={() => setShowPythonIDE(false)} />}
       {/* Python Lessons */}
       {showPythonLessons && <MemoizedPythonLessons onClose={() => setShowPythonLessons(false)} />}
-      {/* Code Playground - Multi-language editor */}
-      {showCodePlayground && (
-        <MemoizedCodePlayground 
-          onClose={() => {
-            setShowCodePlayground(false);
-            setCodePlaygroundData({});
-          }}
-          initialCode={codePlaygroundData.code}
-          initialLanguage={codePlaygroundData.language}
-        />
-      )}
 
       {/* Background Manager */}
       {showBackgroundManager && (

@@ -903,8 +903,8 @@ Code Execution:
       case 'codeplayground':
       case 'code-playground':
       case 'editor':
-        (window as any).openCodePlayground?.();
-        addEntry('system', '📝 Opening Code Playground...\n\nMulti-language editor with:\n• Python, JavaScript, TypeScript, Java, C++, Rust, Go, Ruby, PHP\n• Auto-detection from code content\n• Download files with proper extensions\n• Local execution instructions');
+        (window as any).openPythonIDE?.();
+        addEntry('system', '📝 Opening Archimedes Workshop...\n\nMulti-language editor with:\n• Python, JavaScript, TypeScript, Java, C++, Rust, Go, Ruby, PHP\n• Click "Multi-File" button to enable multi-language mode\n• Download files with proper extensions\n• Local execution instructions\n\nTip: Use the lessons sidebar for Python tutorials!');
         break;
 
       case 'synth':
