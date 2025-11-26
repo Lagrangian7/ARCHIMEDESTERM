@@ -93,6 +93,7 @@ export const messageSchema = z.object({
   content: z.string(),
   timestamp: z.string(),
   mode: z.enum(["natural", "technical", "health"]).optional(),
+  language: z.string().optional(),
 });
 
 // Type exports

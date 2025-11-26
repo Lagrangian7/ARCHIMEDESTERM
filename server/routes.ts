@@ -2523,7 +2523,7 @@ function windowResized() {
               originalName: file.originalname,
               fileSize: file.size.toString(),
               mimeType: mimeType,
-              objectPath: null // Will be set by separate PUT request
+              objectPath: undefined // Will be set by separate PUT request
             });
 
             console.log(`✅ Audio document created - ID: ${document.id}, name: ${document.originalName}, mimeType: ${document.mimeType}`);
