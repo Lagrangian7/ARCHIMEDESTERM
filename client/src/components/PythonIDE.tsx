@@ -135,14 +135,6 @@ function generateLocalInstructions(language: string): string {
   return instructions[language] || `**${config.displayName} Setup:**\n1. Save with ${config.extension} extension\n2. Run: \`${config.runCommand}\``;
 }
 
-function getLanguageFromFilename(filename: string): string {
-  const ext = filename.split('.').pop()?.toLowerCase();
-  for (const [lang, config] of Object.entries(LANGUAGE_CONFIG)) {
-    if (config.extension === `.${ext}`) return lang;
-  }
-  return 'python';
-}
-
 function generateLocalInstructions(language: string): string {
   const config = LANGUAGE_CONFIG[language];
   if (!config) return '';
