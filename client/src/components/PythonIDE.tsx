@@ -1961,8 +1961,8 @@ calculator()
   const { speak } = useSpeech();
   const lastSpokenChatIdRef = useRef<string>('');
 
-  // Resizable window state
-  const [isMaximized, setIsMaximized] = useState(false);
+  // Resizable window state - start maximized by default
+  const [isMaximized, setIsMaximized] = useState(true);
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 900, height: 600 });

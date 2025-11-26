@@ -19,7 +19,7 @@ import multer from "multer";
 import { z } from "zod";
 import compression from "compression";
 import { spawn } from "child_process";
-import * as dns from 'dns';
+import dns from 'dns/promises';
 import { URL } from 'url';
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
