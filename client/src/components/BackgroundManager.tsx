@@ -383,20 +383,21 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
                 <div
                   key={wallpaper.id}
                   className="relative group cursor-pointer"
+                  onClick={() => selectWallpaper(wallpaper)}
                   style={{
                     border: selectedWallpaper === wallpaper.url ? '2px solid var(--terminal-highlight)' : '1px solid var(--terminal-subtle)',
                     borderRadius: '8px',
                     overflow: 'hidden'
                   }}
+                  data-testid={`wallpaper-slot-${wallpaper.id}`}
                 >
                   <div
-                    onClick={() => selectWallpaper(wallpaper)}
                     className="aspect-video bg-cover bg-center"
                     style={{ backgroundImage: `url(${wallpaper.url})` }}
                   />
                   
-                  {/* Overlay on hover */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  {/* Delete button - positioned in corner, doesn't block clicks */}
+                  <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -404,9 +405,9 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
                       }}
                       size="sm"
                       variant="destructive"
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700 w-6 h-6 p-0"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
 
@@ -424,12 +425,17 @@ export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBack
                   {/* Selected indicator */}
                   {selectedWallpaper === wallpaper.url && (
                     <div 
-                      className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                      className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center"
                       style={{ backgroundColor: 'var(--terminal-highlight)' }}
                     >
                       <span className="text-xs font-bold" style={{ color: 'var(--terminal-bg)' }}>✓</span>
                     </div>
                   )}
+
+                  {/* Click-to-select overlay hint */}
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
+                    <span className="text-white text-xs font-medium bg-black/50 px-2 py-1 rounded">Click to select</span>
+                  </div>
                 </div>
               ))}
             </div>
