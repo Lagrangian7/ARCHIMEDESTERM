@@ -2089,6 +2089,13 @@ calculator()
       subtle: 'hsl(233 22% 15%)',
       border: 'hsl(233 22% 24%)',
     },
+    'terminal-green': {
+      bg: 'hsl(153 38% 8%)',
+      text: 'hsl(166 98% 54%)',
+      highlight: 'hsl(166 98% 54%)',
+      subtle: 'hsl(153 45% 6%)',
+      border: 'hsl(153 38% 12%)',
+    },
   };
 
   const currentPythonTheme = PYTHON_THEMES[pythonTheme as keyof typeof PYTHON_THEMES];
