@@ -2810,20 +2810,43 @@ function windowResized() {
   });
 
   // Import documents from JSON (for restoring backups or syncing between environments)
+  const importDocumentSchema = z.object({
+    originalName: z.string().min(1).max(500),
+    fileName: z.string().optional(),
+    fileSize: z.string().optional(),
+    mimeType: z.string().optional(),
+    content: z.string().max(10000000), // Max 10MB of text content
+    summary: z.string().nullable().optional(),
+    keywords: z.array(z.string()).nullable().optional(),
+    objectPath: z.string().nullable().optional(),
+    isNote: z.boolean().optional(),
+  });
+  
+  const importRequestSchema = z.object({
+    documents: z.array(importDocumentSchema).max(500), // Max 500 documents per import
+  });
+
   app.post("/api/documents/import", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { documents } = req.body;
       
-      if (!documents || !Array.isArray(documents)) {
-        return res.status(400).json({ error: "Invalid import data. Expected { documents: [...] }" });
+      // Validate request body with Zod
+      const parseResult = importRequestSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid import data format",
+          details: parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+        });
       }
+      
+      const { documents } = parseResult.data;
       
       console.log(`📥 Importing ${documents.length} documents for user: ${userId}`);
       
       let imported = 0;
       let skipped = 0;
       const errors: string[] = [];
+      const skippedNames: string[] = [];
       
       for (const doc of documents) {
         try {
@@ -2831,10 +2854,11 @@ function windowResized() {
           const existing = await storage.getDocumentByFilename(userId, doc.originalName);
           if (existing) {
             skipped++;
+            skippedNames.push(doc.originalName);
             continue;
           }
           
-          // Create new document
+          // Create new document with server-controlled timestamps
           await storage.createDocument({
             userId,
             originalName: doc.originalName,
@@ -2859,6 +2883,7 @@ function windowResized() {
         success: true,
         imported,
         skipped,
+        skippedNames: skippedNames.length > 0 ? skippedNames : undefined,
         errors: errors.length > 0 ? errors : undefined,
         message: `Imported ${imported} documents. ${skipped} skipped (already exist).`
       });

@@ -13,7 +13,8 @@ import {
   FileText,
   HardDrive,
   Edit2,
-  X // Import X icon
+  X,
+  Upload
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -39,9 +40,11 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Query for user documents
   const { data: documents = [], isLoading, error } = useQuery<Document[]>({
@@ -128,6 +131,97 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
       return apiRequest('POST', '/api/documents/search', { query });
     },
   });
+
+  // Import documents mutation
+  const importMutation = useMutation({
+    mutationFn: async (importData: { documents: any[] }) => {
+      return apiRequest('POST', '/api/documents/import', importData);
+    },
+    onSuccess: (data: any) => {
+      let description = `Imported ${data.imported} documents.`;
+      if (data.skipped > 0) {
+        description += ` ${data.skipped} skipped (already exist).`;
+      }
+      if (data.errors && data.errors.length > 0) {
+        description += ` ${data.errors.length} failed.`;
+      }
+      toast({
+        title: "Import Complete",
+        description,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/knowledge/stats'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Import Failed",
+        description: error.message || "Failed to import documents.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle export - downloads all documents as JSON
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const response = await fetch('/api/documents/export', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `archimedes-documents-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast({
+        title: "Export Complete",
+        description: `Exported ${documents.length} documents to JSON file.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export documents.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Handle import - reads JSON file and imports documents
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      
+      if (!data.documents || !Array.isArray(data.documents)) {
+        throw new Error('Invalid import file format');
+      }
+
+      importMutation.mutate({ documents: data.documents });
+    } catch (error) {
+      toast({
+        title: "Import Failed",
+        description: error instanceof Error ? error.message : "Failed to read import file.",
+        variant: "destructive",
+      });
+    }
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const formatFileSize = (sizeString: string) => {
     const size = parseInt(sizeString);
@@ -277,10 +371,40 @@ export function DocumentsList({ onClose }: DocumentsListProps) {
           disabled={migrateMutation.isPending}
           variant="ghost" 
           size="sm" 
-          className="text-terminal-highlight hover:bg-terminal-highlight/20 text-xs"
+          className="text-terminal-highlight hover:bg-terminal-highlight/20 text-xs mr-2"
         >
           {migrateMutation.isPending ? 'Migrating...' : 'Migrate Docs'}
         </Button>
+        <Button 
+          onClick={handleExport}
+          disabled={isExporting || documents.length === 0}
+          variant="ghost" 
+          size="sm" 
+          className="text-terminal-highlight hover:bg-terminal-highlight/20 text-xs mr-2"
+          data-testid="button-export-documents"
+        >
+          <Download size={14} className="mr-1" />
+          {isExporting ? 'Exporting...' : 'Export'}
+        </Button>
+        <Button 
+          onClick={() => fileInputRef.current?.click()}
+          disabled={importMutation.isPending}
+          variant="ghost" 
+          size="sm" 
+          className="text-terminal-highlight hover:bg-terminal-highlight/20 text-xs mr-2"
+          data-testid="button-import-documents"
+        >
+          <Upload size={14} className="mr-1" />
+          {importMutation.isPending ? 'Importing...' : 'Import'}
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          onChange={handleImportFile}
+          className="hidden"
+          data-testid="input-import-file"
+        />
         {onClose && (
           <Button onClick={onClose} variant="ghost" size="sm" className="text-terminal-text hover:bg-terminal-highlight/20">
             <X size={18} />
