@@ -78,84 +78,81 @@ export function Notepad({ onClose }: NotepadProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+    <div className="fixed top-0 right-0 h-full w-[400px] max-w-[90vw] z-50 shadow-2xl flex flex-col border-l"
+      style={{
+        backgroundColor: 'var(--terminal-bg)',
+        borderColor: 'var(--terminal-highlight)'
+      }}
+    >
+      {/* Header */}
       <div 
-        className="w-full max-w-3xl h-[80vh] flex flex-col border rounded-lg overflow-hidden"
-        style={{
-          backgroundColor: 'var(--terminal-bg)',
-          borderColor: 'var(--terminal-subtle)'
-        }}
+        className="flex items-center justify-between p-3 border-b"
+        style={{ borderColor: 'var(--terminal-subtle)' }}
       >
-        {/* Header */}
-        <div 
-          className="flex items-center justify-between p-3 border-b"
-          style={{ borderColor: 'var(--terminal-subtle)' }}
-        >
-          <div className="flex items-center gap-2 flex-1">
-            <FileText className="w-5 h-5" style={{ color: 'var(--terminal-highlight)' }} />
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="font-bold font-mono text-lg border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-              style={{ color: 'var(--terminal-text)' }}
-              placeholder="Note title..."
-            />
-          </div>
-          <Button
-            onClick={onClose}
-            variant="ghost"
-            size="sm"
-            className="text-xl"
+        <div className="flex items-center gap-2 flex-1">
+          <FileText className="w-5 h-5" style={{ color: 'var(--terminal-highlight)' }} />
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="font-bold font-mono text-lg border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
             style={{ color: 'var(--terminal-text)' }}
-          >
-            <X className="w-5 h-5" />
-          </Button>
+            placeholder="Note title..."
+          />
         </div>
-
-        {/* Toolbar */}
-        <div 
-          className="flex items-center gap-2 p-2 border-b"
-          style={{ borderColor: 'var(--terminal-subtle)' }}
+        <Button
+          onClick={onClose}
+          variant="ghost"
+          size="sm"
+          className="text-xl"
+          style={{ color: 'var(--terminal-text)' }}
         >
-          <Button
-            onClick={handleSave}
-            size="sm"
-            className="font-mono"
-            style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}
-            disabled={saveMutation.isPending}
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {saveMutation.isPending ? 'Saving...' : 'Save to Knowledge Base'}
-          </Button>
-          <Button
-            onClick={handleClear}
-            size="sm"
-            variant="outline"
-            className="font-mono"
-            style={{ borderColor: 'var(--terminal-subtle)', color: 'var(--terminal-text)' }}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Clear
-          </Button>
-          <div className="ml-auto text-xs font-mono" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
-            {content.length} characters
-          </div>
-        </div>
-
-        {/* Text Area */}
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="flex-1 p-4 bg-transparent border-none outline-none resize-none font-mono text-sm"
-          style={{ 
-            color: 'var(--terminal-text)',
-            caretColor: 'var(--terminal-highlight)'
-          }}
-          placeholder="Start typing or paste your notes here..."
-          autoFocus
-          data-no-terminal-autofocus
-        />
+          <X className="w-5 h-5" />
+        </Button>
       </div>
+
+      {/* Toolbar */}
+      <div 
+        className="flex items-center gap-2 p-2 border-b"
+        style={{ borderColor: 'var(--terminal-subtle)' }}
+      >
+        <Button
+          onClick={handleSave}
+          size="sm"
+          className="font-mono"
+          style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}
+          disabled={saveMutation.isPending}
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {saveMutation.isPending ? 'Saving...' : 'Save to Knowledge Base'}
+        </Button>
+        <Button
+          onClick={handleClear}
+          size="sm"
+          variant="outline"
+          className="font-mono"
+          style={{ borderColor: 'var(--terminal-subtle)', color: 'var(--terminal-text)' }}
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Clear
+        </Button>
+        <div className="ml-auto text-xs font-mono" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
+          {content.length} characters
+        </div>
+      </div>
+
+      {/* Text Area */}
+      <textarea
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        className="flex-1 p-4 bg-transparent border-none outline-none resize-none font-mono text-sm"
+        style={{ 
+          color: 'var(--terminal-text)',
+          caretColor: 'var(--terminal-highlight)'
+        }}
+        placeholder="Start typing or paste your notes here..."
+        autoFocus
+        data-no-terminal-autofocus
+      />
     </div>
   );
 }
