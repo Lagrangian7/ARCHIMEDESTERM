@@ -780,7 +780,7 @@ export function Terminal() {
                 onClick={() => setUploadTab('upload')}
                 variant={uploadTab === 'upload' ? 'default' : 'ghost'}
                 size="sm"
-                className="text-xs md:text-sm"
+                className="text-xs md:text-sm text-[#2b2c37]"
                 style={uploadTab === 'upload'
                   ? {
                       backgroundColor: 'var(--terminal-highlight)',
