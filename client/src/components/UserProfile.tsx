@@ -91,8 +91,8 @@ export function UserProfile({ onClose }: UserProfileProps) {
             variant={activeTab === "preferences" ? "default" : "outline"}
             size="sm"
             style={activeTab === "preferences" 
-              ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
-              : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
+              ? { backgroundColor: 'var(--terminal-highlight)', color: '#2b2c37' }
+              : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)', backgroundColor: '#2b2c37' }
             }
           >
             <Settings size={16} />
