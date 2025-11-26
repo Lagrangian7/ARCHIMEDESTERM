@@ -147,9 +147,11 @@ export function Notepad({ onClose }: NotepadProps) {
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        backgroundColor: 'var(--terminal-bg)',
+        backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.85)',
+        backdropFilter: 'blur(12px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(12px) saturate(180%)',
         borderColor: 'var(--terminal-highlight)',
-        boxShadow: `0 0 20px var(--terminal-text)`,
+        boxShadow: `0 0 20px rgba(var(--terminal-subtle-rgb), 0.3), 0 8px 32px rgba(0, 0, 0, 0.4)`,
         willChange: 'transform',
         transform: 'translateZ(0)',
         isolation: 'isolate',
