@@ -99,7 +99,10 @@ export function Notepad({ onClose }: NotepadProps) {
       style={{
         backgroundColor: 'var(--terminal-bg)',
         borderColor: 'var(--terminal-highlight)',
-        animation: 'notepad-slide-in 200ms ease-out forwards'
+        animation: 'notepad-slide-in 200ms ease-out forwards',
+        willChange: 'transform',
+        transform: 'translateZ(0)',
+        isolation: 'isolate'
       }}
       data-testid="notepad-panel"
     >

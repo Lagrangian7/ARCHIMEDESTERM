@@ -971,6 +971,21 @@
   -webkit-font-smoothing: subpixel-antialiased;
 }
 
+/* Notepad performance optimization */
+[data-testid="notepad-panel"] {
+  contain: layout style paint;
+  content-visibility: auto;
+}
+
+@keyframes notepad-slide-in {
+  from {
+    transform: translateX(100%) translateZ(0);
+  }
+  to {
+    transform: translateX(0) translateZ(0);
+  }
+}
+
 .dark {
   --background: hsl(0 0% 0%);
   --foreground: hsl(200 6.6667% 91.1765%);
