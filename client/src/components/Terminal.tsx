@@ -813,7 +813,7 @@ export function Terminal() {
                       borderRadius: '0.375rem 0.375rem 0 0'
                     }
                   : {
-                      backgroundColor: '#2b2c37',
+                      backgroundColor: '#193329',
                       color: 'var(--terminal-text)',
                       borderBottom: '2px solid transparent'
                     }
