@@ -69,7 +69,7 @@ function detectLanguageFromCode(code: string): string {
     [/<\?php|\$_GET|\$_POST|echo\s+|function\s+\w+\s*\(/m, 'php'],
     [/def\s+\w+\s*\n|puts\s+|require\s+['"]|class\s+\w+\s*<\s*\w+/m, 'ruby'],
   ];
-  
+
   for (const [pattern, lang] of patterns) {
     if (pattern.test(code)) return lang;
   }
@@ -87,7 +87,7 @@ function getLanguageFromFilename(filename: string): string {
 function generateLocalInstructions(language: string): string {
   const config = LANGUAGE_CONFIG[language];
   if (!config) return '';
-  
+
   const instructions: Record<string, string> = {
     python: `**Python Setup:**
 1. Save file as \`filename.py\`
@@ -131,7 +131,66 @@ function generateLocalInstructions(language: string): string {
 2. Save as \`main.go\`
 3. Run: \`go run main.go\``,
   };
-  
+
+  return instructions[language] || `**${config.displayName} Setup:**\n1. Save with ${config.extension} extension\n2. Run: \`${config.runCommand}\``;
+}
+
+function getLanguageFromFilename(filename: string): string {
+  const ext = filename.split('.').pop()?.toLowerCase();
+  for (const [lang, config] of Object.entries(LANGUAGE_CONFIG)) {
+    if (config.extension === `.${ext}`) return lang;
+  }
+  return 'python';
+}
+
+function generateLocalInstructions(language: string): string {
+  const config = LANGUAGE_CONFIG[language];
+  if (!config) return '';
+
+  const instructions: Record<string, string> = {
+    python: `**Python Setup:**
+1. Save file as \`filename.py\`
+2. Install Python 3.x from python.org
+3. Run: \`python3 filename.py\`
+4. For packages: \`pip install package-name\``,
+    javascript: `**JavaScript (Node.js) Setup:**
+1. Save file as \`filename.js\`
+2. Install Node.js from nodejs.org
+3. Run: \`node filename.js\`
+4. For packages: \`npm install package-name\``,
+    typescript: `**TypeScript Setup:**
+1. Save file as \`filename.ts\`
+2. Install: \`npm install -g typescript ts-node\`
+3. Run: \`npx ts-node filename.ts\`
+4. Or compile: \`tsc filename.ts && node filename.js\``,
+    java: `**Java Setup:**
+1. Save file as \`ClassName.java\` (match class name)
+2. Install JDK from adoptium.net
+3. Compile: \`javac ClassName.java\`
+4. Run: \`java ClassName\``,
+    cpp: `**C++ Setup:**
+1. Save file as \`filename.cpp\`
+2. Install g++ (MinGW on Windows, Xcode on Mac, build-essential on Linux)
+3. Compile: \`g++ -o program filename.cpp\`
+4. Run: \`./program\``,
+    html: `**HTML Setup:**
+1. Save file as \`index.html\`
+2. Open directly in any web browser
+3. Or use VS Code Live Server extension for auto-reload`,
+    bash: `**Bash Setup:**
+1. Save file as \`script.sh\`
+2. Make executable: \`chmod +x script.sh\`
+3. Run: \`./script.sh\` or \`bash script.sh\``,
+    rust: `**Rust Setup:**
+1. Install Rust from rustup.rs
+2. Create project: \`cargo new project_name\`
+3. Run: \`cargo run\``,
+    go: `**Go Setup:**
+1. Install Go from go.dev
+2. Save as \`main.go\`
+3. Run: \`go run main.go\``,
+  };
+
   return instructions[language] || `**${config.displayName} Setup:**\n1. Save with ${config.extension} extension\n2. Run: \`${config.runCommand}\``;
 }
 
@@ -1724,7 +1783,7 @@ interface MultiFileSession {
 
 export function PythonIDE({ onClose }: PythonIDEProps) {
   const { toast } = useToast();
-  
+
   // Load session from localStorage or use defaults
   const loadSession = (): PythonSession | null => {
     const saved = localStorage.getItem(PYTHON_SESSION_KEY);
@@ -1737,7 +1796,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     }
     return null;
   };
-  
+
   const loadMultiFileSession = (): MultiFileSession | null => {
     const saved = localStorage.getItem(MULTI_FILE_SESSION_KEY);
     if (saved) {
@@ -1850,7 +1909,7 @@ calculator()
   const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>(
     (savedSession?.chatHistory as Array<{ role: 'user' | 'assistant', content: string }>) || []
   );
-  
+
   // Multi-file state for multi-language support
   const [files, setFiles] = useState<CodeFile[]>(() => {
     if (savedMultiFileSession?.files) {
@@ -1869,17 +1928,17 @@ calculator()
   const [showMultiFileMode, setShowMultiFileMode] = useState(false);
   const [showLocalInstructions, setShowLocalInstructions] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('python');
-  
+
   // Sync current file content with main code state when in multi-file mode
   const activeFile = files.find(f => f.id === activeFileId);
-  
+
   // Save multi-file session to localStorage
   useEffect(() => {
     if (showMultiFileMode && files.length > 0) {
       localStorage.setItem(MULTI_FILE_SESSION_KEY, JSON.stringify({ files, activeFileId }));
     }
   }, [files, activeFileId, showMultiFileMode]);
-  
+
   // Multi-file management functions
   const addNewFile = useCallback(() => {
     const langConfig = LANGUAGE_CONFIG[currentLanguage] || LANGUAGE_CONFIG.javascript;
@@ -1892,7 +1951,7 @@ calculator()
     setFiles(prev => [...prev, newFile]);
     setActiveFileId(newFile.id);
   }, [files.length, currentLanguage]);
-  
+
   const deleteFile = useCallback((id: string) => {
     if (files.length <= 1) {
       toast({ title: "Cannot delete", description: "Must have at least one file.", variant: "destructive" });
@@ -1906,20 +1965,20 @@ calculator()
       return newFiles;
     });
   }, [files.length, activeFileId, toast]);
-  
+
   const updateFileName = useCallback((id: string, name: string) => {
     const newLang = getLanguageFromFilename(name);
     setFiles(prev => prev.map(f => 
       f.id === id ? { ...f, name, language: newLang } : f
     ));
   }, []);
-  
+
   const updateFileContent = useCallback((id: string, content: string) => {
     setFiles(prev => prev.map(f => 
       f.id === id ? { ...f, content } : f
     ));
   }, []);
-  
+
   const downloadFile = useCallback((file: CodeFile) => {
     const blob = new Blob([file.content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -1932,7 +1991,7 @@ calculator()
     URL.revokeObjectURL(url);
     toast({ title: "Downloaded", description: `${file.name} saved to your computer.` });
   }, [toast]);
-  
+
   const downloadAllFiles = useCallback(() => {
     files.forEach(file => {
       const blob = new Blob([file.content], { type: 'text/plain' });
@@ -2165,7 +2224,9 @@ calculator()
       // Small delay to ensure DOM has updated
       const timer = setTimeout(() => {
         try {
-          editorRef.current?.layout();
+          if (editorRef.current) {
+            editorRef.current.layout();
+          }
         } catch (error) {
           console.warn('Editor layout failed:', error);
         }
@@ -2303,7 +2364,7 @@ calculator()
         }
       }
 
-      // Try any code block pattern as fallback
+      // Pattern 3: If no markdown blocks, check if entire response is code
       if (!foundValidCode) {
         const anyCodeBlock = /```(?:\w+)?\s*\n([\s\S]*?)```/;
         const codeMatch = cleanResponse.match(anyCodeBlock);
@@ -2313,7 +2374,7 @@ calculator()
         }
       }
 
-      // Pattern 3: If no markdown blocks, check if entire response is code
+      // Pattern 4: If no markdown blocks, check if entire response is code
       if (!foundValidCode) {
         const trimmed = cleanResponse.trim();
         const detector = languageDetectors[currentLanguage] || languageDetectors.python;
@@ -2378,7 +2439,7 @@ calculator()
       // Setup AI code completions with Codeium as default, Monacopilot as fallback
       setTimeout(() => {
         let codeiumEnabled = false;
-        
+
         // Try Codeium first (FREE, unlimited, no API key needed)
         try {
           if (typeof registerCodeiumProvider === 'function') {
@@ -3042,7 +3103,7 @@ calculator()
                 </div>
               );
             })}
-            
+
             {/* Add New File Button */}
             <button
               onClick={addNewFile}
@@ -3052,7 +3113,7 @@ calculator()
             >
               <Plus className="w-3 h-3" />
             </button>
-            
+
             {/* Download All Files */}
             <button
               onClick={downloadAllFiles}
@@ -3066,7 +3127,7 @@ calculator()
               <Download className="w-3 h-3" />
               All ({files.length})
             </button>
-            
+
             {/* Local Instructions Toggle */}
             <button
               onClick={() => setShowLocalInstructions(!showLocalInstructions)}
@@ -3083,7 +3144,7 @@ calculator()
             </button>
           </div>
         )}
-        
+
         {/* Local Instructions Panel */}
         {showMultiFileMode && showLocalInstructions && activeFile && (
           <div 
