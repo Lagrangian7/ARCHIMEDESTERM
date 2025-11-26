@@ -2862,6 +2862,42 @@ calculator()
                 <option value="palenight">Palenight</option>
               </optgroup>
             </select>
+            {/* Language Selector - Always Visible */}
+            <select
+              value={activeFile?.language || currentLanguage}
+              onChange={(e) => {
+                const newLang = e.target.value;
+                setCurrentLanguage(newLang);
+                if (activeFile) {
+                  const langConfig = LANGUAGE_CONFIG[newLang];
+                  const currentName = activeFile.name;
+                  const baseName = currentName.replace(/\.[^.]+$/, '');
+                  const newName = baseName + langConfig.extension;
+                  setFiles(prev => prev.map(f => 
+                    f.id === activeFile.id 
+                      ? { ...f, language: newLang, name: newName }
+                      : f
+                  ));
+                  toast({
+                    title: `${langConfig.icon} ${langConfig.displayName} Mode`,
+                    description: `Assistant is now set to program in ${langConfig.displayName}.`,
+                  });
+                }
+              }}
+              className="font-mono text-xs px-2 py-1 rounded"
+              style={{
+                backgroundColor: currentPythonTheme.bg,
+                color: currentPythonTheme.highlight,
+                border: `1px solid ${currentPythonTheme.border}`,
+              }}
+              title="Set programming language"
+            >
+              {Object.entries(LANGUAGE_CONFIG).map(([lang, config]) => (
+                <option key={lang} value={lang}>
+                  {config.icon} {config.displayName}
+                </option>
+              ))}
+            </select>
             <Button
               onClick={() => setShowMultiFileMode(!showMultiFileMode)}
               variant="outline"
@@ -3016,43 +3052,6 @@ calculator()
             >
               <Plus className="w-3 h-3" />
             </button>
-            
-            {/* Language Selector */}
-            <select
-              value={activeFile?.language || currentLanguage}
-              onChange={(e) => {
-                const newLang = e.target.value;
-                setCurrentLanguage(newLang);
-                if (activeFile) {
-                  const langConfig = LANGUAGE_CONFIG[newLang];
-                  const currentName = activeFile.name;
-                  const baseName = currentName.replace(/\.[^.]+$/, '');
-                  const newName = baseName + langConfig.extension;
-                  setFiles(prev => prev.map(f => 
-                    f.id === activeFile.id 
-                      ? { ...f, language: newLang, name: newName }
-                      : f
-                  ));
-                  toast({
-                    title: `${langConfig.icon} ${langConfig.displayName} Mode`,
-                    description: `Assistant is now set to program in ${langConfig.displayName}.`,
-                  });
-                }
-              }}
-              className="ml-2 px-1 py-0.5 rounded text-xs font-mono"
-              style={{
-                backgroundColor: currentPythonTheme.bg,
-                color: currentPythonTheme.text,
-                border: `1px solid ${currentPythonTheme.border}`,
-              }}
-              title="Set programming language (updates current file)"
-            >
-              {Object.entries(LANGUAGE_CONFIG).map(([lang, config]) => (
-                <option key={lang} value={lang}>
-                  {config.icon} {config.displayName}
-                </option>
-              ))}
-            </select>
             
             {/* Download All Files */}
             <button
