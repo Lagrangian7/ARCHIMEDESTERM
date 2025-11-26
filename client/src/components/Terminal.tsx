@@ -475,6 +475,9 @@ export function Terminal() {
 
   // Check if user has set a custom background (from Background Manager)
   const hasCustomBackground = customBackgroundUrl && customBackgroundUrl.length > 0;
+  
+  // Only show default wallpaper on the default theme (forest-gradient)
+  const showDefaultWallpaper = currentTheme === 'forest-gradient' && !hasCustomBackground;
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
@@ -497,6 +500,21 @@ export function Terminal() {
             }}
           />
         )}
+        
+        {/* Default Wallpaper - only on forest-gradient theme */}
+        {showDefaultWallpaper && (
+          <div
+            className="absolute inset-0 z-0"
+            style={{
+              backgroundImage: `url(${wallpaperImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              opacity: 0.85,
+              imageRendering: 'auto'
+            }}
+          />
+        )}
 
         {/* Fireflies for midnight theme */}
         {currentTheme === 'midnight-gradient' && (
@@ -509,7 +527,7 @@ export function Terminal() {
 
         {/* Matrix Rain Background Effect - with reduced opacity to show wallpaper */}
         <div style={{
-          opacity: hasCustomBackground ? 0.3 : 0.05
+          opacity: (hasCustomBackground || showDefaultWallpaper) ? 0.3 : 0.05
         }}>
           <MemoizedMatrixRain />
         </div>
