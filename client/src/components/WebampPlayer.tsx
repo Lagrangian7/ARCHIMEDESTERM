@@ -353,7 +353,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
 
           // Custom default skin
           initialSkin: {
-            url: "/skin-knight.wsz"
+            url: "/default-skin.wsz"
           },
 
           // Initial window layout with Milkdrop visualizer
