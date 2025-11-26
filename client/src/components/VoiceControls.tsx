@@ -128,11 +128,6 @@ export function VoiceControls({
           </h1>
           <div className="text-xs md:text-sm truncate">
             <span className="hidden sm:inline retro-cycle">アルキメデス</span>
-            {user && (
-              <span className="ml-1 md:ml-2 text-green-300">
-                | {user.firstName || user.email?.split('@')[0] || 'User'}
-              </span>
-            )}
           </div>
         </div>
 
