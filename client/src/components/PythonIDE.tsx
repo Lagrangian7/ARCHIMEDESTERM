@@ -1954,7 +1954,7 @@ calculator()
     document.title = 'Archimedes Workshop - Multi-Language IDE';
     return () => { document.title = originalTitle; };
   }, []);
-  const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
+  const [showLessonsSidebar, setShowLessonsSidebar] = useState(false);
   const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
   const editorRef = useRef<any>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
