@@ -36,7 +36,7 @@ interface DocumentsListProps {
   onClose?: () => void;
 }
 
-export function DocumentsList({ onClose }: DocumentsListProps) {
+export function DocumentsList({ onClose }: DocumentsListProps = {}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');

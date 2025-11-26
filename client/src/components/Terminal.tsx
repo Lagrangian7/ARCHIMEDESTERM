@@ -6,8 +6,9 @@ import { VoiceControls } from './VoiceControls';
 import { CommandHistory } from './CommandHistory';
 import { UserProfile } from './UserProfile';
 import { ConversationHistory } from './ConversationHistory';
-import { DocumentUpload } from './DocumentUpload';
-import { DocumentsList } from './DocumentsList';
+import { DocumentUpload } from '@/components/DocumentUpload';
+import { DocumentsList } from '@/components/DocumentsList';
+import { KnowledgeBaseModal } from '@/components/KnowledgeBaseModal';
 import ZorkGame from './ZorkGame';
 import { DTMFDecoder } from './DTMFDecoder';
 import { HelpMenu } from './HelpMenu';
@@ -153,6 +154,15 @@ export function Terminal() {
   });
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
+
+  // State for the Knowledge Base modal
+  const [kbModalState, setKbModalState] = useState({
+    position: { x: 0, y: 0 },
+    size: { width: 0, height: 0 },
+    isResizing: false,
+    isDragging: false,
+    isMaximized: false,
+  });
 
   // Theme management
   const themes = useMemo(() => [
@@ -462,7 +472,7 @@ export function Terminal() {
 
   const gradientThemes = ['midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'];
   const isGradientTheme = gradientThemes.includes(currentTheme);
-  
+
   // Check if user has set a custom background (from Background Manager)
   const hasCustomBackground = customBackgroundUrl && customBackgroundUrl.length > 0;
 
@@ -696,108 +706,17 @@ export function Terminal() {
         </div>
       )}
 
+      {/* Knowledge Base Modal - Modified to be draggable and expandable */}
       {showUpload && isAuthenticated && (
-        <div 
-          className="fixed top-4 right-4 border rounded-lg p-3 md:p-6 w-[90vw] md:w-[600px] max-h-[85vh] overflow-y-auto shadow-2xl z-50"
-          style={{
-            backgroundColor: 'var(--terminal-bg)',
-            borderColor: 'var(--terminal-highlight)',
-            willChange: 'transform',
-            transform: 'translateZ(0)',
-            isolation: 'isolate'
-          }}
-          data-testid="knowledge-base-panel"
+        <KnowledgeBaseModal
+          onClose={() => setShowUpload(false)}
+          initialPosition={kbModalState.position}
+          initialSize={kbModalState.size}
+          isMaximized={kbModalState.isMaximized}
+          onStateChange={setKbModalState}
+          uploadTab={uploadTab}
+          setUploadTab={setUploadTab}
         >
-          <div className="flex justify-between items-center mb-3 md:mb-6">
-            <h2 className="text-sm md:text-xl font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
-              📚 Knowledge Base
-            </h2>
-            <Button
-              onClick={() => setShowUpload(false)}
-              variant="ghost"
-              size="sm"
-              className="text-xl md:text-2xl hover:bg-terminal-highlight hover:text-terminal-bg transition-colors"
-              style={{ color: 'var(--terminal-text)' }}
-              data-testid="close-upload-modal"
-            >
-              ✕
-            </Button>
-          </div>
-
-          {/* Tab Navigation */}
-          <div className="flex gap-1 md:gap-2 mb-3 md:mb-6 border-b" style={{ borderColor: 'var(--terminal-subtle)' }}>
-            <Button
-              onClick={() => setUploadTab('list')}
-              variant={uploadTab === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              className="text-xs md:text-sm"
-              style={uploadTab === 'list'
-                ? {
-                    backgroundColor: 'var(--terminal-highlight)',
-                    color: 'var(--terminal-bg)',
-                    borderBottom: '2px solid var(--terminal-highlight)',
-                    borderRadius: '0.375rem 0.375rem 0 0'
-                  }
-                : {
-                    backgroundColor: 'transparent',
-                    color: 'var(--terminal-text)',
-                    borderBottom: '2px solid transparent'
-                  }
-              }
-              data-testid="tab-documents-list"
-            >
-              <span className="hidden sm:inline">📂 My Documents</span>
-              <span className="sm:hidden">📂 Docs</span>
-            </Button>
-            <Button
-              onClick={() => setUploadTab('upload')}
-              variant={uploadTab === 'upload' ? 'default' : 'ghost'}
-              size="sm"
-              className="text-xs md:text-sm"
-              style={uploadTab === 'upload'
-                ? {
-                    backgroundColor: 'var(--terminal-highlight)',
-                    color: 'var(--terminal-bg)',
-                    borderBottom: '2px solid var(--terminal-highlight)',
-                    borderRadius: '0.375rem 0.375rem 0 0'
-                  }
-                : {
-                    backgroundColor: 'transparent',
-                    color: 'var(--terminal-text)',
-                    borderBottom: '2px solid transparent'
-                  }
-              }
-              data-testid="tab-upload-documents"
-            >
-              <span className="hidden sm:inline">⬆️ Upload New</span>
-              <span className="sm:hidden">⬆️ Upload</span>
-            </Button>
-            <Button
-              onClick={() => setUploadTab('music')}
-              variant={uploadTab === 'music' ? 'default' : 'ghost'}
-              size="sm"
-              className="text-xs md:text-sm"
-              style={uploadTab === 'music'
-                ? {
-                    backgroundColor: 'var(--terminal-highlight)',
-                    color: 'var(--terminal-bg)',
-                    borderBottom: '2px solid var(--terminal-highlight)',
-                    borderRadius: '0.375rem 0.375rem 0 0'
-                  }
-                : {
-                    backgroundColor: 'transparent',
-                    color: 'var(--terminal-text)',
-                    borderBottom: '2px solid transparent'
-                  }
-              }
-              data-testid="tab-upload-music"
-            >
-              <span className="hidden sm:inline">🎵 Upload Music</span>
-              <span className="sm:hidden">🎵 Music</span>
-            </Button>
-          </div>
-
-          {/* Tab Content */}
           {uploadTab === 'list' ? (
             <MemoizedDocumentsList onClose={() => setShowUpload(false)} />
           ) : uploadTab === 'upload' ? (
@@ -810,10 +729,8 @@ export function Terminal() {
           ) : (
             <MemoizedMusicUpload />
           )}
-        </div>
+        </KnowledgeBaseModal>
       )}
-
-
 
       {showZork && (
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
