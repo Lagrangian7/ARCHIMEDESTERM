@@ -2100,11 +2100,13 @@ calculator()
 
   const currentPythonTheme = PYTHON_THEMES[pythonTheme as keyof typeof PYTHON_THEMES];
 
-  // Center window on mount
+  // Center window within terminal area on mount
   useEffect(() => {
+    const terminalAreaTop = 60; // Voice controls height
+    const terminalAreaBottom = 60; // Command input height
     const centerX = (window.innerWidth - dimensions.width) / 2;
-    const centerY = (window.innerHeight - dimensions.height) / 2;
-    setPosition({ x: Math.max(0, centerX), y: Math.max(0, centerY) });
+    const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - dimensions.height) / 2);
+    setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
   }, []);
 
   // Handle window dragging
@@ -2112,12 +2114,14 @@ calculator()
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      const terminalAreaTop = 60; // Voice controls height
+      const terminalAreaBottom = 60; // Command input height
       const deltaX = e.clientX - dragStartRef.current.x;
       const deltaY = e.clientY - dragStartRef.current.y;
 
       setPosition(prev => ({
         x: Math.max(0, Math.min(window.innerWidth - dimensions.width, prev.x + deltaX)),
-        y: Math.max(0, Math.min(window.innerHeight - dimensions.height, prev.y + deltaY))
+        y: Math.max(terminalAreaTop, Math.min(window.innerHeight - terminalAreaBottom - dimensions.height, prev.y + deltaY))
       }));
 
       dragStartRef.current = { x: e.clientX, y: e.clientY };
@@ -2139,12 +2143,14 @@ calculator()
     if (!isResizing) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      const terminalAreaTop = 60; // Voice controls height
+      const terminalAreaBottom = 60; // Command input height
       const deltaX = e.clientX - resizeStartRef.current.mouseX;
       const deltaY = e.clientY - resizeStartRef.current.mouseY;
 
       setDimensions({
         width: Math.max(600, Math.min(window.innerWidth - position.x, resizeStartRef.current.width + deltaX)),
-        height: Math.max(400, Math.min(window.innerHeight - position.y, resizeStartRef.current.height + deltaY))
+        height: Math.max(400, Math.min(window.innerHeight - terminalAreaBottom - position.y, resizeStartRef.current.height + deltaY))
       });
     };
 
@@ -2784,27 +2790,35 @@ calculator()
   };
 
   const toggleMaximize = () => {
+    const terminalAreaTop = 60; // Voice controls height
+    const terminalAreaBottom = 60; // Command input height
+    
     if (isMaximized) {
-      // Restore previous size and center position
+      // Restore previous size and center position within terminal area
       setDimensions({ width: 900, height: 600 });
       const centerX = (window.innerWidth - 900) / 2;
-      const centerY = (window.innerHeight - 600) / 2;
-      setPosition({ x: Math.max(0, centerX), y: Math.max(0, centerY) });
+      const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - 600) / 2);
+      setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
       setIsMaximized(false);
     } else {
-      // Maximize to full viewport
+      // Maximize to terminal area only
       setIsMaximized(true);
     }
   };
+
+  // Calculate terminal area boundaries
+  const terminalAreaTop = 60; // Approximate height of voice controls
+  const terminalAreaBottom = 60; // Approximate height of command input area
+  const terminalAreaHeight = window.innerHeight - terminalAreaTop - terminalAreaBottom;
 
   return (
     <div 
       className="fixed z-50 overflow-hidden shadow-2xl flex flex-col"
       style={{
         width: isMaximized ? '100vw' : `${dimensions.width}px`,
-        height: isMaximized ? '100vh' : `${dimensions.height}px`,
+        height: isMaximized ? `${terminalAreaHeight}px` : `${dimensions.height}px`,
         left: isMaximized ? '0' : `${position.x}px`,
-        top: isMaximized ? '0' : `${position.y}px`,
+        top: isMaximized ? `${terminalAreaTop}px` : `${position.y}px`,
         backgroundColor: currentPythonTheme.bg,
         border: `2px solid ${currentPythonTheme.border}`,
         boxShadow: `0 0 20px ${currentPythonTheme.highlight}40`,
