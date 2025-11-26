@@ -760,13 +760,13 @@ export function Terminal() {
                 className="text-xs md:text-sm"
                 style={uploadTab === 'list'
                   ? {
-                      backgroundColor: 'var(--terminal-highlight)',
+                      backgroundColor: '#123329',
                       color: 'var(--terminal-bg)',
                       borderBottom: '2px solid var(--terminal-highlight)',
                       borderRadius: '0.375rem 0.375rem 0 0'
                     }
                   : {
-                      backgroundColor: '#2b2c37',
+                      backgroundColor: '#123329',
                       color: 'var(--terminal-text)',
                       borderBottom: '2px solid transparent'
                     }
