@@ -24,6 +24,7 @@ interface VoiceControlsProps {
   setShowUpload: (show: boolean) => void;
   setShowChat: (show: boolean) => void;
   unreadCount: number;
+  showNotepad: boolean;
   setShowNotepad: (show: boolean) => void;
   setShowPythonIDE: (show: boolean) => void;
   openPythonLessons?: () => void;
@@ -43,6 +44,7 @@ export function VoiceControls({
   setShowUpload,
   setShowChat,
   unreadCount,
+  showNotepad,
   setShowNotepad,
   setShowPythonIDE,
   openPythonLessons,
@@ -193,10 +195,10 @@ export function VoiceControls({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => setShowNotepad(true)}
+                    onClick={() => setShowNotepad(!showNotepad)}
                     variant="outline"
                     size="sm"
-                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
+                    className={`bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2 ${showNotepad ? 'bg-terminal-highlight text-terminal-bg' : ''}`}
                     data-testid="button-notepad"
                     aria-label="Notepad"
                   >
