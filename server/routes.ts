@@ -2772,6 +2772,102 @@ function windowResized() {
     }
   });
 
+  // Export all user documents as JSON (for backup/sync between environments)
+  app.get("/api/documents/export", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      console.log(`📤 Exporting documents for user: ${userId}`);
+      
+      const documents = await storage.getUserDocuments(userId);
+      
+      // Export full document data (excluding IDs which will be regenerated on import)
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        documentCount: documents.length,
+        documents: documents.map(doc => ({
+          originalName: doc.originalName,
+          fileName: doc.fileName,
+          fileSize: doc.fileSize,
+          mimeType: doc.mimeType,
+          content: doc.content,
+          summary: doc.summary,
+          keywords: doc.keywords,
+          objectPath: doc.objectPath,
+          isNote: doc.isNote,
+        }))
+      };
+      
+      console.log(`📤 Exported ${documents.length} documents`);
+      
+      // Set headers for file download
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="archimedes-documents-${new Date().toISOString().split('T')[0]}.json"`);
+      res.json(exportData);
+    } catch (error) {
+      console.error("Export documents error:", error);
+      res.status(500).json({ error: "Failed to export documents" });
+    }
+  });
+
+  // Import documents from JSON (for restoring backups or syncing between environments)
+  app.post("/api/documents/import", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { documents } = req.body;
+      
+      if (!documents || !Array.isArray(documents)) {
+        return res.status(400).json({ error: "Invalid import data. Expected { documents: [...] }" });
+      }
+      
+      console.log(`📥 Importing ${documents.length} documents for user: ${userId}`);
+      
+      let imported = 0;
+      let skipped = 0;
+      const errors: string[] = [];
+      
+      for (const doc of documents) {
+        try {
+          // Check if document with same name already exists
+          const existing = await storage.getDocumentByFilename(userId, doc.originalName);
+          if (existing) {
+            skipped++;
+            continue;
+          }
+          
+          // Create new document
+          await storage.createDocument({
+            userId,
+            originalName: doc.originalName,
+            fileName: doc.fileName || doc.originalName,
+            fileSize: doc.fileSize || '0',
+            mimeType: doc.mimeType || 'text/plain',
+            content: doc.content || '',
+            summary: doc.summary || null,
+            keywords: doc.keywords || [],
+            objectPath: doc.objectPath || null,
+            isNote: doc.isNote || false,
+          });
+          imported++;
+        } catch (docError) {
+          errors.push(`Failed to import "${doc.originalName}": ${docError instanceof Error ? docError.message : 'Unknown error'}`);
+        }
+      }
+      
+      console.log(`📥 Import complete: ${imported} imported, ${skipped} skipped (already exist), ${errors.length} errors`);
+      
+      res.json({
+        success: true,
+        imported,
+        skipped,
+        errors: errors.length > 0 ? errors : undefined,
+        message: `Imported ${imported} documents. ${skipped} skipped (already exist).`
+      });
+    } catch (error) {
+      console.error("Import documents error:", error);
+      res.status(500).json({ error: "Failed to import documents" });
+    }
+  });
+
   // Get single document with full content
   app.get("/api/documents/:id", isAuthenticated, async (req: any, res) => {
     try {
