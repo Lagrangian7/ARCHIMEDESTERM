@@ -1,85 +1,58 @@
-
 import { storage } from "./storage";
 import { db } from "./db";
 import { documents } from "@shared/schema";
-import { isNull, eq, sql, or } from "drizzle-orm";
+import { isNull, eq, or } from "drizzle-orm";
 
 /**
  * Migrate all documents to a specific user
- * This will migrate documents with null userId OR documents belonging to other users
+ * This will migrate documents with null userId OR documents with empty string userId
  */
-export async function migrateDocumentsToUser(targetUserId: string) {
+export async function migrateDocumentsToUser(userId: string) {
+  console.log(`🔄 Starting document migration for user: ${userId}`);
+
+  // Find all documents without a userId OR with empty string userId
+  const orphanedDocs = await db
+    .select()
+    .from(documents)
+    .where(
+      or(
+        isNull(documents.userId),
+        eq(documents.userId, '')
+      )
+    );
+
+  console.log(`📊 Found ${orphanedDocs.length} orphaned documents to migrate`);
+
+  if (orphanedDocs.length === 0) {
+    console.log(`✅ No documents need migration`);
+    return {
+      migrated: 0,
+      skipped: 0,
+      total: 0
+    };
+  }
+
+  // Update all orphaned documents to belong to this user - do it in one query
   try {
-    console.log(`🔄 Starting document migration to user: ${targetUserId}`);
-
-    // Get all documents (regardless of userId)
-    const allDocs = await db
-      .select()
-      .from(documents);
-
-    console.log(`📚 Found ${allDocs.length} total documents in database`);
-
-    // Group documents by userId for diagnostics
-    const byUserId: Record<string, number> = {};
-    allDocs.forEach(doc => {
-      const uid = doc.userId || 'null';
-      byUserId[uid] = (byUserId[uid] || 0) + 1;
-    });
-    console.log(`📊 Documents by userId before migration:`, byUserId);
-
-    // Filter documents that don't belong to target user
-    const docsToMigrate = allDocs.filter(doc => doc.userId !== targetUserId);
-    
-    console.log(`📚 Found ${docsToMigrate.length} documents to migrate (${allDocs.length - docsToMigrate.length} already belong to you)`);
-
-    if (docsToMigrate.length === 0) {
-      console.log('✅ No documents to migrate - all documents already belong to you');
-      return { 
-        migrated: 0, 
-        total: allDocs.length,
-        alreadyOwned: allDocs.length,
-        beforeMigration: byUserId,
-        afterMigration: byUserId
-      };
-    }
-
-    // Update documents that don't belong to target user
     const result = await db
       .update(documents)
-      .set({ userId: targetUserId })
+      .set({ userId })
       .where(
         or(
           isNull(documents.userId),
-          sql`${documents.userId} != ${targetUserId}`
+          eq(documents.userId, '')
         )
-      )
-      .returning();
+      );
 
-    console.log(`✅ Successfully migrated ${result.length} documents to user ${targetUserId}`);
-
-    // Get final count
-    const finalDocs = await db.select().from(documents);
-    const afterByUserId: Record<string, number> = {};
-    finalDocs.forEach(doc => {
-      const uid = doc.userId || 'null';
-      afterByUserId[uid] = (afterByUserId[uid] || 0) + 1;
-    });
-    console.log(`📊 Documents by userId after migration:`, afterByUserId);
+    console.log(`✅ Migration complete: ${orphanedDocs.length} documents now assigned to user ${userId}`);
 
     return {
-      migrated: result.length,
-      total: allDocs.length,
-      alreadyOwned: allDocs.length - result.length,
-      beforeMigration: byUserId,
-      afterMigration: afterByUserId,
-      documents: result.slice(0, 10).map(doc => ({
-        id: doc.id,
-        originalName: doc.originalName,
-        mimeType: doc.mimeType
-      }))
+      migrated: orphanedDocs.length,
+      skipped: 0,
+      total: orphanedDocs.length
     };
   } catch (error) {
-    console.error('❌ Error migrating documents:', error);
+    console.error(`❌ Migration failed:`, error);
     throw error;
   }
 }

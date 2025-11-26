@@ -2717,43 +2717,29 @@ function windowResized() {
         Object.entries(byUserId).map(([uid, data]) => [uid, data.count])
       ));
 
-      // Show all unique userIds found
-      const uniqueUserIds = Array.from(new Set(allDocs.map(d => d.userId || 'null')));
-      console.log(`📊 Unique userIds in database:`, uniqueUserIds);
-
-      // Compare to expected count (140 from published version)
-      const expectedCount = 140;
-      const currentCount = allDocs.length;
       const yourCount = allDocs.filter(d => d.userId === userId).length;
+      const nullCount = allDocs.filter(d => !d.userId || d.userId === '').length;
 
       res.json({
         environment: process.env.NODE_ENV || 'development',
-        comparison: {
-          publishedCount: expectedCount,
-          currentCount: currentCount,
-          yourDocuments: yourCount,
-          difference: currentCount - expectedCount,
-          missing: expectedCount - currentCount,
-          status: currentCount === expectedCount ? 'MATCH' : currentCount > expectedCount ? 'EXTRA_DOCS' : 'MISSING_DOCS'
-        },
         totalDocuments: allDocs.length,
         yourDocuments: yourCount,
+        orphanedDocuments: nullCount,
         yourUserId: userId,
-        uniqueUserIds: uniqueUserIds,
         documentsByUserId: Object.fromEntries(
           Object.entries(byUserId).map(([uid, data]) => [uid, { count: data.count, actualUserId: data.actualUserId }])
         ),
-        documentDetails: byUserId,
-        sampleDocuments: allDocs.slice(0, 10).map(d => ({
+        needsMigration: nullCount > 0,
+        migrationAdvice: nullCount > 0 ? `Click "Migrate Docs" button to assign ${nullCount} orphaned documents to your account` : 'No migration needed',
+        sampleOrphanedDocs: allDocs.filter(d => !d.userId || d.userId === '').slice(0, 5).map(d => ({
           id: d.id,
           name: d.originalName,
-          userId: d.userId,
-          uploadedAt: d.uploadedAt
+          userId: d.userId
         }))
       });
     } catch (error) {
       console.error("Diagnostic error:", error);
-      res.status(500).json({ error: "Failed to run diagnostic" });
+      res.status(500).json({ error: "Failed to run diagnostic", details: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
