@@ -1,11 +1,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Upload, Trash2, ImageOff } from 'lucide-react';
+import { X, Upload, Trash2, ImageOff, Eye, EyeOff } from 'lucide-react';
 
 interface BackgroundManagerProps {
   onClose: () => void;
   onBackgroundChange: (imageUrl: string) => void;
+  hideDefaultBackground?: boolean;
+  onDefaultBgToggle?: (hide: boolean) => void;
 }
 
 interface WallpaperSlot {
@@ -14,10 +16,11 @@ interface WallpaperSlot {
   name: string;
 }
 
-export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundManagerProps) {
+export function BackgroundManager({ onClose, onBackgroundChange, hideDefaultBackground: initialHideDefault, onDefaultBgToggle }: BackgroundManagerProps) {
   const [dragOver, setDragOver] = useState(false);
   const [wallpapers, setWallpapers] = useState<WallpaperSlot[]>([]);
   const [selectedWallpaper, setSelectedWallpaper] = useState<string>('');
+  const [isDefaultHidden, setIsDefaultHidden] = useState<boolean>(initialHideDefault || false);
 
   // Load wallpapers from localStorage on mount
   useEffect(() => {
@@ -36,6 +39,13 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
       setSelectedWallpaper(currentBg);
     }
   }, []);
+
+  // Sync isDefaultHidden with prop when it changes (e.g., when manager reopens)
+  useEffect(() => {
+    const storedValue = localStorage.getItem('terminal-hide-default-bg') === 'true';
+    // Use prop if available, otherwise fall back to localStorage
+    setIsDefaultHidden(initialHideDefault !== undefined ? initialHideDefault : storedValue);
+  }, [initialHideDefault]);
 
   // Save wallpapers to localStorage whenever they change
   useEffect(() => {
@@ -180,6 +190,25 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
     console.log('Background cleared');
   };
 
+  const toggleDefaultBackground = () => {
+    const newState = !isDefaultHidden;
+    setIsDefaultHidden(newState);
+    localStorage.setItem('terminal-hide-default-bg', String(newState));
+    
+    // Dispatch event to update Terminal immediately
+    const event = new CustomEvent('terminal-default-bg-toggle', { 
+      detail: newState,
+      bubbles: true 
+    });
+    window.dispatchEvent(event);
+    
+    if (onDefaultBgToggle) {
+      onDefaultBgToggle(newState);
+    }
+    
+    console.log('Default background:', newState ? 'hidden' : 'visible');
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <div 
@@ -251,9 +280,57 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
           </p>
         </div>
 
-        {/* Current Background Status and Remove Option - Always visible */}
+        {/* Default Theme Background Toggle */}
+        <div className="mb-4 p-4 rounded-lg" style={{ 
+          backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.1)',
+          border: '1px solid var(--terminal-subtle)'
+        }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{ 
+                  backgroundColor: isDefaultHidden ? 'var(--terminal-subtle)' : 'var(--terminal-highlight)'
+                }}
+              />
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--terminal-text)' }}>
+                  Default Theme Background
+                </p>
+                <p className="text-xs" style={{ color: 'var(--terminal-subtle)' }}>
+                  {isDefaultHidden ? 'Hidden - showing solid color' : 'Visible - showing theme wallpaper'}
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={toggleDefaultBackground}
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-2"
+              style={{
+                borderColor: isDefaultHidden ? 'var(--terminal-highlight)' : 'var(--terminal-subtle)',
+                color: isDefaultHidden ? 'var(--terminal-highlight)' : 'var(--terminal-text)'
+              }}
+              data-testid="button-toggle-default-bg"
+            >
+              {isDefaultHidden ? (
+                <>
+                  <Eye className="w-4 h-4" />
+                  Show Default
+                </>
+              ) : (
+                <>
+                  <EyeOff className="w-4 h-4" />
+                  Hide Default
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Custom Background Status and Remove Option */}
         <div className="mb-6 p-4 rounded-lg" style={{ 
-          backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
+          backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.1)',
           border: '1px solid var(--terminal-subtle)'
         }}>
           <div className="flex items-center justify-between">
@@ -264,9 +341,14 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
                   backgroundColor: selectedWallpaper ? 'var(--terminal-highlight)' : 'var(--terminal-subtle)'
                 }}
               />
-              <p className="text-sm font-medium" style={{ color: 'var(--terminal-text)' }}>
-                Background: {selectedWallpaper ? 'Active' : 'None'}
-              </p>
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--terminal-text)' }}>
+                  Custom Background
+                </p>
+                <p className="text-xs" style={{ color: 'var(--terminal-subtle)' }}>
+                  {selectedWallpaper ? 'Active - using uploaded wallpaper' : 'None selected'}
+                </p>
+              </div>
             </div>
             <Button
               onClick={clearBackground}
@@ -280,14 +362,9 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
               data-testid="button-remove-background"
             >
               <ImageOff className="w-4 h-4" />
-              Remove Background
+              Remove Custom
             </Button>
           </div>
-          <p className="text-xs mt-2" style={{ color: 'var(--terminal-subtle)' }}>
-            {selectedWallpaper 
-              ? 'Click another wallpaper to change, or click "Remove Background" to clear'
-              : 'Click "Remove Background" to clear any existing background'}
-          </p>
         </div>
 
         {/* Wallpaper Grid */}
