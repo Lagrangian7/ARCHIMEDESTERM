@@ -796,7 +796,7 @@ export function Terminal() {
                 }
                 data-testid="tab-upload-documents"
               >
-                <span className="hidden sm:inline text-[#2b2c37]">⬆️ Upload New</span>
+                <span className="hidden sm:inline text-[#6cfdcd]">⬆️ Upload New</span>
                 <span className="sm:hidden">⬆️ Upload</span>
               </Button>
               {/* New Music Upload Tab */}
