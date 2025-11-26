@@ -127,7 +127,7 @@ export function UserProfile({ onClose }: UserProfileProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm" style={{ color: 'var(--terminal-text)', opacity: 0.8 }}>Status</p>
-                <Badge style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}>Active</Badge>
+                <Badge style={{ backgroundColor: '#2b2c37', color: 'var(--terminal-bg)' }}>Active</Badge>
               </div>
               <div>
                 <p className="text-sm" style={{ color: 'var(--terminal-text)', opacity: 0.8 }}>Member Since</p>
