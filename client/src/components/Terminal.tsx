@@ -773,7 +773,7 @@ export function Terminal() {
                 }
                 data-testid="tab-documents-list"
               >
-                <span className="hidden sm:inline text-[#2b2c37]">📂 My Documents</span>
+                <span className="hidden sm:inline text-[#6cfdcd]">📂 My Documents</span>
                 <span className="sm:hidden">📂 Docs</span>
               </Button>
               <Button
