@@ -251,7 +251,7 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
           </p>
         </div>
 
-        {/* Current Background Status and Remove Option */}
+        {/* Current Background Status and Remove Option - Always visible */}
         <div className="mb-6 p-4 rounded-lg" style={{ 
           backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
           border: '1px solid var(--terminal-subtle)'
@@ -272,22 +272,22 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
               onClick={clearBackground}
               size="sm"
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 hover:bg-red-500/20"
               style={{
-                borderColor: selectedWallpaper ? '#ef4444' : 'var(--terminal-subtle)',
-                color: selectedWallpaper ? '#ef4444' : 'var(--terminal-subtle)',
-                opacity: selectedWallpaper ? 1 : 0.7
+                borderColor: '#ef4444',
+                color: '#ef4444'
               }}
+              data-testid="button-remove-background"
             >
               <ImageOff className="w-4 h-4" />
               Remove Background
             </Button>
           </div>
-          {selectedWallpaper && (
-            <p className="text-xs mt-2" style={{ color: 'var(--terminal-subtle)' }}>
-              Click another wallpaper to change, or click "Remove Background" to clear
-            </p>
-          )}
+          <p className="text-xs mt-2" style={{ color: 'var(--terminal-subtle)' }}>
+            {selectedWallpaper 
+              ? 'Click another wallpaper to change, or click "Remove Background" to clear'
+              : 'Click "Remove Background" to clear any existing background'}
+          </p>
         </div>
 
         {/* Wallpaper Grid */}
