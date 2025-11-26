@@ -81,7 +81,7 @@ export function UserProfile({ onClose }: UserProfileProps) {
             size="sm"
             style={activeTab === "profile" 
               ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
-              : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
+              : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)', backgroundColor: '#2b2c37' }
             }
           >
             Profile
