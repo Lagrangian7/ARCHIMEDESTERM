@@ -244,13 +244,13 @@ export function VoiceControls({
                     size="sm"
                     className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2"
                     data-testid="button-python-ide"
-                    aria-label="Python IDE"
+                    aria-label="Workshop"
                   >
                     <Code size={16} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>Python IDE</p>
+                  <p>Workshop</p>
                 </TooltipContent>
               </Tooltip>
 

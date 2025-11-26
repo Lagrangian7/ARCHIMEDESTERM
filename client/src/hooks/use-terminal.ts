@@ -575,7 +575,7 @@ Use the URLs above to access the full articles and information.`;
         setCurrentMode('freestyle');
         addEntry('system', '🎨 FREESTYLE MODE ACTIVATED!');
         addEntry('system', 'Now vibing in creative code generation mode. Chat with ARCHIMEDES to build anything! Use natural language to describe what you want to create.');
-        addEntry('system', 'Opening Python IDE in freestyle vibe mode...');
+        addEntry('system', 'Opening IDE in freestyle vibe mode...');
         setTimeout(() => {
           const openPythonIDE = (window as any).openPythonIDE;
           if (openPythonIDE) {

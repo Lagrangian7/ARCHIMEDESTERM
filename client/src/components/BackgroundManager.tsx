@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Upload, Trash2 } from 'lucide-react';
+import { X, Upload, Trash2, ImageOff } from 'lucide-react';
 
 interface BackgroundManagerProps {
   onClose: () => void;
@@ -120,28 +120,28 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
   };
 
   const selectWallpaper = (wallpaper: WallpaperSlot) => {
-    console.log('Selecting wallpaper:', wallpaper.name, wallpaper.url);
+    console.log('Selecting wallpaper:', wallpaper.name);
     
-    // Update local state first
-    setSelectedWallpaper(wallpaper.url);
+    // Use the original URL (data URLs don't need cache busting)
+    const imageUrl = wallpaper.url;
     
-    // Save to localStorage
-    localStorage.setItem('terminal-background-url', wallpaper.url);
+    // Update local state
+    setSelectedWallpaper(imageUrl);
     
-    // Add cache-busting parameter to force browser reload
-    const urlWithCacheBust = `${wallpaper.url}?t=${Date.now()}`;
+    // Save to localStorage (without cache busting for data URLs)
+    localStorage.setItem('terminal-background-url', imageUrl);
     
-    // Trigger the custom event with cache-busted URL
+    // Dispatch event to update background immediately
     const event = new CustomEvent('terminal-background-change', { 
-      detail: urlWithCacheBust,
+      detail: imageUrl,
       bubbles: true 
     });
     window.dispatchEvent(event);
     
-    // Also call the callback
-    onBackgroundChange(urlWithCacheBust);
+    // Call the callback
+    onBackgroundChange(imageUrl);
     
-    console.log('Wallpaper selection complete, event dispatched');
+    console.log('Wallpaper set successfully');
   };
 
   const deleteWallpaper = (id: string) => {
@@ -168,7 +168,16 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
   const clearBackground = () => {
     setSelectedWallpaper('');
     localStorage.removeItem('terminal-background-url');
+    
+    // Dispatch event to clear background immediately
+    const event = new CustomEvent('terminal-background-change', { 
+      detail: '',
+      bubbles: true 
+    });
+    window.dispatchEvent(event);
+    
     onBackgroundChange('');
+    console.log('Background cleared');
   };
 
   return (
@@ -242,25 +251,42 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
           </p>
         </div>
 
-        {/* Current Background Info */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <p className="text-sm" style={{ color: 'var(--terminal-subtle)' }}>
-              Current Background: {selectedWallpaper ? '✓ Active' : 'None'}
-            </p>
-          </div>
-          {selectedWallpaper && (
+        {/* Current Background Status and Remove Option */}
+        <div className="mb-6 p-4 rounded-lg" style={{ 
+          backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
+          border: '1px solid var(--terminal-subtle)'
+        }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{ 
+                  backgroundColor: selectedWallpaper ? 'var(--terminal-highlight)' : 'var(--terminal-subtle)'
+                }}
+              />
+              <p className="text-sm font-medium" style={{ color: 'var(--terminal-text)' }}>
+                Background: {selectedWallpaper ? 'Active' : 'None'}
+              </p>
+            </div>
             <Button
               onClick={clearBackground}
               size="sm"
               variant="outline"
+              className="flex items-center gap-2"
               style={{
-                borderColor: 'var(--terminal-subtle)',
-                color: 'var(--terminal-text)'
+                borderColor: selectedWallpaper ? '#ef4444' : 'var(--terminal-subtle)',
+                color: selectedWallpaper ? '#ef4444' : 'var(--terminal-subtle)',
+                opacity: selectedWallpaper ? 1 : 0.7
               }}
             >
-              Clear Background
+              <ImageOff className="w-4 h-4" />
+              Remove Background
             </Button>
+          </div>
+          {selectedWallpaper && (
+            <p className="text-xs mt-2" style={{ color: 'var(--terminal-subtle)' }}>
+              Click another wallpaper to change, or click "Remove Background" to clear
+            </p>
           )}
         </div>
 

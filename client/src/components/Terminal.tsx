@@ -467,18 +467,23 @@ export function Terminal() {
     'commodore64'
   ];
   const gradientThemes = ['midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'];
-  const shouldShowBackground = !noBgThemes.includes(currentTheme) && !gradientThemes.includes(currentTheme);
   const isGradientTheme = gradientThemes.includes(currentTheme);
   const isMidnightTheme = currentTheme === 'midnight-gradient';
+  
+  // Check if user has set a custom background (from Background Manager)
+  const hasCustomBackground = customBackgroundUrl && customBackgroundUrl.length > 0;
+  
+  // For non-gradient, non-noBg themes, use default behavior with custom background override
+  const shouldShowDefaultBackground = !noBgThemes.includes(currentTheme) && !gradientThemes.includes(currentTheme) && !hasCustomBackground;
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
       <div className={`terminal-container flex flex-col h-full relative z-0`} style={
         isGradientTheme
           ? { background: 'var(--terminal-bg)' }
-          : shouldShowBackground
+          : shouldShowDefaultBackground
             ? {
-                backgroundImage: `url(${customBackgroundUrl || wallpaperImage})`,
+                backgroundImage: `url(${wallpaperImage})`,
                 backgroundSize: '100% 100%',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -486,18 +491,16 @@ export function Terminal() {
               }
             : { backgroundColor: 'var(--terminal-bg)' }
       }>
-        {/* Background layer for midnight theme */}
-        {currentTheme === 'midnight-gradient' && customBackgroundUrl && (
+        {/* Custom Background Layer - works on ALL themes when user sets a custom background */}
+        {hasCustomBackground && (
           <div
             className="absolute inset-0 z-0"
             style={{
-              backgroundImage: customBackgroundUrl.includes('attached_assets')
-                ? `url(${customBackgroundUrl})`
-                : `url(/attached_assets/midnight_1763160246697.jpeg)`,
+              backgroundImage: `url(${customBackgroundUrl})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
-              opacity: 0.9
+              opacity: 0.85
             }}
           />
         )}
@@ -513,7 +516,7 @@ export function Terminal() {
 
         {/* Matrix Rain Background Effect - with reduced opacity to show wallpaper */}
         <div style={{
-          opacity: shouldShowBackground ? 0.3 : 0.05
+          opacity: (hasCustomBackground || shouldShowDefaultBackground) ? 0.3 : 0.05
         }}>
           <MemoizedMatrixRain />
         </div>
