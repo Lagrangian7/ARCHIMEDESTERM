@@ -2186,8 +2186,19 @@ calculator()
       // Determine the correct mode based on freestyle state
       const chatMode = isFreestyleMode ? 'freestyle' : 'technical';
 
+      // Detect current language based on multi-file mode and active file
+      const currentLanguage = showMultiFileMode && activeFile 
+        ? activeFile.language 
+        : 'python';
+      const currentCode = showMultiFileMode && activeFile 
+        ? activeFile.content 
+        : code;
+      const langConfig = LANGUAGE_CONFIG[currentLanguage];
+      const langName = langConfig?.displayName || 'Python';
+      const langExtension = langConfig?.extension || '.py';
+
       const contextMessage = isFreestyleMode 
-        ? `${message}\n\nCurrent code in editor:\n\`\`\`python\n${code}\n\`\`\`\n\nIMPORTANT: Generate ONLY clean, executable Python code without markdown backticks or code block markers. The code should be ready to copy and paste directly into a Python file. Do not wrap the code in \`\`\`python or any other markdown formatting.`
+        ? `${message}\n\nCurrent programming language: ${langName}\nCurrent code in editor:\n\`\`\`${currentLanguage}\n${currentCode}\n\`\`\`\n\nIMPORTANT: Generate ONLY clean, executable ${langName} code. The code should be ready to copy and paste directly into a ${langExtension} file. Do not wrap the code in markdown code blocks or add explanatory text before/after the code.`
         : `${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nIMPORTANT: Generate ONLY clean, executable Python code without markdown backticks or code block markers.`;
 
       const response = await fetch('/api/chat', {
@@ -2195,9 +2206,10 @@ calculator()
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: contextMessage,
-          mode: chatMode, // Use the determined chatMode
+          mode: chatMode,
           sessionId: `python-ide-${Date.now()}`,
-          language: 'english'
+          language: 'english',
+          targetLanguage: currentLanguage
         })
       });
 
@@ -2212,40 +2224,94 @@ calculator()
       let cleanResponse = data.response;
       let foundValidCode = false;
 
-      // Try multiple extraction patterns for Python code
+      // Detect current language for code extraction
+      const currentLanguage = showMultiFileMode && activeFile 
+        ? activeFile.language 
+        : 'python';
 
-      // Pattern 1: Standard markdown code blocks with language
-      const pythonBlockRegex = /```(?:python|py)\s*\n([\s\S]*?)```/;
-      let codeMatch = cleanResponse.match(pythonBlockRegex);
+      // Language-specific code block patterns
+      const languagePatterns: Record<string, RegExp> = {
+        python: /```(?:python|py)\s*\n([\s\S]*?)```/,
+        javascript: /```(?:javascript|js)\s*\n([\s\S]*?)```/,
+        typescript: /```(?:typescript|ts)\s*\n([\s\S]*?)```/,
+        java: /```(?:java)\s*\n([\s\S]*?)```/,
+        cpp: /```(?:cpp|c\+\+|cxx)\s*\n([\s\S]*?)```/,
+        c: /```(?:c)\s*\n([\s\S]*?)```/,
+        rust: /```(?:rust|rs)\s*\n([\s\S]*?)```/,
+        go: /```(?:go|golang)\s*\n([\s\S]*?)```/,
+        ruby: /```(?:ruby|rb)\s*\n([\s\S]*?)```/,
+        php: /```(?:php)\s*\n([\s\S]*?)```/,
+        csharp: /```(?:csharp|cs|c#)\s*\n([\s\S]*?)```/,
+        swift: /```(?:swift)\s*\n([\s\S]*?)```/,
+        kotlin: /```(?:kotlin|kt)\s*\n([\s\S]*?)```/,
+        bash: /```(?:bash|sh|shell)\s*\n([\s\S]*?)```/,
+        sql: /```(?:sql)\s*\n([\s\S]*?)```/,
+        html: /```(?:html)\s*\n([\s\S]*?)```/,
+        css: /```(?:css)\s*\n([\s\S]*?)```/,
+      };
 
-      if (codeMatch && codeMatch[1]) {
-        cleanResponse = codeMatch[1].trim();
-        foundValidCode = true;
-      } else {
-        // Pattern 2: Code blocks without language specifier
+      // Language-specific code detection patterns
+      const languageDetectors: Record<string, RegExp> = {
+        python: /(?:import|def|class|print|if|for|while|return)\s/,
+        javascript: /(?:const|let|var|function|=>|console\.log|require|import)\s/,
+        typescript: /(?:const|let|var|function|=>|interface|type|export|import)\s/,
+        java: /(?:public|private|class|static|void|import|package)\s/,
+        cpp: /(?:#include|int main|cout|cin|std::|using namespace)\s?/,
+        c: /(?:#include|int main|printf|scanf|void)\s/,
+        rust: /(?:fn|let|mut|impl|struct|enum|use|mod)\s/,
+        go: /(?:func|package|import|var|const|type|struct)\s/,
+        ruby: /(?:def|class|module|require|puts|end)\s/,
+        php: /(?:<\?php|\$\w+|function|class|echo|require)\s?/,
+        csharp: /(?:using|namespace|class|public|private|void|static)\s/,
+        swift: /(?:func|var|let|class|struct|import|print)\s/,
+        kotlin: /(?:fun|val|var|class|object|import|package)\s/,
+        bash: /(?:#!\/bin\/bash|echo|if \[|for |while |done|fi)\s?/,
+        sql: /(?:SELECT|INSERT|UPDATE|DELETE|CREATE|FROM|WHERE)\s/i,
+        html: /(?:<html|<head|<body|<div|<script|<!DOCTYPE)\s?/i,
+        css: /(?:\{|\}|margin|padding|color|background|display):/,
+      };
+
+      // Try language-specific pattern first
+      const langPattern = languagePatterns[currentLanguage];
+      if (langPattern) {
+        const codeMatch = cleanResponse.match(langPattern);
+        if (codeMatch && codeMatch[1]) {
+          cleanResponse = codeMatch[1].trim();
+          foundValidCode = true;
+        }
+      }
+
+      // Try generic code block if language-specific didn't work
+      if (!foundValidCode) {
         const genericBlockRegex = /```\s*\n([\s\S]*?)```/;
-        codeMatch = cleanResponse.match(genericBlockRegex);
-
+        const codeMatch = cleanResponse.match(genericBlockRegex);
         if (codeMatch && codeMatch[1]) {
           const potentialCode = codeMatch[1].trim();
-          // Verify it looks like Python (contains common Python keywords)
-          if (/(?:import|def|class|print|if|for|while|return)\s/.test(potentialCode)) {
+          const detector = languageDetectors[currentLanguage];
+          if (detector && detector.test(potentialCode)) {
             cleanResponse = potentialCode;
             foundValidCode = true;
           }
         }
       }
 
-      // Pattern 3: If no markdown blocks, check if entire response is Python code
+      // Try any code block pattern as fallback
+      if (!foundValidCode) {
+        const anyCodeBlock = /```(?:\w+)?\s*\n([\s\S]*?)```/;
+        const codeMatch = cleanResponse.match(anyCodeBlock);
+        if (codeMatch && codeMatch[1]) {
+          cleanResponse = codeMatch[1].trim();
+          foundValidCode = true;
+        }
+      }
+
+      // Pattern 3: If no markdown blocks, check if entire response is code
       if (!foundValidCode) {
         const trimmed = cleanResponse.trim();
-        // Check for Python-like patterns
-        if (/^(?:import|def|class|#|from|@)/.test(trimmed) || 
-            /(?:import|def|class|print|if|for|while)\s/.test(trimmed)) {
-          // Remove any leading/trailing markdown-like text
+        const detector = languageDetectors[currentLanguage] || languageDetectors.python;
+        if (detector.test(trimmed)) {
           const lines = trimmed.split('\n');
           const codeLines = lines.filter((line: string) => {
-            // Keep Python code lines, skip markdown explanations
             return !line.match(/^(?:Here|This|The|I'll|Let|Note:|Example:|Output:)/i);
           });
           if (codeLines.length > 0) {
@@ -2258,13 +2324,18 @@ calculator()
       const assistantMessage = { role: 'assistant' as const, content: data.response };
       setChatHistory(prev => [...prev, assistantMessage]);
 
-      // Auto-paste only valid Python code into editor
+      // Auto-paste valid code into editor (multi-file aware)
       if (foundValidCode && cleanResponse && cleanResponse.length > 0) {
-        setCode(cleanResponse);
-        setOutput('✓ Clean Python code automatically pasted into editor. Press Run to execute.');
-        speak('Code pasted into editor and ready to run');
+        if (showMultiFileMode && activeFile) {
+          updateFileContent(activeFile.id, cleanResponse);
+          const langName = LANGUAGE_CONFIG[currentLanguage]?.displayName || 'Code';
+          setOutput(`✓ ${langName} code automatically pasted into ${activeFile.name}. Ready to use.`);
+        } else {
+          setCode(cleanResponse);
+          setOutput('✓ Clean Python code automatically pasted into editor. Press Run to execute.');
+        }
+        speak('Code pasted into editor and ready');
       } else {
-        // No code found - just display the response
         speak(data.response);
       }
     },
