@@ -488,83 +488,83 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                 }}
                 data-testid={`document-item-${document.id}`}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--terminal-highlight)' }} />
-                      <div className="flex-1 min-w-0">
-                        {renamingId === document.id ? (
-                          <form onSubmit={(e) => {
-                            e.preventDefault();
-                            handleRenameSubmit(document.id);
-                          }} className="flex gap-2">
-                            <Input
-                              value={newName}
-                              onChange={(e) => setNewName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  handleRenameSubmit(document.id);
-                                } else if (e.key === 'Escape') {
-                                  handleRenameCancel();
-                                }
-                              }}
-                              autoFocus
-                              className="flex-1 px-2 py-1 rounded font-mono text-sm h-8"
-                              style={{
-                                backgroundColor: 'var(--terminal-bg)',
-                                color: 'var(--terminal-text)',
-                                borderColor: 'var(--terminal-highlight)'
-                              }}
-                            />
-                            <Button
-                              type="submit"
-                              size="sm"
-                              className="h-8 px-3"
-                              style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}
-                              disabled={renameMutation.isPending}
-                            >
-                              Save
-                            </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              onClick={handleRenameCancel}
-                              className="h-8 px-3"
-                              style={{ borderColor: 'var(--terminal-subtle)', color: 'var(--terminal-text)' }}
-                            >
-                              Cancel
-                            </Button>
-                          </form>
-                        ) : (
-                          <>
-                            <div className="flex items-center gap-2">
-                              <p className="font-mono font-semibold truncate" style={{ color: 'var(--terminal-text)' }}>
-                                {document.originalName}
-                              </p>
-                              {document.isNote && (
-                                <span 
-                                  className="px-2 py-0.5 text-xs font-mono rounded"
-                                  style={{ 
-                                    backgroundColor: 'var(--terminal-highlight)', 
-                                    color: 'var(--terminal-bg)',
-                                    opacity: 0.8
-                                  }}
-                                >
-                                  NOTE
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs font-mono opacity-70" style={{ color: 'var(--terminal-text)' }}>
-                              {formatFileSize(document.fileSize)} • {document.mimeType} • {new Date(document.uploadedAt).toLocaleDateString()}
+                <div className="flex flex-col gap-3">
+                  {/* Document info row */}
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--terminal-highlight)' }} />
+                    <div className="flex-1 min-w-0">
+                      {renamingId === document.id ? (
+                        <form onSubmit={(e) => {
+                          e.preventDefault();
+                          handleRenameSubmit(document.id);
+                        }} className="flex flex-wrap gap-2">
+                          <Input
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleRenameSubmit(document.id);
+                              } else if (e.key === 'Escape') {
+                                handleRenameCancel();
+                              }
+                            }}
+                            autoFocus
+                            className="flex-1 min-w-[150px] px-2 py-1 rounded font-mono text-sm h-8"
+                            style={{
+                              backgroundColor: 'var(--terminal-bg)',
+                              color: 'var(--terminal-text)',
+                              borderColor: 'var(--terminal-highlight)'
+                            }}
+                          />
+                          <Button
+                            type="submit"
+                            size="sm"
+                            className="h-8 px-3"
+                            style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}
+                            disabled={renameMutation.isPending}
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={handleRenameCancel}
+                            className="h-8 px-3"
+                            style={{ borderColor: 'var(--terminal-subtle)', color: 'var(--terminal-text)' }}
+                          >
+                            Cancel
+                          </Button>
+                        </form>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-mono font-semibold truncate" style={{ color: 'var(--terminal-text)' }}>
+                              {document.originalName}
                             </p>
-                          </>
-                        )}
-                      </div>
+                            {document.isNote && (
+                              <span 
+                                className="px-2 py-0.5 text-xs font-mono rounded"
+                                style={{ 
+                                  backgroundColor: 'var(--terminal-highlight)', 
+                                  color: 'var(--terminal-bg)',
+                                  opacity: 0.8
+                                }}
+                              >
+                                NOTE
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs font-mono opacity-70" style={{ color: 'var(--terminal-text)' }}>
+                            {formatFileSize(document.fileSize)} • {document.mimeType} • {new Date(document.uploadedAt).toLocaleDateString()}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* Action buttons row - always visible */}
+                  <div className="flex items-center gap-2 pl-8">
                     <Button
                       onClick={() => handleRenameStart(document.id, document.originalName)}
                       variant="outline"
