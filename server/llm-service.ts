@@ -672,13 +672,36 @@ Make it feel like meeting an old friend who happens to know the date and has odd
           console.log(`[LLM] Falling back to Google Gemini for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         }
-        // Final fallback
+        // Try Hugging Face enhanced models before final fallback
         else {
-          aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
+          console.log(`[LLM] Trying enhanced Hugging Face models for ${safeMode.toUpperCase()} mode`);
+          try {
+            aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+          } catch (hfError) {
+            console.error('Hugging Face models error:', hfError);
+            aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
+          }
         }
       } catch (secondaryError) {
         console.error('Fallback AI models error:', secondaryError);
-        aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
+        
+        // Check if it's a rate limit error
+        const isRateLimitError = secondaryError instanceof Error && 
+          (secondaryError.message.includes('429') || 
+           secondaryError.message.includes('quota') || 
+           secondaryError.message.includes('rate limit'));
+        
+        if (isRateLimitError) {
+          console.log('[LLM] Rate limit detected, trying Hugging Face as tertiary fallback');
+          try {
+            aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+          } catch (tertiaryError) {
+            console.error('All AI backends exhausted:', tertiaryError);
+            aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
+          }
+        } else {
+          aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
+        }
       }
     }
 
@@ -976,7 +999,21 @@ Conversation Context:\n`;
 
   private generateEnhancedNaturalFallback(input: string): string {
     // Return a more context-aware fallback that doesn't mention the AI platform
-    return `Hey choom, I'm experiencing some processing issues right now. The AI backend seems overloaded or having connectivity issues. Try rephrasing your query or switching modes. If this persists, the server logs might have more details about what's going wrong.`;
+    return `⚠️ ARCHIMEDES AI Status: Backend API Rate Limits Reached
+
+Looks like I've hit some API quotas, choom. Here's what's happening:
+• Mistral AI: Service capacity exceeded
+• Google Gemini: Free tier quota exhausted
+• This usually resets within a few minutes
+
+Meanwhile, try these commands:
+• 'help' - View available terminal commands
+• 'weather' - Get weather without AI processing
+• 'books search <query>' - Search Project Gutenberg
+• 'stock quote <symbol>' - Get stock quotes
+• 'scholar search <topic>' - Search academic papers
+
+The terminal features still work - only the AI chat responses are temporarily limited. Query again in a few minutes and I should be back online!`;
   }
 
   private generateEnhancedTechnicalFallback(input: string): string {
