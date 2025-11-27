@@ -436,13 +436,13 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
         )}
       </div>
 
-      {/* Documents Count */}
+      {/* Documents Count - v2 */}
       <div className="mb-4 text-sm flex-shrink-0" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
         {isLoading ? (
           <span>Loading documents...</span>
         ) : (
           <span>
-            {filteredDocuments.length} of {documents.length} document{documents.length !== 1 ? 's' : ''}
+            Showing {filteredDocuments.length} of {documents.length} document{documents.length !== 1 ? 's' : ''}
             {searchQuery && ` matching "${searchQuery}"`}
           </span>
         )}
