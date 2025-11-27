@@ -174,12 +174,12 @@ export function KnowledgeBaseModal({ onClose }: KnowledgeBaseModalProps) {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-hidden flex flex-col p-4 gap-4">
+        <div className="flex-shrink-0">
           <DocumentUpload />
-          <div className="mt-6">
-            <DocumentsList onClose={onClose} />
-          </div>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <DocumentsList onClose={onClose} />
         </div>
       </div>
 

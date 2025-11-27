@@ -307,17 +307,17 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
   }
 
   return (
-    <div className="border rounded-lg p-6 max-w-4xl w-full max-h-[90vh]" data-no-terminal-autofocus style={{
+    <div className="border rounded-lg p-6 w-full h-full flex flex-col" data-no-terminal-autofocus style={{
       backgroundColor: 'var(--terminal-bg)',
       borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)'
     }}>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4 flex-shrink-0">
         <h2 className="text-xl font-bold font-mono flex items-center" style={{ color: 'var(--terminal-text)' }}>
           <FileText className="mr-2" size={20} />
           Knowledge Base Documents
         </h2>
         {/* Search Bar */}
-        <div className="mb-4 flex-grow mx-4"> {/* Added flex-grow and margin */}
+        <div className="flex-grow mx-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-terminal-text opacity-50" />
           </div>
@@ -443,7 +443,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
       </div>
 
       {/* Documents Count */}
-      <div className="mb-4 text-sm" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
+      <div className="mb-4 text-sm flex-shrink-0" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
         {isLoading ? (
           <span>Loading documents...</span>
         ) : (
@@ -455,7 +455,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
       </div>
 
       {/* Documents List */}
-      <ScrollArea className="h-[500px] pr-4">
+      <ScrollArea className="flex-1 pr-4">
         {isLoading ? (
           <div className="text-center py-8" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
             <HardDrive className="mx-auto mb-2" size={24} />
@@ -615,7 +615,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
 
       {/* Footer with stats */}
       {documents.length > 0 && (
-        <div className="mt-4 pt-4 border-t" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
+        <div className="mt-4 pt-4 border-t flex-shrink-0" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
           <div className="text-xs flex justify-between" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
             <span>
               Total size: {formatFileSize(
