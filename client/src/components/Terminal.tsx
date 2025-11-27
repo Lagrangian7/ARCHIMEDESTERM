@@ -107,9 +107,18 @@ export function Terminal() {
       const customEvent = event as CustomEvent;
       const newUrl = customEvent.detail;
       console.log('Background change event received:', newUrl);
+      console.log('Previous background URL:', customBackgroundUrl);
 
-      // Force state update with cache-busted URL
-      setCustomBackgroundUrl(newUrl);
+      // Force state update - ensure React sees this as a new value
+      setCustomBackgroundUrl(prev => {
+        if (prev === newUrl) {
+          // Force update even if same value by temporarily setting to empty
+          setCustomBackgroundUrl('');
+          setTimeout(() => setCustomBackgroundUrl(newUrl), 0);
+          return prev;
+        }
+        return newUrl;
+      });
     };
 
     window.addEventListener('terminal-background-change', handleBackgroundChange);
@@ -150,7 +159,9 @@ export function Terminal() {
   const [showBackgroundManager, setShowBackgroundManager] = useState(false);
   const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>(() => {
     // Load saved background on mount
-    return localStorage.getItem('terminal-background-url') || '';
+    const saved = localStorage.getItem('terminal-background-url');
+    console.log('Initial background URL loaded:', saved);
+    return saved || '';
   });
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
@@ -478,6 +489,16 @@ export function Terminal() {
   
   // Only show default wallpaper on the default theme (forest-gradient)
   const showDefaultWallpaper = currentTheme === 'forest-gradient' && !hasCustomBackground;
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Background state:', {
+      customBackgroundUrl: customBackgroundUrl ? customBackgroundUrl.substring(0, 50) + '...' : 'none',
+      hasCustomBackground,
+      showDefaultWallpaper,
+      currentTheme
+    });
+  }, [customBackgroundUrl, hasCustomBackground, showDefaultWallpaper, currentTheme]);
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>

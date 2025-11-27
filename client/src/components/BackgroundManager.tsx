@@ -141,6 +141,8 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
 
   const selectWallpaper = (wallpaper: WallpaperSlot) => {
     console.log('Selecting wallpaper:', wallpaper.name);
+    console.log('Wallpaper URL type:', wallpaper.url.startsWith('data:') ? 'base64 data URL' : 'regular URL');
+    console.log('URL length:', wallpaper.url.length);
     
     // Use the original URL (data URLs don't need cache busting)
     const imageUrl = wallpaper.url;
@@ -149,7 +151,12 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
     setSelectedWallpaper(imageUrl);
     
     // Save to localStorage (without cache busting for data URLs)
-    localStorage.setItem('terminal-background-url', imageUrl);
+    try {
+      localStorage.setItem('terminal-background-url', imageUrl);
+      console.log('Saved to localStorage successfully');
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+    }
     
     // Dispatch event to update background immediately
     const event = new CustomEvent('terminal-background-change', { 
@@ -157,11 +164,12 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
       bubbles: true 
     });
     window.dispatchEvent(event);
+    console.log('Dispatched terminal-background-change event');
     
     // Call the callback
     onBackgroundChange(imageUrl);
     
-    console.log('Wallpaper set successfully');
+    console.log('Wallpaper set successfully, URL preview:', imageUrl.substring(0, 100) + '...');
   };
 
   const deleteWallpaper = (id: string) => {
