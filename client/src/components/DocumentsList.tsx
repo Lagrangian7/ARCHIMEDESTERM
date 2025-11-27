@@ -494,7 +494,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                 }}
                 data-testid={`document-item-${document.id}`}
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
                       <FileText className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--terminal-highlight)' }} />
@@ -505,7 +505,6 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                             handleRenameSubmit(document.id);
                           }} className="flex gap-2">
                             <Input
-                              ref={searchInputRef}
                               value={newName}
                               onChange={(e) => setNewName(e.target.value)}
                               onKeyDown={(e) => {
@@ -526,7 +525,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                             <Button
                               type="submit"
                               size="sm"
-                              className="h-8 px-2"
+                              className="h-8 px-3"
                               style={{ backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }}
                               disabled={renameMutation.isPending}
                             >
@@ -537,7 +536,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                               size="sm"
                               variant="outline"
                               onClick={handleRenameCancel}
-                              className="h-8 px-2"
+                              className="h-8 px-3"
                               style={{ borderColor: 'var(--terminal-subtle)', color: 'var(--terminal-text)' }}
                             >
                               Cancel
@@ -571,36 +570,40 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2 ml-4 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <Button
                       onClick={() => handleRenameStart(document.id, document.originalName)}
                       variant="outline"
                       size="sm"
-                      className="p-1 h-8 w-8 hover:opacity-80"
+                      title="Rename document"
+                      className="h-8 px-3 font-mono hover:bg-opacity-20"
                       style={{ 
-                        backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
-                        borderColor: 'rgba(var(--terminal-subtle-rgb), 0.4)',
-                        color: 'var(--terminal-text)' 
+                        backgroundColor: 'rgba(100, 200, 255, 0.15)',
+                        borderColor: 'rgba(100, 200, 255, 0.5)',
+                        color: '#60d0ff'
                       }}
                       disabled={renamingId !== null || deleteMutation.isPending}
                       data-testid={`button-rename-${document.id}`}
                     >
-                      <Edit2 size={14} />
+                      <Edit2 size={16} className="mr-1" />
+                      Rename
                     </Button>
                     <Button
                       onClick={() => handleDelete(document.id, document.originalName)}
                       variant="outline"
                       size="sm"
-                      className="p-1 h-8 w-8 hover:opacity-80"
+                      title="Delete document"
+                      className="h-8 px-3 font-mono hover:bg-opacity-20"
                       style={{ 
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        borderColor: 'rgba(239, 68, 68, 0.4)',
-                        color: '#f87171' 
+                        backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                        borderColor: 'rgba(239, 68, 68, 0.5)',
+                        color: '#ff6b6b'
                       }}
                       disabled={deleteMutation.isPending || renamingId !== null}
                       data-testid={`button-delete-${document.id}`}
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={16} className="mr-1" />
+                      Delete
                     </Button>
                   </div>
                 </div>
