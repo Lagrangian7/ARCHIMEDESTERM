@@ -217,31 +217,65 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   const refreshToken = user.refresh_token;
   if (!refreshToken) {
+    console.warn('No refresh token available for user');
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
 
-  try {
-    const config = await getOidcConfig();
-    const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
-    updateUserSession(user, tokenResponse);
-    
-    // Mark session as modified and save to ensure persistence
-    req.session.touch();
-    
-    return new Promise((resolve, reject) => {
-      req.session.save((err) => {
-        if (err) {
-          console.error('Session save error:', err);
-          reject(err);
-        } else {
-          resolve(next());
-        }
+  // Attempt token refresh with retry logic
+  let retryCount = 0;
+  const maxRetries = 2;
+  
+  while (retryCount <= maxRetries) {
+    try {
+      const config = await getOidcConfig();
+      const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
+      updateUserSession(user, tokenResponse);
+      
+      // Mark session as modified and save to ensure persistence
+      req.session.touch();
+      
+      return new Promise((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            reject(err);
+          } else {
+            console.log('✅ Token refreshed successfully');
+            resolve(next());
+          }
+        });
       });
-    });
-  } catch (error) {
-    console.error('Token refresh error:', error);
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    } catch (error: any) {
+      retryCount++;
+      
+      // Log detailed error information
+      if (error.code === 'OAUTH_RESPONSE_BODY_ERROR') {
+        console.error(`❌ OAuth token refresh failed (attempt ${retryCount}/${maxRetries + 1}):`, {
+          code: error.code,
+          message: error.message,
+          cause: error.cause
+        });
+      } else {
+        console.error(`❌ Token refresh error (attempt ${retryCount}/${maxRetries + 1}):`, error.message);
+      }
+      
+      // If max retries exceeded, force logout
+      if (retryCount > maxRetries) {
+        console.error('🔒 Max token refresh retries exceeded, forcing logout');
+        
+        // Clear the session
+        req.logout(() => {
+          res.status(401).json({ 
+            message: "Session expired. Please log in again.",
+            shouldRedirect: true 
+          });
+        });
+        return;
+      }
+      
+      // Wait before retry (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+    }
   }
 };

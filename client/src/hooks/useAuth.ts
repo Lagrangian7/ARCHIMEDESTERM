@@ -16,6 +16,14 @@ export function useAuth() {
       });
       
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        
+        // If session expired and should redirect, redirect to login
+        if (errorData.shouldRedirect) {
+          console.log('Session expired, redirecting to login...');
+          window.location.href = '/api/login';
+        }
+        
         throw new Error('Not authenticated');
       }
       
