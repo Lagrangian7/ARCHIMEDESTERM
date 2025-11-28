@@ -22,50 +22,18 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    // Initialize Butterchurn
-    const initButterchurn = async () => {
-      try {
-        const butterchurn = await import('butterchurn');
-        const butterchurnPresets = await import('butterchurn-presets');
-        
-        // Get all presets
-        const presetPack = butterchurnPresets.default || butterchurnPresets;
-        const presetArray = Object.keys(presetPack).map(name => ({
-          name,
-          preset: presetPack[name]
-        }));
-        
-        setPresets(presetArray);
-        
-        // Create visualizer
-        const visualizer = butterchurn.default.createVisualizer(
-          audioContextRef.current!,
-          canvas,
-          {
-            width: canvas.width,
-            height: canvas.height,
-            pixelRatio: window.devicePixelRatio || 1,
-            textureRatio: 1
-          }
-        );
-        
-        butterchurnRef.current = visualizer;
-        
-        // Load first preset
-        if (presetArray.length > 0) {
-          visualizer.loadPreset(presetArray[0].preset, 2.0); // 2 second blend
-        }
-        
-      } catch (error) {
-        console.log('Butterchurn not available, using fallback visualizer');
-        useFallbackVisualizer();
-      }
+    // Use fallback visualizer directly (simpler and more reliable)
+    const initVisualizer = () => {
+      console.log('Initializing visualizer');
+      useFallbackVisualizer();
     };
 
     // Fallback visualizer (your current implementation)
     const useFallbackVisualizer = () => {
       let time = 0;
       const dataArray = new Uint8Array(analyserRef.current?.frequencyBinCount || 256);
+      
+      console.log('Starting fallback visualizer');
 
       const animate = () => {
         if (!ctx || !canvas) return;
@@ -75,9 +43,13 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
         // Get audio data if available
         let averageVolume = 0;
         if (analyserRef.current) {
-          analyserRef.current.getByteFrequencyData(dataArray);
-          const sum = dataArray.reduce((a, b) => a + b, 0);
-          averageVolume = sum / dataArray.length / 255;
+          try {
+            analyserRef.current.getByteFrequencyData(dataArray);
+            const sum = dataArray.reduce((a, b) => a + b, 0);
+            averageVolume = sum / dataArray.length / 255;
+          } catch (e) {
+            // Silent fail for audio data
+          }
         }
 
         // Create darker background with trail effect
@@ -173,31 +145,10 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
         analyserRef.current = audioContextRef.current.createAnalyser();
         analyserRef.current.fftSize = 512;
         analyserRef.current.smoothingTimeConstant = 0.8;
-
-        // Try to connect to existing audio elements (like Webamp)
-        try {
-          // Find all audio/video elements on the page
-          const audioElements = document.querySelectorAll('audio, video');
-          
-          if (audioElements.length > 0) {
-            // Connect to the first audio element found (typically Webamp)
-            const audioElement = audioElements[0] as HTMLMediaElement;
-            const source = audioContextRef.current.createMediaElementSource(audioElement);
-            
-            // Create a splitter so audio continues to play normally
-            const destination = audioContextRef.current.destination;
-            source.connect(analyserRef.current);
-            analyserRef.current.connect(destination);
-            
-            console.log('Connected to system audio element for visualization');
-          } else {
-            console.log('No audio elements found, using visual-only mode');
-          }
-        } catch (error) {
-          console.log('Could not connect to system audio, using visual-only mode:', error);
-        }
+        
+        console.log('Audio context initialized for visualizer');
       } catch (error) {
-        console.log('Audio context initialization failed');
+        console.log('Audio context initialization failed:', error);
       }
     };
 
@@ -215,30 +166,7 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
     window.addEventListener('resize', resizeCanvas);
 
     initAudio();
-    initButterchurn();
-
-    // Butterchurn render loop
-    const renderButterchurn = () => {
-      if (butterchurnRef.current) {
-        butterchurnRef.current.render();
-        animationFrameRef.current = requestAnimationFrame(renderButterchurn);
-      }
-    };
-
-    // Auto-change presets every 15 seconds
-    presetChangeIntervalRef.current = setInterval(() => {
-      if (butterchurnRef.current && presets.length > 0) {
-        const nextIndex = (currentPresetIndex + 1) % presets.length;
-        setCurrentPresetIndex(nextIndex);
-        butterchurnRef.current.loadPreset(presets[nextIndex].preset, 2.7); // 2.7 second blend
-        console.log(`Transitioning to preset: ${presets[nextIndex].name}`);
-      }
-    }, 15000);
-
-    // Start render loop if using Butterchurn
-    if (butterchurnRef.current) {
-      renderButterchurn();
-    }
+    initVisualizer();
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
