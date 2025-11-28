@@ -262,17 +262,14 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       });
   }, [children, entryId, toast]); // Removed extractTextContent from dependency array as it's defined in scope
 
-  // Double-click handler to save and dismiss the bubble
+  // Double-click handler to dismiss the bubble
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Don't allow double-click if already saving or already saved
-    if (saveMutation.isPending || isSaved) return;
-
-    // Save to knowledge base (the mutation will auto-dismiss on success)
-    saveMutation.mutate();
-  }, [saveMutation, isSaved]); // Added isSaved to dependency array
+    // Dismiss this bubble immediately
+    setShowFloating(false);
+  }, []); // No dependencies needed for simple dismiss
 
   // Drag functionality - similar to RadioCharacter
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -451,7 +448,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                 </button>
 
                 {/* Drag indicator */}
-                <div className="text-terminal-subtle text-xs opacity-50 cursor-move" title="Drag to move, double-click to save">
+                <div className="text-terminal-subtle text-xs opacity-50 cursor-move" title="Drag to move, double-click to dismiss">
                   ⋮⋮
                 </div>
               </div>
