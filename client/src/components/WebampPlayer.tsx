@@ -94,7 +94,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
         const webamp = new Webamp({
           enableHotkeys: true,
 
-          // Milkdrop available but not opened by default
+          // Milkdrop opened by default next to other windows
           __butterchurnOptions: {
             importButterchurn: () => import('butterchurn'),
             getPresets: async () => {
@@ -105,7 +105,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
                 butterchurnPresetObject: presetPack[name]
               }));
             },
-            butterchurnOpen: false // Milkdrop available but closed on launch
+            butterchurnOpen: true // Milkdrop opens on launch
           },
 
           initialTracks: [
@@ -355,7 +355,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             url: "/default-skin.wsz"
           },
 
-          // Initial window layout - positioned at top center
+          // Initial window layout - positioned at top center with Milkdrop
           windowLayout: {
             main: { 
               position: { top: 10, left: Math.floor(window.innerWidth / 2 - 137) }
@@ -366,6 +366,11 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             },
             playlist: { 
               position: { top: 130, left: Math.floor(window.innerWidth / 2 - 137) },
+              closed: false
+            },
+            milkdrop: {
+              position: { top: 130, left: Math.floor(window.innerWidth / 2 + 138) },
+              size: [0, 0], // Use default Milkdrop size
               closed: false
             }
           },
