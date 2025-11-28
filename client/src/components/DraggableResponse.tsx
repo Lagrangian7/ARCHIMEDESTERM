@@ -121,33 +121,52 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Calculate initial position in visible terminal area between voice controls and command prompt
+  // Calculate initial position near TalkingArchimedes modal
   useEffect(() => {
     if (!position) {
       const bubbleWidth = 384; // max-w-md is roughly 384px
       const bubbleHeight = 200; // estimated height
       
-      // Get voice controls height (top bar)
-      const voiceControls = document.querySelector('.voice-controls');
-      const voiceControlsHeight = voiceControls?.getBoundingClientRect().height || 60;
+      // Try to find the TalkingArchimedes modal
+      const archimedesModal = document.querySelector('[data-testid="talking-archimedes-draggable"]');
       
-      // Get command input height (bottom bar)
-      const commandInput = document.querySelector('[data-testid="input-command"]')?.closest('.flex-shrink-0');
-      const commandInputHeight = commandInput?.getBoundingClientRect().height || 80;
+      let x, y;
       
-      // Calculate visible terminal area
-      const topBound = voiceControlsHeight + 20; // 20px padding from voice controls
-      const bottomBound = window.innerHeight - commandInputHeight - bubbleHeight - 20; // 20px padding from command input
-      const leftBound = 20;
-      const rightBound = window.innerWidth - bubbleWidth - 20;
-      
-      // Position in the center-right of the visible area
-      let x = Math.min(rightBound - 100, window.innerWidth - bubbleWidth - 40);
-      let y = topBound + (bottomBound - topBound) / 3; // Upper third of visible area
-      
-      // Ensure within bounds
-      x = Math.max(leftBound, Math.min(x, rightBound));
-      y = Math.max(topBound, Math.min(y, bottomBound));
+      if (archimedesModal) {
+        // Position bubble to the left of Archimedes modal
+        const rect = archimedesModal.getBoundingClientRect();
+        x = rect.left - bubbleWidth - 20; // 20px gap from Archimedes
+        y = rect.top;
+        
+        // If bubble would go off left edge, position to the right instead
+        if (x < 20) {
+          x = rect.right + 20; // 20px gap on right side
+        }
+        
+        // Ensure bubble stays within viewport
+        const maxX = window.innerWidth - bubbleWidth - 20;
+        const maxY = window.innerHeight - bubbleHeight - 20;
+        
+        x = Math.max(20, Math.min(x, maxX));
+        y = Math.max(20, Math.min(y, maxY));
+      } else {
+        // Fallback: position in visible terminal area if Archimedes not found
+        const voiceControls = document.querySelector('.voice-controls');
+        const voiceControlsHeight = voiceControls?.getBoundingClientRect().height || 60;
+        
+        const commandInput = document.querySelector('[data-testid="input-command"]')?.closest('.flex-shrink-0');
+        const commandInputHeight = commandInput?.getBoundingClientRect().height || 80;
+        
+        const topBound = voiceControlsHeight + 20;
+        const bottomBound = window.innerHeight - commandInputHeight - bubbleHeight - 20;
+        const rightBound = window.innerWidth - bubbleWidth - 20;
+        
+        x = Math.min(rightBound - 100, window.innerWidth - bubbleWidth - 40);
+        y = topBound + (bottomBound - topBound) / 3;
+        
+        x = Math.max(20, Math.min(x, rightBound));
+        y = Math.max(topBound, Math.min(y, bottomBound));
+      }
 
       setPosition({ x, y });
 
