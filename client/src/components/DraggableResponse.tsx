@@ -121,24 +121,33 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Calculate initial position near mouse cursor in visible viewport
+  // Calculate initial position in visible terminal area between voice controls and command prompt
   useEffect(() => {
     if (!position) {
       const bubbleWidth = 384; // max-w-md is roughly 384px
       const bubbleHeight = 200; // estimated height
-      const offset = 40; // offset from cursor
-
-      // Start near mouse position
-      let x = mousePositionRef.current.x + offset;
-      let y = mousePositionRef.current.y - offset;
-
-      // Keep within viewport bounds with padding
-      const padding = 20;
-      const maxX = window.innerWidth - bubbleWidth - padding;
-      const maxY = window.innerHeight - bubbleHeight - padding;
-
-      x = Math.max(padding, Math.min(x, maxX));
-      y = Math.max(padding, Math.min(y, maxY));
+      
+      // Get voice controls height (top bar)
+      const voiceControls = document.querySelector('.voice-controls');
+      const voiceControlsHeight = voiceControls?.getBoundingClientRect().height || 60;
+      
+      // Get command input height (bottom bar)
+      const commandInput = document.querySelector('[data-testid="input-command"]')?.closest('.flex-shrink-0');
+      const commandInputHeight = commandInput?.getBoundingClientRect().height || 80;
+      
+      // Calculate visible terminal area
+      const topBound = voiceControlsHeight + 20; // 20px padding from voice controls
+      const bottomBound = window.innerHeight - commandInputHeight - bubbleHeight - 20; // 20px padding from command input
+      const leftBound = 20;
+      const rightBound = window.innerWidth - bubbleWidth - 20;
+      
+      // Position in the center-right of the visible area
+      let x = Math.min(rightBound - 100, window.innerWidth - bubbleWidth - 40);
+      let y = topBound + (bottomBound - topBound) / 3; // Upper third of visible area
+      
+      // Ensure within bounds
+      x = Math.max(leftBound, Math.min(x, rightBound));
+      y = Math.max(topBound, Math.min(y, bottomBound));
 
       setPosition({ x, y });
 

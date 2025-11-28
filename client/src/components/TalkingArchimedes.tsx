@@ -14,8 +14,21 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Calculate initial position in visible terminal area
+  const getInitialPosition = () => {
+    // Get voice controls height (top bar)
+    const voiceControls = document.querySelector('.voice-controls');
+    const voiceControlsHeight = voiceControls?.getBoundingClientRect().height || 60;
+    
+    // Position in top-right of visible area, below voice controls
+    const x = window.innerWidth - 180; // 180px from right edge
+    const y = voiceControlsHeight + 20; // 20px below voice controls
+    
+    return { x, y };
+  };
+
   // Use refs for all drag-related state to avoid re-renders
-  const positionRef = useRef({ x: window.innerWidth - 250, y: 16 });
+  const positionRef = useRef(getInitialPosition());
   const isDraggingRef = useRef(false);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -29,6 +42,12 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
 
     if (shouldShow) {
       setIsVisible(true);
+      // Recalculate position when showing to ensure it's in visible area
+      positionRef.current = getInitialPosition();
+      if (containerRef.current) {
+        const { x, y } = positionRef.current;
+        containerRef.current.style.transform = `translate(${x}px, ${y}px)`;
+      }
       video.play().catch(() => {});
     } else {
       video.pause();
