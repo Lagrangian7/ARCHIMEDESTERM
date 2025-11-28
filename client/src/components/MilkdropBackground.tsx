@@ -10,7 +10,7 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const mediaElementSourcesRef = useRef<Set<MediaElementAudioSourceNode>>(new Set());
+  const audioSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   useEffect(() => {
     if (!isActive || !canvasRef.current) return;
@@ -36,58 +36,56 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
         analyserRef.current.fftSize = 512;
         analyserRef.current.smoothingTimeConstant = 0.8;
         
-        // Connect analyser to destination so we can capture all system audio
-        analyserRef.current.connect(audioContextRef.current.destination);
-        
         console.log('Audio context initialized for visualizer');
         
-        // Try to connect to existing audio elements
-        connectToAudioElements();
+        // Try to connect to audio elements after a short delay (wait for Webamp to load)
+        setTimeout(() => {
+          tryConnectToAudio();
+        }, 1000);
         
-        // Watch for new audio elements being added
-        const observer = new MutationObserver(() => {
-          connectToAudioElements();
-        });
+        // Keep trying to connect periodically
+        const interval = setInterval(() => {
+          tryConnectToAudio();
+        }, 3000);
         
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true
-        });
-        
-        return () => observer.disconnect();
+        return () => clearInterval(interval);
       } catch (error) {
         console.log('Audio context initialization failed:', error);
       }
     };
 
-    const connectToAudioElements = () => {
-      if (!audioContextRef.current || !analyserRef.current) return;
+    const tryConnectToAudio = () => {
+      if (!audioContextRef.current || !analyserRef.current || audioSourceRef.current) return;
       
-      // Find all audio/video elements
-      const audioElements = document.querySelectorAll('audio, video');
+      // Find audio elements
+      const audioElements = document.querySelectorAll('audio');
       
-      audioElements.forEach((element) => {
+      for (const element of audioElements) {
         const mediaElement = element as HTMLMediaElement;
         
-        // Skip if already connected
-        if ((mediaElement as any)._visualizerConnected) return;
+        // Skip if paused or already processed
+        if (mediaElement.paused || (mediaElement as any)._visualizerAttempted) continue;
         
         try {
-          // Create source from media element
+          // Mark as attempted
+          (mediaElement as any)._visualizerAttempted = true;
+          
+          // Try to create source
           const source = audioContextRef.current!.createMediaElementSource(mediaElement);
           
-          // Connect through analyser to destination
+          // Connect: source -> analyser -> destination
           source.connect(analyserRef.current!);
+          analyserRef.current!.connect(audioContextRef.current!.destination);
           
-          // Mark as connected
-          (mediaElement as any)._visualizerConnected = true;
-          mediaElementSourcesRef.current.add(source);
+          audioSourceRef.current = source;
           
-          console.log('Connected visualizer to audio element:', element.tagName);
+          console.log('✅ Successfully connected to audio element for visualization');
+          return;
         } catch (error) {
-          // Element may already be connected to another context, ignore
+          // Already connected to another context, this is expected
+          console.log('Audio element already in use (expected with Webamp)');
         }
-      });
+      }
     };
 
     // Visualizer animation
@@ -205,8 +203,7 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
       }
-      // Clear media element sources
-      mediaElementSourcesRef.current.clear();
+      audioSourceRef.current = null;
     };
   }, [isActive]);
 
