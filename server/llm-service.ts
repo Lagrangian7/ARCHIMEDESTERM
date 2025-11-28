@@ -213,60 +213,60 @@ Remember: You are a supportive health educator promoting natural wellness while 
 
   private detectLanguage(userMessage: string): 'python' | 'typescript' | 'javascript' | 'cpp' | 'bash' {
     const msg = userMessage.toLowerCase();
-    
+
     // Explicit language mentions take highest priority
     if (msg.includes('typescript') || msg.includes(' ts ') || msg.includes('.ts file') || msg.includes('in ts')) {
       return 'typescript';
     }
-    
+
     if (msg.includes('javascript') || msg.includes(' js ') || msg.includes('.js file') || msg.includes('in js')) {
       return 'javascript';
     }
-    
+
     if (msg.includes('c++') || msg.includes('cpp ') || msg.includes('.cpp file')) {
       return 'cpp';
     }
-    
+
     if (msg.includes('bash script') || msg.includes('shell script') || msg.includes('.sh file') || msg.includes('bash ')) {
       return 'bash';
     }
-    
+
     if (msg.includes('python') || msg.includes('.py file') || msg.includes(' py ')) {
       return 'python';
     }
-    
+
     // Secondary indicators (only if no explicit language mention)
     // TypeScript-specific features (avoid Python false positives)
-    if ((msg.includes('interface ') || msg.includes('tsx') || msg.includes('<generic>')) && 
+    if ((msg.includes('interface ') || msg.includes('tsx') || msg.includes('<generic>')) &&
         !msg.includes('python')) {
       return 'typescript';
     }
-    
+
     // JavaScript-specific ecosystem
-    if ((msg.includes('react') || msg.includes('node.js') || msg.includes('express') || 
+    if ((msg.includes('react') || msg.includes('node.js') || msg.includes('express') ||
          msg.includes('npm') || msg.includes('jsx')) && !msg.includes('python')) {
       return 'javascript';
     }
-    
+
     // C++-specific syntax
-    if ((msg.includes('std::') || msg.includes('iostream') || msg.includes('vector<')) && 
+    if ((msg.includes('std::') || msg.includes('iostream') || msg.includes('vector<')) &&
         !msg.includes('python')) {
       return 'cpp';
     }
-    
+
     // Bash-specific commands (avoid Python script false positives)
-    if ((msg.includes('#!/bin/bash') || msg.includes('chmod') || msg.includes('grep') || 
+    if ((msg.includes('#!/bin/bash') || msg.includes('chmod') || msg.includes('grep') ||
          msg.includes('awk') || msg.includes('sed')) && !msg.includes('python')) {
       return 'bash';
     }
-    
+
     // Default to Python (most common for freestyle mode)
     return 'python';
   }
 
   private getFreestyleModeSystemPrompt(language: string = 'english', userMessage: string = ''): string {
     const programmingLang = this.detectLanguage(userMessage);
-    
+
     switch (programmingLang) {
       case 'typescript':
         return this.getFreestylePromptTypeScript();
@@ -499,7 +499,7 @@ Remember: You're a creative coding partner. Make Bash scripting fun, accessible,
 
   private getEnhancedFreestyleMessage(userMessage: string): string {
     const detectedLang = this.detectLanguage(userMessage);
-    
+
     const languageConfig = {
       python: {
         name: 'Python',
@@ -527,9 +527,9 @@ Remember: You're a creative coding partner. Make Bash scripting fun, accessible,
         description: 'Bash scripting expert'
       }
     };
-    
+
     const config = languageConfig[detectedLang];
-    
+
     return `As a ${config.description} in FREESTYLE MODE, help create functional ${config.name} code. ${userMessage}
 
 Generate complete, runnable ${config.name} code based on the request. Be creative and provide fully functional examples with clear explanations.
@@ -609,112 +609,131 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
-    const lang = language || 'english';
-    
-    // Validate mode to ensure it's one of the allowed values
-    const validModes: ('natural' | 'technical' | 'freestyle' | 'health')[] = ['natural', 'technical', 'freestyle', 'health'];
-    const safeMode = validModes.includes(mode) ? mode : 'natural';
-    
-    if (safeMode !== mode) {
-      console.warn(`[LLM] Invalid mode "${mode}" provided, defaulting to "natural"`);
-    }
-    
-    let contextualMessage = userMessage;
-    let relevantDocuments: { fileName: string; snippet: string }[] = [];
-
-    // Get knowledge base context if user is authenticated
-    if (userId) {
-      try {
-        const knowledgeContext = await knowledgeService.getContextualKnowledge(userId, userMessage);
-        if (knowledgeContext) {
-          contextualMessage = `${knowledgeContext}\n\nUser Query: ${userMessage}`;
-        }
-
-        // Also get relevant documents to reference at the end
-        const searchResults = await knowledgeService.searchKnowledge(userId, userMessage);
-        if (searchResults.documents && searchResults.documents.length > 0) {
-          relevantDocuments = searchResults.documents.slice(0, 3).map((doc: any) => ({
-            fileName: doc.originalName || doc.fileName,
-            snippet: doc.summary || ''
-          }));
-        }
-      } catch (error) {
-        console.error('Knowledge base error:', error);
-        // Continue without knowledge context if there's an error
-      }
-    }
-
-    let aiResponse: string;
+    console.log('🤖 LLM Service - generateResponse called:', {
+      messageLength: userMessage.length,
+      mode,
+      userId: userId ? 'present' : 'missing',
+      language,
+      isNewSession,
+      historyLength: conversationHistory.length
+    });
 
     try {
-      // Use Groq as PRIMARY provider for ALL modes (free, fast)
-      if (process.env.GROQ_API_KEY) {
-        console.log(`[LLM] Using Groq (Primary, Free) for ${safeMode.toUpperCase()} mode`);
-        aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      } else {
-        // Fallback to Replit's managed Mistral if Groq is not available
-        console.log(`[LLM] Using Replit Managed Mistral (Fallback) for ${safeMode.toUpperCase()} mode`);
-        aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      const lang = language || 'english';
+
+      // Validate mode to ensure it's one of the allowed values
+      const validModes: ('natural' | 'technical' | 'freestyle' | 'health')[] = ['natural', 'technical', 'freestyle', 'health'];
+      const safeMode = validModes.includes(mode) ? mode : 'natural';
+
+      if (safeMode !== mode) {
+        console.warn(`[LLM] Invalid mode "${mode}" provided, defaulting to "natural"`);
       }
 
-    } catch (primaryError) {
-      console.error('Primary AI (Groq) error:', primaryError);
+      let contextualMessage = userMessage;
+      let relevantDocuments: { fileName: string; snippet: string }[] = [];
+
+      // Get knowledge base context if user is authenticated
+      if (userId) {
+        try {
+          const knowledgeContext = await knowledgeService.getContextualKnowledge(userId, userMessage);
+          if (knowledgeContext) {
+            contextualMessage = `${knowledgeContext}\n\nUser Query: ${userMessage}`;
+          }
+
+          // Also get relevant documents to reference at the end
+          const searchResults = await knowledgeService.searchKnowledge(userId, userMessage);
+          if (searchResults.documents && searchResults.documents.length > 0) {
+            relevantDocuments = searchResults.documents.slice(0, 3).map((doc: any) => ({
+              fileName: doc.originalName || doc.fileName,
+              snippet: doc.summary || ''
+            }));
+          }
+        } catch (error) {
+          console.error('Knowledge base error:', error);
+          // Continue without knowledge context if there's an error
+        }
+      }
+
+      let aiResponse: string;
 
       try {
-        // Fallback chain: Replit Mistral → OpenAI → Mistral AI → Hugging Face
-        console.log(`[LLM] Falling back to Replit Mistral for ${safeMode.toUpperCase()} mode`);
-        aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      } catch (mistralError) {
-        console.error('Replit Mistral fallback error:', mistralError);
-        
+        // Use Groq as PRIMARY provider for ALL modes (free, fast)
+        if (process.env.GROQ_API_KEY) {
+          console.log(`[LLM] Using Groq (Primary, Free) for ${safeMode.toUpperCase()} mode`);
+          aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+        } else {
+          // Fallback to Replit's managed Mistral if Groq is not available
+          console.log(`[LLM] Using Replit Managed Mistral (Fallback) for ${safeMode.toUpperCase()} mode`);
+          aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+        }
+
+      } catch (primaryError) {
+        console.error('Primary AI (Groq) error:', primaryError);
+
         try {
-          // Try OpenAI as fallback
-          if (process.env.OPENAI_API_KEY) {
-            console.log(`[LLM] Falling back to OpenAI for ${safeMode.toUpperCase()} mode`);
-            aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-          }
-          // Try Mistral AI as fallback
-          else if (process.env.MISTRAL_API_KEY) {
-            console.log(`[LLM] Falling back to Mistral AI for ${safeMode.toUpperCase()} mode`);
-            aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-          } 
-          // Try Hugging Face enhanced models before final fallback
-          else {
-            console.log(`[LLM] Trying Hugging Face models for ${safeMode.toUpperCase()} mode`);
-            aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-          }
-        } catch (secondaryError) {
-          console.error('Secondary fallback error:', secondaryError);
-          
-          // Final fallback to Hugging Face or static response
+          // Fallback chain: Replit Mistral → OpenAI → Mistral AI → Hugging Face
+          console.log(`[LLM] Falling back to Replit Mistral for ${safeMode.toUpperCase()} mode`);
+          aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+        } catch (mistralError) {
+          console.error('Replit Mistral fallback error:', mistralError);
+
           try {
-            console.log('[LLM] Final fallback to Hugging Face models');
-            aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-          } catch (tertiaryError) {
-            console.error('All AI backends exhausted:', tertiaryError);
-            aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
+            // Try OpenAI as fallback
+            if (process.env.OPENAI_API_KEY) {
+              console.log(`[LLM] Falling back to OpenAI for ${safeMode.toUpperCase()} mode`);
+              aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+            }
+            // Try Mistral AI as fallback
+            else if (process.env.MISTRAL_API_KEY) {
+              console.log(`[LLM] Falling back to Mistral AI for ${safeMode.toUpperCase()} mode`);
+              aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+            }
+            // Try Hugging Face enhanced models before final fallback
+            else {
+              console.log(`[LLM] Trying Hugging Face models for ${safeMode.toUpperCase()} mode`);
+              aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+            }
+          } catch (secondaryError) {
+            console.error('Secondary fallback error:', secondaryError);
+
+            // Final fallback to Hugging Face or static response
+            try {
+              console.log('[LLM] Final fallback to Hugging Face models');
+              aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+            } catch (tertiaryError) {
+              console.error('All AI backends exhausted:', tertiaryError);
+              aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
+            }
           }
         }
       }
-    }
 
-    // Append document references at the end if relevant documents were found
-    if (relevantDocuments.length > 0) {
-      const documentRefs = relevantDocuments
-        .filter(doc => doc.fileName) // Only include docs with filenames
-        .map((doc, index) => {
-          const fileName = doc.fileName || `Document ${index + 1}`;
-          const description = doc.snippet || '(see full document for details)';
-          return `${index + 1}. ${fileName} - ${description}`;
-        })
-        .join('\n');
+      // Append document references at the end if relevant documents were found
+      if (relevantDocuments.length > 0) {
+        const documentRefs = relevantDocuments
+          .filter(doc => doc.fileName) // Only include docs with filenames
+          .map((doc, index) => {
+            const fileName = doc.fileName || `Document ${index + 1}`;
+            const description = doc.snippet || '(see full document for details)';
+            return `${index + 1}. ${fileName} - ${description}`;
+          })
+          .join('\n');
 
-      if (documentRefs) {
-        aiResponse = `${aiResponse}\n\n📚 Related documents from your knowledge base:\n${documentRefs}`;
+        if (documentRefs) {
+          aiResponse = `${aiResponse}\n\n📚 Related documents from your knowledge base:\n${documentRefs}`;
+        }
       }
-    }
 
-    return aiResponse;
+      return aiResponse;
+    } catch (error) {
+      console.error('❌ Error generating response:', error);
+      console.error('Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      throw error;
+    }
   }
 
   private async generateReplitMistralResponse(
@@ -727,7 +746,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
     const recentHistory = this.buildConversationHistory(conversationHistory, 8);
-    
+
     // Build messages array for Replit AI
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt + greetingInstruction }
@@ -813,7 +832,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
     const recentHistory = this.buildConversationHistory(conversationHistory, 8);
-    
+
     // Build messages array for Replit AI
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: systemPrompt + greetingInstruction }
@@ -854,7 +873,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
     const recentHistory = this.buildConversationHistory(conversationHistory, 8);
-    
+
     // In freestyle mode, enhance the prompt for code generation with language detection
     const enhancedMessage = mode === 'freestyle'
       ? this.getEnhancedFreestyleMessage(userMessage)
@@ -879,7 +898,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     messages.push({ role: 'user', content: enhancedMessage });
 
     // Use appropriate Mistral model based on mode
-    const modelSelection = mode === 'health' 
+    const modelSelection = mode === 'health'
       ? 'open-mistral-nemo' // Use Mistral Nemo for health mode (similar to CWC-Mistral-Nemo)
       : 'mistral-large-latest'; // Use latest Mistral for other modes
 
@@ -913,7 +932,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
     const recentHistory = this.buildConversationHistory(conversationHistory, 6);
-    
+
     // In freestyle mode, enhance the prompt for code generation with language detection
     const enhancedMessage = mode === 'freestyle'
       ? this.getEnhancedFreestyleMessage(userMessage)
@@ -1035,7 +1054,7 @@ Conversation Context:\n`;
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
     const recentHistory = this.buildConversationHistory(conversationHistory, 10);
-    
+
     // In freestyle mode, enhance the prompt for code generation with language detection
     const enhancedMessage = mode === 'freestyle'
       ? this.getEnhancedFreestyleMessage(userMessage)
@@ -1172,17 +1191,17 @@ ${code}`;
 
       // Clean up the response - remove any markdown code blocks
       let cleanedCompletion = typeof completion === 'string' ? completion : completion.map((chunk: any) => chunk.text).join('');
-      
+
       // Remove markdown code blocks for all supported languages
       const codeBlockPatterns = [
         /```(?:python|py|javascript|js|typescript|ts|java|cpp|c|go|rust|ruby|php|bash|sql|r|perl|html|css)?\n?/g,
         /```\n?/g
       ];
-      
+
       codeBlockPatterns.forEach(pattern => {
         cleanedCompletion = cleanedCompletion.replace(pattern, '');
       });
-      
+
       // Trim excessive whitespace
       cleanedCompletion = cleanedCompletion.trim();
 

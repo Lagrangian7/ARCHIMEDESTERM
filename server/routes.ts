@@ -2362,14 +2362,21 @@ function windowResized() {
       const isNewSession = conversationHistory.length === 0;
 
       // Generate AI response using LLM with knowledge base integration
-      const response = await llmService.generateResponse(
-        message,
-        mode || 'natural',
-        conversationHistory,
-        user.id,
-        language || 'english', // Pass language to LLM service
-        isNewSession // Pass new session flag
-      );
+      let response: string;
+      try {
+        response = await llmService.generateResponse(
+          message,
+          mode || 'natural',
+          conversationHistory,
+          user.id,
+          language || 'english', // Pass language to LLM service
+          isNewSession // Pass new session flag
+        );
+      } catch (llmError) {
+        console.error("LLM Service error:", llmError);
+        // Fallback response if LLM fails
+        response = "I apologize, but I'm experiencing technical difficulties processing your request. Please try again in a moment.";
+      }
 
       const assistantMessage: Message = {
         role: "assistant",
@@ -2390,7 +2397,12 @@ function windowResized() {
 
     } catch (error) {
       console.error("Chat error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      const errorMessage = error instanceof Error ? error.message : "Internal server error";
+      console.error("Full error details:", error);
+      res.status(500).json({ 
+        error: "Internal server error",
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      });
     }
   });
 
