@@ -632,10 +632,10 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     let aiResponse: string;
 
     try {
-      // For NATURAL mode, prioritize OpenAI for conversational AI
-      if (safeMode === 'natural' && process.env.OPENAI_API_KEY) {
-        console.log('[LLM] Using OpenAI (GPT-4o-mini) for NATURAL chat mode');
-        aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      // For NATURAL mode, prioritize Mistral for conversational AI (OpenAI quota exhausted)
+      if (safeMode === 'natural' && process.env.MISTRAL_API_KEY) {
+        console.log('[LLM] Using Mistral AI for NATURAL chat mode');
+        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
       // For HEALTH mode, use Mistral with specialized health model
       else if (safeMode === 'health' && process.env.MISTRAL_API_KEY) {
@@ -667,14 +667,14 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       console.error('Primary AI models error:', primaryError);
 
       try {
-        // For NATURAL mode, try Gemini as first fallback, then Mistral
+        // For NATURAL mode, try OpenAI as first fallback, then Gemini
         if (safeMode === 'natural') {
-          if (process.env.GEMINI_API_KEY) {
+          if (process.env.OPENAI_API_KEY) {
+            console.log(`[LLM] Falling back to OpenAI for NATURAL mode`);
+            aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+          } else if (process.env.GEMINI_API_KEY) {
             console.log(`[LLM] Falling back to Google Gemini for NATURAL mode`);
             aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-          } else if (process.env.MISTRAL_API_KEY) {
-            console.log(`[LLM] Falling back to Mistral AI for NATURAL mode`);
-            aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
           } else {
             throw new Error('No fallback models available');
           }
