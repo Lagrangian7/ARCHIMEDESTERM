@@ -92,29 +92,44 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
       // Draw frequency bars
       const barCount = Math.min(64, dataArray.length);
       const barWidth = canvas.width / barCount;
-      const barSpacing = 2;
+      const barSpacing = 1;
+
+      // Check if we're getting actual audio data
+      const hasAudio = dataArray.some(val => val > 0);
 
       for (let i = 0; i < barCount; i++) {
-        const value = dataArray[i] || 0;
-        const barHeight = (value / 255) * canvas.height * 0.8;
+        let value = dataArray[i] || 0;
+        
+        // If no audio detected, create animated baseline
+        if (!hasAudio) {
+          const time = Date.now() / 1000;
+          value = (Math.sin(time * 2 + i * 0.1) * 0.5 + 0.5) * 60 + 20;
+        }
+        
+        const barHeight = (value / 255) * canvas.height * 0.9;
         const x = i * barWidth;
         const y = canvas.height - barHeight;
 
-        // Color gradient based on frequency (low = red, mid = green, high = blue)
-        const hue = (i / barCount) * 120; // 0-120 (red to green)
-        const saturation = 80;
-        const lightness = 50 + (value / 255) * 20; // Brighter when louder
+        // Brighter colors based on frequency
+        const hue = (i / barCount) * 180; // 0-180 (red to cyan)
+        const saturation = 100;
+        const lightness = 50 + (value / 255) * 30; // Much brighter
 
+        // Draw main bar with glow
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
         ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
         ctx.fillRect(x + barSpacing / 2, y, barWidth - barSpacing, barHeight);
 
-        // Add a subtle top glow
-        const gradient = ctx.createLinearGradient(x, y, x, y + 20);
-        gradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness + 20}%, 0.8)`);
+        // Add bright top highlight
+        const gradient = ctx.createLinearGradient(x, y, x, y + 30);
+        gradient.addColorStop(0, `hsla(${hue}, ${saturation}%, 90%, 0.9)`);
         gradient.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness}%, 0)`);
         ctx.fillStyle = gradient;
-        ctx.fillRect(x + barSpacing / 2, y, barWidth - barSpacing, 20);
+        ctx.fillRect(x + barSpacing / 2, y, barWidth - barSpacing, 30);
       }
+      
+      ctx.shadowBlur = 0;
 
       animationFrameRef.current = requestAnimationFrame(animate);
     };
@@ -139,7 +154,7 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: 0.6, mixBlendMode: 'screen' }}
+      style={{ opacity: 0.85, mixBlendMode: 'screen' }}
     />
   );
 }
