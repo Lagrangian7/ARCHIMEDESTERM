@@ -94,19 +94,20 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
         const webamp = new Webamp({
           enableHotkeys: true,
 
-          // Milkdrop disabled - using voice control area visualizer instead
-          // __butterchurnOptions: {
-          //   importButterchurn: () => import('butterchurn'),
-          //   getPresets: async () => {
-          //     const presets = await import('butterchurn-presets');
-          //     const presetPack = presets.default || presets;
-          //     return Object.keys(presetPack).map(name => ({
-          //       name,
-          //       butterchurnPresetObject: presetPack[name]
-          //     }));
-          //   },
-          //   butterchurnOpen: true
-          // },
+          // Enable Milkdrop visualizer
+          __butterchurnOptions: {
+            importButterchurn: () => import('butterchurn'),
+            getPresets: async () => {
+              const presets = await import('butterchurn-presets');
+              const presetPack = presets.default || presets;
+              // Convert preset pack object to array format expected by Webamp
+              return Object.keys(presetPack).map(name => ({
+                name,
+                butterchurnPresetObject: presetPack[name]
+              }));
+            },
+            butterchurnOpen: true
+          },
 
           initialTracks: [
             // Soma FM Stations
@@ -355,14 +356,15 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             url: "/default-skin.wsz"
           },
 
-          // Initial window layout (Milkdrop disabled - using voice control area instead)
+          // Initial window layout with Milkdrop visualizer
           windowLayout: {
             main: { position: { top: 20, left: 20 } },
             equalizer: { position: { top: 20, left: 580 } },
             playlist: { 
               position: { top: 480, left: 20 },
               size: { extraHeight: 4, extraWidth: 0 } 
-            }
+            },
+            milkdrop: { position: { top: 20, left: 300 }, size: [275, 455] }
           },
 
           // Available skins
