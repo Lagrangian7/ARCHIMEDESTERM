@@ -618,10 +618,12 @@
 /* New Gradient Dark Themes - Eye-Friendly with Radial Backgrounds */
 .theme-midnight-gradient {
   --terminal-bg: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  --terminal-bg-solid: #090a0f;
   --terminal-text: hsl(210 60% 85%);
   --terminal-highlight: hsl(200 80% 70%);
   --terminal-subtle: hsl(220 20% 25%);
   --terminal-subtle-rgb: 51, 57, 77;
+  --terminal-highlight-rgb: 102, 178, 214;
   --terminal-logo-green: hsl(200 80% 70%);
   --terminal-bright-green: hsl(210 70% 75%);
   --terminal-orange: hsl(30 85% 65%);
@@ -632,10 +634,12 @@
 
 .theme-twilight-gradient {
   --terminal-bg: radial-gradient(ellipse at bottom, #2d1b3d 0%, #0f0a14 100%);
+  --terminal-bg-solid: #0f0a14;
   --terminal-text: hsl(280 50% 85%);
   --terminal-highlight: hsl(290 70% 75%);
   --terminal-subtle: hsl(270 25% 25%);
   --terminal-subtle-rgb: 64, 48, 80;
+  --terminal-highlight-rgb: 204, 128, 230;
   --terminal-logo-green: hsl(290 70% 75%);
   --terminal-bright-green: hsl(280 60% 80%);
   --terminal-orange: hsl(320 75% 70%);
@@ -645,10 +649,12 @@
 
 .theme-forest-gradient {
   --terminal-bg: radial-gradient(ellipse at bottom, #1b3d2f 0%, #0a140f 100%);
+  --terminal-bg-solid: #0a140f;
   --terminal-text: #14fdce;
   --terminal-highlight: #14fdce;
   --terminal-subtle: #031e11;
   --terminal-subtle-rgb: 3, 30, 17;
+  --terminal-highlight-rgb: 20, 253, 206;
   --terminal-logo-green: #14fdce;
   --terminal-bright-green: #14fdce;
   --terminal-orange: #14fdce;
@@ -661,10 +667,12 @@
 
 .theme-ocean-gradient {
   --terminal-bg: radial-gradient(ellipse at bottom, #1b2f3d 0%, #0a0f14 100%);
+  --terminal-bg-solid: #0a0f14;
   --terminal-text: hsl(195 55% 82%);
   --terminal-highlight: hsl(185 70% 72%);
   --terminal-subtle: hsl(200 25% 25%);
   --terminal-subtle-rgb: 48, 64, 77;
+  --terminal-highlight-rgb: 82, 204, 199;
   --terminal-logo-green: hsl(185 70% 72%);
   --terminal-bright-green: hsl(195 65% 78%);
   --terminal-orange: hsl(40 80% 68%);
@@ -674,10 +682,12 @@
 
 .theme-ember-gradient {
   --terminal-bg: radial-gradient(ellipse at bottom, #3d1b1b 0%, #140a0a 100%);
+  --terminal-bg-solid: #140a0a;
   --terminal-text: hsl(15 55% 82%);
   --terminal-highlight: hsl(25 75% 70%);
   --terminal-subtle: hsl(10 30% 25%);
   --terminal-subtle-rgb: 77, 51, 48;
+  --terminal-highlight-rgb: 214, 153, 102;
   --terminal-logo-green: hsl(25 75% 70%);
   --terminal-bright-green: hsl(15 65% 75%);
   --terminal-orange: hsl(35 85% 65%);
@@ -969,6 +979,21 @@
   transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-font-smoothing: subpixel-antialiased;
+}
+
+/* Fix for gradient themes: buttons need solid background color */
+[class*="theme-"][class*="-gradient"] .bg-terminal-bg {
+  background: var(--terminal-bg-solid, var(--terminal-subtle)) !important;
+}
+
+/* Voice controls button styling for gradient themes */
+[class*="theme-"][class*="-gradient"] .voice-controls button {
+  background-color: var(--terminal-bg-solid, #0a0f14) !important;
+}
+
+[class*="theme-"][class*="-gradient"] .voice-controls button:hover {
+  background-color: var(--terminal-highlight) !important;
+  color: var(--terminal-bg-solid, #0a0f14) !important;
 }
 
 /* Notepad performance optimization */
