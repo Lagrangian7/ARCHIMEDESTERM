@@ -9,12 +9,12 @@ interface AJVideoPopupProps {
 
 export default function AJVideoPopup({ isOpen, onClose }: AJVideoPopupProps) {
   const [position, setPosition] = useState({ x: 100, y: 100 });
-  const [size, setSize] = useState({ width: 640, height: 400 });
+  const [size, setSize] = useState({ width: 300, height: 169 });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isMaximized, setIsMaximized] = useState(false);
-  const [savedState, setSavedState] = useState({ x: 100, y: 100, width: 640, height: 400 });
+  const [savedState, setSavedState] = useState({ x: 100, y: 100, width: 300, height: 169 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   // ESC key handler
@@ -55,8 +55,8 @@ export default function AJVideoPopup({ isOpen, onClose }: AJVideoPopupProps) {
         y: Math.max(0, Math.min(newY, maxY))
       });
     } else if (isResizing) {
-      const newWidth = Math.max(320, e.clientX - position.x);
-      const newHeight = Math.max(240, e.clientY - position.y);
+      const newWidth = Math.max(200, e.clientX - position.x);
+      const newHeight = Math.max(150, e.clientY - position.y);
       
       setSize({
         width: Math.min(newWidth, window.innerWidth - position.x),
