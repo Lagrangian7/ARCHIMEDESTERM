@@ -355,19 +355,19 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             url: "/default-skin.wsz"
           },
 
-          // Initial window layout - all collapsed and side by side, locked
+          // Initial window layout - all collapsed and centered at top
           windowLayout: {
             main: { 
-              position: { top: 20, left: 20 },
+              position: { top: 10, left: window.innerWidth / 2 - 412 }, // Centered (275px main + 275px eq + 275px playlist + gaps = ~825px / 2)
               size: [0, 0] // Collapsed
             },
             equalizer: { 
-              position: { top: 20, left: 295 }, // Side by side with main (275px width + 20px gap)
+              position: { top: 10, left: window.innerWidth / 2 - 137 }, // Side by side with main, centered
               size: [0, 0], // Collapsed
               closed: false
             },
             playlist: { 
-              position: { top: 20, left: 570 }, // Side by side with equalizer (275px width + 20px gap)
+              position: { top: 10, left: window.innerWidth / 2 + 138 }, // Side by side with equalizer, centered
               size: [0, 0], // Collapsed
               closed: false
             }
