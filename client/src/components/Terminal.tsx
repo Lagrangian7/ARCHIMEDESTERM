@@ -20,7 +20,7 @@ import { DraggableResponse } from './DraggableResponse';
 import { LinkifiedText } from '@/lib/linkify';
 // import { SshwiftyInterface } from './SshwiftyInterface'; // Commented out - component not found
 // import { MudClient } from './MudClient'; // Commented out - component not found
-import { TheHarvester } from './TheHarvester';
+// import { TheHarvester } from './TheHarvester'; // Removed - tab notification not needed
 // import { SpiderFoot } from './SpiderFoot'; // Commented out - component not found
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { PythonIDE } from './PythonIDE';
@@ -84,7 +84,7 @@ export function Terminal() {
     (window as any).openChatInterface = () => setShowChat(true);
     (window as any).openSshwiftyInterface = () => setShowSshwifty(true);
     (window as any).openMudClient = () => setShowMud(true);
-    (window as any).openTheHarvester = () => setShowTheHarvester(true);
+    // (window as any).openTheHarvester = () => setShowTheHarvester(true); // Removed
     (window as any).openSpiderFoot = (target?: string, scanType?: string) => {
       setShowSpiderFoot(true);
       // Store target and scanType if provided
@@ -146,7 +146,7 @@ export function Terminal() {
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
   const [showSshwifty, setShowSshwifty] = useState(false);
   const [showMud, setShowMud] = useState(false);
-  const [showTheHarvester, setShowTheHarvester] = useState(false);
+  // const [showTheHarvester, setShowTheHarvester] = useState(false); // Removed
   const [showSpiderFoot, setShowSpiderFoot] = useState(false); // New: SpiderFoot state
   const [showPrivacyEncoder, setShowPrivacyEncoder] = useState(false);
   const [showWebamp, setShowWebamp] = useState(false);
@@ -446,10 +446,7 @@ export function Terminal() {
   useEffect(() => {
     const lastEntry = entries[entries.length - 1];
     if (lastEntry && lastEntry.type === 'response' && lastEntry.action) {
-      if (lastEntry.action === 'open_theharvester') {
-        setShowTheHarvester(true);
-      }
-      if (lastEntry.action === 'open_spiderfoot') { // New: Handle SpiderFoot action
+      if (lastEntry.action === 'open_spiderfoot') {
         setShowSpiderFoot(true);
       }
       // Add other action handlers here as needed
@@ -468,7 +465,7 @@ export function Terminal() {
   // const MemoizedChatInterface = useMemo(() => memo(ChatInterface), []); // Commented out - component not found
   // const MemoizedSshwiftyInterface = useMemo(() => memo(SshwiftyInterface), []); // Commented out - component not found
   // const MemoizedMudClient = useMemo(() => memo(MudClient), []); // Commented out - component not found
-  const MemoizedTheHarvester = useMemo(() => memo(TheHarvester), []);
+  // const MemoizedTheHarvester = useMemo(() => memo(TheHarvester), []); // Removed
   // const MemoizedSpiderFoot = useMemo(() => memo(SpiderFoot), []); // Commented out - component not found
   const MemoizedEncodeDecodeOverlay = useMemo(() => memo(EncodeDecodeOverlay), []);
   const MemoizedCodePreview = useMemo(() => memo(CodePreview), []);
@@ -832,10 +829,7 @@ export function Terminal() {
         onClose={() => setShowMud(false)}
       /> */}
 
-      {/* theHarvester OSINT Tool */}
-      {showTheHarvester && (
-        <TheHarvester onClose={() => setShowTheHarvester(false)} />
-      )}
+      {/* theHarvester OSINT Tool - Removed */}
 
       {/* SpiderFoot OSINT Tool - commented out - component not found */}
       {/* {showSpiderFoot && (
