@@ -47,6 +47,7 @@ Preferred communication style: Simple, everyday language.
 - **Data Isolation**: Conversations tied to session IDs for user separation
 
 ## External APIs and Services
+- **Natural Chat AI**: Groq API (FREE tier) - Uses Llama 3.1 8B Instant model for fast, free natural chat responses
 - **Academic Search**: Semantic Scholar API (FREE - 100 requests per 5 minutes, no authentication required)
 - **Computational Knowledge**: Wolfram Alpha Full Results API for math solving, data lookup, and knowledge queries
 - **Mathematical Rendering**: MathJax 3 CDN for rendering MathML and LaTeX mathematical expressions
