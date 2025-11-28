@@ -129,7 +129,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
   useEffect(() => {
     if (!position) {
       const bubbleWidth = 384; // max-w-md is roughly 384px
-      const bubbleHeight = 200; // estimated height
+      const bubbleHeight = 250; // estimated height (increased for accuracy)
       
       // Get the terminal scroll area viewport
       const viewport = document.querySelector('[data-radix-scroll-area-viewport]');
@@ -145,9 +145,12 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       const commandInput = document.querySelector('[data-testid="input-command"]')?.closest('.flex-shrink-0');
       const commandInputHeight = commandInput?.getBoundingClientRect().height || 80;
       
-      // Calculate viewable area bounds
-      const topBound = voiceControlsHeight + 20;
-      const bottomBound = window.innerHeight - commandInputHeight - bubbleHeight - 20;
+      // Calculate viewable area bounds with better margins
+      const topBound = voiceControlsHeight + 30;
+      const bottomBound = window.innerHeight - commandInputHeight - bubbleHeight - 30;
+      
+      // Check for existing bubbles to avoid overlap
+      const existingBubbles = document.querySelectorAll('[data-testid^="draggable-response-"]');
       
       // Try to find the TalkingArchimedes modal
       const archimedesModal = document.querySelector('[data-testid="talking-archimedes-draggable"]');
@@ -155,35 +158,75 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       let x, y;
       
       if (archimedesModal) {
-        // Position bubble to the left of Archimedes modal
         const rect = archimedesModal.getBoundingClientRect();
-        x = rect.left - bubbleWidth - 20; // 20px gap from Archimedes
-        y = rect.top;
         
-        // If bubble would go off left edge, position to the right instead
-        if (x < 20) {
-          x = rect.right + 20; // 20px gap on right side
+        // Default: position to the left of Archimedes with better spacing
+        x = rect.left - bubbleWidth - 30;
+        y = rect.top + 10; // Slight offset down for better visual alignment
+        
+        // If bubble would go off left edge, try right side
+        if (x < 30) {
+          x = rect.right + 30;
         }
+        
+        // If still off screen, position in center-left area
+        if (x < 30 || x + bubbleWidth > window.innerWidth - 30) {
+          x = 40; // Left margin
+        }
+        
+        // Adjust for existing bubbles to prevent overlap
+        let adjustedY = y;
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        while (attempts < maxAttempts) {
+          let hasOverlap = false;
+          
+          for (const bubble of existingBubbles) {
+            const bubbleRect = bubble.getBoundingClientRect();
+            // Check if positions overlap (with margin)
+            if (
+              Math.abs(bubbleRect.left - x) < bubbleWidth + 20 &&
+              Math.abs(bubbleRect.top - adjustedY) < bubbleHeight + 20
+            ) {
+              hasOverlap = true;
+              adjustedY = bubbleRect.bottom + 20; // Stack below existing bubble
+              break;
+            }
+          }
+          
+          if (!hasOverlap) break;
+          attempts++;
+        }
+        
+        y = adjustedY;
         
         // Ensure y is within viewable area bounds
         if (y < topBound) {
           y = topBound;
         } else if (y > bottomBound) {
-          y = bottomBound - 100;
+          y = topBound; // Wrap to top if too far down
         }
         
         // Ensure x stays within viewport
-        const maxX = window.innerWidth - bubbleWidth - 20;
-        x = Math.max(20, Math.min(x, maxX));
+        const maxX = window.innerWidth - bubbleWidth - 30;
+        x = Math.max(30, Math.min(x, maxX));
       } else {
-        // Fallback: position in visible terminal area
-        const rightBound = window.innerWidth - bubbleWidth - 20;
+        // Fallback: position in visible terminal area (left side)
+        x = 40; // Consistent left margin
+        y = topBound + 20;
         
-        x = Math.min(rightBound - 100, window.innerWidth - bubbleWidth - 40);
-        y = topBound + (bottomBound - topBound) / 3;
-        
-        x = Math.max(20, Math.min(x, rightBound));
-        y = Math.max(topBound, Math.min(y, bottomBound));
+        // Stack below existing bubbles if any
+        if (existingBubbles.length > 0) {
+          const lastBubble = existingBubbles[existingBubbles.length - 1];
+          const lastRect = lastBubble.getBoundingClientRect();
+          y = Math.max(y, lastRect.bottom + 20);
+          
+          // Wrap to top if too far down
+          if (y > bottomBound) {
+            y = topBound + 20;
+          }
+        }
       }
 
       setPosition({ x, y });
@@ -193,29 +236,39 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     }
   }, [position, onBubbleRendered]);
 
-  // Follow scroll position
+  // Follow scroll position with smooth tracking
   useEffect(() => {
     const viewport = document.querySelector('[data-radix-scroll-area-viewport]');
     if (!viewport || initialScrollOffsetRef.current === null) return;
 
+    let rafId: number;
+    
     const handleScroll = () => {
-      const currentScrollTop = viewport.scrollTop;
-      const scrollDelta = currentScrollTop - initialScrollOffsetRef.current;
-      setScrollOffset(scrollDelta);
+      // Use requestAnimationFrame for smoother updates
+      if (rafId) cancelAnimationFrame(rafId);
+      
+      rafId = requestAnimationFrame(() => {
+        const currentScrollTop = viewport.scrollTop;
+        const scrollDelta = currentScrollTop - initialScrollOffsetRef.current;
+        setScrollOffset(scrollDelta);
+      });
     };
 
     viewport.addEventListener('scroll', handleScroll, { passive: true });
-    return () => viewport.removeEventListener('scroll', handleScroll);
+    return () => {
+      viewport.removeEventListener('scroll', handleScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   // Always show floating version for responses, keep visible until saved
   useEffect(() => {
     setShowFloating(true);
 
-    // Auto-dismiss after 3 minutes to prevent screen clutter
+    // Auto-dismiss after 5 minutes to prevent screen clutter (increased for better UX)
     const dismissTimer = setTimeout(() => {
       setShowFloating(false);
-    }, 180000); // 3 minutes
+    }, 300000); // 5 minutes
 
     return () => clearTimeout(dismissTimer);
   }, []);
@@ -379,24 +432,25 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       </div>
 
       {/* Floating draggable version - always visible and follows scroll */}
-      {position && (
+      {position && showFloating && (
         <div
-          className="fixed z-50 cursor-move"
+          className="fixed z-50 cursor-move group"
           style={{
             left: position.x,
             top: isDragging ? position.y : position.y - scrollOffset,
-            transition: isDragging ? 'none' : 'all 0.2s ease-out'
+            transition: isDragging ? 'none' : 'top 0.15s ease-out, left 0.15s ease-out',
+            pointerEvents: 'auto'
           }}
           onMouseDown={handleMouseDown}
           onDoubleClick={handleDoubleClick}
           data-testid={`draggable-response-${entryId}`}
         >
-          <div className={`relative transition-all duration-300 ease-out ${
-            showFloating ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-          } ${isDragging ? 'scale-105' : ''}`}>
+          <div className={`relative transition-all duration-200 ease-out ${
+            isDragging ? 'scale-105 rotate-1' : 'scale-100 hover:scale-[1.02]'
+          }`}>
             {/* Response Container with terminal styling */}
-            <div className={`relative max-w-md p-4 rounded-lg border-2 border-terminal-highlight/30 bg-terminal-bg/95 backdrop-blur-md transition-all duration-200 ${
-              isDragging ? 'shadow-2xl shadow-terminal-highlight/20 border-terminal-highlight/50' : ''
+            <div className={`relative max-w-md p-4 rounded-lg border-2 border-terminal-highlight/30 bg-terminal-bg/98 backdrop-blur-lg transition-all duration-200 ${
+              isDragging ? 'shadow-2xl shadow-terminal-highlight/30 border-terminal-highlight/60 ring-2 ring-terminal-highlight/20' : 'shadow-lg hover:shadow-xl hover:border-terminal-highlight/40'
             }`}>
               {/* Header */}
               <div className="text-terminal-highlight mb-2 text-sm font-mono">
@@ -409,7 +463,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
               </div>
 
               {/* Action buttons */}
-              <div className="absolute top-2 right-2 flex items-center gap-2" data-no-drag>
+              <div className="absolute top-2 right-2 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity" data-no-drag>
                 {/* Copy button */}
                 <button
                   onMouseDown={(e) => {
@@ -420,11 +474,11 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                     e.stopPropagation();
                     handleCopy();
                   }}
-                  className="text-terminal-highlight hover:text-terminal-bright-green transition-colors cursor-pointer p-1 z-10"
+                  className="text-terminal-highlight hover:text-terminal-bright-green hover:bg-terminal-highlight/10 rounded transition-all cursor-pointer p-1.5 z-10"
                   title="Copy to clipboard"
                   data-testid={`copy-response-${entryId}`}
                 >
-                  <Copy className="w-6 h-6" />
+                  <Copy className="w-4 h-4" />
                 </button>
 
                 {/* Save button */}
@@ -435,20 +489,37 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (!saveMutation.isPending && !isSaved) { // Prevent saving if already saved
+                    if (!saveMutation.isPending && !isSaved) {
                       saveMutation.mutate();
                     }
                   }}
-                  disabled={saveMutation.isPending || isSaved} // Disable if pending or already saved
-                  className="text-terminal-highlight hover:text-terminal-bright-green transition-colors disabled:opacity-50 cursor-pointer p-1 z-10"
-                  title="Save to knowledge base"
+                  disabled={saveMutation.isPending || isSaved}
+                  className="text-terminal-highlight hover:text-terminal-bright-green hover:bg-terminal-highlight/10 rounded transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer p-1.5 z-10"
+                  title={isSaved ? "Already saved" : "Save to knowledge base"}
                   data-testid={`save-response-${entryId}`}
                 >
-                  <Save className="w-6 h-6" />
+                  <Save className="w-4 h-4" />
+                </button>
+
+                {/* Close button */}
+                <button
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowFloating(false);
+                  }}
+                  className="text-terminal-subtle hover:text-red-400 hover:bg-red-400/10 rounded transition-all cursor-pointer p-1.5 z-10"
+                  title="Close (or double-click anywhere)"
+                  data-testid={`close-response-${entryId}`}
+                >
+                  <span className="text-xs font-bold">✕</span>
                 </button>
 
                 {/* Drag indicator */}
-                <div className="text-terminal-subtle text-xs opacity-50 cursor-move" title="Drag to move, double-click to dismiss">
+                <div className="text-terminal-subtle text-xs opacity-40 cursor-move px-1" title="Drag to move">
                   ⋮⋮
                 </div>
               </div>
