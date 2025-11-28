@@ -53,8 +53,8 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
           const dataArray = new Uint8Array(bufferLength);
           analyserRef.current.getByteFrequencyData(dataArray);
 
-          // Clear canvas
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+          // Clear canvas with slight trail effect
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
 
           // Draw spectrum bars
@@ -62,15 +62,22 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
           let x = 0;
 
           for (let i = 0; i < bufferLength; i++) {
-            const barHeight = (dataArray[i] / 255) * canvas.height * 0.8;
+            const barHeight = (dataArray[i] / 255) * canvas.height * 0.7;
             
             // Gradient from green to yellow to red based on intensity
             const hue = 120 - (dataArray[i] / 255) * 60; // 120 = green, 60 = yellow, 0 = red
-            ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+            const brightness = 40 + (dataArray[i] / 255) * 20; // Brighter bars
+            ctx.fillStyle = `hsl(${hue}, 100%, ${brightness}%)`;
+            
+            // Add glow effect
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
             
             ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
             x += barWidth + 1;
           }
+          
+          ctx.shadowBlur = 0;
 
           animationFrameRef.current = requestAnimationFrame(render);
         };
@@ -132,10 +139,14 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
       <canvas
         ref={canvasRef}
         className="w-full h-full"
-        style={{ opacity: 0.6, mixBlendMode: 'screen' }}
+        style={{ 
+          opacity: 0.9,
+          display: 'block',
+          backgroundColor: 'rgba(0, 0, 0, 0.3)'
+        }}
       />
-      <div className="absolute bottom-2 left-2 text-xs text-terminal-highlight opacity-70 pointer-events-none">
-        Spectrum Analyzer
+      <div className="absolute bottom-2 right-2 text-xs text-terminal-highlight opacity-90 pointer-events-none font-mono">
+        🎵 SPECTRUM ANALYZER
       </div>
     </div>
   );
