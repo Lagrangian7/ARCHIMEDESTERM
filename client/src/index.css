@@ -117,6 +117,7 @@
   --terminal-logo-green: hsl(118 100% 75%);
   --terminal-bright-green: hsl(118 100% 75%);
   --terminal-orange: hsl(30 100% 50%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(118 40% 8%) 0%, hsl(0 0% 0%) 100%);
 }
 
 .theme-blue {
@@ -128,6 +129,7 @@
   --terminal-logo-green: hsl(200 100% 80%);
   --terminal-bright-green: hsl(200 100% 80%);
   --terminal-orange: hsl(45 100% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(200 50% 8%) 0%, hsl(0 0% 0%) 100%);
 }
 
 .theme-orange {
@@ -139,6 +141,7 @@
   --terminal-logo-green: hsl(30 100% 80%);
   --terminal-bright-green: hsl(30 100% 80%);
   --terminal-orange: hsl(200 100% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(30 50% 8%) 0%, hsl(0 0% 0%) 100%);
 }
 
 .theme-greyscale {
@@ -150,6 +153,7 @@
   --terminal-logo-green: hsl(0 0% 90%);
   --terminal-bright-green: hsl(0 0% 90%);
   --terminal-orange: hsl(0 0% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(0 0% 10%) 0%, hsl(0 0% 0%) 100%);
 }
 
 .theme-red {
@@ -161,6 +165,7 @@
   --terminal-logo-green: hsl(0 100% 80%);
   --terminal-bright-green: hsl(0 100% 80%);
   --terminal-orange: hsl(45 100% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(0 50% 8%) 0%, hsl(0 0% 0%) 100%);
 }
 
 .theme-blackwhite {
@@ -172,6 +177,7 @@
   --terminal-logo-green: hsl(0 0% 100%);
   --terminal-bright-green: hsl(0 0% 100%);
   --terminal-orange: hsl(0 0% 80%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(0 0% 15%) 0%, hsl(0 0% 0%) 100%);
 }
 
 .theme-patriot {
@@ -183,6 +189,7 @@
   --terminal-logo-green: hsl(0 85% 65%);
   --terminal-bright-green: hsl(0 85% 65%);
   --terminal-orange: hsl(220 80% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(220 40% 8%) 0%, hsl(0 30% 5%) 50%, hsl(0 0% 0%) 100%);
 }
 
 .theme-solarized {
@@ -194,6 +201,7 @@
   --terminal-logo-green: hsl(45 100% 35%);
   --terminal-bright-green: hsl(186 8% 62%);
   --terminal-orange: hsl(18 80% 45%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(193 60% 12%) 0%, hsl(193 80% 8%) 100%);
 }
 
 .theme-commodore64 {
@@ -206,6 +214,7 @@
   --terminal-bright-green: hsl(195 100% 85%);
   --terminal-orange: hsl(195 100% 65%);
   --terminal-no-bg: 1;
+  --voice-controls-gradient: linear-gradient(135deg, hsl(225 67% 28%) 0%, hsl(225 67% 20%) 100%);
 }
 
 .theme-cyberpunk {
@@ -217,6 +226,7 @@
   --terminal-logo-green: hsl(315 100% 70%);
   --terminal-bright-green: hsl(180 100% 60%);
   --terminal-orange: hsl(50 100% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(315 50% 8%) 0%, hsl(180 30% 5%) 50%, hsl(0 0% 3%) 100%);
 }
 
 .theme-forest {
@@ -228,6 +238,7 @@
   --terminal-logo-green: hsl(85 70% 75%);
   --terminal-bright-green: hsl(110 60% 65%);
   --terminal-orange: hsl(35 80% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(140 35% 12%) 0%, hsl(140 30% 8%) 100%);
 }
 
 .theme-ocean {
@@ -239,6 +250,7 @@
   --terminal-logo-green: hsl(175 90% 65%);
   --terminal-bright-green: hsl(195 80% 70%);
   --terminal-orange: hsl(40 95% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(210 55% 10%) 0%, hsl(210 50% 6%) 100%);
 }
 
 .theme-sunset {
@@ -250,6 +262,7 @@
   --terminal-logo-green: hsl(350 90% 65%);
   --terminal-bright-green: hsl(25 100% 70%);
   --terminal-orange: hsl(50 100% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(15 45% 12%) 0%, hsl(350 40% 8%) 50%, hsl(0 0% 5%) 100%);
 }
 
 .theme-neon {
@@ -261,6 +274,7 @@
   --terminal-logo-green: hsl(160 100% 50%);
   --terminal-bright-green: hsl(280 100% 75%);
   --terminal-orange: hsl(330 100% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(280 50% 8%) 0%, hsl(160 30% 5%) 50%, hsl(0 0% 0%) 100%);
 }
 
 .theme-vintage {
@@ -272,6 +286,7 @@
   --terminal-logo-green: hsl(25 70% 55%);
   --terminal-bright-green: hsl(35 60% 65%);
   --terminal-orange: hsl(15 80% 50%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(40 25% 17%) 0%, hsl(40 20% 12%) 100%);
 }
 
 .theme-arctic {
@@ -283,6 +298,7 @@
   --terminal-logo-green: hsl(185 100% 90%);
   --terminal-bright-green: hsl(190 70% 80%);
   --terminal-orange: hsl(210 60% 70%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(200 45% 14%) 0%, hsl(200 40% 10%) 100%);
 }
 
 .theme-amber {
@@ -294,6 +310,7 @@
   --terminal-logo-green: hsl(40 100% 75%);
   --terminal-bright-green: hsl(45 100% 70%);
   --terminal-orange: hsl(30 100% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(45 50% 10%) 0%, hsl(0 0% 5%) 100%);
 }
 
 .theme-hacker {
@@ -305,6 +322,7 @@
   --terminal-logo-green: hsl(120 100% 60%);
   --terminal-bright-green: hsl(120 100% 70%);
   --terminal-orange: hsl(60 100% 50%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(120 50% 6%) 0%, hsl(0 0% 0%) 100%);
 }
 
 .theme-royal {
@@ -316,6 +334,7 @@
   --terminal-logo-green: hsl(50 100% 65%);
   --terminal-bright-green: hsl(280 80% 75%);
   --terminal-orange: hsl(320 70% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(260 55% 12%) 0%, hsl(50 40% 8%) 50%, hsl(260 50% 8%) 100%);
 }
 
 .theme-vaporwave {
@@ -327,6 +346,7 @@
   --terminal-logo-green: hsl(180 100% 70%);
   --terminal-bright-green: hsl(330 100% 75%);
   --terminal-orange: hsl(270 100% 70%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(300 60% 10%) 0%, hsl(180 40% 6%) 50%, hsl(300 60% 6%) 100%);
 }
 
 .theme-desert {
@@ -338,6 +358,7 @@
   --terminal-logo-green: hsl(20 90% 60%);
   --terminal-bright-green: hsl(40 85% 65%);
   --terminal-orange: hsl(10 95% 55%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(30 45% 14%) 0%, hsl(30 40% 10%) 100%);
 }
 
 .theme-toxic {
@@ -349,6 +370,7 @@
   --terminal-logo-green: hsl(65 100% 45%);
   --terminal-bright-green: hsl(80 100% 50%);
   --terminal-orange: hsl(50 100% 50%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(80 50% 7%) 0%, hsl(0 0% 3%) 100%);
 }
 
 .theme-crimson {
@@ -360,6 +382,7 @@
   --terminal-logo-green: hsl(15 100% 65%);
   --terminal-bright-green: hsl(350 100% 70%);
   --terminal-orange: hsl(30 100% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(0 45% 10%) 0%, hsl(0 40% 6%) 100%);
 }
 
 .theme-lavender {
@@ -371,6 +394,7 @@
   --terminal-logo-green: hsl(310 80% 70%);
   --terminal-bright-green: hsl(290 70% 75%);
   --terminal-orange: hsl(330 75% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(270 45% 12%) 0%, hsl(270 40% 8%) 100%);
 }
 
 .theme-emerald {
@@ -382,6 +406,7 @@
   --terminal-logo-green: hsl(165 90% 65%);
   --terminal-bright-green: hsl(140 80% 60%);
   --terminal-orange: hsl(120 75% 55%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(160 55% 10%) 0%, hsl(160 50% 6%) 100%);
 }
 
 .theme-midnight {
@@ -393,6 +418,7 @@
   --terminal-logo-green: hsl(200 100% 70%);
   --terminal-bright-green: hsl(210 90% 65%);
   --terminal-orange: hsl(190 85% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(220 65% 8%) 0%, hsl(220 60% 4%) 100%);
 }
 
 .theme-sakura {
@@ -404,6 +430,7 @@
   --terminal-logo-green: hsl(0 85% 70%);
   --terminal-bright-green: hsl(320 80% 75%);
   --terminal-orange: hsl(10 90% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(340 35% 14%) 0%, hsl(340 30% 10%) 100%);
 }
 
 .theme-copper {
@@ -415,6 +442,7 @@
   --terminal-logo-green: hsl(25 85% 65%);
   --terminal-bright-green: hsl(30 75% 60%);
   --terminal-orange: hsl(15 90% 55%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(20 45% 12%) 0%, hsl(20 40% 8%) 100%);
 }
 
 .theme-plasma {
@@ -426,6 +454,7 @@
   --terminal-logo-green: hsl(340 100% 65%);
   --terminal-bright-green: hsl(290 100% 70%);
   --terminal-orange: hsl(20 100% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(290 60% 6%) 0%, hsl(340 40% 4%) 50%, hsl(0 0% 2%) 100%);
 }
 
 .theme-atari {
@@ -437,6 +466,7 @@
   --terminal-logo-green: hsl(10 100% 60%);
   --terminal-bright-green: hsl(50 100% 65%);
   --terminal-orange: hsl(30 100% 55%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(30 55% 12%) 0%, hsl(10 50% 8%) 50%, hsl(30 50% 8%) 100%);
 }
 
 .theme-nes {
@@ -448,6 +478,7 @@
   --terminal-logo-green: hsl(200 100% 70%);
   --terminal-bright-green: hsl(0 100% 65%);
   --terminal-orange: hsl(120 80% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(220 65% 14%) 0%, hsl(0 50% 8%) 50%, hsl(220 60% 10%) 100%);
 }
 
 .theme-gameboy {
@@ -459,6 +490,7 @@
   --terminal-logo-green: hsl(90 70% 75%);
   --terminal-bright-green: hsl(80 60% 60%);
   --terminal-orange: hsl(70 80% 50%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(80 25% 17%) 0%, hsl(80 20% 13%) 100%);
 }
 
 .theme-arcade {
@@ -470,6 +502,7 @@
   --terminal-logo-green: hsl(320 100% 65%);
   --terminal-bright-green: hsl(190 100% 60%);
   --terminal-orange: hsl(60 100% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(190 50% 6%) 0%, hsl(320 40% 5%) 50%, hsl(0 0% 0%) 100%);
 }
 
 .theme-spectrum {
@@ -481,6 +514,7 @@
   --terminal-logo-green: hsl(240 100% 70%);
   --terminal-bright-green: hsl(0 100% 70%);
   --terminal-orange: hsl(60 100% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(0 50% 6%) 0%, hsl(240 50% 5%) 50%, hsl(0 0% 0%) 100%);
 }
 
 .theme-rainbow-cycle {
@@ -492,6 +526,7 @@
   --terminal-logo-green: hsl(320 100% 65%);
   --terminal-bright-green: hsl(180 100% 60%);
   --terminal-orange: hsl(50 100% 60%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(280 40% 8%) 0%, hsl(200 30% 5%) 33%, hsl(118 30% 5%) 66%, hsl(0 0% 0%) 100%);
 }
 
 /* New Eye-Friendly Themes - No Background Image */
