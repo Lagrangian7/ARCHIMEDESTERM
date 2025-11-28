@@ -148,107 +148,123 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
           }}
         />
 
-        {/* Red channel shift (chromatic aberration) */}
+        {/* Red channel shift (chromatic aberration) - MORE VISIBLE */}
         <div 
           className="absolute inset-0 pointer-events-none mix-blend-screen"
           style={{
-            background: 'radial-gradient(circle, transparent 30%, rgba(255,0,0,0.15) 100%)',
-            animation: 'archimedesChannelShift 0.15s steps(2) infinite',
-            transform: 'translateX(-2px)',
+            background: 'linear-gradient(90deg, rgba(255,0,0,0.4) 0%, transparent 50%, rgba(255,0,0,0.3) 100%)',
+            animation: 'archimedesChannelShift 0.1s steps(2) infinite',
+            transform: 'translateX(-3px)',
           }}
         />
 
-        {/* Blue channel shift */}
+        {/* Blue channel shift - MORE VISIBLE */}
         <div 
           className="absolute inset-0 pointer-events-none mix-blend-screen"
           style={{
-            background: 'radial-gradient(circle, transparent 30%, rgba(0,100,255,0.12) 100%)',
-            animation: 'archimedesChannelShift 0.15s steps(2) infinite reverse',
-            transform: 'translateX(2px)',
+            background: 'linear-gradient(90deg, rgba(0,100,255,0.3) 0%, transparent 50%, rgba(0,100,255,0.4) 100%)',
+            animation: 'archimedesChannelShift 0.1s steps(2) infinite reverse',
+            transform: 'translateX(3px)',
           }}
         />
 
-        {/* Heavy scanlines */}
+        {/* Heavy scanlines - DARKER */}
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15) 0px, transparent 1px, transparent 2px, rgba(0, 0, 0, 0.15) 3px)',
+            background: 'repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.25) 0px, transparent 1px, transparent 2px, rgba(0, 0, 0, 0.25) 3px)',
           }}
         />
 
-        {/* Animated scanline sweep */}
+        {/* Animated scanline sweep - BRIGHTER */}
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(180deg, transparent 0%, rgba(0, 255, 65, 0.08) 50%, transparent 100%)',
-            backgroundSize: '100% 20px',
-            animation: 'archimedesScanSweep 2s linear infinite',
+            background: 'linear-gradient(180deg, transparent 0%, rgba(0, 255, 65, 0.25) 50%, transparent 100%)',
+            backgroundSize: '100% 15px',
+            animation: 'archimedesScanSweep 1.5s linear infinite',
           }}
         />
 
-        {/* VHS tracking glitch bars */}
+        {/* VHS tracking glitch bars - MORE VISIBLE */}
         <div 
           className="absolute inset-0 pointer-events-none overflow-hidden"
           style={{
-            animation: 'archimedesTrackingGlitch 4s steps(1) infinite',
+            animation: 'archimedesTrackingGlitch 2s steps(1) infinite',
           }}
         >
           <div 
-            className="absolute w-full h-2 bg-terminal-highlight/30"
+            className="absolute w-full h-3 bg-terminal-highlight/60"
             style={{
-              animation: 'archimedesGlitchBar 0.3s steps(3) infinite',
-              top: '20%',
+              animation: 'archimedesGlitchBar 0.2s steps(3) infinite',
+              top: '25%',
             }}
           />
           <div 
-            className="absolute w-full h-1 bg-white/20"
+            className="absolute w-full h-2 bg-white/40"
             style={{
-              animation: 'archimedesGlitchBar 0.25s steps(2) infinite reverse',
-              top: '60%',
+              animation: 'archimedesGlitchBar 0.15s steps(2) infinite reverse',
+              top: '55%',
+            }}
+          />
+          <div 
+            className="absolute w-full h-2 bg-red-500/30"
+            style={{
+              animation: 'archimedesGlitchBar 0.25s steps(2) infinite',
+              top: '75%',
             }}
           />
         </div>
 
-        {/* Noise grain overlay */}
+        {/* Noise grain overlay - MORE VISIBLE */}
         <div 
-          className="absolute inset-0 pointer-events-none opacity-20"
+          className="absolute inset-0 pointer-events-none opacity-40"
           style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' /%3E%3C/svg%3E")',
-            animation: 'archimedesNoise 0.05s steps(4) infinite',
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' /%3E%3C/svg%3E")',
+            animation: 'archimedesNoise 0.03s steps(5) infinite',
           }}
         />
 
-        {/* Horizontal displacement glitch */}
+        {/* Horizontal displacement glitch - FASTER */}
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
-            animation: 'archimedesHorizontalGlitch 3s ease-in-out infinite',
+            animation: 'archimedesHorizontalGlitch 1.5s ease-in-out infinite',
           }}
         />
 
-        {/* Pulsing border glow */}
-        <div className="absolute inset-0 rounded-full ring-2 ring-terminal-highlight/50 pointer-events-none"
-             style={{ animation: 'archimedesGlow 1.5s ease-in-out infinite' }} />
+        {/* Pulsing border glow - STRONGER */}
+        <div className="absolute inset-0 rounded-full ring-4 ring-terminal-highlight/80 pointer-events-none"
+             style={{ animation: 'archimedesGlow 0.8s ease-in-out infinite' }} />
 
         {/* Drag indicator */}
         <div className="absolute top-1 right-1 text-terminal-highlight text-xs opacity-70 pointer-events-none select-none drop-shadow-[0_0_3px_rgba(0,255,65,0.5)]" title="Drag to move">
           ⋮⋮
         </div>
 
-        {/* Random bright flash glitch */}
+        {/* Random bright flash glitch - FASTER */}
         <div 
-          className="absolute inset-0 bg-terminal-highlight pointer-events-none"
+          className="absolute inset-0 bg-terminal-highlight pointer-events-none rounded-full"
           style={{
-            animation: 'archimedesFlash 2.5s steps(1) infinite',
+            animation: 'archimedesFlash 1.5s steps(1) infinite',
           }}
         />
 
-        {/* Glitch slice effect */}
+        {/* Glitch slice effect - FASTER */}
         <div 
           className="absolute inset-0 pointer-events-none overflow-hidden"
           style={{
             clipPath: 'inset(0 0 0 0)',
-            animation: 'archimedesSlice 4s steps(1) infinite',
+            animation: 'archimedesSlice 1.5s steps(1) infinite',
+          }}
+        />
+
+        {/* Extra video distortion layer */}
+        <div 
+          className="absolute inset-0 pointer-events-none rounded-full"
+          style={{
+            animation: 'archimedesVideoGlitch 0.1s steps(3) infinite',
+            background: 'linear-gradient(transparent 40%, rgba(0,255,65,0.1) 50%, transparent 60%)',
           }}
         />
       </div>
