@@ -4,13 +4,14 @@ import { Mistral } from '@mistralai/mistralai';
 import type { Message } from '@shared/schema';
 import { knowledgeService } from './knowledge-service';
 
-// Use Replit's managed AI inference for Gemini
+// Use Replit's managed AI inference for multiple models
 const REPLIT_AI_ENDPOINT = 'https://ai-inference.replit.com/v1';
 const replitAI = new OpenAI({
   apiKey: process.env.REPLIT_AI_API_KEY || 'placeholder',
   baseURL: REPLIT_AI_ENDPOINT,
 });
 
+// Legacy Mistral client (if using your own API key)
 const mistral = new Mistral({
   apiKey: process.env.MISTRAL_API_KEY,
 });
@@ -633,9 +634,9 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     let aiResponse: string;
 
     try {
-      // Always use Replit's managed Gemini as primary (no API key needed)
-      console.log(`[LLM] Using Replit Managed Gemini (Primary) for ${safeMode.toUpperCase()} mode`);
-      aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      // Use Replit's managed Mistral as primary (no API key needed)
+      console.log(`[LLM] Using Replit Managed Mistral (Primary) for ${safeMode.toUpperCase()} mode`);
+      aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
 
     } catch (primaryError) {
       console.error('Primary AI models error:', primaryError);
@@ -701,6 +702,47 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     }
 
     return aiResponse;
+  }
+
+  private async generateReplitMistralResponse(
+    userMessage: string,
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
+    conversationHistory: Message[] = [],
+    language: string = 'english',
+    isNewSession: boolean = false
+  ): Promise<string> {
+    const systemPrompt = this.getSystemPrompt(mode, userMessage);
+    const greetingInstruction = this.buildSessionGreeting(isNewSession);
+    const recentHistory = this.buildConversationHistory(conversationHistory, 8);
+    
+    // Build messages array for Replit AI
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role: 'system', content: systemPrompt + greetingInstruction }
+    ];
+
+    // Add recent conversation history
+    for (const msg of recentHistory) {
+      if (msg.role === 'user' || msg.role === 'assistant') {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
+
+    // Add current user message
+    messages.push({ role: 'user', content: userMessage });
+
+    // Use Replit's managed Mistral model
+    const completion = await replitAI.chat.completions.create({
+      model: 'mistralai/mistral-7b-instruct-v0.3',
+      messages,
+      max_tokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
+      temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.4 : mode === 'freestyle' ? 0.8 : 0.85,
+    });
+
+    const responseText = completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
+    return this.postProcessResponse(responseText, mode);
   }
 
   private async generateGeminiResponse(
