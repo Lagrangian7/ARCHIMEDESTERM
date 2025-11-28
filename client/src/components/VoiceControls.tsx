@@ -10,7 +10,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from './LogoIcon';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
-import { MilkdropBackground } from './MilkdropBackground';
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
@@ -29,7 +28,6 @@ interface VoiceControlsProps {
   setShowNotepad: (show: boolean) => void;
   setShowPythonIDE: (show: boolean) => void;
   openPythonLessons?: () => void;
-  openWebSynth?: boolean;
 }
 
 export function VoiceControls({
@@ -49,7 +47,6 @@ export function VoiceControls({
   setShowNotepad,
   setShowPythonIDE,
   openPythonLessons,
-  openWebSynth,
 }: VoiceControlsProps) {
   const { toast } = useToast();
   const {
@@ -122,8 +119,7 @@ export function VoiceControls({
   const [showSshwifty, setShowSshwiftyLocal] = useState(false);
 
   return (
-    <div className="voice-controls p-2 md:p-3 border-b border-terminal-subtle flex flex-wrap md:flex-nowrap items-center justify-between gap-2 text-sm relative z-10 overflow-hidden">
-      <MilkdropBackground isActive={!!openWebSynth} />
+    <div className="voice-controls p-2 md:p-3 border-b border-terminal-subtle flex flex-wrap md:flex-nowrap items-center justify-between gap-2 text-sm">
       <div className="flex items-center gap-2 md:gap-4">
         <LogoIcon />
         <div className="min-w-0">
