@@ -265,6 +265,50 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  // Calculate initial position when bubble should appear (after typing animation)
+  useEffect(() => {
+    if (!isTyping && !position && responseElementRef.current) {
+      const rect = responseElementRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Position bubble near the response, offset to the right and down
+      const bubbleWidth = 400; // Approximate max-width
+      const bubbleHeight = 200; // Approximate height
+
+      let x = rect.right + 20; // 20px to the right
+      let y = rect.top;
+
+      // Keep bubble within viewport bounds
+      if (x + bubbleWidth > viewportWidth) {
+        x = rect.left - bubbleWidth - 20; // Position to the left instead
+      }
+      if (y + bubbleHeight > viewportHeight) {
+        y = viewportHeight - bubbleHeight - 20;
+      }
+
+      // Ensure minimum margins
+      x = Math.max(20, Math.min(x, viewportWidth - bubbleWidth - 20));
+      y = Math.max(20, Math.min(y, viewportHeight - bubbleHeight - 20));
+
+      setPosition({ x, y });
+      setShowFloating(true);
+
+      // Notify parent that bubble has been rendered
+      if (onBubbleRendered) {
+        onBubbleRendered();
+      }
+
+      // Emit event to scroll terminal to this response
+      setTimeout(() => {
+        const event = new CustomEvent('scroll-to-response', {
+          detail: { entryId, elementRect: rect }
+        });
+        window.dispatchEvent(event);
+      }, 100);
+    }
+  }, [isTyping, position, onBubbleRendered, entryId]);
+
   // Always render both: original (hidden) + floating draggable version
   return (
     <>

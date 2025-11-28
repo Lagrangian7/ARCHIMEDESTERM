@@ -316,6 +316,35 @@ export function Terminal() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
+  // Auto-scroll to AI response popup when it appears
+  useEffect(() => {
+    const handleScrollToResponse = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { elementRect } = customEvent.detail;
+      
+      if (elementRect && scrollAreaRef.current) {
+        const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (viewport) {
+          // Calculate the position to scroll to
+          const viewportRect = viewport.getBoundingClientRect();
+          const relativeTop = elementRect.top - viewportRect.top;
+          const targetScroll = viewport.scrollTop + relativeTop - 100; // 100px padding from top
+          
+          // Smooth scroll to the response
+          viewport.scrollTo({
+            top: Math.max(0, targetScroll),
+            behavior: 'smooth'
+          });
+        }
+      }
+    };
+
+    window.addEventListener('scroll-to-response', handleScrollToResponse);
+    return () => {
+      window.removeEventListener('scroll-to-response', handleScrollToResponse);
+    };
+  }, []);
+
   // Auto-speak responses and system messages - only speak new entries once
   useEffect(() => {
     const lastEntry = entries[entries.length - 1];
