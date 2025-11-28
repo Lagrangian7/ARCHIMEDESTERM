@@ -61,6 +61,18 @@ export function useTerminal(onUploadCommand?: () => void) {
       localStorage.setItem('ai-mode', currentMode);
     }
   }, [currentMode]);
+
+  // Listen for mode changes from UserProfile preferences (custom event for same-tab sync)
+  useEffect(() => {
+    const handleModeChange = (e: CustomEvent<{ mode: string }>) => {
+      const newMode = e.detail.mode as 'natural' | 'technical' | 'freestyle' | 'health';
+      if (['natural', 'technical', 'freestyle', 'health'].includes(newMode)) {
+        setCurrentMode(newMode);
+      }
+    };
+    window.addEventListener('ai-mode-change', handleModeChange as EventListener);
+    return () => window.removeEventListener('ai-mode-change', handleModeChange as EventListener);
+  }, []);
   const [backgroundAudio, setBackgroundAudio] = useState<HTMLAudioElement | null>(null);
   const [showPythonIDE, setShowPythonIDE] = useState(false);
   const [showPythonLessons, setShowPythonLessons] = useState(false);

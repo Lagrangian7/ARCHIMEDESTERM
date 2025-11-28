@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { UserPreferences, InsertUserPreferences } from "@shared/schema";
@@ -9,6 +10,17 @@ export function useUserPreferences() {
     queryKey: ["/api/user/preferences"],
     retry: false,
   });
+
+  // Sync defaultMode preference with localStorage and dispatch event for same-tab listeners
+  useEffect(() => {
+    if (preferences?.defaultMode) {
+      localStorage.setItem('ai-mode', preferences.defaultMode);
+      // Dispatch custom event for same-tab mode sync (storage event only fires for other tabs)
+      window.dispatchEvent(new CustomEvent('ai-mode-change', { 
+        detail: { mode: preferences.defaultMode } 
+      }));
+    }
+  }, [preferences?.defaultMode]);
 
   const updatePreferencesMutation = useMutation({
     mutationFn: async (updates: Partial<InsertUserPreferences>) => {
