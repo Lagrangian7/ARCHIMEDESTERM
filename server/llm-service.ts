@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { HfInference } from '@huggingface/inference';
 import { Mistral } from '@mistralai/mistralai';
+import Groq from 'groq-sdk';
 import type { Message } from '@shared/schema';
 import { knowledgeService } from './knowledge-service';
 
@@ -21,6 +22,12 @@ const openai = new OpenAI({
 });
 
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+
+// Groq client for fast, free natural chat (using Llama/Mistral models)
+// Only initialize if API key is available
+const groq = process.env.GROQ_API_KEY ? new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+}) : null;
 
 // Replit-specific AI configuration
 const REPLIT_AI_CONFIG = {
@@ -634,20 +641,31 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     let aiResponse: string;
 
     try {
-      // Use Replit's managed Mistral as primary (no API key needed)
-      console.log(`[LLM] Using Replit Managed Mistral (Primary) for ${safeMode.toUpperCase()} mode`);
-      aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      // For natural chat mode, use Groq (free, fast) if available
+      if (safeMode === 'natural' && process.env.GROQ_API_KEY) {
+        console.log(`[LLM] Using Groq (Free, Fast) for NATURAL chat mode`);
+        aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      } else {
+        // Use Replit's managed Mistral as primary for other modes
+        console.log(`[LLM] Using Replit Managed Mistral (Primary) for ${safeMode.toUpperCase()} mode`);
+        aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      }
 
     } catch (primaryError) {
       console.error('Primary AI models error:', primaryError);
 
       try {
-        // Try OpenAI as first fallback (most reliable when rate limits hit)
-        if (process.env.OPENAI_API_KEY) {
+        // Try Groq as first fallback for natural mode (if not already used)
+        if (safeMode === 'natural' && process.env.GROQ_API_KEY && !(primaryError instanceof Error && primaryError.message.includes('Groq'))) {
+          console.log(`[LLM] Falling back to Groq for NATURAL mode`);
+          aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+        }
+        // Try OpenAI as fallback
+        else if (process.env.OPENAI_API_KEY) {
           console.log(`[LLM] Falling back to OpenAI for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         }
-        // Try Mistral as second fallback
+        // Try Mistral as fallback
         else if (process.env.MISTRAL_API_KEY) {
           console.log(`[LLM] Falling back to Mistral AI for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
@@ -739,6 +757,51 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       messages,
       max_tokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
       temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.4 : mode === 'freestyle' ? 0.8 : 0.85,
+    });
+
+    const responseText = completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
+    return this.postProcessResponse(responseText, mode);
+  }
+
+  private async generateGroqResponse(
+    userMessage: string,
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
+    conversationHistory: Message[] = [],
+    language: string = 'english',
+    isNewSession: boolean = false
+  ): Promise<string> {
+    if (!groq) {
+      throw new Error('Groq client not initialized - GROQ_API_KEY is not set');
+    }
+
+    const systemPrompt = this.getSystemPrompt(mode, userMessage);
+    const greetingInstruction = this.buildSessionGreeting(isNewSession);
+    const recentHistory = this.buildConversationHistory(conversationHistory, 10);
+
+    // Build messages array for Groq
+    const messages: Array<{role: 'system' | 'user' | 'assistant', content: string}> = [
+      { role: 'system', content: systemPrompt + greetingInstruction }
+    ];
+
+    // Add recent conversation history
+    for (const msg of recentHistory) {
+      if (msg.role === 'user' || msg.role === 'assistant') {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
+
+    // Add current user message
+    messages.push({ role: 'user', content: userMessage });
+
+    // Use Groq's fast Llama model for natural chat
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.1-8b-instant', // Fast, efficient model perfect for natural chat
+      messages,
+      max_tokens: mode === 'technical' || mode === 'health' ? 4000 : 1500,
+      temperature: mode === 'natural' ? 0.85 : mode === 'health' ? 0.4 : 0.7,
     });
 
     const responseText = completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
