@@ -572,7 +572,7 @@ export function Terminal() {
             setShowNotepad={setShowNotepad}
             setShowPythonIDE={setShowPythonIDE} // Pass the prop to control Python IDE visibility
             openPythonLessons={ () => setShowPythonLessons(true) } // Add callback for Python Lessons
-            openWebSynth={() => setShowWebSynth(true)} // Pass down the prop to control WebSynth visibility
+            openWebSynth={isWebampOpen} // Pass Webamp open state to activate visualizer
           />
         </div>
 

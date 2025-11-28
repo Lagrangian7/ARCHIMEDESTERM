@@ -29,7 +29,7 @@ interface VoiceControlsProps {
   setShowNotepad: (show: boolean) => void;
   setShowPythonIDE: (show: boolean) => void;
   openPythonLessons?: () => void;
-  openWebSynth?: () => void;
+  openWebSynth?: boolean;
 }
 
 export function VoiceControls({
@@ -120,11 +120,10 @@ export function VoiceControls({
   const [showSpiderFoot, setShowSpiderFoot] = useState(false);
   const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
   const [showSshwifty, setShowSshwiftyLocal] = useState(false);
-  const [showMilkdrop, setShowMilkdrop] = useState(false);
 
   return (
     <div className="voice-controls p-2 md:p-3 border-b border-terminal-subtle flex flex-wrap md:flex-nowrap items-center justify-between gap-2 text-sm relative z-10 overflow-hidden">
-      <MilkdropBackground isActive={showMilkdrop} />
+      <MilkdropBackground isActive={!!openWebSynth} />
       <div className="flex items-center gap-2 md:gap-4">
         <LogoIcon />
         <div className="min-w-0">
@@ -293,18 +292,6 @@ export function VoiceControls({
           aria-label="Webamp Music Player"
         >
           <CassetteTape size={16} />
-        </Button>
-
-        {/* Milkdrop Visualizer Toggle */}
-        <Button
-          onClick={() => setShowMilkdrop(!showMilkdrop)}
-          variant="outline"
-          size="sm"
-          className={`bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2 ${showMilkdrop ? 'bg-terminal-highlight text-terminal-bg' : ''}`}
-          data-testid="button-milkdrop"
-          aria-label="Toggle Milkdrop Visualizer"
-        >
-          <Volume2 size={16} />
         </Button>
 
         {/* RGB Theme Switcher */}
