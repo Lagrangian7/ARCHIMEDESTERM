@@ -1305,6 +1305,24 @@
   }
 }
 
+@keyframes terminalFlicker {
+  0%, 94%, 100% {
+    opacity: 0;
+  }
+  95% {
+    opacity: 0.15;
+  }
+  96% {
+    opacity: 0;
+  }
+  97% {
+    opacity: 0.08;
+  }
+  98%, 99% {
+    opacity: 0;
+  }
+}
+
 @keyframes terminalScanGlitch {
   0% {
     opacity: 0;

@@ -20,18 +20,42 @@ const TabsList = React.forwardRef<
 ))
 TabsList.displayName = TabsPrimitive.List.displayName
 
+interface TabsTriggerProps extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> {
+  hasNotification?: boolean;
+  notificationCount?: number;
+}
+
 const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => (
+  TabsTriggerProps
+>(({ className, hasNotification, notificationCount, children, ...props }, ref) => (
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+      "relative inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
       className
     )}
     {...props}
-  />
+  >
+    {children}
+    {hasNotification && (
+      <span 
+        className="absolute -top-1 -right-1 flex h-3 w-3"
+        data-testid="tab-notification-indicator"
+      >
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-terminal-highlight opacity-75"></span>
+        <span className="relative inline-flex rounded-full h-3 w-3 bg-terminal-highlight"></span>
+      </span>
+    )}
+    {notificationCount !== undefined && notificationCount > 0 && (
+      <span 
+        className="absolute -top-1 -right-1 flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-terminal-highlight text-terminal-bg text-xs font-bold"
+        data-testid="tab-notification-count"
+      >
+        {notificationCount > 99 ? '99+' : notificationCount}
+      </span>
+    )}
+  </TabsPrimitive.Trigger>
 ))
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 

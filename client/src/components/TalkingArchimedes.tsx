@@ -133,7 +133,8 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
       onTouchStart={handleTouchStart}
       data-testid="talking-archimedes-draggable"
     >
-      <div className="relative w-32 h-32 rounded-full overflow-hidden border border-terminal-highlight/20 bg-terminal-bg">
+      <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-terminal-highlight/40 bg-terminal-bg shadow-lg shadow-terminal-highlight/20">
+        {/* Video with glitch effect */}
         <video
           ref={videoRef}
           src={archimedesVideo2}
@@ -141,12 +142,56 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
           muted
           playsInline
           preload="none"
-          className="w-full h-full object-cover pointer-events-none"
+          className="w-full h-full object-cover pointer-events-none animate-glitch"
+          style={{
+            filter: 'contrast(1.1) brightness(0.95)',
+          }}
         />
 
-        <div className="absolute top-1 right-1 text-terminal-subtle text-xs opacity-50 pointer-events-none select-none" title="Drag to move">
+        {/* Scanline overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'repeating-linear-gradient(0deg, rgba(0, 255, 65, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 255, 65, 0.03) 3px)',
+            animation: 'terminalScanGlitch 8s linear infinite',
+          }}
+        />
+
+        {/* RGB glitch overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none mix-blend-screen opacity-20"
+          style={{
+            background: 'linear-gradient(90deg, rgba(255,0,0,0.1) 0%, rgba(0,255,0,0.1) 50%, rgba(0,0,255,0.1) 100%)',
+            animation: 'glitch 3s ease-in-out infinite',
+          }}
+        />
+
+        {/* Interference noise */}
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-5"
+          style={{
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' /%3E%3C/svg%3E")',
+            animation: 'terminalGlitch 0.1s steps(2, end) infinite',
+          }}
+        />
+
+        {/* Pulsing border glow */}
+        <div className="absolute inset-0 rounded-full ring-1 ring-terminal-highlight/30 animate-pulse pointer-events-none"
+             style={{ animationDuration: '2s' }} />
+
+        {/* Drag indicator */}
+        <div className="absolute top-1 right-1 text-terminal-highlight text-xs opacity-70 pointer-events-none select-none drop-shadow-[0_0_3px_rgba(0,255,65,0.5)]" title="Drag to move">
           ⋮⋮
         </div>
+
+        {/* Random glitch flash */}
+        <div 
+          className="absolute inset-0 bg-terminal-highlight pointer-events-none"
+          style={{
+            opacity: 0,
+            animation: 'terminalFlicker 4s ease-in-out infinite',
+          }}
+        />
       </div>
     </div>
   );

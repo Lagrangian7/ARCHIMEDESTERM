@@ -38,6 +38,8 @@ const OSINT_SOURCES = [
   { value: 'threatintel', label: 'Threat Intelligence', description: 'Security threat data' }
 ];
 
+type TabType = 'emails' | 'subdomains' | 'ips' | 'urls' | 'certificates';
+
 export function TheHarvester({ onClose }: TheHarvesterProps) {
   const [domain, setDomain] = useState('');
   const [source, setSource] = useState('all');
@@ -45,8 +47,26 @@ export function TheHarvester({ onClose }: TheHarvesterProps) {
   const [results, setResults] = useState<HarvestResult | null>(null);
   const [isHarvesting, setIsHarvesting] = useState(false);
   const [progress, setProgress] = useState('');
-  const [activeTab, setActiveTab] = useState<'emails' | 'subdomains' | 'ips' | 'urls' | 'certificates'>('emails');
+  const [activeTab, setActiveTab] = useState<TabType>('emails');
+  const [viewedTabs, setViewedTabs] = useState<Set<TabType>>(() => new Set<TabType>(['emails']));
+  const [previousResults, setPreviousResults] = useState<HarvestResult | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  const handleTabClick = (tab: TabType) => {
+    setActiveTab(tab);
+    setViewedTabs(prev => {
+      const newSet = new Set<TabType>(prev);
+      newSet.add(tab);
+      return newSet;
+    });
+  };
+
+  const hasNewContent = (tab: TabType): boolean => {
+    if (!results || viewedTabs.has(tab)) return false;
+    const count = results[tab]?.length || 0;
+    const prevCount = previousResults?.[tab]?.length || 0;
+    return count > prevCount || (count > 0 && !previousResults);
+  };
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -94,7 +114,9 @@ export function TheHarvester({ onClose }: TheHarvesterProps) {
       });
 
       const data = await response.json();
+      setPreviousResults(results);
       setResults(data);
+      setViewedTabs(new Set<TabType>([activeTab]));
       setProgress(`Harvest complete! Found ${data.metadata.total_results} total results.`);
       
       // Auto-scroll to results
@@ -312,8 +334,8 @@ export function TheHarvester({ onClose }: TheHarvesterProps) {
               {(['emails', 'subdomains', 'ips', 'urls', 'certificates'] as const).map((tab) => (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors font-mono text-sm ${
+                  onClick={() => handleTabClick(tab)}
+                  className={`relative flex items-center gap-2 px-4 py-3 border-b-2 transition-colors font-mono text-sm ${
                     activeTab === tab
                       ? 'border-terminal-highlight text-terminal-highlight'
                       : 'border-transparent text-terminal-subtle hover:text-terminal-text'
@@ -325,6 +347,15 @@ export function TheHarvester({ onClose }: TheHarvesterProps) {
                   <Badge variant="secondary" className="ml-1 bg-terminal-highlight/20 text-terminal-highlight">
                     {getTabCount(tab)}
                   </Badge>
+                  {hasNewContent(tab) && (
+                    <span 
+                      className="absolute -top-1 -right-1 flex h-3 w-3"
+                      data-testid={`tab-notification-${tab}`}
+                    >
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-terminal-highlight opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-terminal-highlight"></span>
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
