@@ -14,11 +14,11 @@ export function VoiceEqualizer({
   className = '' 
 }: VoiceEqualizerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const { isSpeaking } = useSpeech();
   const [isActive, setIsActive] = useState(false);
+  const barHeightsRef = useRef<number[]>([]);
+  const barVelocitiesRef = useRef<number[]>([]);
 
   useEffect(() => {
     if (!isSpeaking) {
@@ -31,113 +31,112 @@ export function VoiceEqualizer({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Initialize audio context and analyser
-    const initAudio = async () => {
-      try {
-        if (!audioContextRef.current) {
-          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        }
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-        if (!analyserRef.current) {
-          analyserRef.current = audioContextRef.current.createAnalyser();
-          analyserRef.current.fftSize = 256;
-          analyserRef.current.smoothingTimeConstant = 0.8;
-        }
+    // Initialize bar heights and velocities
+    if (barHeightsRef.current.length === 0) {
+      barHeightsRef.current = Array(barCount).fill(0).map(() => Math.random() * 0.3);
+      barVelocitiesRef.current = Array(barCount).fill(0).map(() => (Math.random() - 0.5) * 0.02);
+    }
 
-        // Connect to Web Speech API audio destination
-        const destination = audioContextRef.current.destination;
-        const source = audioContextRef.current.createMediaStreamDestination();
+    let frameCount = 0;
+
+    const draw = () => {
+      if (!isSpeaking) {
+        // Fade out effect
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Try to capture system audio (this works with TTS)
-        analyserRef.current.connect(destination);
-
-        // Start visualization
-        visualize();
-      } catch (error) {
-        console.error('Failed to initialize audio analyzer:', error);
-      }
-    };
-
-    const visualize = () => {
-      if (!analyserRef.current || !canvas) return;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      const bufferLength = analyserRef.current.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-
-      const draw = () => {
-        if (!isSpeaking) {
-          // Fade out effect
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          
-          if (animationFrameRef.current) {
-            cancelAnimationFrame(animationFrameRef.current);
-            animationFrameRef.current = null;
-          }
+        // Gradually reduce bar heights
+        barHeightsRef.current = barHeightsRef.current.map(h => Math.max(0, h * 0.95));
+        
+        // Check if all bars are nearly zero
+        const allZero = barHeightsRef.current.every(h => h < 0.01);
+        if (allZero && animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+          barHeightsRef.current = [];
+          barVelocitiesRef.current = [];
           return;
         }
+      }
 
-        animationFrameRef.current = requestAnimationFrame(draw);
+      animationFrameRef.current = requestAnimationFrame(draw);
+      frameCount++;
 
-        analyserRef.current!.getByteFrequencyData(dataArray);
+      // Clear canvas with slight fade
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Clear canvas
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const barWidth = canvas.width / barCount;
+      const barSpacing = 1;
 
-        // Draw EQ bars
-        const barWidth = canvas.width / barCount;
-        const barSpacing = 1;
+      for (let i = 0; i < barCount; i++) {
+        // Simulate frequency response - lower frequencies (left) are more prominent in speech
+        const baseIntensity = 0.4 + Math.cos(frameCount * 0.05 + i * 0.3) * 0.3;
+        const frequencyBias = 1 - (i / barCount) * 0.5; // Lower bars are taller
         
-        for (let i = 0; i < barCount; i++) {
-          // Sample frequency data
-          const index = Math.floor((i / barCount) * bufferLength);
-          const value = dataArray[index] || 0;
-          const barHeight = (value / 255) * canvas.height * 0.9;
+        // Add some randomness and wave motion
+        const waveMotion = Math.sin(frameCount * 0.08 + i * 0.5) * 0.2;
+        const randomNoise = Math.random() * 0.15;
+        
+        // Calculate target height
+        const targetHeight = (baseIntensity * frequencyBias + waveMotion + randomNoise) * 0.8;
+        
+        // Smooth transition to target
+        const currentHeight = barHeightsRef.current[i] || 0;
+        const diff = targetHeight - currentHeight;
+        barHeightsRef.current[i] = currentHeight + diff * 0.15;
+        
+        // Add slight bounce
+        barVelocitiesRef.current[i] = (barVelocitiesRef.current[i] || 0) * 0.9 + diff * 0.05;
+        barHeightsRef.current[i] += barVelocitiesRef.current[i];
+        
+        // Clamp values
+        barHeightsRef.current[i] = Math.max(0, Math.min(1, barHeightsRef.current[i]));
+        
+        const normalizedHeight = barHeightsRef.current[i];
+        const barHeight = normalizedHeight * canvas.height * 0.9;
 
-          // Calculate color based on bar height (green -> yellow -> red)
-          const hue = 120 - (value / 255) * 120; // 120 = green, 0 = red
-          const brightness = 50 + (value / 255) * 10;
-          
-          // Draw bar with gradient effect
-          const x = i * barWidth;
-          const y = canvas.height - barHeight;
+        // Calculate color based on bar height (green -> yellow -> red)
+        const value = normalizedHeight * 255;
+        const hue = 120 - (normalizedHeight * 120); // 120 = green, 0 = red
+        const brightness = 50 + (normalizedHeight * 10);
+        
+        // Draw bar with gradient effect
+        const x = i * barWidth;
+        const y = canvas.height - barHeight;
 
-          // Glow effect
-          ctx.shadowBlur = 8;
-          ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
-          
-          // Main bar
-          ctx.fillStyle = `hsl(${hue}, 100%, ${brightness}%)`;
+        // Glow effect
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+        
+        // Main bar
+        ctx.fillStyle = `hsl(${hue}, 100%, ${brightness}%)`;
+        ctx.fillRect(
+          x + barSpacing / 2,
+          y,
+          barWidth - barSpacing,
+          barHeight
+        );
+
+        // Peak indicator
+        if (normalizedHeight > 0.75) {
+          ctx.fillStyle = `hsl(${hue}, 100%, 70%)`;
           ctx.fillRect(
             x + barSpacing / 2,
-            y,
+            y - 3,
             barWidth - barSpacing,
-            barHeight
+            2
           );
-
-          // Peak indicator
-          if (value > 200) {
-            ctx.fillStyle = `hsl(${hue}, 100%, 70%)`;
-            ctx.fillRect(
-              x + barSpacing / 2,
-              y - 3,
-              barWidth - barSpacing,
-              2
-            );
-          }
         }
+      }
 
-        ctx.shadowBlur = 0;
-      };
-
-      draw();
+      ctx.shadowBlur = 0;
     };
 
-    initAudio();
+    draw();
 
     return () => {
       if (animationFrameRef.current) {
