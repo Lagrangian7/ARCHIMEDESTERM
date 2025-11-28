@@ -146,7 +146,7 @@ export function UserProfile({ onClose }: UserProfileProps) {
                 <Brain size={16} />
                 <h4 className="font-semibold">AI Behavior</h4>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <Button
                   onClick={() => handlePreferenceUpdate({ defaultMode: "natural" })}
                   variant={preferences.defaultMode === "natural" ? "default" : "outline"}
@@ -168,6 +168,17 @@ export function UserProfile({ onClose }: UserProfileProps) {
                   disabled={isUpdating}
                 >
                   Technical Mode
+                </Button>
+                <Button
+                  onClick={() => handlePreferenceUpdate({ defaultMode: "freestyle" })}
+                  variant={preferences.defaultMode === "freestyle" ? "default" : "outline"}
+                  style={preferences.defaultMode === "freestyle"
+                    ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
+                    : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
+                  }
+                  disabled={isUpdating}
+                >
+                  Freestyle Mode
                 </Button>
                 <Button
                   onClick={() => handlePreferenceUpdate({ defaultMode: "health" })}
