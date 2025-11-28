@@ -632,8 +632,13 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     let aiResponse: string;
 
     try {
+      // For NATURAL mode, prioritize OpenAI for conversational AI
+      if (safeMode === 'natural' && process.env.OPENAI_API_KEY) {
+        console.log('[LLM] Using OpenAI (GPT-4o-mini) for NATURAL chat mode');
+        aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      }
       // For HEALTH mode, use Mistral with specialized health model
-      if (safeMode === 'health' && process.env.MISTRAL_API_KEY) {
+      else if (safeMode === 'health' && process.env.MISTRAL_API_KEY) {
         console.log('[LLM] Using Mistral AI (CWC-Mistral-Nemo) for HEALTH mode');
         aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
@@ -645,11 +650,6 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       // For TECHNICAL mode, use Mistral for detailed technical responses
       else if (safeMode === 'technical' && process.env.MISTRAL_API_KEY) {
         console.log('[LLM] Using Mistral AI for TECHNICAL mode');
-        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      }
-      // For NATURAL mode, prioritize Mistral for conversational AI
-      else if (safeMode === 'natural' && process.env.MISTRAL_API_KEY) {
-        console.log('[LLM] Using Mistral AI for NATURAL chat mode');
         aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
       // Fallback: Use Google Gemini (free tier, excellent quality)
@@ -667,8 +667,20 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       console.error('Primary AI models error:', primaryError);
 
       try {
-        // Backup: Google Gemini fallback (works for all modes)
-        if (process.env.GEMINI_API_KEY) {
+        // For NATURAL mode, try Gemini as first fallback, then Mistral
+        if (safeMode === 'natural') {
+          if (process.env.GEMINI_API_KEY) {
+            console.log(`[LLM] Falling back to Google Gemini for NATURAL mode`);
+            aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+          } else if (process.env.MISTRAL_API_KEY) {
+            console.log(`[LLM] Falling back to Mistral AI for NATURAL mode`);
+            aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+          } else {
+            throw new Error('No fallback models available');
+          }
+        }
+        // For other modes, use Gemini as fallback
+        else if (process.env.GEMINI_API_KEY) {
           console.log(`[LLM] Falling back to Google Gemini for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         }
