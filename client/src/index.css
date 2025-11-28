@@ -1453,6 +1453,180 @@
   pointer-events: auto;
 }
 
+/* Archimedes Talking Modal Glitch Effects */
+.archimedes-glitch-container {
+  animation: archimedesContainerGlitch 5s ease-in-out infinite;
+}
+
+.archimedes-video-glitch {
+  animation: archimedesVideoGlitch 0.1s steps(2) infinite;
+}
+
+@keyframes archimedesContainerGlitch {
+  0%, 95%, 100% {
+    transform: translate(0, 0);
+  }
+  96% {
+    transform: translate(-3px, 1px);
+  }
+  97% {
+    transform: translate(2px, -1px);
+  }
+  98% {
+    transform: translate(-1px, 2px);
+  }
+  99% {
+    transform: translate(1px, -2px);
+  }
+}
+
+@keyframes archimedesVideoGlitch {
+  0%, 90% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0, 0);
+  }
+  91% {
+    clip-path: inset(20% 0 30% 0);
+    transform: translate(-3px, 0);
+  }
+  92% {
+    clip-path: inset(50% 0 20% 0);
+    transform: translate(3px, 0);
+  }
+  93% {
+    clip-path: inset(10% 0 60% 0);
+    transform: translate(-2px, 0);
+  }
+  94%, 100% {
+    clip-path: inset(0 0 0 0);
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes archimedesChannelShift {
+  0%, 85% {
+    opacity: 0;
+  }
+  86%, 90% {
+    opacity: 0.4;
+  }
+  91%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes archimedesScanSweep {
+  0% {
+    background-position: 0 -100%;
+  }
+  100% {
+    background-position: 0 200%;
+  }
+}
+
+@keyframes archimedesTrackingGlitch {
+  0%, 92% {
+    opacity: 0;
+  }
+  93%, 96% {
+    opacity: 1;
+  }
+  97%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes archimedesGlitchBar {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes archimedesNoise {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2%, 2%); }
+  50% { transform: translate(2%, -2%); }
+  75% { transform: translate(-1%, -1%); }
+  100% { transform: translate(1%, 1%); }
+}
+
+@keyframes archimedesHorizontalGlitch {
+  0%, 94%, 100% {
+    transform: translateX(0);
+    filter: none;
+  }
+  95% {
+    transform: translateX(-5px);
+    filter: hue-rotate(90deg);
+  }
+  96% {
+    transform: translateX(5px);
+    filter: hue-rotate(-90deg);
+  }
+  97% {
+    transform: translateX(-3px);
+    filter: saturate(2);
+  }
+  98% {
+    transform: translateX(3px);
+    filter: none;
+  }
+}
+
+@keyframes archimedesGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.3), 0 0 10px rgba(0, 255, 65, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.5), 0 0 25px rgba(0, 255, 65, 0.3);
+  }
+}
+
+@keyframes archimedesFlash {
+  0%, 93%, 100% {
+    opacity: 0;
+  }
+  94% {
+    opacity: 0.15;
+  }
+  95% {
+    opacity: 0;
+  }
+  96% {
+    opacity: 0.1;
+  }
+  97% {
+    opacity: 0;
+  }
+}
+
+@keyframes archimedesSlice {
+  0%, 90%, 100% {
+    clip-path: inset(0 0 0 0);
+  }
+  91% {
+    clip-path: inset(10% 0 80% 0);
+  }
+  92% {
+    clip-path: inset(40% 0 40% 0);
+  }
+  93% {
+    clip-path: inset(70% 0 10% 0);
+  }
+  94% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
 /* Mobile Touch Optimizations */
 @media (max-width: 768px) {
   /* Ensure touch targets are at least 44x44px (Apple/Google guidelines) */

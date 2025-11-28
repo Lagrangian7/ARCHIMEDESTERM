@@ -133,8 +133,8 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
       onTouchStart={handleTouchStart}
       data-testid="talking-archimedes-draggable"
     >
-      <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-terminal-highlight/40 bg-terminal-bg shadow-lg shadow-terminal-highlight/20">
-        {/* Video with glitch effect */}
+      <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-terminal-highlight/40 bg-terminal-bg shadow-lg shadow-terminal-highlight/20 archimedes-glitch-container">
+        {/* Video with chromatic aberration effect */}
         <video
           ref={videoRef}
           src={archimedesVideo2}
@@ -142,54 +142,113 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
           muted
           playsInline
           preload="none"
-          className="w-full h-full object-cover pointer-events-none animate-glitch"
+          className="w-full h-full object-cover pointer-events-none archimedes-video-glitch"
           style={{
-            filter: 'contrast(1.1) brightness(0.95)',
+            filter: 'contrast(1.15) brightness(0.9) saturate(1.2)',
           }}
         />
 
-        {/* Scanline overlay */}
+        {/* Red channel shift (chromatic aberration) */}
+        <div 
+          className="absolute inset-0 pointer-events-none mix-blend-screen"
+          style={{
+            background: 'radial-gradient(circle, transparent 30%, rgba(255,0,0,0.15) 100%)',
+            animation: 'archimedesChannelShift 0.15s steps(2) infinite',
+            transform: 'translateX(-2px)',
+          }}
+        />
+
+        {/* Blue channel shift */}
+        <div 
+          className="absolute inset-0 pointer-events-none mix-blend-screen"
+          style={{
+            background: 'radial-gradient(circle, transparent 30%, rgba(0,100,255,0.12) 100%)',
+            animation: 'archimedesChannelShift 0.15s steps(2) infinite reverse',
+            transform: 'translateX(2px)',
+          }}
+        />
+
+        {/* Heavy scanlines */}
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'repeating-linear-gradient(0deg, rgba(0, 255, 65, 0.03) 0px, transparent 1px, transparent 2px, rgba(0, 255, 65, 0.03) 3px)',
-            animation: 'terminalScanGlitch 8s linear infinite',
+            background: 'repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15) 0px, transparent 1px, transparent 2px, rgba(0, 0, 0, 0.15) 3px)',
           }}
         />
 
-        {/* RGB glitch overlay */}
+        {/* Animated scanline sweep */}
         <div 
-          className="absolute inset-0 pointer-events-none mix-blend-screen opacity-20"
+          className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(90deg, rgba(255,0,0,0.1) 0%, rgba(0,255,0,0.1) 50%, rgba(0,0,255,0.1) 100%)',
-            animation: 'glitch 3s ease-in-out infinite',
+            background: 'linear-gradient(180deg, transparent 0%, rgba(0, 255, 65, 0.08) 50%, transparent 100%)',
+            backgroundSize: '100% 20px',
+            animation: 'archimedesScanSweep 2s linear infinite',
           }}
         />
 
-        {/* Interference noise */}
+        {/* VHS tracking glitch bars */}
         <div 
-          className="absolute inset-0 pointer-events-none opacity-5"
+          className="absolute inset-0 pointer-events-none overflow-hidden"
           style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' /%3E%3C/svg%3E")',
-            animation: 'terminalGlitch 0.1s steps(2, end) infinite',
+            animation: 'archimedesTrackingGlitch 4s steps(1) infinite',
+          }}
+        >
+          <div 
+            className="absolute w-full h-2 bg-terminal-highlight/30"
+            style={{
+              animation: 'archimedesGlitchBar 0.3s steps(3) infinite',
+              top: '20%',
+            }}
+          />
+          <div 
+            className="absolute w-full h-1 bg-white/20"
+            style={{
+              animation: 'archimedesGlitchBar 0.25s steps(2) infinite reverse',
+              top: '60%',
+            }}
+          />
+        </div>
+
+        {/* Noise grain overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-20"
+          style={{
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' /%3E%3C/svg%3E")',
+            animation: 'archimedesNoise 0.05s steps(4) infinite',
+          }}
+        />
+
+        {/* Horizontal displacement glitch */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            animation: 'archimedesHorizontalGlitch 3s ease-in-out infinite',
           }}
         />
 
         {/* Pulsing border glow */}
-        <div className="absolute inset-0 rounded-full ring-1 ring-terminal-highlight/30 animate-pulse pointer-events-none"
-             style={{ animationDuration: '2s' }} />
+        <div className="absolute inset-0 rounded-full ring-2 ring-terminal-highlight/50 pointer-events-none"
+             style={{ animation: 'archimedesGlow 1.5s ease-in-out infinite' }} />
 
         {/* Drag indicator */}
         <div className="absolute top-1 right-1 text-terminal-highlight text-xs opacity-70 pointer-events-none select-none drop-shadow-[0_0_3px_rgba(0,255,65,0.5)]" title="Drag to move">
           ⋮⋮
         </div>
 
-        {/* Random glitch flash */}
+        {/* Random bright flash glitch */}
         <div 
           className="absolute inset-0 bg-terminal-highlight pointer-events-none"
           style={{
-            opacity: 0,
-            animation: 'terminalFlicker 4s ease-in-out infinite',
+            animation: 'archimedesFlash 2.5s steps(1) infinite',
+          }}
+        />
+
+        {/* Glitch slice effect */}
+        <div 
+          className="absolute inset-0 pointer-events-none overflow-hidden"
+          style={{
+            clipPath: 'inset(0 0 0 0)',
+            animation: 'archimedesSlice 4s steps(1) infinite',
           }}
         />
       </div>
