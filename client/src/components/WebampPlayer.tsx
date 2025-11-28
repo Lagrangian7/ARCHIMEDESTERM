@@ -94,19 +94,18 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
         const webamp = new Webamp({
           enableHotkeys: true,
 
-          // Enable Milkdrop visualizer
+          // Milkdrop visualizer disabled in Webamp window - now in voice control area
           __butterchurnOptions: {
             importButterchurn: () => import('butterchurn'),
             getPresets: async () => {
               const presets = await import('butterchurn-presets');
               const presetPack = presets.default || presets;
-              // Convert preset pack object to array format expected by Webamp
               return Object.keys(presetPack).map(name => ({
                 name,
                 butterchurnPresetObject: presetPack[name]
               }));
             },
-            butterchurnOpen: true
+            butterchurnOpen: false // Don't open Milkdrop window
           },
 
           initialTracks: [
@@ -356,15 +355,14 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             url: "/default-skin.wsz"
           },
 
-          // Initial window layout with Milkdrop visualizer
+          // Initial window layout without Milkdrop (visualizer in voice control area)
           windowLayout: {
             main: { position: { top: 20, left: 20 } },
-            equalizer: { position: { top: 20, left: 580 } },
+            equalizer: { position: { top: 20, left: 300 } },
             playlist: { 
-              position: { top: 480, left: 20 },
+              position: { top: 250, left: 20 },
               size: { extraHeight: 4, extraWidth: 0 } 
-            },
-            milkdrop: { position: { top: 20, left: 300 }, size: [275, 455] }
+            }
           },
 
           // Available skins
