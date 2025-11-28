@@ -22,12 +22,14 @@ export function useSpeechSynthesis() {
   const [isEnabled, setIsEnabled] = useState(true);
   const [selectedVoice, setSelectedVoice] = useState<number>(1); // Always HAL 9000
   const [speechRate, setSpeechRate] = useState(1.1); // Slightly faster speaking speed
+  const [speechVolume, setSpeechVolume] = useState(0.63); // Default volume
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
 
   // Use refs to store current values for the speech callback
   const selectedVoiceRef = useRef<number>(1); // Always HAL 9000
   const speechRateRef = useRef<number>(1.1); // Slightly faster speaking speed
+  const speechVolumeRef = useRef<number>(0.63); // Default volume
   const voicesRef = useRef<Voice[]>([]);
   const isEnabledRef = useRef<boolean>(true);
 
@@ -123,6 +125,11 @@ export function useSpeechSynthesis() {
     setSpeechRate(value);
   }, []);
 
+  const setSpeechVolumeWithRef = useCallback((value: number) => {
+    speechVolumeRef.current = value;
+    setSpeechVolume(value);
+  }, []);
+
   const setIsEnabledWithRef = useCallback((value: boolean) => {
     isEnabledRef.current = value;
     setIsEnabled(value);
@@ -136,6 +143,10 @@ export function useSpeechSynthesis() {
   useEffect(() => {
     speechRateRef.current = speechRate;
   }, [speechRate]);
+
+  useEffect(() => {
+    speechVolumeRef.current = speechVolume;
+  }, [speechVolume]);
 
   useEffect(() => {
     isEnabledRef.current = isEnabled;
@@ -157,6 +168,7 @@ export function useSpeechSynthesis() {
         // Use ref values to get the current state
         const currentVoice = selectedVoiceRef.current;
         const currentRate = speechRateRef.current;
+        const currentVolume = speechVolumeRef.current;
         const currentVoices = voicesRef.current;
 
         console.log('speak() called with selectedVoice:', currentVoice);
@@ -234,7 +246,7 @@ export function useSpeechSynthesis() {
 
         // Set base properties - ensure consistent rate for all content types
         utterance.rate = currentRate;
-        utterance.volume = 0.63;
+        utterance.volume = currentVolume;
         utterance.pitch = 0.6;
 
         // Log for debugging speech rate consistency
@@ -277,7 +289,7 @@ export function useSpeechSynthesis() {
           // HAL 9000 voice simulation - deep, calm, male voice
           utterance.pitch = 0.4; // Very low pitch for deeper male voice
           utterance.rate = currentRate * technicalSlowdown; // Apply slowdown for technical content
-          utterance.volume = 0.75;
+          // Volume already set from currentVolume above
           console.log('Using HAL 9000 voice simulation (deep male voice)', isDenseTechnical ? '(technical slowdown applied)' : '');
         } else if (currentVoice >= 2 && currentVoices.length) {
           // System voice selection - map to actual system voice
@@ -341,6 +353,8 @@ export function useSpeechSynthesis() {
     setSelectedVoice: setSelectedVoiceWithRef,
     speechRate,
     setSpeechRate: setSpeechRateWithRef,
+    speechVolume,
+    setSpeechVolume: setSpeechVolumeWithRef,
     isSpeaking,
     voicesLoaded,
     speak,

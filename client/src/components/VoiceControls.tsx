@@ -57,11 +57,17 @@ export function VoiceControls({
     setSelectedVoice,
     speechRate,
     setSpeechRate,
+    speechVolume,
+    setSpeechVolume,
     isSpeaking,
     voicesLoaded,
     speak,
     stop,
   } = useSpeech();
+
+  const handleVolumeChange = (value: number[]) => {
+    setSpeechVolume(value[0]);
+  };
 
   const { isSupported, isListening, startListening } = useSpeechRecognition();
 
@@ -156,6 +162,21 @@ export function VoiceControls({
         >
           {isListening ? <MicOff size={16} /> : <Mic size={16} />}
         </Button>
+
+        {/* Volume Control */}
+        <div className="flex items-center gap-2 px-2">
+          <Volume2 size={14} className="text-terminal-subtle" />
+          <Slider
+            value={[speechVolume]}
+            onValueChange={handleVolumeChange}
+            min={0}
+            max={1}
+            step={0.1}
+            className="w-16 md:w-20"
+            aria-label="AI Speech Volume"
+          />
+          <span className="text-xs text-terminal-subtle min-w-[2ch]">{Math.round(speechVolume * 100)}%</span>
+        </div>
       </div>
 
       <div className="flex items-center gap-1.5 md:gap-3 flex-wrap">

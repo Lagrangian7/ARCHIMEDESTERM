@@ -9,6 +9,8 @@ interface SpeechContextType {
   setSelectedVoice: (value: number) => void;
   speechRate: number;
   setSpeechRate: (value: number) => void;
+  speechVolume: number;
+  setSpeechVolume: (value: number) => void;
   isSpeaking: boolean;
   voicesLoaded: boolean;
   speak: (text: string) => void;
