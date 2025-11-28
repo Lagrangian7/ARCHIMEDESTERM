@@ -10,6 +10,7 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const audioSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   useEffect(() => {
     if (!isActive || !canvasRef.current) return;
@@ -17,24 +18,6 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
-    // Initialize audio context and analyser
-    const initAudio = async () => {
-      try {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        analyserRef.current = audioContextRef.current.createAnalyser();
-        analyserRef.current.fftSize = 256;
-
-        // Try to capture system audio or use microphone
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const source = audioContextRef.current.createMediaStreamSource(stream);
-        source.connect(analyserRef.current);
-      } catch (error) {
-        console.log('Audio access not available, using visual-only mode');
-      }
-    };
-
-    initAudio();
 
     // Resize canvas to match container
     const resizeCanvas = () => {
@@ -45,63 +28,92 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Visualization parameters
-    let time = 0;
-    const dataArray = new Uint8Array(analyserRef.current?.frequencyBinCount || 128);
+    // Initialize audio context and analyser
+    const initAudio = async () => {
+      try {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        analyserRef.current = audioContextRef.current.createAnalyser();
+        analyserRef.current.fftSize = 512;
+        analyserRef.current.smoothingTimeConstant = 0.75;
+        
+        console.log('Audio context initialized for spectrum analyzer');
+        
+        // Try to connect to audio elements
+        setTimeout(() => tryConnectToAudio(), 1000);
+        const interval = setInterval(() => tryConnectToAudio(), 3000);
+        
+        return () => clearInterval(interval);
+      } catch (error) {
+        console.log('Audio context initialization failed:', error);
+      }
+    };
+
+    const tryConnectToAudio = () => {
+      if (!audioContextRef.current || !analyserRef.current || audioSourceRef.current) return;
+      
+      const audioElements = document.querySelectorAll('audio');
+      
+      for (const element of audioElements) {
+        const mediaElement = element as HTMLMediaElement;
+        
+        if (mediaElement.paused || (mediaElement as any)._visualizerAttempted) continue;
+        
+        try {
+          (mediaElement as any)._visualizerAttempted = true;
+          const source = audioContextRef.current!.createMediaElementSource(mediaElement);
+          source.connect(analyserRef.current!);
+          analyserRef.current!.connect(audioContextRef.current!.destination);
+          audioSourceRef.current = source;
+          console.log('✅ Connected to audio for spectrum analysis');
+          return;
+        } catch (error) {
+          // Already connected, expected with Webamp
+        }
+      }
+    };
+
+    initAudio();
+
+    // Spectrum analyzer visualization
+    const dataArray = new Uint8Array(analyserRef.current?.frequencyBinCount || 256);
 
     const animate = () => {
       if (!ctx || !canvas) return;
 
-      time += 0.01;
-
-      // Get audio data if available
+      // Get frequency data
       if (analyserRef.current) {
         analyserRef.current.getByteFrequencyData(dataArray);
       }
 
-      // Create psychedelic background
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      // Clear with slight fade effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw visualization
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
+      // Draw frequency bars
+      const barCount = Math.min(64, dataArray.length);
+      const barWidth = canvas.width / barCount;
+      const barSpacing = 2;
 
-      // Draw rotating spirals
-      for (let i = 0; i < 3; i++) {
-        const offset = i * Math.PI * 2 / 3;
-        const radius = 50 + Math.sin(time + offset) * 20;
-        
-        ctx.beginPath();
-        for (let angle = 0; angle < Math.PI * 4; angle += 0.1) {
-          const r = radius + angle * 10;
-          const x = centerX + Math.cos(angle + time + offset) * r;
-          const y = centerY + Math.sin(angle + time + offset) * r;
-          
-          if (angle === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-        }
-        
-        const hue = (time * 50 + i * 120) % 360;
-        ctx.strokeStyle = `hsla(${hue}, 80%, 60%, 0.3)`;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
+      for (let i = 0; i < barCount; i++) {
+        const value = dataArray[i] || 0;
+        const barHeight = (value / 255) * canvas.height * 0.8;
+        const x = i * barWidth;
+        const y = canvas.height - barHeight;
 
-      // Draw frequency bars if audio is available
-      if (analyserRef.current && dataArray.some(v => v > 0)) {
-        const barWidth = canvas.width / dataArray.length;
-        for (let i = 0; i < dataArray.length; i++) {
-          const barHeight = (dataArray[i] / 255) * canvas.height * 0.5;
-          const x = i * barWidth;
-          const hue = (i / dataArray.length) * 360;
-          
-          ctx.fillStyle = `hsla(${hue}, 80%, 60%, 0.2)`;
-          ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-        }
+        // Color gradient based on frequency (low = red, mid = green, high = blue)
+        const hue = (i / barCount) * 120; // 0-120 (red to green)
+        const saturation = 80;
+        const lightness = 50 + (value / 255) * 20; // Brighter when louder
+
+        ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        ctx.fillRect(x + barSpacing / 2, y, barWidth - barSpacing, barHeight);
+
+        // Add a subtle top glow
+        const gradient = ctx.createLinearGradient(x, y, x, y + 20);
+        gradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness + 20}%, 0.8)`);
+        gradient.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness}%, 0)`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x + barSpacing / 2, y, barWidth - barSpacing, 20);
       }
 
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -114,9 +126,10 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      if (audioContextRef.current) {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
       }
+      audioSourceRef.current = null;
     };
   }, [isActive]);
 
@@ -126,7 +139,7 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: 0.3, mixBlendMode: 'screen' }}
+      style={{ opacity: 0.6, mixBlendMode: 'screen' }}
     />
   );
 }
