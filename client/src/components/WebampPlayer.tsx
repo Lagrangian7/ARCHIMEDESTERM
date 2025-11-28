@@ -355,20 +355,17 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             url: "/default-skin.wsz"
           },
 
-          // Initial window layout - all in shade mode (collapsed) at top center
+          // Initial window layout - positioned at top center
           windowLayout: {
             main: { 
-              position: { top: 10, left: window.innerWidth / 2 - 412 },
-              shade: true // Enable shade mode (collapsed)
+              position: { top: 10, left: Math.floor(window.innerWidth / 2 - 137) }
             },
             equalizer: { 
-              position: { top: 10, left: window.innerWidth / 2 - 137 },
-              shade: true, // Enable shade mode (collapsed)
+              position: { top: 10, left: Math.floor(window.innerWidth / 2 + 138) },
               closed: false
             },
             playlist: { 
-              position: { top: 10, left: window.innerWidth / 2 + 138 },
-              shade: true, // Enable shade mode (collapsed)
+              position: { top: 130, left: Math.floor(window.innerWidth / 2 - 137) },
               closed: false
             }
           },
