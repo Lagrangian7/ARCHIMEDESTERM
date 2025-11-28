@@ -1,13 +1,14 @@
 import OpenAI from 'openai';
 import { HfInference } from '@huggingface/inference';
 import { Mistral } from '@mistralai/mistralai';
-import { GoogleGenAI } from '@google/genai';
 import type { Message } from '@shared/schema';
 import { knowledgeService } from './knowledge-service';
 
-// Enhanced AI configuration for budget-friendly options
-const gemini = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || ''
+// Use Replit's managed AI inference for Gemini
+const REPLIT_AI_ENDPOINT = 'https://ai-inference.replit.com/v1';
+const replitAI = new OpenAI({
+  apiKey: process.env.REPLIT_AI_API_KEY || 'placeholder',
+  baseURL: REPLIT_AI_ENDPOINT,
 });
 
 const mistral = new Mistral({
@@ -632,21 +633,9 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     let aiResponse: string;
 
     try {
-      // Prioritize Gemini as primary AI provider for all modes
-      if (process.env.GEMINI_API_KEY) {
-        console.log(`[LLM] Using Google Gemini (Primary) for ${safeMode.toUpperCase()} mode`);
-        aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      }
-      // Fallback to Mistral if Gemini is not available
-      else if (process.env.MISTRAL_API_KEY) {
-        console.log(`[LLM] Using Mistral AI (Fallback) for ${safeMode.toUpperCase()} mode`);
-        aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      }
-      // Tertiary: Enhanced Hugging Face models
-      else {
-        console.log(`[LLM] Using enhanced Hugging Face models for ${safeMode.toUpperCase()} mode`);
-        aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-      }
+      // Always use Replit's managed Gemini as primary (no API key needed)
+      console.log(`[LLM] Using Replit Managed Gemini (Primary) for ${safeMode.toUpperCase()} mode`);
+      aiResponse = await this.generateGeminiResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
 
     } catch (primaryError) {
       console.error('Primary AI models error:', primaryError);
@@ -725,30 +714,33 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
     const recentHistory = this.buildConversationHistory(conversationHistory, 8);
     
-    // Build conversation context for Gemini
-    const conversationContext = recentHistory
-      .map(msg => `${msg.role}: ${msg.content}`)
-      .join('\n');
+    // Build messages array for Replit AI
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role: 'system', content: systemPrompt + greetingInstruction }
+    ];
 
-    const fullPrompt = `${systemPrompt}${greetingInstruction}
-
-Conversation History:
-${conversationContext}
-
-Current User Message: ${userMessage}
-
-Please respond as ARCHIMEDES v7:`;
-
-    const response = await gemini.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
-      contents: fullPrompt,
-      config: {
-        maxOutputTokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
-        temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.4 : mode === 'freestyle' ? 0.8 : 0.85,
+    // Add recent conversation history
+    for (const msg of recentHistory) {
+      if (msg.role === 'user' || msg.role === 'assistant') {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
       }
+    }
+
+    // Add current user message
+    messages.push({ role: 'user', content: userMessage });
+
+    // Use Replit's managed Gemini model
+    const completion = await replitAI.chat.completions.create({
+      model: 'google/gemini-2.0-flash-exp',
+      messages,
+      max_tokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
+      temperature: mode === 'health' ? 0.4 : mode === 'technical' ? 0.4 : mode === 'freestyle' ? 0.8 : 0.85,
     });
 
-    const responseText = response.text || 'I apologize, but I encountered an error processing your request.';
+    const responseText = completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
     return this.postProcessResponse(responseText, mode);
   }
 
