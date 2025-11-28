@@ -355,13 +355,21 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             url: "/default-skin.wsz"
           },
 
-          // Initial window layout without Milkdrop (visualizer in voice control area)
+          // Initial window layout - all collapsed and side by side, locked
           windowLayout: {
-            main: { position: { top: 20, left: 20 } },
-            equalizer: { position: { top: 20, left: 300 } },
+            main: { 
+              position: { top: 20, left: 20 },
+              size: [0, 0] // Collapsed
+            },
+            equalizer: { 
+              position: { top: 20, left: 295 }, // Side by side with main (275px width + 20px gap)
+              size: [0, 0], // Collapsed
+              closed: false
+            },
             playlist: { 
-              position: { top: 250, left: 20 },
-              size: { extraHeight: 4, extraWidth: 0 } 
+              position: { top: 20, left: 570 }, // Side by side with equalizer (275px width + 20px gap)
+              size: [0, 0], // Collapsed
+              closed: false
             }
           },
 
