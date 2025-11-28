@@ -47,7 +47,8 @@ Preferred communication style: Simple, everyday language.
 - **Data Isolation**: Conversations tied to session IDs for user separation
 
 ## External APIs and Services
-- **Natural Chat AI**: Groq API (FREE tier) - Uses Llama 3.1 8B Instant model for fast, free natural chat responses
+- **Primary AI**: Groq API (FREE tier) - Uses Llama 3.1 8B Instant model as primary AI for ALL modes
+  - Fallback chain: Groq → Replit Mistral → OpenAI → Mistral AI → Hugging Face
 - **Academic Search**: Semantic Scholar API (FREE - 100 requests per 5 minutes, no authentication required)
 - **Computational Knowledge**: Wolfram Alpha Full Results API for math solving, data lookup, and knowledge queries
 - **Mathematical Rendering**: MathJax 3 CDN for rendering MathML and LaTeX mathematical expressions
@@ -68,10 +69,10 @@ Preferred communication style: Simple, everyday language.
 
 ## Key Design Patterns
 - **Multi-Mode AI Operation** (English-only system): 
-  - Natural chat mode for conversational interactions
-  - Technical protocol mode for detailed technical responses
-  - Health mode for health and wellness guidance
-  - **Freestyle mode with intelligent multi-language support** - automatically detects and generates code in Python, TypeScript, JavaScript, C++, or Bash based on user intent
+  - **Natural mode** (default): Sassy cyberpunk AI for fun conversations AND code generation
+  - **Technical mode**: Master builder - step-by-step guides for construction, trades, engineering & sciences
+  - **Health mode**: Naturopathic wellness advisor - nutrition, herbs, natural healing
+  - **Freestyle mode**: Dedicated programming assistant with multi-language code generation (Python, TypeScript, JavaScript, C++, Bash)
 - **Intelligent Language Detection**: Freestyle mode analyzes user requests to detect target programming language using:
   - Explicit language mentions (highest priority)
   - File extensions (.py, .ts, .js, .cpp, .sh)

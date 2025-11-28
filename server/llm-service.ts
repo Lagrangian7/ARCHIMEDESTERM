@@ -647,64 +647,53 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     let aiResponse: string;
 
     try {
-      // For natural chat mode, use Groq (free, fast) if available
-      if (safeMode === 'natural' && process.env.GROQ_API_KEY) {
-        console.log(`[LLM] Using Groq (Free, Fast) for NATURAL chat mode`);
+      // Use Groq as PRIMARY provider for ALL modes (free, fast)
+      if (process.env.GROQ_API_KEY) {
+        console.log(`[LLM] Using Groq (Primary, Free) for ${safeMode.toUpperCase()} mode`);
         aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       } else {
-        // Use Replit's managed Mistral as primary for other modes
-        console.log(`[LLM] Using Replit Managed Mistral (Primary) for ${safeMode.toUpperCase()} mode`);
+        // Fallback to Replit's managed Mistral if Groq is not available
+        console.log(`[LLM] Using Replit Managed Mistral (Fallback) for ${safeMode.toUpperCase()} mode`);
         aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
       }
 
     } catch (primaryError) {
-      console.error('Primary AI models error:', primaryError);
+      console.error('Primary AI (Groq) error:', primaryError);
 
       try {
-        // Try Groq as first fallback for natural mode (if not already used)
-        if (safeMode === 'natural' && process.env.GROQ_API_KEY && !(primaryError instanceof Error && primaryError.message.includes('Groq'))) {
-          console.log(`[LLM] Falling back to Groq for NATURAL mode`);
-          aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-        }
-        // Try OpenAI as fallback
-        else if (process.env.OPENAI_API_KEY) {
-          console.log(`[LLM] Falling back to OpenAI for ${safeMode.toUpperCase()} mode`);
-          aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-        }
-        // Try Mistral as fallback
-        else if (process.env.MISTRAL_API_KEY) {
-          console.log(`[LLM] Falling back to Mistral AI for ${safeMode.toUpperCase()} mode`);
-          aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-        } 
-        // Try Hugging Face enhanced models before final fallback
-        else {
-          console.log(`[LLM] Trying enhanced Hugging Face models for ${safeMode.toUpperCase()} mode`);
-          try {
-            aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-          } catch (hfError) {
-            console.error('Hugging Face models error:', hfError);
-            aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
+        // Fallback chain: Replit Mistral → OpenAI → Mistral AI → Hugging Face
+        console.log(`[LLM] Falling back to Replit Mistral for ${safeMode.toUpperCase()} mode`);
+        aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+      } catch (mistralError) {
+        console.error('Replit Mistral fallback error:', mistralError);
+        
+        try {
+          // Try OpenAI as fallback
+          if (process.env.OPENAI_API_KEY) {
+            console.log(`[LLM] Falling back to OpenAI for ${safeMode.toUpperCase()} mode`);
+            aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
           }
-        }
-      } catch (secondaryError) {
-        console.error('Fallback AI models error:', secondaryError);
-        
-        // Check if it's a rate limit error
-        const isRateLimitError = secondaryError instanceof Error && 
-          (secondaryError.message.includes('429') || 
-           secondaryError.message.includes('quota') || 
-           secondaryError.message.includes('rate limit'));
-        
-        if (isRateLimitError) {
-          console.log('[LLM] Rate limit detected, trying Hugging Face as tertiary fallback');
+          // Try Mistral AI as fallback
+          else if (process.env.MISTRAL_API_KEY) {
+            console.log(`[LLM] Falling back to Mistral AI for ${safeMode.toUpperCase()} mode`);
+            aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+          } 
+          // Try Hugging Face enhanced models before final fallback
+          else {
+            console.log(`[LLM] Trying Hugging Face models for ${safeMode.toUpperCase()} mode`);
+            aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+          }
+        } catch (secondaryError) {
+          console.error('Secondary fallback error:', secondaryError);
+          
+          // Final fallback to Hugging Face or static response
           try {
+            console.log('[LLM] Final fallback to Hugging Face models');
             aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
           } catch (tertiaryError) {
             console.error('All AI backends exhausted:', tertiaryError);
             aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
           }
-        } else {
-          aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
         }
       }
     }
@@ -802,12 +791,12 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     // Add current user message
     messages.push({ role: 'user', content: userMessage });
 
-    // Use Groq's fast Llama model for natural chat
+    // Use Groq's fast Llama model as primary AI for all modes
     const completion = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant', // Fast, efficient model perfect for natural chat
+      model: 'llama-3.1-8b-instant', // Fast, efficient model for all modes
       messages,
-      max_tokens: mode === 'technical' || mode === 'health' ? 4000 : 1500,
-      temperature: mode === 'natural' ? 0.85 : mode === 'health' ? 0.4 : 0.7,
+      max_tokens: mode === 'technical' ? 4000 : mode === 'health' ? 3000 : mode === 'freestyle' ? 4000 : 1500,
+      temperature: mode === 'technical' ? 0.4 : mode === 'health' ? 0.4 : mode === 'freestyle' ? 0.7 : 0.85,
     });
 
     const responseText = completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
