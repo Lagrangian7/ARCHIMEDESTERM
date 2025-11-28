@@ -248,12 +248,11 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
       if (presetChangeIntervalRef.current) {
         clearInterval(presetChangeIntervalRef.current);
       }
-      if (audioContextRef.current) {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
       }
-      if (butterchurnRef.current) {
-        butterchurnRef.current.destroy();
-      }
+      // Butterchurn cleanup - just null the reference
+      butterchurnRef.current = null;
     };
   }, [isActive, presets, currentPresetIndex]);
 
