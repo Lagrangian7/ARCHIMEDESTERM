@@ -130,58 +130,58 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     if (!position) {
       const bubbleWidth = 384; // max-w-md is roughly 384px
       const bubbleHeight = 250; // estimated height (increased for accuracy)
-      
+
       // Get the terminal scroll area viewport
       const viewport = document.querySelector('[data-radix-scroll-area-viewport]');
       const currentScrollTop = viewport?.scrollTop || 0;
-      
+
       // Store the initial scroll position
       initialScrollOffsetRef.current = currentScrollTop;
-      
+
       // Get voice controls and command input to calculate viewable area
       const voiceControls = document.querySelector('.voice-controls');
       const voiceControlsHeight = voiceControls?.getBoundingClientRect().height || 60;
-      
+
       const commandInput = document.querySelector('[data-testid="input-command"]')?.closest('.flex-shrink-0');
       const commandInputHeight = commandInput?.getBoundingClientRect().height || 80;
-      
+
       // Calculate viewable area bounds with better margins
       const topBound = voiceControlsHeight + 30;
       const bottomBound = window.innerHeight - commandInputHeight - bubbleHeight - 30;
-      
+
       // Check for existing bubbles to avoid overlap
       const existingBubbles = document.querySelectorAll('[data-testid^="draggable-response-"]');
-      
+
       // Try to find the TalkingArchimedes modal
       const archimedesModal = document.querySelector('[data-testid="talking-archimedes-draggable"]');
-      
+
       let x, y;
-      
+
       if (archimedesModal) {
         const rect = archimedesModal.getBoundingClientRect();
-        
+
         // Default: position to the left of Archimedes with better spacing
         x = rect.left - bubbleWidth - 30;
         y = rect.top + 10; // Slight offset down for better visual alignment
-        
+
         // If bubble would go off left edge, try right side
         if (x < 30) {
           x = rect.right + 30;
         }
-        
+
         // If still off screen, position in center-left area
         if (x < 30 || x + bubbleWidth > window.innerWidth - 30) {
           x = 40; // Left margin
         }
-        
+
         // Adjust for existing bubbles to prevent overlap
         let adjustedY = y;
         let attempts = 0;
         const maxAttempts = 5;
-        
+
         while (attempts < maxAttempts) {
           let hasOverlap = false;
-          
+
           for (const bubble of existingBubbles) {
             const bubbleRect = bubble.getBoundingClientRect();
             // Check if positions overlap (with margin)
@@ -194,20 +194,20 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
               break;
             }
           }
-          
+
           if (!hasOverlap) break;
           attempts++;
         }
-        
+
         y = adjustedY;
-        
+
         // Ensure y is within viewable area bounds
         if (y < topBound) {
           y = topBound;
         } else if (y > bottomBound) {
           y = topBound; // Wrap to top if too far down
         }
-        
+
         // Ensure x stays within viewport
         const maxX = window.innerWidth - bubbleWidth - 30;
         x = Math.max(30, Math.min(x, maxX));
@@ -215,13 +215,13 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
         // Fallback: position in visible terminal area (left side)
         x = 40; // Consistent left margin
         y = topBound + 20;
-        
+
         // Stack below existing bubbles if any
         if (existingBubbles.length > 0) {
           const lastBubble = existingBubbles[existingBubbles.length - 1];
           const lastRect = lastBubble.getBoundingClientRect();
           y = Math.max(y, lastRect.bottom + 20);
-          
+
           // Wrap to top if too far down
           if (y > bottomBound) {
             y = topBound + 20;
@@ -242,11 +242,11 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     if (!viewport || initialScrollOffsetRef.current === null) return;
 
     let rafId: number;
-    
+
     const handleScroll = () => {
       // Use requestAnimationFrame for smoother updates
       if (rafId) cancelAnimationFrame(rafId);
-      
+
       rafId = requestAnimationFrame(() => {
         const currentScrollTop = viewport.scrollTop;
         const scrollDelta = currentScrollTop - initialScrollOffsetRef.current;
@@ -325,25 +325,21 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
   }, []); // No dependencies needed for simple dismiss
 
   // Drag functionality - similar to RadioCharacter
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // Don't start dragging if clicking on a button or in the action buttons area
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    // Prevent dragging if clicking on a button or other interactive element
     const target = e.target as HTMLElement;
-    if (
-      target.tagName === 'BUTTON' ||
-      target.closest('button') ||
-      target.closest('[data-no-drag]')
-    ) {
+    if (target.closest('[data-no-drag]') || target.closest('button')) {
+      e.stopPropagation();
       return;
     }
 
-    e.preventDefault();
-    e.stopPropagation();
-
     setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    });
+    if (position) {
+      setDragOffset({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y,
+      });
+    }
   }, [position]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -437,7 +433,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
           className="fixed z-50 cursor-move group"
           style={{
             left: position.x,
-            top: isDragging ? position.y : position.y - scrollOffset,
+            top: position.y - scrollOffset,
             transition: isDragging ? 'none' : 'top 0.15s ease-out, left 0.15s ease-out',
             pointerEvents: 'auto'
           }}
