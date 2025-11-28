@@ -342,10 +342,12 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       target.getAttribute('data-no-drag') !== null
     ) {
       // Don't start dragging, let the button handle the click
-      e.stopPropagation();
+      // Do NOT stopPropagation - let the event reach the button
       return;
     }
 
+    // Only start dragging if not clicking on interactive elements
+    e.preventDefault();
     setIsDragging(true);
     if (position) {
       setDragOffset({
@@ -472,7 +474,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
               </div>
 
               {/* Action buttons */}
-              <div className="absolute top-2 right-2 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity pointer-events-auto" data-no-drag>
+              <div className="absolute top-2 right-2 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity" data-no-drag="true">
                 {/* Copy button */}
                 <button
                   onClick={(e) => {
@@ -480,7 +482,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                     e.stopPropagation();
                     handleCopy();
                   }}
-                  className="text-terminal-highlight hover:text-terminal-bright-green hover:bg-terminal-highlight/10 rounded transition-all cursor-pointer p-1.5 z-[60] pointer-events-auto"
+                  className="text-terminal-highlight hover:text-terminal-bright-green hover:bg-terminal-highlight/10 rounded transition-all cursor-pointer p-1.5"
                   title="Copy to clipboard"
                   data-testid={`copy-response-${entryId}`}
                   data-no-drag="true"
@@ -499,7 +501,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                     }
                   }}
                   disabled={saveMutation.isPending || isSaved}
-                  className="text-terminal-highlight hover:text-terminal-bright-green hover:bg-terminal-highlight/10 rounded transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer p-1.5 z-[60] pointer-events-auto"
+                  className="text-terminal-highlight hover:text-terminal-bright-green hover:bg-terminal-highlight/10 rounded transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer p-1.5"
                   title={isSaved ? "Already saved" : "Save to knowledge base"}
                   data-testid={`save-response-${entryId}`}
                   data-no-drag="true"
@@ -515,7 +517,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                     e.stopPropagation();
                     setShowFloating(false);
                   }}
-                  className="text-terminal-subtle hover:text-red-400 hover:bg-red-400/10 rounded transition-all cursor-pointer p-1.5 z-[60] pointer-events-auto"
+                  className="text-terminal-subtle hover:text-red-400 hover:bg-red-400/10 rounded transition-all cursor-pointer p-1.5"
                   title="Close (or double-click anywhere)"
                   data-testid={`close-response-${entryId}`}
                   data-no-drag="true"
