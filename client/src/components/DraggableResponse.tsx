@@ -473,8 +473,8 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                 {children}
               </div>
 
-              {/* Action buttons */}
-              <div className="absolute top-2 right-2 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity" data-no-drag="true">
+              {/* Action buttons - z-10 to be above the glow effect */}
+              <div className="absolute top-2 right-2 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity z-10" data-no-drag="true">
                 {/* Copy button */}
                 <button
                   onClick={(e) => {
@@ -532,8 +532,8 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                 </div>
               </div>
 
-              {/* Glowing border effect */}
-              <div className="absolute inset-0 rounded-lg ring-1 ring-terminal-highlight/20 animate-pulse"
+              {/* Glowing border effect - pointer-events-none so buttons work */}
+              <div className="absolute inset-0 rounded-lg ring-1 ring-terminal-highlight/20 animate-pulse pointer-events-none"
                    style={{ animationDuration: '2s' }} />
             </div>
           </div>
