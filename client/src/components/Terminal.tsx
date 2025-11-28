@@ -46,6 +46,7 @@ import wallpaperImage from '../assets/terminal-bg-new.png';
 // Import LogoIcon from its own file to break circular dependency
 import { LogoIcon } from './LogoIcon';
 import { WebSynth } from './WebSynth'; // Import the WebSynth component
+import { VoiceEqualizer } from './VoiceEqualizer'; // Import the VoiceEqualizer component
 
 export function Terminal() {
   const {
@@ -573,6 +574,11 @@ export function Terminal() {
             setShowPythonIDE={setShowPythonIDE} // Pass the prop to control Python IDE visibility
             openPythonLessons={ () => setShowPythonLessons(true) } // Add callback for Python Lessons
           />
+          
+          {/* EQ Visualizer - Shows during AI speech */}
+          <div className="border-b border-terminal-subtle bg-terminal-bg/50 backdrop-blur-sm">
+            <VoiceEqualizer barCount={48} height={60} className="px-2" />
+          </div>
         </div>
 
         {/* Terminal Output and Notepad - Scrollable middle section */}
