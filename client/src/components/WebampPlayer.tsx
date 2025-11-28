@@ -94,7 +94,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
         const webamp = new Webamp({
           enableHotkeys: true,
 
-          // Milkdrop visualizer disabled in Webamp window - now in voice control area
+          // Milkdrop available but not opened by default
           __butterchurnOptions: {
             importButterchurn: () => import('butterchurn'),
             getPresets: async () => {
@@ -105,7 +105,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
                 butterchurnPresetObject: presetPack[name]
               }));
             },
-            butterchurnOpen: false // Don't open Milkdrop window
+            butterchurnOpen: false // Milkdrop available but closed on launch
           },
 
           initialTracks: [
