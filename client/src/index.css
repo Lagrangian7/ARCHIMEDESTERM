@@ -986,14 +986,26 @@
   background: var(--terminal-bg-solid, var(--terminal-subtle)) !important;
 }
 
-/* Voice controls button styling for gradient themes */
+/* Voice controls button styling for gradient themes - HIGH VISIBILITY */
 [class*="theme-"][class*="-gradient"] .voice-controls button {
   background-color: var(--terminal-bg-solid, #0a0f14) !important;
+  border: 2px solid var(--terminal-highlight) !important;
+  color: var(--terminal-highlight) !important;
+  opacity: 1 !important;
+  z-index: 10;
+  position: relative;
 }
 
 [class*="theme-"][class*="-gradient"] .voice-controls button:hover {
   background-color: var(--terminal-highlight) !important;
   color: var(--terminal-bg-solid, #0a0f14) !important;
+}
+
+/* Ensure voice controls container is above other elements */
+.voice-controls {
+  position: relative;
+  z-index: 20;
+  background-color: var(--terminal-bg-solid, var(--terminal-subtle));
 }
 
 /* Notepad performance optimization */
