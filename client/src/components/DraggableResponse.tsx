@@ -121,11 +121,33 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Calculate initial position near TalkingArchimedes modal
+  // Track scroll offset to make bubbles follow scroll
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const initialScrollOffsetRef = useRef<number | null>(null);
+
+  // Calculate initial position near TalkingArchimedes modal in viewable area
   useEffect(() => {
     if (!position) {
       const bubbleWidth = 384; // max-w-md is roughly 384px
       const bubbleHeight = 200; // estimated height
+      
+      // Get the terminal scroll area viewport
+      const viewport = document.querySelector('[data-radix-scroll-area-viewport]');
+      const currentScrollTop = viewport?.scrollTop || 0;
+      
+      // Store the initial scroll position
+      initialScrollOffsetRef.current = currentScrollTop;
+      
+      // Get voice controls and command input to calculate viewable area
+      const voiceControls = document.querySelector('.voice-controls');
+      const voiceControlsHeight = voiceControls?.getBoundingClientRect().height || 60;
+      
+      const commandInput = document.querySelector('[data-testid="input-command"]')?.closest('.flex-shrink-0');
+      const commandInputHeight = commandInput?.getBoundingClientRect().height || 80;
+      
+      // Calculate viewable area bounds
+      const topBound = voiceControlsHeight + 20;
+      const bottomBound = window.innerHeight - commandInputHeight - bubbleHeight - 20;
       
       // Try to find the TalkingArchimedes modal
       const archimedesModal = document.querySelector('[data-testid="talking-archimedes-draggable"]');
@@ -143,22 +165,18 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
           x = rect.right + 20; // 20px gap on right side
         }
         
-        // Ensure bubble stays within viewport
+        // Ensure y is within viewable area bounds
+        if (y < topBound) {
+          y = topBound;
+        } else if (y > bottomBound) {
+          y = bottomBound - 100;
+        }
+        
+        // Ensure x stays within viewport
         const maxX = window.innerWidth - bubbleWidth - 20;
-        const maxY = window.innerHeight - bubbleHeight - 20;
-        
         x = Math.max(20, Math.min(x, maxX));
-        y = Math.max(20, Math.min(y, maxY));
       } else {
-        // Fallback: position in visible terminal area if Archimedes not found
-        const voiceControls = document.querySelector('.voice-controls');
-        const voiceControlsHeight = voiceControls?.getBoundingClientRect().height || 60;
-        
-        const commandInput = document.querySelector('[data-testid="input-command"]')?.closest('.flex-shrink-0');
-        const commandInputHeight = commandInput?.getBoundingClientRect().height || 80;
-        
-        const topBound = voiceControlsHeight + 20;
-        const bottomBound = window.innerHeight - commandInputHeight - bubbleHeight - 20;
+        // Fallback: position in visible terminal area
         const rightBound = window.innerWidth - bubbleWidth - 20;
         
         x = Math.min(rightBound - 100, window.innerWidth - bubbleWidth - 40);
@@ -174,6 +192,21 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       onBubbleRendered?.();
     }
   }, [position, onBubbleRendered]);
+
+  // Follow scroll position
+  useEffect(() => {
+    const viewport = document.querySelector('[data-radix-scroll-area-viewport]');
+    if (!viewport || initialScrollOffsetRef.current === null) return;
+
+    const handleScroll = () => {
+      const currentScrollTop = viewport.scrollTop;
+      const scrollDelta = currentScrollTop - initialScrollOffsetRef.current;
+      setScrollOffset(scrollDelta);
+    };
+
+    viewport.addEventListener('scroll', handleScroll, { passive: true });
+    return () => viewport.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Always show floating version for responses, keep visible until saved
   useEffect(() => {
@@ -348,13 +381,13 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
         {children}
       </div>
 
-      {/* Floating draggable version - always visible */}
+      {/* Floating draggable version - always visible and follows scroll */}
       {position && (
         <div
           className="fixed z-50 cursor-move"
           style={{
             left: position.x,
-            top: position.y,
+            top: isDragging ? position.y : position.y - scrollOffset,
             transition: isDragging ? 'none' : 'all 0.2s ease-out'
           }}
           onMouseDown={handleMouseDown}
