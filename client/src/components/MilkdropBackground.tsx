@@ -174,13 +174,27 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
         analyserRef.current.fftSize = 512;
         analyserRef.current.smoothingTimeConstant = 0.8;
 
-        // Try to capture system audio or use microphone
+        // Try to connect to existing audio elements (like Webamp)
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          const source = audioContextRef.current.createMediaStreamSource(stream);
-          source.connect(analyserRef.current);
+          // Find all audio/video elements on the page
+          const audioElements = document.querySelectorAll('audio, video');
+          
+          if (audioElements.length > 0) {
+            // Connect to the first audio element found (typically Webamp)
+            const audioElement = audioElements[0] as HTMLMediaElement;
+            const source = audioContextRef.current.createMediaElementSource(audioElement);
+            
+            // Create a splitter so audio continues to play normally
+            const destination = audioContextRef.current.destination;
+            source.connect(analyserRef.current);
+            analyserRef.current.connect(destination);
+            
+            console.log('Connected to system audio element for visualization');
+          } else {
+            console.log('No audio elements found, using visual-only mode');
+          }
         } catch (error) {
-          console.log('Audio access not available, using visual-only mode');
+          console.log('Could not connect to system audio, using visual-only mode:', error);
         }
       } catch (error) {
         console.log('Audio context initialization failed');
