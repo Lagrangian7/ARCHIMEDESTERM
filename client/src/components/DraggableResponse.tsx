@@ -328,8 +328,16 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     // Prevent dragging if clicking on a button or other interactive element
     const target = e.target as HTMLElement;
-    if (target.closest('[data-no-drag]') || target.closest('button')) {
-      e.stopPropagation();
+    
+    // Check if we're clicking on a button or within the button area
+    if (
+      target.closest('button') ||
+      target.closest('[data-no-drag]') ||
+      target.tagName === 'BUTTON' ||
+      target.tagName === 'svg' ||
+      target.tagName === 'path'
+    ) {
+      // Don't start dragging, let the button handle the click
       return;
     }
 
@@ -459,10 +467,15 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
               </div>
 
               {/* Action buttons */}
-              <div className="absolute top-2 right-2 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity" data-no-drag>
+              <div className="absolute top-2 right-2 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity pointer-events-auto" data-no-drag>
                 {/* Copy button */}
                 <button
                   onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onMouseUp={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                   }}
                   onClick={(e) => {
@@ -470,16 +483,22 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                     e.stopPropagation();
                     handleCopy();
                   }}
-                  className="text-terminal-highlight hover:text-terminal-bright-green hover:bg-terminal-highlight/10 rounded transition-all cursor-pointer p-1.5 z-10"
+                  className="text-terminal-highlight hover:text-terminal-bright-green hover:bg-terminal-highlight/10 rounded transition-all cursor-pointer p-1.5 z-[60] pointer-events-auto"
                   title="Copy to clipboard"
                   data-testid={`copy-response-${entryId}`}
+                  type="button"
                 >
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-4 h-4 pointer-events-none" />
                 </button>
 
                 {/* Save button */}
                 <button
                   onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onMouseUp={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                   }}
                   onClick={(e) => {
@@ -490,16 +509,22 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                     }
                   }}
                   disabled={saveMutation.isPending || isSaved}
-                  className="text-terminal-highlight hover:text-terminal-bright-green hover:bg-terminal-highlight/10 rounded transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer p-1.5 z-10"
+                  className="text-terminal-highlight hover:text-terminal-bright-green hover:bg-terminal-highlight/10 rounded transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer p-1.5 z-[60] pointer-events-auto"
                   title={isSaved ? "Already saved" : "Save to knowledge base"}
                   data-testid={`save-response-${entryId}`}
+                  type="button"
                 >
-                  <Save className="w-4 h-4" />
+                  <Save className="w-4 h-4 pointer-events-none" />
                 </button>
 
                 {/* Close button */}
                 <button
                   onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onMouseUp={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                   }}
                   onClick={(e) => {
@@ -507,9 +532,10 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                     e.stopPropagation();
                     setShowFloating(false);
                   }}
-                  className="text-terminal-subtle hover:text-red-400 hover:bg-red-400/10 rounded transition-all cursor-pointer p-1.5 z-10"
+                  className="text-terminal-subtle hover:text-red-400 hover:bg-red-400/10 rounded transition-all cursor-pointer p-1.5 z-[60] pointer-events-auto"
                   title="Close (or double-click anywhere)"
                   data-testid={`close-response-${entryId}`}
+                  type="button"
                 >
                   <span className="text-xs font-bold">✕</span>
                 </button>
