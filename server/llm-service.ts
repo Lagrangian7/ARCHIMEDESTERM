@@ -652,18 +652,16 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       console.error('Primary AI models error:', primaryError);
 
       try {
-        // Try Mistral as first fallback
-        if (process.env.MISTRAL_API_KEY) {
-          console.log(`[LLM] Falling back to Mistral AI for ${safeMode.toUpperCase()} mode`);
-          aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-        }
-        // Try OpenAI as second fallback
-        else if (process.env.OPENAI_API_KEY) {
+        // Try OpenAI as first fallback (most reliable when rate limits hit)
+        if (process.env.OPENAI_API_KEY) {
           console.log(`[LLM] Falling back to OpenAI for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-        } else {
-          throw new Error('No fallback models available');
         }
+        // Try Mistral as second fallback
+        else if (process.env.MISTRAL_API_KEY) {
+          console.log(`[LLM] Falling back to Mistral AI for ${safeMode.toUpperCase()} mode`);
+          aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+        } 
         // Try Hugging Face enhanced models before final fallback
         else {
           console.log(`[LLM] Trying enhanced Hugging Face models for ${safeMode.toUpperCase()} mode`);
