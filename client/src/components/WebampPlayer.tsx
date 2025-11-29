@@ -352,7 +352,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
 
           // Custom default skin
           initialSkin: {
-            url: "/default-skin.wsz"
+            url: "/skin-technics.wsz"
           },
 
           // Initial window layout - positioned at top center with Milkdrop
@@ -377,6 +377,10 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
 
           // Available skins
           availableSkins: [
+            {
+              url: "/skin-technics.wsz",
+              name: "Technics Stereo 2002"
+            },
             {
               url: "/skin-superman.wsz",
               name: "Be Strong Like Superman"
