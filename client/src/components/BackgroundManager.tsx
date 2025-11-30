@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Upload, Trash2, ImageOff } from 'lucide-react';
 import wallpaperImage from '../assets/terminal-bg-new.png';
-import samuraiWallpaper from '../assets/samurai-warrior.png';
 
 // Constants
 const MAX_WALLPAPERS = 9; // Max custom wallpapers
@@ -129,23 +128,14 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
   const [selectedWallpaper, setSelectedWallpaper] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Built-in wallpapers
-  const builtInWallpapers: WallpaperSlot[] = [
-    {
-      id: 'built-in-wallpaper',
-      url: wallpaperImage,
-      name: 'Default Terminal Background',
-      isBuiltIn: true,
-      timestamp: 0
-    },
-    {
-      id: 'built-in-samurai',
-      url: samuraiWallpaper,
-      name: 'Samurai Warrior',
-      isBuiltIn: true,
-      timestamp: 0
-    }
-  ];
+  // Built-in wallpaper
+  const builtInWallpaper: WallpaperSlot = {
+    id: 'built-in-wallpaper',
+    url: wallpaperImage,
+    name: 'Default Terminal Background',
+    isBuiltIn: true,
+    timestamp: 0 // Not relevant for built-in
+  };
 
   // Load wallpapers from IndexedDB and localStorage on mount
   useEffect(() => {
@@ -159,8 +149,8 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
         // Load current background from localStorage
         const currentBg = localStorage.getItem('terminal-background-url');
         if (currentBg) {
-          // Check if the current background is one of the loaded DB wallpapers or one of the built-in ones
-          const foundWallpaper = dbWallpapers.find(w => w.url === currentBg) || builtInWallpapers.find(w => w.url === currentBg);
+          // Check if the current background is one of the loaded DB wallpapers or the built-in one
+          const foundWallpaper = dbWallpapers.find(w => w.url === currentBg) || (currentBg === builtInWallpaper.url ? builtInWallpaper : null);
           if (foundWallpaper) {
             setSelectedWallpaper(currentBg);
           } else {
@@ -171,7 +161,7 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
         } else {
           setSelectedWallpaper('');
         }
-        setWallpapers([...builtInWallpapers, ...dbWallpapers]);
+        setWallpapers([builtInWallpaper, ...dbWallpapers]);
       } catch (error) {
         console.error('Failed to load wallpapers from DB:', error);
         // Fallback to localStorage if DB fails (though we're moving away from it)
@@ -187,7 +177,7 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
           }
         }
         // If DB load failed, use whatever was in localStorage as a fallback
-        setWallpapers([...builtInWallpapers, ...userWallpapers]);
+        setWallpapers([builtInWallpaper, ...userWallpapers]);
         alert('Could not load wallpapers from database. Some features might be limited.');
       } finally {
         setIsLoading(false);
@@ -515,44 +505,43 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
 
           {isLoading ? (
             <p className="text-center py-8" style={{ color: 'var(--terminal-subtle)' }}>Loading wallpapers...</p>
-          ) : customWallpapers.length === 0 && wallpapers.length === builtInWallpapers.length ? ( // Only built-ins are present
+          ) : customWallpapers.length === 0 && wallpapers.length === 1 ? ( // Only built-in is present
             <p className="text-center py-8" style={{ color: 'var(--terminal-subtle)' }}>
               No wallpapers uploaded yet. Drop some images above to get started!
             </p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {/* Render all built-in wallpapers first */}
-              {builtInWallpapers.map((builtIn) => (
+              {/* Render built-in first if it's not hidden, then custom */}
+              {!builtInWallpaper.isBuiltIn && ( // Example condition, adjust if hideDefaultBackground is used
                 <div
-                  key={builtIn.id}
+                  key={builtInWallpaper.id}
                   className="relative group cursor-pointer"
-                  onClick={() => selectWallpaper(builtIn)}
+                  onClick={() => selectWallpaper(builtInWallpaper)}
                   style={{
-                    border: selectedWallpaper === builtIn.url ? '2px solid var(--terminal-highlight)' : '1px solid var(--terminal-subtle)',
+                    border: selectedWallpaper === builtInWallpaper.url ? '2px solid var(--terminal-highlight)' : '1px solid var(--terminal-subtle)',
                     borderRadius: '8px',
                     overflow: 'hidden'
                   }}
-                  data-testid={`wallpaper-slot-${builtIn.id}`}
+                  data-testid={`wallpaper-slot-${builtInWallpaper.id}`}
                 >
                   <div
                     className="aspect-video bg-cover bg-center"
                     style={{
-                      backgroundImage: `url(${builtIn.url})`,
+                      backgroundImage: `url(${builtInWallpaper.url})`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center'
                     }}
                   />
                   <div
-                    className="p-2 text-xs truncate flex items-center gap-1"
+                    className="p-2 text-xs truncate"
                     style={{
                       backgroundColor: 'var(--terminal-bg)',
                       color: 'var(--terminal-text)'
                     }}
                   >
-                    <span className="text-terminal-highlight">●</span>
-                    {builtIn.name}
+                    {builtInWallpaper.name}
                   </div>
-                  {selectedWallpaper === builtIn.url && (
+                  {selectedWallpaper === builtInWallpaper.url && (
                     <div
                       className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center"
                       style={{ backgroundColor: 'var(--terminal-highlight)' }}
@@ -561,9 +550,8 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
                     </div>
                   )}
                 </div>
-              ))}
+              )}
 
-              {/* Then render custom wallpapers */}
               {customWallpapers.map((wallpaper) => (
                 <div
                   key={wallpaper.id}
@@ -642,7 +630,7 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
             <strong>Tips:</strong>
           </p>
           <ul className="text-sm mt-2 space-y-1" style={{ color: 'var(--terminal-subtle)' }}>
-            <li>• Upload up to {MAX_WALLPAPERS} custom wallpapers ({builtInWallpapers.length} built-in included for total of {MAX_WALLPAPERS + builtInWallpapers.length})</li>
+            <li>• Upload up to {MAX_WALLPAPERS} custom wallpapers (1 built-in included for total of {MAX_WALLPAPERS + 1})</li>
             <li>• Click a wallpaper to set it as your terminal background</li>
             <li>• Images automatically fit to screen while maintaining aspect ratio</li>
             <li>• Hover over custom wallpapers and click trash icon to delete</li>
