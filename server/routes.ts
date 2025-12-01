@@ -2210,6 +2210,288 @@ function windowResized() {
     }
   });
 
+  // Unified code execution endpoint - uses spawn with array args for security
+  app.post('/api/execute', async (req, res) => {
+    const { code, language } = req.body;
+
+    if (!code || typeof code !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Code is required and must be a string'
+      });
+    }
+
+    // Limit code size for safety
+    if (code.length > 50000) {
+      return res.status(400).json({
+        success: false,
+        error: 'Code too large (max 50KB)'
+      });
+    }
+
+    const lang = (language || 'python').toLowerCase();
+
+    // Helper to run a process with timeout using spawn (safer than exec)
+    const runProcess = (cmd: string, args: string[], timeout: number = 10000): Promise<{ stdout: string; stderr: string; code: number }> => {
+      return new Promise((resolve, reject) => {
+        const { spawn } = require('child_process');
+        const proc = spawn(cmd, args, { timeout });
+        let stdout = '';
+        let stderr = '';
+        let killed = false;
+
+        const timer = setTimeout(() => {
+          killed = true;
+          proc.kill('SIGKILL');
+          reject(new Error(`Execution timeout (${timeout / 1000} seconds)`));
+        }, timeout);
+
+        proc.stdout?.on('data', (data: Buffer) => { stdout += data.toString(); });
+        proc.stderr?.on('data', (data: Buffer) => { stderr += data.toString(); });
+
+        proc.on('close', (exitCode: number) => {
+          clearTimeout(timer);
+          if (!killed) resolve({ stdout, stderr, code: exitCode || 0 });
+        });
+
+        proc.on('error', (err: Error) => {
+          clearTimeout(timer);
+          reject(err);
+        });
+      });
+    };
+
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const crypto = await import('crypto');
+
+      // Generate random filename to prevent predictable paths
+      const randomId = crypto.randomBytes(8).toString('hex');
+
+      let output = '';
+      let error = '';
+      let executionTime = '0';
+      let guiOutput = null;
+      const startTime = Date.now();
+
+      switch (lang) {
+        case 'python': {
+          // Check for GUI libraries
+          const hasGuiLibraries = /import\s+(tkinter|matplotlib|pygame|turtle|PyQt|PySide)/i.test(code);
+          
+          const wrappedCode = hasGuiLibraries ? `
+import sys
+import io
+import base64
+
+${code}
+
+try:
+    import matplotlib.pyplot as plt
+    if plt.get_fignums():
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', bbox_inches='tight')
+        buf.seek(0)
+        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
+        plt.close('all')
+except ImportError:
+    pass
+except Exception as e:
+    print(f'GUI rendering error: {e}', file=sys.stderr)
+` : code;
+
+          const result = await runProcess('python3', ['-c', wrappedCode], 30000);
+
+          // Extract GUI output if present
+          const guiMatch = result.stdout.match(/__GUI_OUTPUT__:(.*)/);
+          if (guiMatch) {
+            guiOutput = guiMatch[1];
+            output = result.stdout.replace(/__GUI_OUTPUT__:.*/, '').trim();
+          } else {
+            output = result.stdout;
+          }
+          error = result.stderr;
+          break;
+        }
+
+        case 'javascript':
+        case 'js': {
+          // Use spawn with -e flag (code passed as argument, not shell-interpolated)
+          const result = await runProcess('node', ['-e', code], 10000);
+          output = result.stdout;
+          error = result.stderr;
+          break;
+        }
+
+        case 'typescript':
+        case 'ts': {
+          const tmpFile = path.join('/tmp', `ts_${randomId}.ts`);
+          await fs.writeFile(tmpFile, code, { mode: 0o600 });
+          try {
+            const result = await runProcess('npx', ['tsx', tmpFile], 15000);
+            output = result.stdout;
+            error = result.stderr;
+          } finally {
+            await fs.unlink(tmpFile).catch(() => {});
+          }
+          break;
+        }
+
+        case 'bash':
+        case 'shell':
+        case 'sh': {
+          // Write to temp file and execute (safer than passing code to bash -c)
+          const tmpFile = path.join('/tmp', `sh_${randomId}.sh`);
+          await fs.writeFile(tmpFile, code, { mode: 0o600 });
+          try {
+            const result = await runProcess('bash', [tmpFile], 10000);
+            output = result.stdout;
+            error = result.stderr;
+          } finally {
+            await fs.unlink(tmpFile).catch(() => {});
+          }
+          break;
+        }
+
+        case 'cpp':
+        case 'c++': {
+          const tmpFile = path.join('/tmp', `cpp_${randomId}.cpp`);
+          const tmpExec = path.join('/tmp', `exec_${randomId}`);
+          await fs.writeFile(tmpFile, code, { mode: 0o600 });
+          try {
+            // Compile using spawn with array args
+            await runProcess('g++', [tmpFile, '-o', tmpExec], 15000);
+            // Execute
+            const result = await runProcess(tmpExec, [], 10000);
+            output = result.stdout;
+            error = result.stderr;
+          } finally {
+            await fs.unlink(tmpFile).catch(() => {});
+            await fs.unlink(tmpExec).catch(() => {});
+          }
+          break;
+        }
+
+        case 'c': {
+          const tmpFile = path.join('/tmp', `c_${randomId}.c`);
+          const tmpExec = path.join('/tmp', `exec_${randomId}`);
+          await fs.writeFile(tmpFile, code, { mode: 0o600 });
+          try {
+            // Compile using spawn with array args
+            await runProcess('gcc', [tmpFile, '-o', tmpExec], 15000);
+            // Execute
+            const result = await runProcess(tmpExec, [], 10000);
+            output = result.stdout;
+            error = result.stderr;
+          } finally {
+            await fs.unlink(tmpFile).catch(() => {});
+            await fs.unlink(tmpExec).catch(() => {});
+          }
+          break;
+        }
+
+        case 'go':
+        case 'golang': {
+          const tmpFile = path.join('/tmp', `go_${randomId}.go`);
+          await fs.writeFile(tmpFile, code, { mode: 0o600 });
+          try {
+            const result = await runProcess('go', ['run', tmpFile], 15000);
+            output = result.stdout;
+            error = result.stderr;
+          } finally {
+            await fs.unlink(tmpFile).catch(() => {});
+          }
+          break;
+        }
+
+        case 'rust':
+        case 'rs': {
+          const tmpFile = path.join('/tmp', `rs_${randomId}.rs`);
+          const tmpExec = path.join('/tmp', `exec_${randomId}`);
+          await fs.writeFile(tmpFile, code, { mode: 0o600 });
+          try {
+            // Compile using spawn with array args
+            await runProcess('rustc', [tmpFile, '-o', tmpExec], 30000);
+            // Execute
+            const result = await runProcess(tmpExec, [], 10000);
+            output = result.stdout;
+            error = result.stderr;
+          } finally {
+            await fs.unlink(tmpFile).catch(() => {});
+            await fs.unlink(tmpExec).catch(() => {});
+          }
+          break;
+        }
+
+        case 'ruby':
+        case 'rb': {
+          // Use spawn with -e flag
+          const result = await runProcess('ruby', ['-e', code], 10000);
+          output = result.stdout;
+          error = result.stderr;
+          break;
+        }
+
+        case 'php': {
+          // Write to temp file (safer than -r with complex code)
+          const tmpFile = path.join('/tmp', `php_${randomId}.php`);
+          await fs.writeFile(tmpFile, `<?php\n${code}\n?>`, { mode: 0o600 });
+          try {
+            const result = await runProcess('php', [tmpFile], 10000);
+            output = result.stdout;
+            error = result.stderr;
+          } finally {
+            await fs.unlink(tmpFile).catch(() => {});
+          }
+          break;
+        }
+
+        case 'html': {
+          // For HTML, provide safe inline preview using sandbox
+          // Properly escape HTML for srcdoc attribute to prevent XSS
+          const escapedForSrcdoc = code
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          
+          output = `HTML Preview rendered below.\n\nTo run locally:\n1. Save as index.html\n2. Open in browser`;
+          // Use sandbox with restrictive permissions - only allow scripts, no same-origin access
+          guiOutput = `<iframe srcdoc="${escapedForSrcdoc}" sandbox="allow-scripts" style="width:100%;height:400px;border:1px solid #00FF41;border-radius:4px;background:white;"></iframe>`;
+          break;
+        }
+
+        default:
+          return res.json({
+            success: false,
+            output: '',
+            error: `Language '${lang}' is not supported for execution.\n\nSupported languages: python, javascript, typescript, bash, c, cpp, go, rust, ruby, php, html`,
+            executionTime: '0'
+          });
+      }
+
+      executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+      res.json({
+        success: !error || error.length === 0,
+        output: output || '',
+        error: error || '',
+        executionTime,
+        guiOutput
+      });
+    } catch (err: any) {
+      res.json({
+        success: false,
+        output: '',
+        error: err.message || 'Execution failed',
+        executionTime: '0'
+      });
+    }
+  });
+
   // Create HTTP server first
   const httpServer = createServer(app);
 

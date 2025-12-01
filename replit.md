@@ -21,6 +21,18 @@ Preferred communication style: Simple, everyday language.
   - Multi-file extraction from AI responses (separates HTML, JS, Python, etc. into individual files)
   - Download buttons for individual code files with proper extensions
   - Local preview/run instructions for each language type
+  - **Real-time code execution** via unified `/api/execute` endpoint supporting:
+    - Python (with matplotlib chart rendering as images)
+    - JavaScript (Node.js)
+    - TypeScript (via tsx)
+    - Bash/Shell scripts
+    - C/C++ (compile and run)
+    - Go (go run)
+    - Rust (rustc and run)
+    - Ruby
+    - PHP
+    - HTML (inline preview via iframe)
+  - GUI output rendering for matplotlib plots and HTML previews
   - Accessible via `code` or `playground` terminal command
 
 ## Backend Architecture

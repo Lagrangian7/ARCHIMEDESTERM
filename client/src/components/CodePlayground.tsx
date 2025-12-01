@@ -215,11 +215,14 @@ function saveSession(files: CodeFile[], activeFileId: string): void {
   }
 }
 
+const EXECUTABLE_LANGUAGES = ['python', 'javascript', 'typescript', 'bash', 'cpp', 'c', 'go', 'rust', 'ruby', 'php', 'html'];
+
 export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePlaygroundProps) {
   const { toast } = useToast();
   const [files, setFiles] = useState<CodeFile[]>([]);
   const [activeFileId, setActiveFileId] = useState<string>('');
   const [output, setOutput] = useState<string>('');
+  const [guiOutput, setGuiOutput] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -351,11 +354,16 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
       return response.json();
     },
     onSuccess: (data) => {
-      setOutput(data.output || data.error || 'Execution complete.');
+      const outputText = data.success 
+        ? `${data.output || 'Execution complete.'}\n\n✓ Completed in ${data.executionTime || '0'}s`
+        : `ERROR:\n${data.error}\n\n${data.output || ''}`;
+      setOutput(outputText);
+      setGuiOutput(data.guiOutput || null);
       setIsRunning(false);
     },
     onError: (error: any) => {
       setOutput(`Error: ${error.message || 'Execution failed'}`);
+      setGuiOutput(null);
       setIsRunning(false);
     }
   });
@@ -528,7 +536,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={runCode}
-                      disabled={isRunning || !['python', 'javascript', 'typescript', 'bash'].includes(activeFile.language)}
+                      disabled={isRunning || !EXECUTABLE_LANGUAGES.includes(activeFile.language)}
                       size="sm"
                       className="bg-[#00FF41] text-black hover:bg-[#00FF41]/80 font-mono text-xs"
                       data-testid="button-run-code"
@@ -568,14 +576,37 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
           </div>
           
           {/* Output Panel */}
-          <div className="w-80 bg-black/40 border-l border-[#00FF41]/20 flex flex-col">
+          <div className="w-96 bg-black/40 border-l border-[#00FF41]/20 flex flex-col">
             <div className="px-4 py-2 bg-black/30 border-b border-[#00FF41]/20 flex items-center gap-2">
               <TerminalIcon className="w-4 h-4 text-[#00FF41]" />
               <span className="text-[#00FF41] font-mono text-sm">Output</span>
             </div>
             <ScrollArea className="flex-1">
+              {guiOutput && (
+                <div className="p-4 border-b border-[#00FF41]/20">
+                  <div 
+                    className="rounded overflow-hidden"
+                    dangerouslySetInnerHTML={{ __html: guiOutput }} 
+                  />
+                </div>
+              )}
               <pre className="p-4 text-[#00FF41]/80 font-mono text-xs whitespace-pre-wrap">
-                {output || 'Run code to see output...\n\nSupported languages for execution:\n• Python\n• JavaScript\n• TypeScript\n• Bash\n\nOther languages can be downloaded\nand run locally.'}
+                {output || `Run code to see output...
+
+Supported languages for execution:
+• Python (with matplotlib support)
+• JavaScript (Node.js)
+• TypeScript
+• Bash/Shell
+• C/C++
+• Go
+• Rust
+• Ruby
+• PHP
+• HTML (preview)
+
+Other languages can be downloaded
+and run locally.`}
               </pre>
             </ScrollArea>
           </div>
