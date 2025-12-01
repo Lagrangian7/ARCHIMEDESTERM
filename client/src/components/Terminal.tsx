@@ -41,7 +41,7 @@ import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
 import archyLogo from '@assets/archy111_1760233943010.jpeg';
-import wallpaperImage from '../assets/terminal-bg-new.png';
+// Default wallpaper removed - users manage their own collection
 
 // Import LogoIcon from its own file to break circular dependency
 import { LogoIcon } from './LogoIcon';
@@ -321,7 +321,7 @@ export function Terminal() {
     const handleScrollToResponse = (event: Event) => {
       const customEvent = event as CustomEvent;
       const { elementRect } = customEvent.detail;
-      
+
       if (elementRect && scrollAreaRef.current) {
         const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
         if (viewport) {
@@ -329,7 +329,7 @@ export function Terminal() {
           const viewportRect = viewport.getBoundingClientRect();
           const relativeTop = elementRect.top - viewportRect.top;
           const targetScroll = viewport.scrollTop + relativeTop - 100; // 100px padding from top
-          
+
           // Smooth scroll to the response
           viewport.scrollTo({
             top: Math.max(0, targetScroll),
@@ -512,7 +512,7 @@ export function Terminal() {
 
   // Check if user has set a custom background (from Background Manager)
   const hasCustomBackground = customBackgroundUrl && customBackgroundUrl.length > 0;
-  
+
   // Only show default wallpaper on the default theme (forest-gradient)
   const showDefaultWallpaper = currentTheme === 'forest-gradient' && !hasCustomBackground;
 
@@ -547,7 +547,7 @@ export function Terminal() {
             }}
           />
         )}
-        
+
         {/* Default Wallpaper - only on forest-gradient theme */}
         {showDefaultWallpaper && (
           <div
