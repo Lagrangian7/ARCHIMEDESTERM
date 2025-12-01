@@ -80,7 +80,7 @@ Preferred communication style: Simple, everyday language.
   - **Natural mode** (default): Sassy cyberpunk AI for fun conversations AND code generation
   - **Technical mode**: Master builder - step-by-step guides for construction, trades, engineering & sciences
   - **Health mode**: Naturopathic wellness advisor - nutrition, herbs, natural healing
-  - **Freestyle mode**: Dedicated programming assistant with multi-language code generation (Python, TypeScript, JavaScript, C++, Bash)
+  - **Freestyle mode**: Proactive, collaborative programming assistant with multi-language code generation (Python, TypeScript, JavaScript, C++, Bash). Features enhanced interaction principles: anticipates user needs, asks smart follow-up questions (one at a time), uses prose over lists, provides critical feedback, and gets straight to the point without preambles
 - **Intelligent Language Detection**: Freestyle mode analyzes user requests to detect target programming language using:
   - Explicit language mentions (highest priority)
   - File extensions (.py, .ts, .js, .cpp, .sh)
