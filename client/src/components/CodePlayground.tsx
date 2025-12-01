@@ -425,8 +425,17 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
     toast({ title: "Copied", description: `${file.name} copied to clipboard.` });
   }, [toast]);
   
+  // Detect output type when output changes
+  useEffect(() => {
+    if (output && output !== 'Running...\n') {
+      const result = renderOutputSpecial(output);
+      setOutputType(result.type);
+      setParsedData(result.data);
+    }
+  }, [output]);
+
   const runMutation = useMutation({
-    mutationFn: async (data: { code: string; language: string }) => {
+    mutationFn: async (data: { code: string; language: string; stdin?: string }) => {
       const response = await apiRequest('POST', '/api/execute', data);
       return response.json();
     },
@@ -449,8 +458,13 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
     if (!activeFile) return;
     setIsRunning(true);
     setOutput('Running...\n');
-    runMutation.mutate({ code: activeFile.content, language: activeFile.language });
-  }, [activeFile, runMutation]);
+    const stdinLines = stdinInput.split('\n').filter(l => l.trim());
+    runMutation.mutate({ 
+      code: activeFile.content, 
+      language: activeFile.language,
+      stdin: stdinLines.length > 0 ? stdinInput : undefined
+    });
+  }, [activeFile, runMutation, stdinInput]);
   
   const handleEditorMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
@@ -658,6 +672,19 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
               <TerminalIcon className="w-4 h-4 text-[#00FF41]" />
               <span className="text-[#00FF41] font-mono text-sm">Output</span>
             </div>
+            
+            {/* Stdin input field */}
+            <div className="px-3 py-2 border-b border-[#00FF41]/20 bg-black/20">
+              <label className="text-[#00FF41] text-xs font-mono mb-1 block">Stdin (lines):</label>
+              <textarea
+                value={stdinInput}
+                onChange={(e) => setStdinInput(e.target.value)}
+                placeholder="Enter input for programs needing stdin..."
+                className="w-full bg-black/40 text-[#00FF41] text-xs font-mono p-2 rounded border border-[#00FF41]/20 focus:border-[#00FF41]/50 outline-none resize-none h-16"
+                data-testid="input-stdin"
+              />
+            </div>
+            
             <ScrollArea className="flex-1">
               {guiOutput && (
                 <div className="p-4 border-b border-[#00FF41]/20">
@@ -667,24 +694,44 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
                   />
                 </div>
               )}
-              <pre className="p-4 text-[#00FF41]/80 font-mono text-xs whitespace-pre-wrap">
-                {output || `Run code to see output...
+              
+              {/* Rendered output viewers */}
+              {output && output !== 'Running...\n' && (
+                <div className="p-4">
+                  {outputType === 'json' && parsedData && <JsonViewer data={parsedData} />}
+                  {outputType === 'csv' && parsedData && <CsvTable data={parsedData} />}
+                  {outputType === 'svg' && parsedData && <SvgViewer data={parsedData} />}
+                  {outputType === 'xml' && parsedData && (
+                    <pre className="p-3 bg-black/20 rounded text-[#00FF41] text-xs font-mono overflow-x-auto max-h-96">
+                      {parsedData}
+                    </pre>
+                  )}
+                  {outputType === 'text' && (
+                    <pre className="text-[#00FF41]/80 font-mono text-xs whitespace-pre-wrap">
+                      {output}
+                    </pre>
+                  )}
+                </div>
+              )}
+              
+              {(!output || output === 'Running...\n') && (
+                <pre className="p-4 text-[#00FF41]/80 font-mono text-xs whitespace-pre-wrap">
+                  {output || `Run code to see output...
 
-Supported languages for execution:
-• Python (with matplotlib support)
-• JavaScript (Node.js)
-• TypeScript
-• Bash/Shell
-• C/C++
-• Go
-• Rust
-• Ruby
-• PHP
-• HTML (preview)
+✨ Features:
+• Interactive stdin input ↑
+• Auto-detect: JSON, CSV, SVG
+• GUI preview (matplotlib, tkinter)
+• Multi-file support
+• HTML preview + sandbox
 
-Other languages can be downloaded
-and run locally.`}
-              </pre>
+Supported languages:
+• Python (with GUI)
+• JavaScript/TypeScript
+• Bash/Shell • C/C++
+• Go • Rust • Ruby • PHP`}
+                </pre>
+              )}
             </ScrollArea>
           </div>
         </div>
