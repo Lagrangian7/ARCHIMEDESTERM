@@ -1,14 +1,26 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   X, Download, Play, FileCode, Copy, Check, Plus, Trash2, 
-  FileText, Terminal as TerminalIcon, Info, ChevronDown, ChevronUp, Table2 
+  FileText, Terminal as TerminalIcon, Info, ChevronDown, ChevronUp, Table2, Bot 
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+
+type MonacoAIMode = 'natural' | 'technical' | 'freestyle' | 'health';
+
+const MONACO_AI_MODE_KEY = 'monaco-ai-mode';
+
+const AI_MODE_CONFIG: Record<MonacoAIMode, { label: string; icon: string; description: string }> = {
+  natural: { label: 'Natural', icon: '💬', description: 'Conversational coding help' },
+  technical: { label: 'Technical', icon: '🔧', description: 'Step-by-step technical guides' },
+  freestyle: { label: 'Freestyle', icon: '🎨', description: 'Creative code generation' },
+  health: { label: 'Health', icon: '🌿', description: 'Wellness-focused assistance' },
+};
 
 interface CodePlaygroundProps {
   onClose: () => void;
@@ -344,6 +356,16 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   const editorRef = useRef<any>(null);
   const lastInitialCodeRef = useRef<string | null>(null);
   
+  const [monacoAIMode, setMonacoAIMode] = useState<MonacoAIMode>(() => {
+    const saved = localStorage.getItem(MONACO_AI_MODE_KEY);
+    return (saved === 'natural' || saved === 'technical' || saved === 'freestyle' || saved === 'health') 
+      ? saved : 'freestyle';
+  });
+  
+  useEffect(() => {
+    localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
+  }, [monacoAIMode]);
+  
   useEffect(() => {
     // Always load new initialCode when provided, takes precedence over saved session
     if (initialCode && initialCode !== lastInitialCodeRef.current) {
@@ -552,6 +574,31 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
             <span className="text-[#00FF41]/60 text-xs font-mono">Multi-Language Editor</span>
           </div>
           <div className="flex items-center gap-2">
+            {/* Monaco AI Mode Selector */}
+            <div className="flex items-center gap-2 px-2 py-1 bg-black/40 rounded border border-[#00FF41]/20">
+              <Bot className="w-4 h-4 text-[#00FF41]" />
+              <Select value={monacoAIMode} onValueChange={(v: MonacoAIMode) => setMonacoAIMode(v)}>
+                <SelectTrigger className="w-32 h-7 bg-transparent border-none text-[#00FF41] text-xs font-mono focus:ring-0" data-testid="select-monaco-ai-mode">
+                  <SelectValue>
+                    {AI_MODE_CONFIG[monacoAIMode].icon} {AI_MODE_CONFIG[monacoAIMode].label}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-[#0D1117] border-[#00FF41]/30">
+                  {(Object.keys(AI_MODE_CONFIG) as MonacoAIMode[]).map((mode) => (
+                    <SelectItem 
+                      key={mode} 
+                      value={mode}
+                      className="text-[#00FF41] hover:bg-[#00FF41]/20 focus:bg-[#00FF41]/20 font-mono text-xs"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>{AI_MODE_CONFIG[mode].icon}</span>
+                        <span>{AI_MODE_CONFIG[mode].label}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <Button
               onClick={() => setShowInstructions(!showInstructions)}
               variant="ghost"
