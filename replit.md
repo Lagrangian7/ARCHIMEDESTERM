@@ -22,7 +22,7 @@ Preferred communication style: Simple, everyday language.
   - Download buttons for individual code files with proper extensions
   - Local preview/run instructions for each language type
   - **Real-time code execution** via unified `/api/execute` endpoint supporting:
-    - Python (with matplotlib chart rendering as images)
+    - Python (with GUI capture for matplotlib, tkinter, pygame, turtle)
     - JavaScript (Node.js)
     - TypeScript (via tsx)
     - Bash/Shell scripts
@@ -32,7 +32,13 @@ Preferred communication style: Simple, everyday language.
     - Ruby
     - PHP
     - HTML (inline preview via iframe)
-  - GUI output rendering for matplotlib plots and HTML previews
+  - **GUI output rendering**:
+    - matplotlib: Charts rendered as PNG images
+    - tkinter: Window screenshots captured via PIL/ImageGrab
+    - pygame: Surface captured after 5 frames as PNG
+    - turtle: Canvas exported via PostScript and converted to PNG
+    - HTML: Sandboxed iframe preview
+  - Virtual display (pyvirtualdisplay/Xvfb) for headless GUI rendering
   - Accessible via `code` or `playground` terminal command
 
 ## Backend Architecture

@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["inetutils", "jellyfin-ffmpeg"]
+packages = ["SDL2", "SDL2_image", "SDL2_mixer", "SDL2_ttf", "cairo", "ffmpeg-full", "fontconfig", "freetype", "ghostscript", "gobject-introspection", "gtk3", "inetutils", "jellyfin-ffmpeg", "lcms2", "libimagequant", "libjpeg", "libpng", "libtiff", "libwebp", "libxcrypt", "openjpeg", "pkg-config", "portmidi", "qhull", "scrot", "tcl", "tk", "xorg.libX11", "xorg.libXext", "xorg.libXrender", "xorg.xorgserver", "zlib"]
 
 [deployment]
 deploymentTarget = "autoscale"

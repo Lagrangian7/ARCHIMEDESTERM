@@ -2277,35 +2277,278 @@ function windowResized() {
 
       switch (lang) {
         case 'python': {
-          // Check for GUI libraries
-          const hasGuiLibraries = /import\s+(tkinter|matplotlib|pygame|turtle|PyQt|PySide)/i.test(code);
+          // Check for different GUI libraries
+          const hasMatplotlib = /import\s+matplotlib|from\s+matplotlib/i.test(code);
+          const hasTkinter = /import\s+tkinter|from\s+tkinter/i.test(code);
+          const hasPygame = /import\s+pygame/i.test(code);
+          const hasTurtle = /import\s+turtle|from\s+turtle/i.test(code);
+          const hasGuiLibraries = hasMatplotlib || hasTkinter || hasPygame || hasTurtle;
           
-          const wrappedCode = hasGuiLibraries ? `
+          let wrappedCode = code;
+          
+          if (hasGuiLibraries) {
+            // Create a comprehensive GUI capture wrapper
+            wrappedCode = `
 import sys
 import io
 import base64
+import os
+import time
 
+# Set up virtual display for headless rendering
+try:
+    from pyvirtualdisplay import Display
+    display = Display(visible=False, size=(800, 600))
+    display.start()
+    _virtual_display_started = True
+except Exception as e:
+    _virtual_display_started = False
+    print(f"Virtual display setup: {e}", file=sys.stderr)
+
+_gui_output_generated = False
+
+${hasTkinter ? `
+# Tkinter capture wrapper - improved to allow proper rendering
+_tk_root = None
+_tk_capture_done = False
+
+def _do_tkinter_capture():
+    global _gui_output_generated, _tk_root, _tk_capture_done
+    if _tk_capture_done:
+        return
+    _tk_capture_done = True
+    try:
+        if _tk_root and _tk_root.winfo_exists():
+            _tk_root.update_idletasks()
+            _tk_root.update()
+            
+            # Use PIL to capture the full screen and crop to window
+            from PIL import Image
+            import subprocess
+            
+            # Get window geometry
+            x = _tk_root.winfo_rootx()
+            y = _tk_root.winfo_rooty()
+            w = _tk_root.winfo_width()
+            h = _tk_root.winfo_height()
+            
+            # Try using scrot for screenshot
+            try:
+                screenshot_file = f'/tmp/tk_capture_{os.getpid()}.png'
+                subprocess.run(['scrot', '-o', screenshot_file], timeout=5, check=True)
+                img = Image.open(screenshot_file)
+                # Crop to window area
+                img = img.crop((x, y, x+w, y+h))
+                buf = io.BytesIO()
+                img.save(buf, format='PNG')
+                buf.seek(0)
+                img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
+                _gui_output_generated = True
+                os.remove(screenshot_file)
+            except Exception as e:
+                print(f"Screenshot capture failed: {e}", file=sys.stderr)
+    except Exception as e:
+        print(f"Tkinter capture error: {e}", file=sys.stderr)
+    finally:
+        if _tk_root:
+            try:
+                _tk_root.destroy()
+            except:
+                pass
+
+# Patch Tk class to intercept mainloop
+import tkinter as tk
+_original_Tk = tk.Tk
+
+class _PatchedTk(_original_Tk):
+    def __init__(self, *args, **kwargs):
+        global _tk_root
+        super().__init__(*args, **kwargs)
+        _tk_root = self
+    
+    def mainloop(self, n=0):
+        # Schedule capture after allowing window to render
+        self.after(500, _do_tkinter_capture)
+        # Run event loop briefly to process events
+        end_time = time.time() + 1.0  # Max 1 second
+        while time.time() < end_time:
+            try:
+                self.update_idletasks()
+                self.update()
+            except:
+                break
+            time.sleep(0.05)
+        _do_tkinter_capture()
+
+tk.Tk = _PatchedTk
+` : ''}
+
+${hasPygame ? `
+# Pygame capture wrapper - capture on first flip after initial render
+import pygame as _pg_module
+
+_original_pygame_display_flip = _pg_module.display.flip
+_original_pygame_display_update = _pg_module.display.update
+_pygame_frame_count = 0
+_pygame_capture_scheduled = False
+
+def _capture_pygame_surface():
+    global _gui_output_generated
+    if _gui_output_generated:
+        return
+    try:
+        surface = _pg_module.display.get_surface()
+        if surface:
+            # Save surface to bytes
+            buf = io.BytesIO()
+            _pg_module.image.save(surface, buf, 'PNG')
+            buf.seek(0)
+            img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+            print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
+            _gui_output_generated = True
+    except Exception as e:
+        print(f"Pygame capture error: {e}", file=sys.stderr)
+
+def _patched_flip():
+    global _pygame_frame_count
+    _original_pygame_display_flip()
+    _pygame_frame_count += 1
+    # Capture after first flip (user has drawn something)
+    if _pygame_frame_count == 1:
+        _capture_pygame_surface()
+
+def _patched_update(*args):
+    global _pygame_frame_count
+    _original_pygame_display_update(*args)
+    _pygame_frame_count += 1
+    # Capture after first update
+    if _pygame_frame_count == 1:
+        _capture_pygame_surface()
+
+_pg_module.display.flip = _patched_flip
+_pg_module.display.update = _patched_update
+` : ''}
+
+${hasTurtle ? `
+# Turtle graphics capture - uses PostScript with Ghostscript conversion
+import turtle as _turtle_module
+
+def _capture_turtle():
+    global _gui_output_generated
+    if _gui_output_generated:
+        return
+    try:
+        import subprocess
+        from PIL import Image
+        
+        screen = _turtle_module.getscreen()
+        screen.update()
+        time.sleep(0.2)
+        
+        canvas = screen.getcanvas()
+        eps_file = f'/tmp/turtle_{os.getpid()}.eps'
+        png_file = f'/tmp/turtle_{os.getpid()}.png'
+        
+        # Save as PostScript
+        canvas.postscript(file=eps_file, colormode='color')
+        
+        # Convert EPS to PNG using Ghostscript
+        try:
+            subprocess.run([
+                'gs', '-dSAFER', '-dBATCH', '-dNOPAUSE', '-dEPSCrop',
+                '-sDEVICE=png16m', '-r150',
+                f'-sOutputFile={png_file}', eps_file
+            ], timeout=10, check=True, capture_output=True)
+            
+            img = Image.open(png_file)
+            buf = io.BytesIO()
+            img.save(buf, format='PNG')
+            buf.seek(0)
+            img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+            print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
+            _gui_output_generated = True
+        except Exception as gs_err:
+            # Fallback: try using scrot for screen capture
+            try:
+                screenshot_file = f'/tmp/turtle_scrot_{os.getpid()}.png'
+                subprocess.run(['scrot', '-o', screenshot_file], timeout=5, check=True)
+                img = Image.open(screenshot_file)
+                buf = io.BytesIO()
+                img.save(buf, format='PNG')
+                buf.seek(0)
+                img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
+                _gui_output_generated = True
+                os.remove(screenshot_file)
+            except Exception as scrot_err:
+                print(f"Turtle capture fallback failed: {scrot_err}", file=sys.stderr)
+        finally:
+            # Cleanup temp files
+            for f in [eps_file, png_file]:
+                try:
+                    os.remove(f)
+                except:
+                    pass
+    except Exception as e:
+        print(f"Turtle capture error: {e}", file=sys.stderr)
+
+def _patched_done():
+    _capture_turtle()
+    # Exit after capture
+
+def _patched_mainloop():
+    _capture_turtle()
+
+_turtle_module.done = _patched_done
+_turtle_module.mainloop = _patched_mainloop
+_turtle_module.exitonclick = _patched_done
+` : ''}
+
+# ===== USER CODE START =====
 ${code}
+# ===== USER CODE END =====
 
+${hasMatplotlib ? `
+# Matplotlib capture
 try:
     import matplotlib.pyplot as plt
-    if plt.get_fignums():
+    if plt.get_fignums() and not _gui_output_generated:
         buf = io.BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight')
+        plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
         buf.seek(0)
         img_base64 = base64.b64encode(buf.read()).decode('utf-8')
         print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
+        _gui_output_generated = True
         plt.close('all')
 except ImportError:
     pass
 except Exception as e:
-    print(f'GUI rendering error: {e}', file=sys.stderr)
-` : code;
+    print(f'Matplotlib capture error: {e}', file=sys.stderr)
+` : ''}
+
+${hasTurtle ? `
+# Final turtle capture if not already done
+if not _gui_output_generated:
+    try:
+        _capture_turtle()
+    except:
+        pass
+` : ''}
+
+# Clean up virtual display
+if _virtual_display_started:
+    try:
+        display.stop()
+    except:
+        pass
+`;
+          }
 
           const result = await runProcess('python3', ['-c', wrappedCode], 30000);
 
-          // Extract GUI output if present
-          const guiMatch = result.stdout.match(/__GUI_OUTPUT__:(.*)/);
+          // Extract GUI output if present (using [\s\S] instead of /s flag for compatibility)
+          const guiMatch = result.stdout.match(/__GUI_OUTPUT__:([\s\S]*)/);
           if (guiMatch) {
             guiOutput = guiMatch[1];
             output = result.stdout.replace(/__GUI_OUTPUT__:.*/, '').trim();
