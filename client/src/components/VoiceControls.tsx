@@ -340,18 +340,6 @@ export function VoiceControls({
         </button>
       </div>
 
-      {notepads.map((notepad) => (
-        <div key={notepad.id} className="notepad-window">
-          <div className="notepad-header">
-            <h3>Notepad {notepad.id.slice(-4)}</h3>
-            <Button onClick={() => closeNotepad(notepad.id)} size="sm" variant="ghost" aria-label="Close Notepad">
-              <X size={16} />
-            </Button>
-          </div>
-          <textarea className="notepad-content" placeholder="Start typing..." />
-        </div>
-      ))}
-
       {showPrivacyEncoder && (
         <EncodeDecodeOverlay isOpen={showPrivacyEncoder} onClose={() => setShowPrivacyEncoderLocal(false)} />
       )}
