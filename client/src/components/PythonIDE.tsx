@@ -9,7 +9,6 @@ import { registerCompletion } from 'monacopilot';
 import { registerCodeiumProvider } from '@live-codes/monaco-codeium-provider';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useToast } from '@/hooks/use-toast';
-import { GripVertical } from 'lucide-react';
 
 interface PythonIDEProps {
   onClose: () => void;
@@ -3411,244 +3410,13 @@ calculator()
               </div>
             )}
 
-            {/* Main Split: Terminal Area (Left) | Code Editor (Right) */}
+            {/* Editor with Optional Preview Panel */}
             <div className="flex-1 border-b border-[var(--terminal-highlight)]/30 min-h-0">
-              <PanelGroup direction="horizontal" autoSaveId="python-ide-main-split">
-                {/* Left Panel: Terminal Area (Output + Controls) */}
-                <Panel defaultSize={40} minSize={25}>
-                  <div className="h-full flex flex-col" style={{ backgroundColor: currentPythonTheme.subtle }}>
-                    {/* Run Button */}
-                    <div className="px-4 py-2 flex items-center justify-between" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={runCode}
-                          disabled={isRunning}
-                          className="font-mono text-sm"
-                          style={{
-                            backgroundColor: currentPythonTheme.bg,
-                            color: currentPythonTheme.highlight,
-                            border: `1px solid ${currentPythonTheme.border}`,
-                          }}
-                        >
-                          {isRunning ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Running...
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4 mr-2" />
-                              Run Code
-                            </>
-                          )}
-                        </Button>
-                        {!showGuidance && (
-                          <Button
-                            onClick={() => setShowGuidance(true)}
-                            variant="outline"
-                            className="font-mono text-sm"
-                            style={{
-                              backgroundColor: currentPythonTheme.bg,
-                              color: currentPythonTheme.highlight,
-                              border: `1px solid ${currentPythonTheme.border}`,
-                            }}
-                          >
-                            <Lightbulb className="w-4 h-4 mr-2" />
-                            Show Guidance
-                          </Button>
-                        )}
-                      </div>
-                      <div className="font-mono text-xs" style={{ color: `${currentPythonTheme.text}B0` }}>
-                        {currentLesson.tasks.length > 0 && (
-                          <span>Progress: {completedTasks.size}/{currentLesson.tasks.length} objectives</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Output Display */}
-                    <div className="flex-1 overflow-hidden">
-                      <ScrollArea className="h-full w-full">
-                        <div className="p-4">
-                          {needsInput ? (
-                            <div className="space-y-4">
-                              <div className="font-mono text-xs mb-3 pb-2" style={{ 
-                                color: currentPythonTheme.highlight,
-                                borderBottom: `1px solid ${currentPythonTheme.border}`
-                              }}>
-                                ⌨️ INTERACTIVE INPUT REQUIRED
-                              </div>
-                              <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
-                                Your code requires user input. Fill in the values below:
-                              </div>
-
-                              {inputPrompts.map((prompt, index) => (
-                                <div key={index} className="space-y-2">
-                                  <label 
-                                    className="font-mono text-xs font-bold block"
-                                    style={{ color: currentPythonTheme.highlight }}
-                                  >
-                                    {prompt}
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={inputValues[index] || ''}
-                                    onChange={(e) => {
-                                      const newValues = [...inputValues];
-                                      newValues[index] = e.target.value;
-                                      setInputValues(newValues);
-                                    }}
-                                    placeholder={`Enter ${prompt.toLowerCase()}`}
-                                    className="w-full px-3 py-2 font-mono text-xs rounded focus:outline-none focus:ring-2"
-                                    style={{
-                                      backgroundColor: currentPythonTheme.bg,
-                                      color: currentPythonTheme.text,
-                                      border: `1px solid ${currentPythonTheme.border}`,
-                                    }}
-                                    data-testid={`input-field-${index}`}
-                                  />
-                                </div>
-                              ))}
-
-                              <Button
-                                onClick={runWithInputs}
-                                disabled={isRunning}
-                                className="w-full font-mono text-sm mt-4"
-                                style={{
-                                  backgroundColor: currentPythonTheme.highlight,
-                                  color: currentPythonTheme.bg,
-                                }}
-                                data-testid="button-run-with-inputs"
-                              >
-                                {isRunning ? (
-                                  <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Running...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Play className="w-4 h-4 mr-2" />
-                                    Run with Inputs
-                                  </>
-                                )}
-                              </Button>
-
-                              <div className="mt-4 p-3 rounded" style={{ 
-                                backgroundColor: `${currentPythonTheme.highlight}10`,
-                                border: `1px solid ${currentPythonTheme.border}`
-                              }}>
-                                <div className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
-                                  💡 <strong>How it works:</strong> Your input values will be automatically injected into the code before execution, replacing each input() call.
-                                </div>
-                              </div>
-                            </div>
-                          ) : hasGuiElements && guiOutput ? (
-                            <div className="space-y-4">
-                              <div className="font-mono text-xs mb-3 pb-2" style={{ 
-                                color: currentPythonTheme.highlight,
-                                borderBottom: `1px solid ${currentPythonTheme.border}`
-                              }}>
-                                🎨 GUI APPLICATION PREVIEW
-                              </div>
-                              <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
-                                ✨ GUI application rendered successfully:
-                              </div>
-                              <div 
-                                className="rounded p-4"
-                                style={{ 
-                                  backgroundColor: 'white',
-                                  border: `2px solid ${currentPythonTheme.border}`
-                                }}
-                                dangerouslySetInnerHTML={{ __html: guiOutput }}
-                              />
-                              <div className="mt-4 p-3 rounded" style={{ 
-                                backgroundColor: `${currentPythonTheme.highlight}10`,
-                                border: `1px solid ${currentPythonTheme.border}`
-                              }}>
-                                <div className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
-                                  💡 <strong>GUI Support:</strong> Your Python code generated visual output! The preview shows tkinter windows, matplotlib plots, or other GUI elements.
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="font-mono text-xs mb-3 pb-2" style={{ 
-                                color: currentPythonTheme.highlight,
-                                borderBottom: `1px solid ${currentPythonTheme.border}`
-                              }}>
-                                📺 TERMINAL OUTPUT
-                              </div>
-                              <pre 
-                                className="font-mono text-xs leading-relaxed whitespace-pre-wrap"
-                                style={{ color: currentPythonTheme.text }}
-                                data-testid="preview-output"
-                              >
-                                {output || '// Run code to see output here...'}
-                              </pre>
-                            </>
-                          )}
-                        </div>
-                      </ScrollArea>
-                    </div>
-                  </div>
-                </Panel>
-
-                {/* Resize Handle */}
-                <PanelResizeHandle 
-                  className="relative flex items-center justify-center group"
-                  style={{ 
-                    width: '8px',
-                    backgroundColor: currentPythonTheme.subtle,
-                    cursor: 'col-resize',
-                    transition: 'background-color 0.2s'
-                  }}
-                >
-                  <div 
-                    className="absolute inset-y-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{
-                      width: '100%',
-                      backgroundColor: currentPythonTheme.border
-                    }}
-                  >
-                    <GripVertical 
-                      className="w-4 h-4"
-                      style={{ color: currentPythonTheme.text }}
-                    />
-                  </div>
-                </PanelResizeHandle>
-
-                {/* Right Panel: Code Editor */}
-                <Panel defaultSize={60} minSize={30}>
-                  <div className="h-full flex flex-col">
-                    {/* Editor Controls */}
-                    <div className="px-4 py-2 flex items-center justify-between" style={{ 
-                      backgroundColor: currentPythonTheme.subtle,
-                      borderBottom: `1px solid ${currentPythonTheme.border}` 
-                    }}>
-                      <div className="font-mono text-xs font-bold" style={{ color: currentPythonTheme.highlight }}>
-                        CODE EDITOR
-                      </div>
-                      <Button
-                        onClick={() => {
-                          if (showMultiFileMode && activeFile) {
-                            updateFileContent(activeFile.id, '');
-                          } else {
-                            setCode('');
-                          }
-                        }}
-                        variant="outline"
-                        className="font-mono text-xs"
-                        style={{
-                          backgroundColor: currentPythonTheme.bg,
-                          color: currentPythonTheme.text,
-                          border: `1px solid ${currentPythonTheme.border}`,
-                        }}
-                      >
-                        Clear Editor
-                      </Button>
-                    </div>
-
-                    {/* Monaco Editor */}
-                    <div className="flex-1 w-full relative">
+              {showPreview ? (
+                <PanelGroup direction="horizontal" autoSaveId="python-ide-preview">
+                  {/* Editor Panel */}
+                  <Panel defaultSize={60} minSize={30}>
+                    <div className="h-full w-full relative">
                       <Editor
                         height="100%"
                         width="100%"
@@ -3673,86 +3441,422 @@ calculator()
                         theme="vs-dark"
                         loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
                         options={{
-                          minimap: { enabled: false },
-                          fontSize: 13,
-                          lineNumbers: 'on',
-                          scrollBeyondLastLine: false,
-                          automaticLayout: true,
-                          padding: { top: 10, bottom: 10 },
-                          wordWrap: 'on',
-                          renderWhitespace: 'selection',
-                          renderLineHighlight: 'all',
-                          tabSize: 4,
-                          insertSpaces: true,
-                          autoIndent: 'full',
-                          formatOnPaste: true,
-                          formatOnType: true,
-                          trimAutoWhitespace: true,
-                          quickSuggestions: {
-                            other: true,
-                            comments: false,
-                            strings: true
-                          },
-                          acceptSuggestionOnEnter: 'on',
-                          parameterHints: {
-                            enabled: true,
-                            cycle: true
-                          },
-                          suggest: {
-                            showKeywords: true,
-                            showSnippets: true,
-                            showFunctions: true,
-                            showVariables: true,
-                            showClasses: true,
-                            showConstants: true,
-                            showModules: true,
-                            showProperties: true,
-                            snippetsPreventQuickSuggestions: false
-                          },
-                          hover: {
-                            enabled: true,
-                            delay: 300,
-                            sticky: true
-                          },
-                          find: {
-                            seedSearchStringFromSelection: 'selection',
-                            autoFindInSelection: 'never'
-                          },
-                          contextmenu: true,
-                          mouseWheelZoom: true,
-                          smoothScrolling: true,
-                          cursorBlinking: 'smooth',
-                          cursorSmoothCaretAnimation: 'on',
-                          lightbulb: {
-                            enabled: true
-                          },
-                          matchBrackets: 'always',
-                          bracketPairColorization: {
-                            enabled: true
-                          },
-                          guides: {
-                            bracketPairs: true,
-                            indentation: true
-                          },
-                          selectOnLineNumbers: true,
-                          multiCursorModifier: 'ctrlCmd',
-                          scrollbar: {
-                            vertical: 'auto',
-                            horizontal: 'auto',
-                            useShadows: true,
-                            verticalScrollbarSize: 10,
-                            horizontalScrollbarSize: 10
-                          },
-                          folding: true,
-                          foldingStrategy: 'indentation',
-                          showFoldingControls: 'mouseover'
-                        }}
+                    // Display
+                    minimap: { enabled: false },
+                    fontSize: 13,
+                    lineNumbers: 'on',
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    padding: { top: 10, bottom: 10 },
+                    wordWrap: 'on',
+                    renderWhitespace: 'selection',
+                    renderLineHighlight: 'all',
+
+                    // Editing
+                    tabSize: 4,
+                    insertSpaces: true,
+                    autoIndent: 'full',
+                    formatOnPaste: true,
+                    formatOnType: true,
+                    trimAutoWhitespace: true,
+
+                    // IntelliSense
+                    quickSuggestions: {
+                      other: true,
+                      comments: false,
+                      strings: true
+                    },
+                    acceptSuggestionOnEnter: 'on',
+                    parameterHints: {
+                      enabled: true,
+                      cycle: true
+                    },
+                    suggest: {
+                      showKeywords: true,
+                      showSnippets: true,
+                      showFunctions: true,
+                      showVariables: true,
+                      showClasses: true,
+                      showConstants: true,
+                      showModules: true,
+                      showProperties: true,
+                      snippetsPreventQuickSuggestions: false
+                    },
+                    hover: {
+                      enabled: true,
+                      delay: 300,
+                      sticky: true
+                    },
+
+                    // Find/Replace
+                    find: {
+                      seedSearchStringFromSelection: 'selection',
+                      autoFindInSelection: 'never'
+                    },
+
+                    // UI Features
+                    contextmenu: true,
+                    mouseWheelZoom: true,
+                    smoothScrolling: true,
+                    cursorBlinking: 'smooth',
+                    cursorSmoothCaretAnimation: 'on',
+
+                    // Code Actions
+                    lightbulb: {
+                      enabled: 'on' as any
+                    },
+
+                    // Brackets
+                    matchBrackets: 'always',
+                    bracketPairColorization: {
+                      enabled: true
+                    },
+                    guides: {
+                      bracketPairs: true,
+                      indentation: true
+                    },
+
+                    // Selection
+                    selectOnLineNumbers: true,
+                    multiCursorModifier: 'ctrlCmd',
+
+                    // Scrollbar
+                    scrollbar: {
+                      vertical: 'auto',
+                      horizontal: 'auto',
+                      useShadows: true,
+                      verticalScrollbarSize: 10,
+                      horizontalScrollbarSize: 10
+                    },
+
+                    // Folding
+                    folding: true,
+                    foldingStrategy: 'indentation',
+                    showFoldingControls: 'mouseover'
+                  }}
                         key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
                       />
                     </div>
-                  </div>
-                </Panel>
-              </PanelGroup>
+                  </Panel>
+
+                  <PanelResizeHandle 
+                    style={{ 
+                      width: '3px', 
+                      backgroundColor: currentPythonTheme.border,
+                      cursor: 'col-resize'
+                    }} 
+                  />
+
+                  {/* Preview Panel */}
+                  <Panel defaultSize={40} minSize={25}>
+                    <div 
+                      className="h-full overflow-auto p-4" 
+                      style={{ 
+                        backgroundColor: currentPythonTheme.bg,
+                        borderLeft: `1px solid ${currentPythonTheme.border}`
+                      }}
+                    >
+                      <div className="font-mono text-xs mb-3 pb-2" style={{ 
+                        color: currentPythonTheme.highlight,
+                        borderBottom: `1px solid ${currentPythonTheme.border}`
+                      }}>
+                        {needsInput ? '⌨️ INTERACTIVE INPUT REQUIRED' : hasGuiElements ? '🎨 GUI APPLICATION PREVIEW' : '📺 LIVE OUTPUT PREVIEW'}
+                      </div>
+
+                      {hasGuiElements && guiOutput ? (
+                        <div className="space-y-4">
+                          <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
+                            ✨ GUI application rendered successfully:
+                          </div>
+                          <div 
+                            className="rounded p-4"
+                            style={{ 
+                              backgroundColor: 'white',
+                              border: `2px solid ${currentPythonTheme.border}`
+                            }}
+                            dangerouslySetInnerHTML={{ __html: guiOutput }}
+                          />
+                          <div className="mt-4 p-3 rounded" style={{ 
+                            backgroundColor: `${currentPythonTheme.highlight}10`,
+                            border: `1px solid ${currentPythonTheme.border}`
+                          }}>
+                            <div className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
+                              💡 <strong>GUI Support:</strong> Your Python code generated visual output! The preview shows tkinter windows, matplotlib plots, or other GUI elements.
+                            </div>
+                          </div>
+                        </div>
+                      ) : needsInput ? (
+                        <div className="space-y-4">
+                          <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
+                            Your code requires user input. Fill in the values below:
+                          </div>
+
+                          {inputPrompts.map((prompt, index) => (
+                            <div key={index} className="space-y-2">
+                              <label 
+                                className="font-mono text-xs font-bold block"
+                                style={{ color: currentPythonTheme.highlight }}
+                              >
+                                {prompt}
+                              </label>
+                              <input
+                                type="text"
+                                value={inputValues[index] || ''}
+                                onChange={(e) => {
+                                  const newValues = [...inputValues];
+                                  newValues[index] = e.target.value;
+                                  setInputValues(newValues);
+                                }}
+                                placeholder={`Enter ${prompt.toLowerCase()}`}
+                                className="w-full px-3 py-2 font-mono text-xs rounded focus:outline-none focus:ring-2"
+                                style={{
+                                  backgroundColor: currentPythonTheme.subtle,
+                                  color: currentPythonTheme.text,
+                                  border: `1px solid ${currentPythonTheme.border}`,
+                                }}
+                                data-testid={`input-field-${index}`}
+                              />
+                            </div>
+                          ))}
+
+                          <Button
+                            onClick={runWithInputs}
+                            disabled={isRunning}
+                            className="w-full font-mono text-sm mt-4"
+                            style={{
+                              backgroundColor: currentPythonTheme.highlight,
+                              color: currentPythonTheme.bg,
+                            }}
+                            data-testid="button-run-with-inputs"
+                          >
+                            {isRunning ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Running...
+                              </>
+                            ) : (
+                              <>
+                                <Play className="w-4 h-4 mr-2" />
+                                Run with Inputs
+                              </>
+                            )}
+                          </Button>
+
+                          <div className="mt-4 p-3 rounded" style={{ 
+                            backgroundColor: `${currentPythonTheme.highlight}10`,
+                            border: `1px solid ${currentPythonTheme.border}`
+                          }}>
+                            <div className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
+                              💡 <strong>How it works:</strong> Your input values will be automatically injected into the code before execution, replacing each input() call.
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <pre 
+                          className="font-mono text-xs leading-relaxed whitespace-pre-wrap"
+                          style={{ color: currentPythonTheme.text }}
+                          data-testid="preview-output"
+                        >
+                          {output || '(Run code to see output here)'}
+                        </pre>
+                      )}
+                    </div>
+                  </Panel>
+                </PanelGroup>
+              ) : (
+                <div className="h-full w-full relative">
+                  <Editor
+                    height="100%"
+                    width="100%"
+                    language={showMultiFileMode && activeFile ? (LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'python') : 'python'}
+                    value={showMultiFileMode && activeFile ? activeFile.content : code}
+                    onChange={(value) => {
+                      if (showMultiFileMode && activeFile) {
+                        updateFileContent(activeFile.id, value || '');
+                      } else {
+                        setCode(value || '');
+                      }
+                    }}
+                    onMount={(editor, monaco) => {
+                      try {
+                        handleEditorDidMount(editor, monaco);
+                      } catch (error) {
+                        console.error('Editor mount failed:', error);
+                        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                        setOutput(`Editor initialization error: ${errorMessage}`);
+                      }
+                    }}
+                    theme="vs-dark"
+                    loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
+                    options={{
+                      // Display
+                      minimap: { enabled: false },
+                      fontSize: 13,
+                      lineNumbers: 'on',
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                      padding: { top: 10, bottom: 10 },
+                      wordWrap: 'on',
+                      renderWhitespace: 'selection',
+                      renderLineHighlight: 'all',
+
+                      // Editing
+                      tabSize: 4,
+                      insertSpaces: true,
+                      autoIndent: 'full',
+                      formatOnPaste: true,
+                      formatOnType: true,
+                      trimAutoWhitespace: true,
+
+                      // IntelliSense
+                      quickSuggestions: {
+                        other: true,
+                        comments: false,
+                        strings: true
+                      },
+                      acceptSuggestionOnEnter: 'on',
+                      parameterHints: {
+                        enabled: true,
+                        cycle: true
+                      },
+                      suggest: {
+                        showKeywords: true,
+                        showSnippets: true,
+                        showFunctions: true,
+                        showVariables: true,
+                        showClasses: true,
+                        showConstants: true,
+                        showModules: true,
+                        showProperties: true,
+                        snippetsPreventQuickSuggestions: false
+                      },
+                      hover: {
+                        enabled: true,
+                        delay: 300,
+                        sticky: true
+                      },
+
+                      // Find/Replace
+                      find: {
+                        seedSearchStringFromSelection: 'selection',
+                        autoFindInSelection: 'never'
+                      },
+
+                      // UI Features
+                      contextmenu: true,
+                      mouseWheelZoom: true,
+                      smoothScrolling: true,
+                      cursorBlinking: 'smooth',
+                      cursorSmoothCaretAnimation: 'on',
+
+                      // Code Actions
+                      lightbulb: {
+                        enabled: 'on' as any
+                      },
+
+                      // Brackets
+                      matchBrackets: 'always',
+                      bracketPairColorization: {
+                        enabled: true
+                      },
+                      guides: {
+                        bracketPairs: true,
+                        indentation: true
+                      },
+
+                      // Selection
+                      selectOnLineNumbers: true,
+                      multiCursorModifier: 'ctrlCmd',
+
+                      // Scrollbar
+                      scrollbar: {
+                        vertical: 'auto',
+                        horizontal: 'auto',
+                        useShadows: true,
+                        verticalScrollbarSize: 10,
+                        horizontalScrollbarSize: 10
+                      },
+
+                      // Folding
+                      folding: true,
+                      foldingStrategy: 'indentation',
+                      showFoldingControls: 'mouseover'
+                    }}
+                    key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Run Button */}
+            <div className="px-4 py-2 flex items-center justify-between" style={{ backgroundColor: currentPythonTheme.subtle, borderBottom: `1px solid ${currentPythonTheme.border}` }}>
+              <div className="flex gap-2">
+                <Button
+                  onClick={runCode}
+                  disabled={isRunning}
+                  className="font-mono text-sm"
+                  style={{
+                    backgroundColor: currentPythonTheme.bg,
+                    color: currentPythonTheme.highlight,
+                    border: `1px solid ${currentPythonTheme.border}`,
+                  }}
+                >
+                  {isRunning ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Running...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 mr-2" />
+                      Run Code
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => setCode('')}
+                  variant="outline"
+                  className="font-mono text-sm"
+                  style={{
+                    backgroundColor: currentPythonTheme.bg,
+                    color: currentPythonTheme.text,
+                    border: `1px solid ${currentPythonTheme.border}`,
+                  }}
+                >
+                  Clear Editor
+                </Button>
+                {!showGuidance && (
+                  <Button
+                    onClick={() => setShowGuidance(true)}
+                    variant="outline"
+                    className="font-mono text-sm"
+                    style={{
+                      backgroundColor: currentPythonTheme.bg,
+                      color: currentPythonTheme.highlight,
+                      border: `1px solid ${currentPythonTheme.border}`,
+                    }}
+                  >
+                    <Lightbulb className="w-4 h-4 mr-2" />
+                    Show Guidance
+                  </Button>
+                )}
+              </div>
+              <div className="font-mono text-xs" style={{ color: `${currentPythonTheme.text}B0` }}>
+                {currentLesson.tasks.length > 0 && (
+                  <span>Progress: {completedTasks.size}/{currentLesson.tasks.length} objectives</span>
+                )}
+              </div>
+            </div>
+
+            {/* Output */}
+            <div className="flex-1 overflow-hidden" style={{ backgroundColor: currentPythonTheme.subtle }}>
+              <ScrollArea className="h-full w-full">
+                <div className="p-4">
+                  <pre className="font-mono text-xs whitespace-pre-wrap" style={{ color: currentPythonTheme.text }}>
+                    {output || '// Run code to see output here...'}
+                  </pre>
+                </div>
+              </ScrollArea>
             </div>
           </div>
         </div>
