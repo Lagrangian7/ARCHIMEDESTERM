@@ -521,29 +521,64 @@ export function Terminal() {
     });
   }, [customBackgroundUrl, hasCustomBackground, currentTheme]);
 
-  return (
-    <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
-      <div className={`terminal-container flex flex-col h-full relative z-0`} style={
-        isGradientTheme
-          ? { background: 'var(--terminal-bg)' }
-          : { backgroundColor: 'var(--terminal-bg)' }
-      }>
-        {/* Custom Background Layer - works on ALL themes when user sets a custom background */}
-        {hasCustomBackground && (
-          <div
-            className="absolute inset-0 z-0"
-            style={{
-              backgroundImage: `url(${customBackgroundUrl})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              opacity: 0.85,
-              imageRendering: 'auto'
-            }}
-          />
-        )}
+  // Temporary state to control SplashScreen visibility - will be managed by useTerminal hook
+  const [showSplashScreen, setShowSplashScreen] = useState(true);
+  const [showDefaultWallpaper, setShowDefaultWallpaper] = useState(false); // Placeholder for default wallpaper logic
 
-        {/* Fireflies for midnight theme */}
+
+  return (
+    <div 
+      className="h-screen flex relative overflow-hidden"
+      style={{ 
+        background: hasCustomBackground ? 'transparent' : 'var(--terminal-bg)',
+      }}
+      data-testid="terminal-container"
+    >
+      {showSplashScreen && <SplashScreen onClose={() => setShowSplashScreen(false)} />}
+
+      {/* Terminal background grid (behind everything) */}
+      <div 
+        className="terminal-grid" 
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          zIndex: 1,
+          opacity: hasCustomBackground ? 0 : 0.03
+        }}
+      />
+
+      {/* Custom background wallpaper or default wallpaper */}
+      {(hasCustomBackground || showDefaultWallpaper) && (
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: hasCustomBackground 
+              ? customBackgroundUrl 
+              : showDefaultWallpaper 
+                ? 'none'
+                : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            opacity: hasCustomBackground ? 0.15 : 0
+          }}
+        />
+      )}
+
+      {/* Terminal watermark (subtle overlay) */}
+      <div 
+        className="terminal-watermark" 
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          zIndex: 1,
+          opacity: hasCustomBackground ? 0.08 : 0.12,
+        }}
+      />
+
+      {/* Fireflies for midnight theme */}
         {currentTheme === 'midnight-gradient' && (
           <div className="night" style={{ zIndex: 2 }}>
             {Array.from({ length: 15 }, (_, i) => (
@@ -559,8 +594,15 @@ export function Terminal() {
           <MemoizedMatrixRain />
         </div>
 
-        {/* Voice Controls - Fixed at top */}
-        <div className="flex-shrink-0">
+        {/* Voice Controls - Fixed sidebar on left */}
+        <div 
+          className="flex-shrink-0 h-full"
+          style={{
+            width: '80px',
+            borderRight: '2px solid var(--terminal-subtle)',
+            zIndex: 20
+          }}
+        >
           <VoiceControls
             onVoiceInput={handleVoiceInput}
             currentMode={currentMode}
@@ -580,17 +622,21 @@ export function Terminal() {
             openPythonLessons={ () => setShowPythonLessons(true) } // Add callback for Python Lessons
           />
         </div>
-
-        {/* Terminal Output and Notepad - Scrollable middle section */}
-        <div className="flex-1 min-h-0 relative flex overflow-hidden">
-          {/* Terminal Output */}
-          <div className="flex-1 min-w-0 relative transition-all duration-200 ease-out">
-            <ScrollArea className="h-full" ref={scrollAreaRef}>
-              <div
-                ref={outputRef}
-                className="terminal-output p-2 md:p-4 font-mono text-xs md:text-sm leading-relaxed relative z-10"
-                data-testid="terminal-output"
-              >
+      
+        {/* Main Terminal Content - Scrollable */}
+        <div className="flex-1 flex flex-col min-w-0">
+        <ScrollArea 
+          className="flex-1 min-h-0"
+          style={{ 
+            position: 'relative',
+            zIndex: 3
+          }}
+        >
+          <div 
+            className="terminal-output p-4 md:p-6 space-y-2 font-mono text-sm md:text-base relative"
+            data-testid="output-terminal"
+            style={{ color: 'var(--terminal-text)' }}
+          >
               {entries.slice(0, visibleEntries).map((entry) => (
                 <div
                   key={entry.id}
@@ -681,20 +727,11 @@ export function Terminal() {
             </div>
           </ScrollArea>
 
-            {/* Command History Popup */}
-            <CommandHistory
-              history={commandHistory}
-              isVisible={showHistory}
-              onSelectCommand={setInput}
-              onClose={() => setShowHistory(false)}
-            />
+            {/* Notepad Panel - slides in from right */}
+            {showNotepad && (
+              <Notepad onClose={() => setShowNotepad(false)} />
+            )}
           </div>
-
-          {/* Notepad Panel - slides in from right */}
-          {showNotepad && (
-            <Notepad onClose={() => setShowNotepad(false)} />
-          )}
-        </div>
 
         {/* Command Input - Fixed at bottom */}
         <div className="flex-shrink-0 p-2 md:p-4 border-t border-terminal-subtle bg-terminal-bg relative z-10">
