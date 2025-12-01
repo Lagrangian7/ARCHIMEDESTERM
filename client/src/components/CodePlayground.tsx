@@ -507,6 +507,15 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   const handleEditorMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
     
+    // Listen for all content changes including AI-generated suggestions
+    const model = editor.getModel();
+    if (model) {
+      model.onDidChangeContent(() => {
+        const currentContent = editor.getValue();
+        updateFileContent(currentContent);
+      });
+    }
+    
     monaco.editor.defineTheme('archimedes-dark', {
       base: 'vs-dark',
       inherit: true,
@@ -697,7 +706,15 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
                       fontLigatures: true,
                       cursorBlinking: 'smooth',
                       smoothScrolling: true,
+                      suggest: {
+                        showIcons: true,
+                        showInlineDetails: true,
+                      },
+                      autoClosingBrackets: 'always',
+                      formatOnPaste: true,
+                      formatOnType: true,
                     }}
+                    key={`${activeFile.id}-${activeFile.language}`}
                   />
                 </div>
               </>
