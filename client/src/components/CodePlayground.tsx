@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   X, Download, Play, FileCode, Copy, Check, Plus, Trash2, 
-  FileText, Terminal as TerminalIcon, Info, ChevronDown, ChevronUp 
+  FileText, Terminal as TerminalIcon, Info, ChevronDown, ChevronUp, Table2 
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -217,6 +217,80 @@ function saveSession(files: CodeFile[], activeFileId: string): void {
 
 const EXECUTABLE_LANGUAGES = ['python', 'javascript', 'typescript', 'bash', 'cpp', 'c', 'go', 'rust', 'ruby', 'php', 'html'];
 
+function renderOutputSpecial(output: string): { type: 'json' | 'csv' | 'svg' | 'xml' | 'text'; data: any } {
+  const trimmed = output.trim();
+  
+  // Try JSON
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      return { type: 'json', data: JSON.parse(trimmed) };
+    } catch { }
+  }
+  
+  // Try SVG
+  if (trimmed.startsWith('<svg')) {
+    return { type: 'svg', data: trimmed };
+  }
+  
+  // Try XML/HTML (but not our iframe HTML)
+  if (trimmed.startsWith('<') && !trimmed.includes('srcdoc')) {
+    return { type: 'xml', data: trimmed };
+  }
+  
+  // Try CSV (basic detection: lines with comma-separated values)
+  if (trimmed.includes('\n') && trimmed.split('\n').every(line => line.split(',').length > 1)) {
+    const lines = trimmed.split('\n').map(l => l.split(',').map(v => v.trim()));
+    return { type: 'csv', data: lines };
+  }
+  
+  return { type: 'text', data: output };
+}
+
+function JsonViewer({ data }: { data: any }) {
+  return (
+    <pre className="p-3 bg-black/20 rounded text-[#00FF41] text-xs font-mono overflow-x-auto max-h-96">
+      {JSON.stringify(data, null, 2)}
+    </pre>
+  );
+}
+
+function CsvTable({ data }: { data: string[][] }) {
+  return (
+    <div className="overflow-x-auto max-h-96">
+      <table className="w-full text-xs border-collapse">
+        <thead>
+          <tr className="bg-[#00FF41]/10 border-b border-[#00FF41]/30">
+            {data[0]?.map((cell, i) => (
+              <th key={i} className="px-3 py-2 text-[#00FF41] font-mono text-left border-r border-[#00FF41]/20">
+                {cell}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.slice(1).map((row, ri) => (
+            <tr key={ri} className="border-b border-[#00FF41]/10 hover:bg-[#00FF41]/5">
+              {row.map((cell, ci) => (
+                <td key={ci} className="px-3 py-2 text-[#00FF41]/80 font-mono border-r border-[#00FF41]/10">
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function SvgViewer({ data }: { data: string }) {
+  return (
+    <div className="p-3 bg-black/20 rounded overflow-x-auto max-h-96">
+      <div dangerouslySetInnerHTML={{ __html: data }} />
+    </div>
+  );
+}
+
 export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePlaygroundProps) {
   const { toast } = useToast();
   const [files, setFiles] = useState<CodeFile[]>([]);
@@ -226,6 +300,9 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   const [isRunning, setIsRunning] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [stdinInput, setStdinInput] = useState<string>('');
+  const [outputType, setOutputType] = useState<'json' | 'csv' | 'svg' | 'xml' | 'text'>('text');
+  const [parsedData, setParsedData] = useState<any>(null);
   const editorRef = useRef<any>(null);
   const isInitialized = useRef(false);
   
