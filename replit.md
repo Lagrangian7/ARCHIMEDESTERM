@@ -70,6 +70,12 @@ Preferred communication style: Simple, everyday language.
   - Zod for schema validation with Drizzle integration
 
 ## Key Design Patterns
+- **Personality Training System**:
+  - Users can mark any knowledge base document as "Personality Training" content
+  - Documents marked with `isPersonality: true` are injected into AI system prompts
+  - This allows users to customize Archimedes' humor style, tone, catchphrases, and response patterns
+  - Personality content is automatically included in all AI modes (Natural, Technical, Health, Freestyle)
+  - Toggle via Knowledge Base modal → "Train AI" button on each document
 - **Multi-Mode AI Operation** (English-only system): 
   - **Natural mode** (default): Sassy cyberpunk AI for fun conversations AND code generation
   - **Technical mode**: Master builder - step-by-step guides for construction, trades, engineering & sciences
