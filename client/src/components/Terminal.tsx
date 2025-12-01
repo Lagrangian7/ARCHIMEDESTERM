@@ -388,17 +388,57 @@ export function Terminal() {
   }, [entries, isTyping]);
 
   // Auto-copy code from AI responses into editor
+  const lastProcessedResponseRef = useRef<string>('');
+  
   useEffect(() => {
     const lastEntry = entries[entries.length - 1];
     
     // Check if the last entry is a new response with code blocks
-    if (lastEntry && lastEntry.type === 'response' && !isTyping) {
+    if (lastEntry && lastEntry.type === 'response' && !isTyping && lastEntry.id !== lastProcessedResponseRef.current) {
+      lastProcessedResponseRef.current = lastEntry.id;
+      
+      // First try to extract fenced code blocks
       const codeFiles = extractCodeBlocksFromText(lastEntry.content);
       
-      // If code blocks found, auto-load the first one into the editor and open playground
       if (codeFiles.length > 0) {
+        // Found fenced code blocks - use the first one
         setPreviewCode(codeFiles[0].content);
         setShowCodePlayground(true);
+      } else {
+        // No fenced blocks - try to detect unfenced code in the response
+        const content = lastEntry.content;
+        
+        // Check for common code patterns (functions, imports, print statements, etc.)
+        const codePatterns = [
+          /def\s+\w+\s*\(/m,           // Python function
+          /print\s*\(/m,                // print statement
+          /import\s+\w+/m,              // import
+          /function\s+\w+\s*\(/m,       // JS function
+          /const\s+\w+\s*=/m,           // JS const
+          /console\.log/m,              // console.log
+          /class\s+\w+/m,               // class definition
+          /#include\s*</m,              // C/C++ include
+          /public\s+static\s+void/m,    // Java main
+        ];
+        
+        const hasCodePattern = codePatterns.some(pattern => pattern.test(content));
+        
+        if (hasCodePattern) {
+          // Extract code-like content (lines that look like code)
+          const lines = content.split('\n');
+          const codeLines = lines.filter(line => {
+            const trimmed = line.trim();
+            // Skip empty lines, markdown headers, and plain text
+            if (!trimmed || trimmed.startsWith('#') && !trimmed.startsWith('#include') && !trimmed.startsWith('#!/')) return false;
+            if (trimmed.match(/^[A-Z][a-z]+.*:$/)) return false; // Skip "Here's the code:" type lines
+            return true;
+          });
+          
+          if (codeLines.length > 0) {
+            setPreviewCode(codeLines.join('\n'));
+            setShowCodePlayground(true);
+          }
+        }
       }
     }
   }, [entries, isTyping, setPreviewCode]);
