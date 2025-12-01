@@ -9,6 +9,7 @@ import { registerCompletion } from 'monacopilot';
 import { registerCodeiumProvider } from '@live-codes/monaco-codeium-provider';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useToast } from '@/hooks/use-toast';
+import { GripVertical } from 'lucide-react';
 
 interface PythonIDEProps {
   onClose: () => void;
@@ -3412,35 +3413,34 @@ calculator()
 
             {/* Editor with Optional Preview Panel */}
             <div className="flex-1 border-b border-[var(--terminal-highlight)]/30 min-h-0">
-              {showPreview ? (
-                <PanelGroup direction="horizontal" autoSaveId="python-ide-preview">
-                  {/* Editor Panel */}
-                  <Panel defaultSize={60} minSize={30}>
-                    <div className="h-full w-full relative">
-                      <Editor
-                        height="100%"
-                        width="100%"
-                        language={showMultiFileMode && activeFile ? (LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'python') : 'python'}
-                        value={showMultiFileMode && activeFile ? activeFile.content : code}
-                        onChange={(value) => {
-                          if (showMultiFileMode && activeFile) {
-                            updateFileContent(activeFile.id, value || '');
-                          } else {
-                            setCode(value || '');
-                          }
-                        }}
-                        onMount={(editor, monaco) => {
-                          try {
-                            handleEditorDidMount(editor, monaco);
-                          } catch (error) {
-                            console.error('Editor mount failed:', error);
-                            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                            setOutput(`Editor initialization error: ${errorMessage}`);
-                          }
-                        }}
-                        theme="vs-dark"
-                        loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
-                        options={{
+              <PanelGroup direction="horizontal" autoSaveId="python-ide-editor-split">
+                {/* Editor Panel */}
+                <Panel defaultSize={showPreview ? 60 : 100} minSize={showPreview ? 30 : 100}>
+                  <div className="h-full w-full relative">
+                    <Editor
+                      height="100%"
+                      width="100%"
+                      language={showMultiFileMode && activeFile ? (LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'python') : 'python'}
+                      value={showMultiFileMode && activeFile ? activeFile.content : code}
+                      onChange={(value) => {
+                        if (showMultiFileMode && activeFile) {
+                          updateFileContent(activeFile.id, value || '');
+                        } else {
+                          setCode(value || '');
+                        }
+                      }}
+                      onMount={(editor, monaco) => {
+                        try {
+                          handleEditorDidMount(editor, monaco);
+                        } catch (error) {
+                          console.error('Editor mount failed:', error);
+                          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                          setOutput(`Editor initialization error: ${errorMessage}`);
+                        }
+                      }}
+                      theme="vs-dark"
+                      loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
+                      options={{
                     // Display
                     minimap: { enabled: false },
                     fontSize: 13,
@@ -3535,20 +3535,37 @@ calculator()
                     showFoldingControls: 'mouseover'
                   }}
                         key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
-                      />
-                    </div>
-                  </Panel>
+                    />
+                  </div>
+                </Panel>
 
-                  <PanelResizeHandle 
-                    style={{ 
-                      width: '3px', 
-                      backgroundColor: currentPythonTheme.border,
-                      cursor: 'col-resize'
-                    }} 
-                  />
+                {showPreview && (
+                  <>
+                    <PanelResizeHandle 
+                      className="relative flex items-center justify-center group"
+                      style={{ 
+                        width: '8px',
+                        backgroundColor: currentPythonTheme.subtle,
+                        cursor: 'col-resize',
+                        transition: 'background-color 0.2s'
+                      }}
+                    >
+                      <div 
+                        className="absolute inset-y-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{
+                          width: '100%',
+                          backgroundColor: currentPythonTheme.border
+                        }}
+                      >
+                        <GripVertical 
+                          className="w-4 h-4"
+                          style={{ color: currentPythonTheme.text }}
+                        />
+                      </div>
+                    </PanelResizeHandle>
 
-                  {/* Preview Panel */}
-                  <Panel defaultSize={40} minSize={25}>
+                    {/* Preview Panel */}
+                    <Panel defaultSize={40} minSize={25}>
                     <div 
                       className="h-full overflow-auto p-4" 
                       style={{ 
@@ -3662,130 +3679,9 @@ calculator()
                       )}
                     </div>
                   </Panel>
-                </PanelGroup>
-              ) : (
-                <div className="h-full w-full relative">
-                  <Editor
-                    height="100%"
-                    width="100%"
-                    language={showMultiFileMode && activeFile ? (LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'python') : 'python'}
-                    value={showMultiFileMode && activeFile ? activeFile.content : code}
-                    onChange={(value) => {
-                      if (showMultiFileMode && activeFile) {
-                        updateFileContent(activeFile.id, value || '');
-                      } else {
-                        setCode(value || '');
-                      }
-                    }}
-                    onMount={(editor, monaco) => {
-                      try {
-                        handleEditorDidMount(editor, monaco);
-                      } catch (error) {
-                        console.error('Editor mount failed:', error);
-                        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                        setOutput(`Editor initialization error: ${errorMessage}`);
-                      }
-                    }}
-                    theme="vs-dark"
-                    loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
-                    options={{
-                      // Display
-                      minimap: { enabled: false },
-                      fontSize: 13,
-                      lineNumbers: 'on',
-                      scrollBeyondLastLine: false,
-                      automaticLayout: true,
-                      padding: { top: 10, bottom: 10 },
-                      wordWrap: 'on',
-                      renderWhitespace: 'selection',
-                      renderLineHighlight: 'all',
-
-                      // Editing
-                      tabSize: 4,
-                      insertSpaces: true,
-                      autoIndent: 'full',
-                      formatOnPaste: true,
-                      formatOnType: true,
-                      trimAutoWhitespace: true,
-
-                      // IntelliSense
-                      quickSuggestions: {
-                        other: true,
-                        comments: false,
-                        strings: true
-                      },
-                      acceptSuggestionOnEnter: 'on',
-                      parameterHints: {
-                        enabled: true,
-                        cycle: true
-                      },
-                      suggest: {
-                        showKeywords: true,
-                        showSnippets: true,
-                        showFunctions: true,
-                        showVariables: true,
-                        showClasses: true,
-                        showConstants: true,
-                        showModules: true,
-                        showProperties: true,
-                        snippetsPreventQuickSuggestions: false
-                      },
-                      hover: {
-                        enabled: true,
-                        delay: 300,
-                        sticky: true
-                      },
-
-                      // Find/Replace
-                      find: {
-                        seedSearchStringFromSelection: 'selection',
-                        autoFindInSelection: 'never'
-                      },
-
-                      // UI Features
-                      contextmenu: true,
-                      mouseWheelZoom: true,
-                      smoothScrolling: true,
-                      cursorBlinking: 'smooth',
-                      cursorSmoothCaretAnimation: 'on',
-
-                      // Code Actions
-                      lightbulb: {
-                        enabled: 'on' as any
-                      },
-
-                      // Brackets
-                      matchBrackets: 'always',
-                      bracketPairColorization: {
-                        enabled: true
-                      },
-                      guides: {
-                        bracketPairs: true,
-                        indentation: true
-                      },
-
-                      // Selection
-                      selectOnLineNumbers: true,
-                      multiCursorModifier: 'ctrlCmd',
-
-                      // Scrollbar
-                      scrollbar: {
-                        vertical: 'auto',
-                        horizontal: 'auto',
-                        useShadows: true,
-                        verticalScrollbarSize: 10,
-                        horizontalScrollbarSize: 10
-                      },
-
-                      // Folding
-                      folding: true,
-                      foldingStrategy: 'indentation',
-                      showFoldingControls: 'mouseover'
-                    }}
-                    key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
-                  />
-                </div>
-              )}
+                  </>
+                )}
+              </PanelGroup>
             </div>
 
             {/* Run Button */}
