@@ -300,8 +300,11 @@ Remember: You are a supportive health educator promoting natural wellness while 
       return 'css';
     }
 
-    // Secondary indicators - JavaScript ecosystem (React, Express, Vue as standalone)
-    if ((msg.includes('react') || msg.includes('node.js') || msg.includes('express') ||
+    // Secondary indicators - JavaScript ecosystem (React, Express, Vue, Node as standalone)
+    // Match "node" with backend-related terms, allowing up to 2 intermediate words (e.g., "Node RESTful web service")
+    const hasNodeJsMention = msg.includes('node.js') || msg.includes('nodejs') || 
+                             /\bnode\s+(?:\w+\s+){0,2}(backend|server|api|app|express|project|rest|service|microservice)/i.test(userMessage);
+    if ((msg.includes('react') || hasNodeJsMention || msg.includes('express') ||
          msg.includes('npm') || msg.includes('jsx') || msg.includes('vue')) && !msg.includes('python')) {
       return 'javascript';
     }
