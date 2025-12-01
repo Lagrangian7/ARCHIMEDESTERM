@@ -32,13 +32,21 @@ Preferred communication style: Simple, everyday language.
     - Ruby
     - PHP
     - HTML (inline preview via iframe)
+  - **Interactive stdin input** - Textarea field in output panel for providing input to programs that need it (Python input(), C scanf(), Node readline, etc.)
+  - **Auto-detect output formats**:
+    - JSON: Pretty-prints with syntax highlighting and full object inspection
+    - CSV: Renders as interactive table with headers and rows
+    - SVG: Displays vector graphics inline
+    - XML/HTML: Formats with proper indentation
+    - Plain text: Raw output display
   - **GUI output rendering**:
     - matplotlib: Charts rendered as PNG images
-    - tkinter: Window screenshots captured via PIL/ImageGrab
-    - pygame: Surface captured after 5 frames as PNG
-    - turtle: Canvas exported via PostScript and converted to PNG
-    - HTML: Sandboxed iframe preview
+    - tkinter: Window screenshots captured via scrot
+    - pygame: Surface captured after first flip as PNG
+    - turtle: Canvas exported via PostScript and converted to PNG via Ghostscript
+    - HTML: Sandboxed iframe preview with restrictive sandbox attributes
   - Virtual display (pyvirtualdisplay/Xvfb) for headless GUI rendering
+  - Security hardening: spawn with array args, random temp filenames, 0o600 permissions, automatic cleanup, 50KB size limit, 30s timeout
   - Accessible via `code` or `playground` terminal command
 
 ## Backend Architecture

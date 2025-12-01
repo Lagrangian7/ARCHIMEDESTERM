@@ -2551,7 +2551,7 @@ if _virtual_display_started:
 `;
           }
 
-          const result = await runProcess('python3', ['-c', wrappedCode], 30000);
+          const result = await runProcess('python3', ['-c', wrappedCode], 30000, stdin);
 
           // Extract GUI output if present (using [\s\S] instead of /s flag for compatibility)
           const guiMatch = result.stdout.match(/__GUI_OUTPUT__:([\s\S]*)/);
@@ -2568,7 +2568,7 @@ if _virtual_display_started:
         case 'javascript':
         case 'js': {
           // Use spawn with -e flag (code passed as argument, not shell-interpolated)
-          const result = await runProcess('node', ['-e', code], 10000);
+          const result = await runProcess('node', ['-e', code], 10000, stdin);
           output = result.stdout;
           error = result.stderr;
           break;
@@ -2579,7 +2579,7 @@ if _virtual_display_started:
           const tmpFile = path.join('/tmp', `ts_${randomId}.ts`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
-            const result = await runProcess('npx', ['tsx', tmpFile], 15000);
+            const result = await runProcess('npx', ['tsx', tmpFile], 15000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -2595,7 +2595,7 @@ if _virtual_display_started:
           const tmpFile = path.join('/tmp', `sh_${randomId}.sh`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
-            const result = await runProcess('bash', [tmpFile], 10000);
+            const result = await runProcess('bash', [tmpFile], 10000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -2613,7 +2613,7 @@ if _virtual_display_started:
             // Compile using spawn with array args
             await runProcess('g++', [tmpFile, '-o', tmpExec], 15000);
             // Execute
-            const result = await runProcess(tmpExec, [], 10000);
+            const result = await runProcess(tmpExec, [], 10000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -2631,7 +2631,7 @@ if _virtual_display_started:
             // Compile using spawn with array args
             await runProcess('gcc', [tmpFile, '-o', tmpExec], 15000);
             // Execute
-            const result = await runProcess(tmpExec, [], 10000);
+            const result = await runProcess(tmpExec, [], 10000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -2646,7 +2646,7 @@ if _virtual_display_started:
           const tmpFile = path.join('/tmp', `go_${randomId}.go`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
-            const result = await runProcess('go', ['run', tmpFile], 15000);
+            const result = await runProcess('go', ['run', tmpFile], 15000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -2664,7 +2664,7 @@ if _virtual_display_started:
             // Compile using spawn with array args
             await runProcess('rustc', [tmpFile, '-o', tmpExec], 30000);
             // Execute
-            const result = await runProcess(tmpExec, [], 10000);
+            const result = await runProcess(tmpExec, [], 10000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -2677,7 +2677,7 @@ if _virtual_display_started:
         case 'ruby':
         case 'rb': {
           // Use spawn with -e flag
-          const result = await runProcess('ruby', ['-e', code], 10000);
+          const result = await runProcess('ruby', ['-e', code], 10000, stdin);
           output = result.stdout;
           error = result.stderr;
           break;
@@ -2688,7 +2688,7 @@ if _virtual_display_started:
           const tmpFile = path.join('/tmp', `php_${randomId}.php`);
           await fs.writeFile(tmpFile, `<?php\n${code}\n?>`, { mode: 0o600 });
           try {
-            const result = await runProcess('php', [tmpFile], 10000);
+            const result = await runProcess('php', [tmpFile], 10000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
