@@ -1043,6 +1043,14 @@
   background-color: var(--terminal-bg-solid, var(--terminal-subtle));
 }
 
+/* Vertical slider for sidebar */
+.voice-controls [role="slider"][aria-orientation="vertical"] {
+  writing-mode: bt-lr;
+  -webkit-appearance: slider-vertical;
+  width: 8px;
+  height: 80px;
+}
+
 /* Notepad performance optimization */
 [data-testid="notepad-panel"] {
   contain: layout style paint;
