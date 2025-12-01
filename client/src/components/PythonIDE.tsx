@@ -2454,21 +2454,31 @@ calculator()
   // Mutation for chat requests
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await fetch('/api/chat/python', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           message,
-          code: showMultiFileMode && files.find(f => f.id === activeFileId) ? files.find(f => f.id === activeFileId)!.content : code,
-          lesson: selectedLesson,
-          isFreestyleMode
+          mode: isFreestyleMode ? 'freestyle' : 'technical',
+          language: 'english'
         }),
       });
-      if (!response.ok) throw new Error('Chat request failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Chat request failed');
+      }
       return response.json();
     },
     onSuccess: (data) => {
       setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
+    },
+    onError: (error) => {
+      console.error('Chat error:', error);
+      setChatHistory(prev => [...prev, { 
+        role: 'assistant', 
+        content: `Error: ${error instanceof Error ? error.message : 'Failed to get response. Please try again.'}` 
+      }]);
     },
   });
 
