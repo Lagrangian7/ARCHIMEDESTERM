@@ -1021,9 +1021,9 @@
   background: var(--terminal-bg-solid, var(--terminal-subtle)) !important;
 }
 
-/* Voice controls button styling for gradient themes - HIGH VISIBILITY */
-[class*="theme-"][class*="-gradient"] .voice-controls button {
-  background-color: var(--terminal-bg-solid, #0a0f14) !important;
+/* Voice controls button styling for all themes - HIGH VISIBILITY with thicker borders */
+.voice-controls button {
+  background-color: var(--terminal-bg-solid, var(--terminal-bg)) !important;
   border: 2px solid var(--terminal-highlight) !important;
   color: var(--terminal-highlight) !important;
   opacity: 1 !important;
@@ -1031,9 +1031,9 @@
   position: relative;
 }
 
-[class*="theme-"][class*="-gradient"] .voice-controls button:hover {
+.voice-controls button:hover {
   background-color: var(--terminal-highlight) !important;
-  color: var(--terminal-bg-solid, #0a0f14) !important;
+  color: var(--terminal-bg-solid, var(--terminal-bg)) !important;
 }
 
 /* Ensure voice controls container is above other elements */
