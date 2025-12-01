@@ -112,7 +112,7 @@ function generateLocalInstructions(language: string): string {
 4. Run: \`java ClassName\``,
     cpp: `**C++ Setup:**
 1. Save file as \`filename.cpp\`
-2. Install g++ (MinGW on Windows, Xcode on Mac, build-essential on Linux)
+2. Install g++ (MinGW on Windows, build-essential on Linux)
 3. Compile: \`g++ -o program filename.cpp\`
 4. Run: \`./program\``,
     html: `**HTML Setup:**
@@ -1725,6 +1725,7 @@ interface MultiFileSession {
 
 export function PythonIDE({ onClose }: PythonIDEProps) {
   const { toast } = useToast();
+  const { speak } = useSpeech();
 
   // Load session from localStorage or use defaults
   const loadSession = (): PythonSession | null => {
@@ -1851,6 +1852,8 @@ calculator()
   const [chatHistory, setChatHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>(
     (savedSession?.chatHistory as Array<{ role: 'user' | 'assistant', content: string }>) || []
   );
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const lastSpokenChatIdRef = useRef<string | null>(null);
 
   // Multi-file state for multi-language support
   const [files, setFiles] = useState<CodeFile[]>(() => {
@@ -1871,123 +1874,21 @@ calculator()
   const [showLocalInstructions, setShowLocalInstructions] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('python');
   const [showAITests, setShowAITests] = useState(false);
+  const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
+  const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
+  const [pythonTheme, setPythonTheme] = useState('dracula'); // Default theme
+  const currentPythonTheme = getTheme(pythonTheme);
 
-  // Sync current file content with main code state when in multi-file mode
-  const activeFile = files.find(f => f.id === activeFileId);
-
-  // Update currentLanguage when activeFile changes
-  useEffect(() => {
-    if (activeFile) {
-      setCurrentLanguage(activeFile.language);
-    }
-  }, [activeFile]);
-
-  // Save multi-file session to localStorage
-  useEffect(() => {
-    if (showMultiFileMode && files.length > 0) {
-      localStorage.setItem(MULTI_FILE_SESSION_KEY, JSON.stringify({ files, activeFileId }));
-    }
-  }, [files, activeFileId, showMultiFileMode]);
-
-  // Multi-file management functions
-  const addNewFile = useCallback(() => {
-    // Use the current language from state or active file
-    const lang = activeFile?.language || currentLanguage;
-    const langConfig = LANGUAGE_CONFIG[lang] || LANGUAGE_CONFIG.javascript;
-    const newFile: CodeFile = {
-      id: `file-${Date.now()}`,
-      name: `file${files.length + 1}${langConfig.extension}`,
-      language: lang,
-      content: lang === 'python' ? '# New file\n' : '// New file\n'
-    };
-    setFiles(prev => [...prev, newFile]);
-    setActiveFileId(newFile.id);
-    setCurrentLanguage(lang);
-  }, [files.length, currentLanguage, activeFile]);
-
-  const deleteFile = useCallback((id: string) => {
-    if (files.length <= 1) {
-      toast({ title: "Cannot delete", description: "Must have at least one file.", variant: "destructive" });
-      return;
-    }
-    setFiles(prev => {
-      const newFiles = prev.filter(f => f.id !== id);
-      if (activeFileId === id && newFiles.length > 0) {
-        setActiveFileId(newFiles[0].id);
-      }
-      return newFiles;
-    });
-  }, [files.length, activeFileId, toast]);
-
-  const updateFileName = useCallback((id: string, name: string) => {
-    const newLang = getLanguageFromFilename(name);
-    setFiles(prev => prev.map(f => {
-      if (f.id === id) {
-        // Update both name and language, and set current language if this is the active file
-        if (id === activeFileId) {
-          setCurrentLanguage(newLang);
-        }
-        return { ...f, name, language: newLang };
-      }
-      return f;
-    }));
-  }, [activeFileId]);
-
-  const updateFileContent = useCallback((id: string, content: string) => {
-    setFiles(prev => prev.map(f => 
-      f.id === id ? { ...f, content } : f
-    ));
-  }, []);
-
-  const downloadFile = useCallback((file: CodeFile) => {
-    const blob = new Blob([file.content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = file.name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({ title: "Downloaded", description: `${file.name} saved to your computer.` });
-  }, [toast]);
-
-  const downloadAllFiles = useCallback(() => {
-    files.forEach(file => {
-      const blob = new Blob([file.content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
-    toast({ title: "Downloaded", description: `${files.length} files saved to your computer.` });
-  }, [files, toast]);
-
-  // Set document title when component mounts
-  useEffect(() => {
-    const originalTitle = document.title;
-    document.title = 'Archimedes Workshop - Multi-Language IDE';
-    return () => { document.title = originalTitle; };
-  }, []);
-
-  // Cleanup execution timer on unmount to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (executionTimerRef.current) {
-        clearInterval(executionTimerRef.current);
-        executionTimerRef.current = null;
-      }
-    };
-  }, []);
-
-  const [fontSize, setFontSize] = useState(13);
-  const [showMinimap, setShowMinimap] = useState(false);
-  const [isFormatting, setIsFormatting] = useState(false);
-  const [htmlPreview, setHtmlPreview] = useState('');
+  // Dragging and resizing state
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+  const [dimensions, setDimensions] = useState({ width: 900, height: 700 });
+  const [position, setPosition] = useState({ x: 50, y: 50 });
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
+  const editorRef = useRef<any>(null);
+  const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update HTML preview when code changes (for HTML files)
   useEffect(() => {
@@ -2479,31 +2380,97 @@ calculator()
 
     if (isMaximized) {
       // Restore previous size and right-side position within terminal area
-      const availableHeight = window.innerHeight - terminalAreaTop - terminalAreaBottom;
-      const width = window.innerWidth / 2;
-      const height = Math.min(availableHeight, window.innerHeight - terminalAreaTop - terminalAreaBottom);
+      const width = 900; // Reset to default width
+      const height = 700; // Reset to default height
       setDimensions({ width, height });
-      const rightX = window.innerWidth - width;
-      const topY = terminalAreaTop;
+      const rightX = window.innerWidth - width - 20; // Adjust for padding
+      const topY = 50; // Reset to default Y position
       setPosition({ x: Math.max(0, rightX), y: Math.max(terminalAreaTop, topY) });
       setIsMaximized(false);
     } else {
       // Maximize to fill terminal area
       setIsMaximized(true);
+      setDimensions({ width: window.innerWidth, height: window.innerHeight - terminalAreaTop - terminalAreaBottom });
+      setPosition({ x: 0, y: terminalAreaTop });
     }
   };
 
   // Calculate terminal area boundaries
-  const terminalAreaTop = 60; // Approximate height of voice controls
-  const terminalAreaBottom = 60; // Approximate height of command input area
+  const terminalAreaTop = 60; // Approximate height of header
+  const terminalAreaBottom = 60; // Approximate height of footer
   const terminalAreaHeight = window.innerHeight - terminalAreaTop - terminalAreaBottom;
+
+  // Mouse move handler for dragging
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging) {
+      const deltaX = e.clientX - dragStartRef.current.x;
+      const deltaY = e.clientY - dragStartRef.current.y;
+      setPosition(prev => ({
+        x: Math.max(0, prev.x + deltaX),
+        y: Math.max(terminalAreaTop, prev.y + deltaY) // Prevent dragging above header
+      }));
+      dragStartRef.current = { x: e.clientX, y: e.clientY };
+    } else if (isResizing) {
+      const deltaWidth = e.clientX - resizeStartRef.current.mouseX;
+      const deltaHeight = e.clientY - resizeStartRef.current.mouseY;
+      setDimensions(prev => ({
+        width: Math.max(300, prev.width + deltaWidth),
+        height: Math.max(300, prev.height + deltaHeight)
+      }));
+      resizeStartRef.current.mouseX = e.clientX;
+      resizeStartRef.current.mouseY = e.clientY;
+    }
+  }, [isDragging, isResizing]);
+
+  // Mouse up handler for dragging and resizing
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    setIsResizing(false);
+  }, []);
+
+  // Effect for mouse move and up listeners
+  useEffect(() => {
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp]);
+
+  // Get current lesson for guidance display
+  const currentLesson = LESSONS[selectedLesson];
+
+  // Mutation for chat requests
+  const chatMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await fetch('/api/chat/python', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          code: showMultiFileMode && activeFile ? activeFile.content : code,
+          lesson: selectedLesson,
+          isFreestyleMode
+        }),
+      });
+      if (!response.ok) throw new Error('Chat request failed');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
+    },
+  });
+
+  // Get current file content or fallback to main code state
+  const editorContent = showMultiFileMode && activeFile ? activeFile.content : code;
 
   return (
     <>
       {showAITests && <MonacoAITests />}
 
       <div 
-        className="fixed z-50 overflow-hidden shadow-2xl flex flex-col"
+        className="fixed z-50 overflow-hidden shadow-2xl flex flex-col rounded-lg"
         style={{
           width: isMaximized ? '100vw' : `${dimensions.width}px`,
           height: isMaximized ? `${terminalAreaHeight}px` : `${dimensions.height}px`,
@@ -2517,7 +2484,7 @@ calculator()
       >
         {/* Header */}
         <div 
-          className="flex items-center justify-between px-3 py-2 cursor-move"
+          className="flex items-center justify-between px-3 py-2 rounded-t-lg cursor-move"
           style={{
             backgroundColor: `${currentPythonTheme.subtle}90`,
             borderBottom: `1px solid ${currentPythonTheme.border}`,
@@ -2735,11 +2702,23 @@ calculator()
             {/* Close/Quit Buttons */}
             <div className="flex items-center gap-1 ml-2" style={{ borderLeft: `1px solid ${currentPythonTheme.border}`, paddingLeft: '8px' }}>
               <Button
-                onClick={onClose}
+                onClick={() => {
+                  // Save current state before closing
+                  const sessionData: PythonSession = {
+                    code: showMultiFileMode && activeFile ? activeFile.content : code,
+                    output: output,
+                    selectedLesson: selectedLesson,
+                    showGuidance: showGuidance,
+                    completedTasks: Array.from(completedTasks),
+                    chatHistory: chatHistory
+                  };
+                  localStorage.setItem(PYTHON_SESSION_KEY, JSON.stringify(sessionData));
+                  onClose();
+                }}
                 variant="ghost"
                 size="sm"
                 className="h-7 px-2 font-mono text-xs"
-                title="Save and close"
+                title="Save current state and close"
                 style={{ color: currentPythonTheme.text }}
               >
                 Save & Close
@@ -2878,7 +2857,7 @@ calculator()
         <div className="flex-1 flex overflow-hidden">
           {/* Sidebar - Lessons (Collapsible) */}
           {showLessonsSidebar && (
-            <div className="w-72 overflow-y-auto" style={{ borderRight: `1px solid ${currentPythonTheme.border}`, backgroundColor: currentPythonTheme.subtle }}>
+            <div className="w-72 overflow-y-auto flex flex-col" style={{ borderRight: `1px solid ${currentPythonTheme.border}`, backgroundColor: currentPythonTheme.subtle }}>
               <div className="p-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
                 <div className="flex items-center gap-2 font-mono text-xs" style={{ color: currentPythonTheme.highlight }}>
                   <BookOpen className="w-4 h-4" />
@@ -2893,7 +2872,7 @@ calculator()
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <div className="p-2 space-y-1">
+              <div className="p-2 space-y-1 flex-1 overflow-y-auto">
                 {/* FREESTYLE Mode Option */}
                 <button
                   onClick={activateFreestyleMode}
@@ -3513,7 +3492,7 @@ calculator()
                           style={{ color: currentPythonTheme.text }}
                           data-testid="preview-output"
                         >
-                          {output || '(Run code to see output here)'}
+                          {output || '// Run code to see output here...'}
                         </pre>
                       )}
                     </div>
@@ -3670,7 +3649,13 @@ calculator()
                   )}
                 </Button>
                 <Button
-                  onClick={() => setCode('')}
+                  onClick={() => {
+                    if (showMultiFileMode && activeFile) {
+                      updateFileContent(activeFile.id, ''); // Clear active file content
+                    } else {
+                      setCode(''); // Clear main code state
+                    }
+                  }}
                   variant="outline"
                   className="font-mono text-sm"
                   style={{
@@ -3741,4 +3726,34 @@ calculator()
     </div>
     </>
   );
+}
+
+// Helper function to get theme styles
+function getTheme(themeName: string) {
+  const themes: Record<string, ReturnType<typeof getTheme>> = {
+    'solarized-light': { bg: '#fdf6e3', text: '#657b83', highlight: '#2aa198', border: '#eee8d5', subtle: '#eee8d5' },
+    'github-light': { bg: '#ffffff', text: '#24292e', highlight: '#0366d6', border: '#d1d5db', subtle: '#f6f8fa' },
+    'sepia': { bg: '#f4ecd8', text: '#5b4636', highlight: '#8b4513', border: '#dcd0c0', subtle: '#e1d7c0' },
+    'nord-light': { bg: '#eceff4', text: '#4c566a', highlight: '#81a1c1', border: '#d8dee9', subtle: '#e5e9f0' },
+    'gruvbox-light': { bg: '#fbf1c7', text: '#3c3836', highlight: '#cc241d', border: '#ebdbb2', subtle: '#ebdbb2' },
+    'one-light': { bg: '#fafafa', text: '#383a42', highlight: '#007acc', border: '#e0e0e0', subtle: '#f5f5f5' },
+    'terminal-green': { bg: '#000000', text: '#00ff00', highlight: '#00ff00', border: '#00ff0040', subtle: '#00ff0010' },
+    'nord-dark': { bg: '#2e3440', text: '#d8dee9', highlight: '#81a1c1', border: '#4c566a', subtle: '#3b4252' },
+    'dracula': { bg: '#282a36', text: '#f8f8f2', highlight: '#ff79c6', border: '#44475a', subtle: '#44475a' },
+    'one-dark': { bg: '#282c34', text: '#abb2bf', highlight: '#61afef', border: '#3a3f4b', subtle: '#313640' },
+    'gruvbox-dark': { bg: '#282828', text: '#ebdbb2', highlight: '#cc241d', border: '#3c3836', subtle: '#3c3836' },
+    'tokyo-night': { bg: '#24283b', text: '#a9b1d6', highlight: '#bb9af7', border: '#3a3f51', subtle: '#313644' },
+    'monokai': { bg: '#272822', text: '#f8f8f2', highlight: '#e6db74', border: '#3e3d32', subtle: '#3e3d32' },
+    'night-owl': { bg: '#011627', text: '#9b9ea0', highlight: '#7fdbca', border: '#1f2a38', subtle: '#1f2a38' },
+    'material-dark': { bg: '#263238', text: '#cfd8dc', highlight: '#00bcd4', border: '#37474f', subtle: '#37474f' },
+    'oceanic-next': { bg: '#2b3e50', text: '#d8dee9', highlight: '#528bff', border: '#34495e', subtle: '#34495e' },
+    'palenight': { bg: '#292d3e', text: '#6a737d', highlight: '#82aaff', border: '#353b50', subtle: '#353b50' },
+  };
+
+  return themes[themeName] || themes['dracula']; // Fallback to dracula
+}
+
+// Helper function to get language config
+function getLanguageConfig(language: string) {
+  return LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.python;
 }
