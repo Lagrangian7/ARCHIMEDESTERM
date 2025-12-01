@@ -1976,7 +1976,14 @@ calculator()
   const [isMaximized, setIsMaximized] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  const [dimensions, setDimensions] = useState(() => {
+    const terminalAreaTop = 60;
+    const terminalAreaBottom = 60;
+    return {
+      width: window.innerWidth / 2,
+      height: window.innerHeight - terminalAreaTop - terminalAreaBottom
+    };
+  });
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
@@ -2116,8 +2123,8 @@ calculator()
   useEffect(() => {
     const terminalAreaTop = 60; // Voice controls height
     const terminalAreaBottom = 60; // Command input height
-    const rightX = window.innerWidth - dimensions.width - 20; // 20px padding from right edge
-    const topY = terminalAreaTop + 20; // 20px padding from top
+    const rightX = window.innerWidth - dimensions.width;
+    const topY = terminalAreaTop;
     setPosition({ x: Math.max(0, rightX), y: topY });
   }, []);
 
@@ -2821,9 +2828,11 @@ calculator()
     
     if (isMaximized) {
       // Restore previous size and right-side position within terminal area
-      setDimensions({ width: 800, height: 600 });
-      const rightX = window.innerWidth - 800 - 20; // 20px padding from right edge
-      const topY = terminalAreaTop + 20; // 20px padding from top
+      const width = window.innerWidth / 2;
+      const height = window.innerHeight - terminalAreaTop - terminalAreaBottom;
+      setDimensions({ width, height });
+      const rightX = window.innerWidth - width;
+      const topY = terminalAreaTop;
       setPosition({ x: Math.max(0, rightX), y: topY });
       setIsMaximized(false);
     } else {
