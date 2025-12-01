@@ -2328,7 +2328,7 @@ function windowResized() {
       }
       const user = { id: req.user.claims.sub, name: req.user.claims.name || 'User', claims: req.user.claims };
 
-      const { message, mode, language } = req.body; // language is now extracted
+      const { message, mode, language, programmingLanguage } = req.body;
 
       if (!message || typeof message !== "string") {
         return res.status(400).json({ error: "Message is required" });
@@ -2364,12 +2364,17 @@ function windowResized() {
       // Generate AI response using LLM with knowledge base integration
       let response: string;
       try {
+        // Enhance message with programming language context for freestyle mode
+        const enhancedMessage = (mode === 'freestyle' && programmingLanguage)
+          ? `[Programming Language: ${programmingLanguage}] ${message}`
+          : message;
+
         response = await llmService.generateResponse(
-          message,
+          enhancedMessage,
           mode || 'natural',
           conversationHistory,
           user.id,
-          language || 'english', // Pass language to LLM service
+          language || 'english', // Human language
           isNewSession // Pass new session flag
         );
       } catch (llmError) {

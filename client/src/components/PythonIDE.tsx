@@ -2003,8 +2003,11 @@ calculator()
     e.preventDefault();
     if (!chatInput.trim() || chatMutation.isPending) return;
 
+    // Get current language from active file or default
+    const currentLang = activeFile?.language || currentLanguage;
+
     setChatHistory(prev => [...prev, { role: 'user', content: chatInput }]);
-    chatMutation.mutate(chatInput);
+    chatMutation.mutate({ message: chatInput, language: currentLang });
     setChatInput('');
   };
 
@@ -2453,7 +2456,7 @@ calculator()
 
   // Mutation for chat requests
   const chatMutation = useMutation({
-    mutationFn: async (message: string) => {
+    mutationFn: async ({ message, language }: { message: string; language?: string }) => {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2461,7 +2464,8 @@ calculator()
         body: JSON.stringify({
           message,
           mode: isFreestyleMode ? 'freestyle' : 'technical',
-          language: 'english'
+          language: 'english', // Human language (English/Spanish/Japanese)
+          programmingLanguage: language || 'python' // Programming language for code generation
         }),
       });
       if (!response.ok) {
