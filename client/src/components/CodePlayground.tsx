@@ -342,13 +342,12 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   const [outputType, setOutputType] = useState<'json' | 'csv' | 'svg' | 'xml' | 'text'>('text');
   const [parsedData, setParsedData] = useState<any>(null);
   const editorRef = useRef<any>(null);
-  const isInitialized = useRef(false);
+  const lastInitialCodeRef = useRef<string | null>(null);
   
   useEffect(() => {
-    if (isInitialized.current) return;
-    isInitialized.current = true;
-    
-    if (initialCode) {
+    // Always load new initialCode when provided, takes precedence over saved session
+    if (initialCode && initialCode !== lastInitialCodeRef.current) {
+      lastInitialCodeRef.current = initialCode;
       const extractedFiles = extractCodeBlocksFromText(initialCode);
       if (extractedFiles.length > 0) {
         setFiles(extractedFiles);
@@ -364,7 +363,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
         setFiles([newFile]);
         setActiveFileId(newFile.id);
       }
-    } else {
+    } else if (!initialCode && files.length === 0) {
+      // Only load saved session if no initialCode and no files loaded yet
       const savedSession = loadSavedSession();
       if (savedSession) {
         setFiles(savedSession.files);
