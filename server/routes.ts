@@ -2212,7 +2212,7 @@ function windowResized() {
 
   // Unified code execution endpoint - uses spawn with array args for security
   app.post('/api/execute', async (req, res) => {
-    const { code, language } = req.body;
+    const { code, language, stdin } = req.body;
 
     if (!code || typeof code !== 'string') {
       return res.status(400).json({
@@ -2232,10 +2232,10 @@ function windowResized() {
     const lang = (language || 'python').toLowerCase();
 
     // Helper to run a process with timeout using spawn (safer than exec)
-    const runProcess = (cmd: string, args: string[], timeout: number = 10000): Promise<{ stdout: string; stderr: string; code: number }> => {
+    const runProcess = (cmd: string, args: string[], timeout: number = 10000, stdinData?: string): Promise<{ stdout: string; stderr: string; code: number }> => {
       return new Promise((resolve, reject) => {
         const { spawn } = require('child_process');
-        const proc = spawn(cmd, args, { timeout });
+        const proc = spawn(cmd, args, { timeout, stdio: stdinData ? ['pipe', 'pipe', 'pipe'] : ['inherit', 'pipe', 'pipe'] });
         let stdout = '';
         let stderr = '';
         let killed = false;
@@ -2245,6 +2245,12 @@ function windowResized() {
           proc.kill('SIGKILL');
           reject(new Error(`Execution timeout (${timeout / 1000} seconds)`));
         }, timeout);
+
+        // Write stdin if provided
+        if (stdinData && proc.stdin) {
+          proc.stdin.write(stdinData);
+          proc.stdin.end();
+        }
 
         proc.stdout?.on('data', (data: Buffer) => { stdout += data.toString(); });
         proc.stderr?.on('data', (data: Buffer) => { stderr += data.toString(); });
