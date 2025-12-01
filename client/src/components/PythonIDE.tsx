@@ -2443,6 +2443,11 @@ calculator()
     }
   }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
 
+  // Calculate terminal area boundaries
+  const terminalAreaTop = 60; // Voice controls height
+  const terminalAreaBottom = 60; // Command input height
+  const terminalAreaHeight = window.innerHeight - terminalAreaTop - terminalAreaBottom;
+
   // Get current lesson for guidance display
   const currentLesson = LESSONS[selectedLesson];
 
