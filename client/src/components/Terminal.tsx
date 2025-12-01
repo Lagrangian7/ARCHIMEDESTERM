@@ -41,7 +41,6 @@ import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
 import archyLogo from '@assets/archy111_1760233943010.jpeg';
-// Default wallpaper removed - users manage their own collection
 
 // Import LogoIcon from its own file to break circular dependency
 import { LogoIcon } from './LogoIcon';
@@ -513,18 +512,14 @@ export function Terminal() {
   // Check if user has set a custom background (from Background Manager)
   const hasCustomBackground = customBackgroundUrl && customBackgroundUrl.length > 0;
 
-  // Only show default wallpaper on the default theme (forest-gradient)
-  const showDefaultWallpaper = currentTheme === 'forest-gradient' && !hasCustomBackground;
-
   // Debug logging
   useEffect(() => {
     console.log('Background state:', {
       customBackgroundUrl: customBackgroundUrl ? customBackgroundUrl.substring(0, 50) + '...' : 'none',
       hasCustomBackground,
-      showDefaultWallpaper,
       currentTheme
     });
-  }, [customBackgroundUrl, hasCustomBackground, showDefaultWallpaper, currentTheme]);
+  }, [customBackgroundUrl, hasCustomBackground, currentTheme]);
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
@@ -548,21 +543,6 @@ export function Terminal() {
           />
         )}
 
-        {/* Default Wallpaper - only on forest-gradient theme */}
-        {showDefaultWallpaper && (
-          <div
-            className="absolute inset-0 z-0"
-            style={{
-              backgroundImage: `url(${wallpaperImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              opacity: 0.85,
-              imageRendering: 'auto'
-            }}
-          />
-        )}
-
         {/* Fireflies for midnight theme */}
         {currentTheme === 'midnight-gradient' && (
           <div className="night" style={{ zIndex: 2 }}>
@@ -574,7 +554,7 @@ export function Terminal() {
 
         {/* Matrix Rain Background Effect - with reduced opacity to show wallpaper */}
         <div style={{
-          opacity: (hasCustomBackground || showDefaultWallpaper) ? 0.3 : 0.05
+          opacity: hasCustomBackground ? 0.3 : 0.05
         }}>
           <MemoizedMatrixRain />
         </div>
