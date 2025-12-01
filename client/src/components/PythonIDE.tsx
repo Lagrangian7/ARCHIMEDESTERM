@@ -1883,6 +1883,17 @@ calculator()
   const [showMinimap, setShowMinimap] = useState(true); // Default to showing minimap
   const htmlPreview = ''; // Dummy variable, actual preview logic handled elsewhere
   const [htmlPreviewState, setHtmlPreview] = useState(''); // State to hold HTML preview content
+  
+  // Dragging and resizing state
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+  const [position, setPosition] = useState({ x: window.innerWidth - 920, y: 50 });
+  const [dimensions, setDimensions] = useState({ width: 900, height: 700 });
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
+  const editorRef = useRef<any>(null);
+  const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update HTML preview when code changes (for HTML files)
   useEffect(() => {
