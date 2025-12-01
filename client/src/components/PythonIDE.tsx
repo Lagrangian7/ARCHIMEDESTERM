@@ -2566,7 +2566,7 @@ calculator()
       >
         {/* Header */}
         <div 
-          className="flex items-center justify-between px-3 py-2 rounded-t-lg cursor-move"
+          className="flex items-center justify-between px-3 py-2 rounded-t-lg cursor-move flex-shrink-0"
           style={{
             backgroundColor: `${currentPythonTheme.subtle}90`,
             borderBottom: `1px solid ${currentPythonTheme.border}`,
@@ -2578,13 +2578,13 @@ calculator()
             }
           }}
         >
-          <div className="flex items-center gap-2">
-            <Code className="w-4 h-4" style={{ color: currentPythonTheme.highlight }} />
-            <h3 className="font-mono text-xs font-bold" style={{ color: currentPythonTheme.text }}>
+          <div className="flex items-center gap-2 min-w-0">
+            <Code className="w-4 h-4 flex-shrink-0" style={{ color: currentPythonTheme.highlight }} />
+            <h3 className="font-mono text-xs font-bold truncate" style={{ color: currentPythonTheme.text }}>
               Archimedes Workshop
             </h3>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0 ml-2">
             {/* Theme Selector */}
             <select
               value={pythonTheme}
@@ -2782,7 +2782,7 @@ calculator()
             </div>
 
             {/* Close/Quit Buttons */}
-            <div className="flex items-center gap-1 ml-2" style={{ borderLeft: `1px solid ${currentPythonTheme.border}`, paddingLeft: '8px' }}>
+            <div className="flex items-center gap-1 ml-2 flex-shrink-0" style={{ borderLeft: `1px solid ${currentPythonTheme.border}`, paddingLeft: '8px' }}>
               <Button
                 onClick={() => {
                   // Save current state before closing
@@ -2804,7 +2804,7 @@ calculator()
                 }}
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2 font-mono text-xs"
+                className="h-7 px-2 font-mono text-xs whitespace-nowrap"
                 title="Save current state and close"
                 style={{ color: currentPythonTheme.text }}
               >
@@ -2815,7 +2815,7 @@ calculator()
                 onClick={handleQuit}
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0"
+                className="h-7 w-7 p-0 flex-shrink-0"
                 title="Quit and clear session"
                 style={{ color: 'hsl(0 70% 50%)' }}
               >
