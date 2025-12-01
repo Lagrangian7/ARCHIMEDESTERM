@@ -3090,7 +3090,7 @@ calculator()
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       placeholder={isFreestyleMode ? "Describe code you want to create..." : "Ask about Python code..."}
-                      className="flex-1 rounded px-3 py-2 font-mono text-xs focus:outline-none"
+                      className="flex-1 rounded px-3 py-2 font-mono text-xs focus:outline-none placeholder-retro-cycle"
                       style={{
                         backgroundColor: currentPythonTheme.bg,
                         border: `1px solid ${currentPythonTheme.border}`,

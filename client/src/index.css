@@ -1278,6 +1278,12 @@
     font-weight: bold;
   }
 
+  .placeholder-retro-cycle::placeholder {
+    animation: colorCycle 4s linear infinite;
+    font-weight: bold;
+    opacity: 1;
+  }
+
   /* Rainbow cycle theme - apply color cycling to all text */
   .theme-rainbow-cycle .terminal-output,
   .theme-rainbow-cycle .terminal-text,
