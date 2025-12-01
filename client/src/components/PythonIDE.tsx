@@ -3724,7 +3724,7 @@ calculator()
                           cursorBlinking: 'smooth',
                           cursorSmoothCaretAnimation: 'on',
                           lightbulb: {
-                            enabled: 'on' as any
+                            enabled: true
                           },
                           matchBrackets: 'always',
                           bracketPairColorization: {
