@@ -86,15 +86,51 @@ function detectLanguage(code: string, filename?: string): string {
   return 'javascript';
 }
 
+function cleanCodeFormatting(code: string): string {
+  // Split into lines and remove empty lines from start/end
+  let lines = code.split(/\r?\n/);
+  
+  // Remove leading and trailing empty lines
+  while (lines.length > 0 && !lines[0].trim()) {
+    lines.shift();
+  }
+  while (lines.length > 0 && !lines[lines.length - 1].trim()) {
+    lines.pop();
+  }
+  
+  if (lines.length === 0) return '';
+  
+  // Find minimum common indentation (excluding empty lines)
+  let minIndent = Infinity;
+  for (const line of lines) {
+    if (line.trim().length > 0) {
+      const indent = line.match(/^(\s*)/)?.[1].length || 0;
+      minIndent = Math.min(minIndent, indent);
+    }
+  }
+  
+  // Remove common indentation and trailing whitespace
+  if (minIndent > 0 && minIndent !== Infinity) {
+    lines = lines.map(line => line.length > minIndent ? line.slice(minIndent) : line.trimEnd());
+  } else {
+    lines = lines.map(line => line.trimEnd());
+  }
+  
+  // Join back together
+  return lines.join('\n');
+}
+
 function extractCodeBlocksFromText(text: string): CodeFile[] {
-  const codeBlockRegex = /```(\w+)?\s*(?:\n|\r\n)?([\s\S]*?)```/g;
+  // Handle multiple markdown formats: ```lang code ```, ~~~lang code ~~~, indented code blocks
+  const codeBlockRegex = /```(\w+)?\s*(?:\n|\r\n)?([\s\S]*?)```|~~~(\w+)?\s*(?:\n|\r\n)?([\s\S]*?)~~~/g;
   const files: CodeFile[] = [];
   let match;
   let index = 0;
   
   while ((match = codeBlockRegex.exec(text)) !== null) {
-    const specifiedLang = match[1]?.toLowerCase() || '';
-    const content = match[2].trim();
+    // Handle both ``` and ~~~ formats
+    const specifiedLang = (match[1] || match[3] || '').toLowerCase();
+    const content = cleanCodeFormatting(match[2] || match[4] || '');
     
     if (content.length < 5) continue;
     
