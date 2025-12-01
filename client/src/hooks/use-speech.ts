@@ -177,12 +177,12 @@ export function useSpeechSynthesis() {
 
         // Detect if text contains Japanese characters
         const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(text);
-        
+
         // Clean text for speech synthesis
         let cleanText = text
           .replace(/<[^>]*>/g, '') // Remove HTML tags
           .replace(/\*/g, ''); // Remove asterisks
-        
+
         if (hasJapanese) {
           // Minimal cleaning for Japanese - preserve natural flow
           cleanText = cleanText
@@ -246,7 +246,6 @@ export function useSpeechSynthesis() {
 
         // Set base properties - ensure consistent rate for all content types
         utterance.rate = currentRate;
-        utterance.volume = currentVolume;
         utterance.pitch = 0.6;
 
         // Log for debugging speech rate consistency
@@ -305,22 +304,17 @@ export function useSpeechSynthesis() {
           console.warn(`Invalid voice selection: ${currentVoice}, falling back to default`);
         }
 
-        // Event handlers with error handling
-        utterance.onstart = () => {
-          setIsSpeaking(true);
-          console.log('Speech started');
-        };
+        // Format Japanese text if present
+        if (hasJapanese && utterance.lang === 'ja-JP') {
+          cleanText = formatJapaneseForSpeech(cleanText);
+        }
 
-        utterance.onend = () => {
-          setIsSpeaking(false);
-          console.log('Speech ended');
-        };
+        utterance.text = cleanText;
 
-        utterance.onerror = (event) => {
-          setIsSpeaking(false);
-          console.error('Speech synthesis error:', event.error);
-        };
+        // Apply volume as the final property to ensure it's not overridden
+        utterance.volume = currentVolume;
 
+        console.log('Speech started with volume:', currentVolume);
         window.speechSynthesis.speak(utterance);
       } catch (error) {
         console.error('Error in speak function:', error);
