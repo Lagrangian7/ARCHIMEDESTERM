@@ -2380,69 +2380,68 @@ calculator()
     }
   };
 
-  const toggleMaximize = () => {
-    const terminalAreaTop = 60; // Voice controls height
-    const terminalAreaBottom = 60; // Command input height
+  const toggleMaximize = useCallback(() => {
+    const terminalAreaTop = 60;
+    const terminalAreaBottom = 60;
 
     if (isMaximized) {
-      // Restore previous size and right-side position within terminal area
-      const width = 900; // Reset to default width
-      const height = 700; // Reset to default height
+      const width = 900;
+      const height = 700;
       setDimensions({ width, height });
-      const rightX = window.innerWidth - width - 20; // Adjust for padding
-      const topY = 50; // Reset to default Y position
+      const rightX = window.innerWidth - width - 20;
+      const topY = 50;
       setPosition({ x: Math.max(0, rightX), y: Math.max(terminalAreaTop, topY) });
       setIsMaximized(false);
     } else {
-      // Maximize to fill terminal area
       setIsMaximized(true);
       setDimensions({ width: window.innerWidth, height: window.innerHeight - terminalAreaTop - terminalAreaBottom });
       setPosition({ x: 0, y: terminalAreaTop });
     }
-  };
-
-  // Calculate terminal area boundaries
-  const terminalAreaTop = 60; // Approximate height of header
-  const terminalAreaBottom = 60; // Approximate height of footer
-  const terminalAreaHeight = window.innerHeight - terminalAreaTop - terminalAreaBottom;
+  }, [isMaximized]);
 
   // Mouse move handler for dragging
   const handleMouseMove = useCallback((e: MouseEvent) => {
+    const terminalAreaTop = 60;
+    
     if (isDragging) {
       const deltaX = e.clientX - dragStartRef.current.x;
       const deltaY = e.clientY - dragStartRef.current.y;
       setPosition(prev => ({
-        x: Math.max(0, prev.x + deltaX),
-        y: Math.max(terminalAreaTop, prev.y + deltaY) // Prevent dragging above header
+        x: Math.max(0, Math.min(window.innerWidth - 300, prev.x + deltaX)),
+        y: Math.max(terminalAreaTop, Math.min(window.innerHeight - 200, prev.y + deltaY))
       }));
       dragStartRef.current = { x: e.clientX, y: e.clientY };
     } else if (isResizing) {
       const deltaWidth = e.clientX - resizeStartRef.current.mouseX;
       const deltaHeight = e.clientY - resizeStartRef.current.mouseY;
       setDimensions(prev => ({
-        width: Math.max(300, prev.width + deltaWidth),
-        height: Math.max(300, prev.height + deltaHeight)
+        width: Math.max(300, Math.min(window.innerWidth - position.x, prev.width + deltaWidth)),
+        height: Math.max(300, Math.min(window.innerHeight - position.y - 60, prev.height + deltaHeight))
       }));
       resizeStartRef.current.mouseX = e.clientX;
       resizeStartRef.current.mouseY = e.clientY;
     }
-  }, [isDragging, isResizing]);
+  }, [isDragging, isResizing, position.x, position.y]);
 
   // Mouse up handler for dragging and resizing
   const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-    setIsResizing(false);
-  }, []);
+    if (isDragging || isResizing) {
+      setIsDragging(false);
+      setIsResizing(false);
+    }
+  }, [isDragging, isResizing]);
 
   // Effect for mouse move and up listeners
   useEffect(() => {
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [handleMouseMove, handleMouseUp]);
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
 
   // Get current lesson for guidance display
   const currentLesson = LESSONS[selectedLesson];
