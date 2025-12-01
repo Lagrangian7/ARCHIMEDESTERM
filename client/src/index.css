@@ -683,12 +683,12 @@
 }
 
 .theme-forest-gradient {
-  --terminal-bg: radial-gradient(ellipse at bottom, #1b3d2f 0%, #0a140f 100%);
-  --terminal-bg-solid: #0a140f;
+  --terminal-bg: radial-gradient(ellipse at bottom, #0f2119 0%, #030a06 100%);
+  --terminal-bg-solid: #030a06;
   --terminal-text: #14fdce;
   --terminal-highlight: #14fdce;
-  --terminal-subtle: #031e11;
-  --terminal-subtle-rgb: 3, 30, 17;
+  --terminal-subtle: #021509;
+  --terminal-subtle-rgb: 2, 21, 9;
   --terminal-highlight-rgb: 20, 253, 206;
   --terminal-logo-green: #14fdce;
   --terminal-bright-green: #14fdce;
