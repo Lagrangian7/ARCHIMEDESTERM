@@ -1984,431 +1984,6 @@ calculator()
     };
   }, []);
 
-  const [showLessonsSidebar, setShowLessonsSidebar] = useState(false);
-  const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
-  const editorRef = useRef<any>(null);
-  const chatScrollRef = useRef<HTMLDivElement>(null);
-  const { speak } = useSpeech();
-  const lastSpokenChatIdRef = useRef<string>('');
-
-  // Resizable window state - start on right side
-  const [isMaximized, setIsMaximized] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dimensions, setDimensions] = useState(() => {
-    const terminalAreaTop = 60;
-    const terminalAreaBottom = 60;
-    return {
-      width: window.innerWidth / 2,
-      height: window.innerHeight - terminalAreaTop - terminalAreaBottom
-    };
-  });
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
-  const executionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Python IDE independent theme system - easy on the eyes
-  const [pythonTheme, setPythonTheme] = useState('terminal-green');
-
-  const PYTHON_THEMES = {
-    // Light themes
-    'solarized-light': {
-      bg: 'hsl(44 87% 94%)',
-      text: 'hsl(192 15% 40%)',
-      highlight: 'hsl(205 69% 49%)',
-      subtle: 'hsl(44 11% 86%)',
-      border: 'hsl(45 7% 79%)',
-    },
-    'github-light': {
-      bg: 'hsl(0 0% 99%)',
-      text: 'hsl(210 11% 15%)',
-      highlight: 'hsl(212 92% 45%)',
-      subtle: 'hsl(210 18% 96%)',
-      border: 'hsl(214 13% 93%)',
-    },
-    'sepia': {
-      bg: 'hsl(40 35% 92%)',
-      text: 'hsl(30 12% 25%)',
-      highlight: 'hsl(25 75% 47%)',
-      subtle: 'hsl(40 25% 85%)',
-      border: 'hsl(40 18% 75%)',
-    },
-    'nord-light': {
-      bg: 'hsl(219 28% 97%)',
-      text: 'hsl(220 16% 36%)',
-      highlight: 'hsl(213 32% 52%)',
-      subtle: 'hsl(220 27% 92%)',
-      border: 'hsl(220 16% 84%)',
-    },
-    'gruvbox-light': {
-      bg: 'hsl(48 87% 88%)',
-      text: 'hsl(0 4% 25%)',
-      highlight: 'hsl(24 56% 50%)',
-      subtle: 'hsl(48 45% 82%)',
-      border: 'hsl(45 25% 70%)',
-    },
-    'one-light': {
-      bg: 'hsl(230 1% 98%)',
-      text: 'hsl(230 8% 24%)',
-      highlight: 'hsl(221 87% 60%)',
-      subtle: 'hsl(230 5% 94%)',
-      border: 'hsl(230 8% 88%)',
-    },
-
-    // Dark themes - easy on the eyes
-    'nord-dark': {
-      bg: 'hsl(220 16% 22%)',
-      text: 'hsl(218 27% 94%)',
-      highlight: 'hsl(193 43% 67%)',
-      subtle: 'hsl(220 17% 17%)',
-      border: 'hsl(220 16% 28%)',
-    },
-    'dracula': {
-      bg: 'hsl(231 15% 18%)',
-      text: 'hsl(60 30% 96%)',
-      highlight: 'hsl(326 100% 74%)',
-      subtle: 'hsl(232 14% 22%)',
-      border: 'hsl(231 15% 25%)',
-    },
-    'one-dark': {
-      bg: 'hsl(220 13% 18%)',
-      text: 'hsl(220 14% 71%)',
-      highlight: 'hsl(207 82% 66%)',
-      subtle: 'hsl(220 12% 22%)',
-      border: 'hsl(220 13% 26%)',
-    },
-    'gruvbox-dark': {
-      bg: 'hsl(0 0% 16%)',
-      text: 'hsl(39 57% 85%)',
-      highlight: 'hsl(24 100% 68%)',
-      subtle: 'hsl(0 0% 20%)',
-      border: 'hsl(0 0% 25%)',
-    },
-    'tokyo-night': {
-      bg: 'hsl(235 16% 15%)',
-      text: 'hsl(218 13% 65%)',
-      highlight: 'hsl(187 71% 68%)',
-      subtle: 'hsl(235 18% 18%)',
-      border: 'hsl(235 16% 22%)',
-    },
-    'monokai': {
-      bg: 'hsl(70 8% 15%)',
-      text: 'hsl(60 30% 96%)',
-      highlight: 'hsl(31 89% 65%)',
-      subtle: 'hsl(70 8% 18%)',
-      border: 'hsl(70 8% 22%)',
-    },
-    'night-owl': {
-      bg: 'hsl(209 61% 16%)',
-      text: 'hsl(210 40% 85%)',
-      highlight: 'hsl(207 89% 75%)',
-      subtle: 'hsl(209 61% 12%)',
-      border: 'hsl(209 61% 20%)',
-    },
-    'material-dark': {
-      bg: 'hsl(233 14% 16%)',
-      text: 'hsl(0 0% 95%)',
-      highlight: 'hsl(199 89% 68%)',
-      subtle: 'hsl(233 14% 20%)',
-      border: 'hsl(233 14% 24%)',
-    },
-    'oceanic-next': {
-      bg: 'hsl(209 18% 18%)',
-      text: 'hsl(0 0% 91%)',
-      highlight: 'hsl(187 80% 70%)',
-      subtle: 'hsl(209 18% 15%)',
-      border: 'hsl(209 18% 22%)',
-    },
-    'palenight': {
-      bg: 'hsl(233 22% 18%)',
-      text: 'hsl(0 0% 87%)',
-      highlight: 'hsl(267 57% 78%)',
-      subtle: 'hsl(233 22% 15%)',
-      border: 'hsl(233 22% 24%)',
-    },
-    'terminal-green': {
-      bg: 'hsl(153 38% 8%)',
-      text: 'hsl(166 98% 54%)',
-      highlight: 'hsl(166 98% 54%)',
-      subtle: 'hsl(153 45% 6%)',
-      border: 'hsl(153 38% 12%)',
-    },
-  };
-
-  const currentPythonTheme = PYTHON_THEMES[pythonTheme as keyof typeof PYTHON_THEMES];
-
-  // Position on right side of terminal area on mount
-  useEffect(() => {
-    const terminalAreaTop = 60; // Voice controls height
-    const terminalAreaBottom = 60; // Command input height
-    const availableHeight = window.innerHeight - terminalAreaTop - terminalAreaBottom;
-    const rightX = window.innerWidth - dimensions.width;
-    const topY = terminalAreaTop;
-    
-    // Ensure initial dimensions fit within available space
-    if (dimensions.height > availableHeight) {
-      setDimensions(prev => ({ ...prev, height: availableHeight }));
-    }
-    
-    setPosition({ x: Math.max(0, rightX), y: topY });
-  }, []);
-
-  // Handle window dragging
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const terminalAreaTop = 60; // Voice controls height
-      const terminalAreaBottom = 60; // Command input height
-      const maxY = window.innerHeight - terminalAreaBottom - dimensions.height;
-      const deltaX = e.clientX - dragStartRef.current.x;
-      const deltaY = e.clientY - dragStartRef.current.y;
-
-      setPosition(prev => ({
-        x: Math.max(0, Math.min(window.innerWidth - dimensions.width, prev.x + deltaX)),
-        y: Math.max(terminalAreaTop, Math.min(maxY, prev.y + deltaY))
-      }));
-
-      dragStartRef.current = { x: e.clientX, y: e.clientY };
-    };
-
-    const handleMouseUp = () => setIsDragging(false);
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, dimensions]);
-
-  // Handle window resizing
-  useEffect(() => {
-    if (!isResizing) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const terminalAreaTop = 60; // Voice controls height
-      const terminalAreaBottom = 60; // Command input height
-      const maxHeight = window.innerHeight - terminalAreaBottom - position.y;
-      const deltaX = e.clientX - resizeStartRef.current.mouseX;
-      const deltaY = e.clientY - resizeStartRef.current.mouseY;
-
-      setDimensions({
-        width: Math.max(600, Math.min(window.innerWidth - position.x, resizeStartRef.current.width + deltaX)),
-        height: Math.max(400, Math.min(maxHeight, resizeStartRef.current.height + deltaY))
-      });
-    };
-
-    const handleMouseUp = () => setIsResizing(false);
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isResizing, position]);
-
-  // Trigger editor layout update when dimensions change
-  useEffect(() => {
-    if (editorRef.current && typeof editorRef.current.layout === 'function') {
-      // Small delay to ensure DOM has updated
-      const timer = setTimeout(() => {
-        try {
-          if (editorRef.current) {
-            editorRef.current.layout();
-          }
-        } catch (error) {
-          console.warn('Editor layout failed:', error);
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [dimensions, isMaximized, showChat, showLessonsSidebar]);
-
-  // Save session to localStorage whenever state changes
-  useEffect(() => {
-    const session: PythonSession = {
-      code,
-      output,
-      selectedLesson,
-      showGuidance,
-      completedTasks: Array.from(completedTasks),
-      chatHistory
-    };
-    localStorage.setItem(PYTHON_SESSION_KEY, JSON.stringify(session));
-  }, [code, output, selectedLesson, showGuidance, completedTasks, chatHistory]);
-
-  const currentLesson = LESSONS[selectedLesson];
-
-  const chatMutation = useMutation({
-    mutationFn: async (message: string) => {
-      // Determine the correct mode based on freestyle state
-      const chatMode = isFreestyleMode ? 'freestyle' : 'technical';
-
-      // Detect current language based on multi-file mode and active file
-      const currentLanguage = showMultiFileMode && activeFile 
-        ? activeFile.language 
-        : 'python';
-      const currentCode = showMultiFileMode && activeFile 
-        ? activeFile.content 
-        : code;
-      const langConfig = LANGUAGE_CONFIG[currentLanguage];
-      const langName = langConfig?.displayName || 'Python';
-      const langExtension = langConfig?.extension || '.py';
-
-      const contextMessage = isFreestyleMode 
-        ? `${message}\n\nCurrent programming language: ${langName}\nCurrent code in editor:\n\`\`\`${currentLanguage}\n${currentCode}\n\`\`\`\n\nIMPORTANT: Generate ONLY clean, executable ${langName} code. The code should be ready to copy and paste directly into a ${langExtension} file. Do not wrap the code in markdown code blocks or add explanatory text before/after the code.`
-        : `${message}\n\nCurrent lesson: ${currentLesson.title}\nCurrent code:\n\`\`\`python\n${code}\n\`\`\`\n\nIMPORTANT: Generate ONLY clean, executable Python code without markdown backticks or code block markers.`;
-
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: contextMessage,
-          mode: chatMode,
-          sessionId: `python-ide-${Date.now()}`,
-          language: 'english',
-          targetLanguage: currentLanguage
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `API error: ${response.status}`);
-      }
-
-      return response.json();
-    },
-    onSuccess: (data) => {
-      let cleanResponse = data.response;
-      let foundValidCode = false;
-
-      // Detect current language for code extraction
-      const currentLanguage = showMultiFileMode && activeFile 
-        ? activeFile.language 
-        : 'python';
-
-      // Language-specific code block patterns
-      const languagePatterns: Record<string, RegExp> = {
-        python: /```(?:python|py)\s*\n([\s\S]*?)```/,
-        javascript: /```(?:javascript|js)\s*\n([\s\S]*?)```/,
-        typescript: /```(?:typescript|ts)\s*\n([\s\S]*?)```/,
-        java: /```(?:java)\s*\n([\s\S]*?)```/,
-        cpp: /```(?:cpp|c\+\+|cxx)\s*\n([\s\S]*?)```/,
-        c: /```(?:c)\s*\n([\s\S]*?)```/,
-        rust: /```(?:rust|rs)\s*\n([\s\S]*?)```/,
-        go: /```(?:go|golang)\s*\n([\s\S]*?)```/,
-        ruby: /```(?:ruby|rb)\s*\n([\s\S]*?)```/,
-        php: /```(?:php)\s*\n([\s\S]*?)```/,
-        csharp: /```(?:csharp|cs|c#)\s*\n([\s\S]*?)```/,
-        swift: /```(?:swift)\s*\n([\s\S]*?)```/,
-        kotlin: /```(?:kotlin|kt)\s*\n([\s\S]*?)```/,
-        bash: /```(?:bash|sh|shell)\s*\n([\s\S]*?)```/,
-        sql: /```(?:sql)\s*\n([\s\S]*?)```/,
-        html: /```(?:html)\s*\n([\s\S]*?)```/,
-        css: /```(?:css)\s*\n([\s\S]*?)```/,
-      };
-
-      // Language-specific code detection patterns
-      const languageDetectors: Record<string, RegExp> = {
-        python: /(?:import|def|class|print|if|for|while|return)\s/,
-        javascript: /(?:const|let|var|function|=>|console\.log|require|import)\s/,
-        typescript: /(?:const|let|var|function|=>|interface|type|export|import)\s/,
-        java: /(?:public|private|class|static|void|import|package)\s/,
-        cpp: /(?:#include|int main|cout|cin|std::|using namespace)\s?/,
-        c: /(?:#include|int main|printf|scanf|void)\s/,
-        rust: /(?:fn|let|mut|impl|struct|enum|use|mod)\s/,
-        go: /(?:func|package|import|var|const|type|struct)\s/,
-        ruby: /(?:def|class|module|require|puts|end)\s/,
-        php: /(?:<\?php|\$\w+|function|class|echo|require)\s?/,
-        csharp: /(?:using|namespace|class|public|private|void|static)\s/,
-        swift: /(?:func|var|let|class|struct|import|print)\s/,
-        kotlin: /(?:fun|val|var|class|object|import|package)\s/,
-        bash: /(?:#!\/bin\/bash|echo|if \[|for |while |done|fi)\s?/,
-        sql: /(?:SELECT|INSERT|UPDATE|DELETE|CREATE|FROM|WHERE)\s/i,
-        html: /(?:<html|<head|<body|<div|<script|<!DOCTYPE)\s?/i,
-        css: /(?:\{|\}|margin|padding|color|background|display):/,
-      };
-
-      // Try language-specific pattern first
-      const langPattern = languagePatterns[currentLanguage];
-      if (langPattern) {
-        const codeMatch = cleanResponse.match(langPattern);
-        if (codeMatch && codeMatch[1]) {
-          cleanResponse = codeMatch[1].trim();
-          foundValidCode = true;
-        }
-      }
-
-      // Try generic code block if language-specific didn't work
-      if (!foundValidCode) {
-        const genericBlockRegex = /```\s*\n([\s\S]*?)```/;
-        const codeMatch = cleanResponse.match(genericBlockRegex);
-        if (codeMatch && codeMatch[1]) {
-          const potentialCode = codeMatch[1].trim();
-          const detector = languageDetectors[currentLanguage];
-          if (detector && detector.test(potentialCode)) {
-            cleanResponse = potentialCode;
-            foundValidCode = true;
-          }
-        }
-      }
-
-      // Pattern 3: If no markdown blocks, check if entire response is code
-      if (!foundValidCode) {
-        const anyCodeBlock = /```(?:\w+)?\s*\n([\s\S]*?)```/;
-        const codeMatch = cleanResponse.match(anyCodeBlock);
-        if (codeMatch && codeMatch[1]) {
-          cleanResponse = codeMatch[1].trim();
-          foundValidCode = true;
-        }
-      }
-
-      // Pattern 4: If no markdown blocks, check if entire response is code
-      if (!foundValidCode) {
-        const trimmed = cleanResponse.trim();
-        const detector = languageDetectors[currentLanguage] || languageDetectors.python;
-        if (detector.test(trimmed)) {
-          const lines = trimmed.split('\n');
-          const codeLines = lines.filter((line: string) => {
-            return !line.match(/^(?:Here|This|The|I'll|Let|Note:|Example:|Output:)/i);
-          });
-          if (codeLines.length > 0) {
-            cleanResponse = codeLines.join('\n').trim();
-            foundValidCode = true;
-          }
-        }
-      }
-
-      const assistantMessage = { role: 'assistant' as const, content: data.response };
-      setChatHistory(prev => [...prev, assistantMessage]);
-
-      // Auto-paste valid code into editor (multi-file aware)
-      if (foundValidCode && cleanResponse && cleanResponse.length > 0) {
-        if (showMultiFileMode && activeFile) {
-          updateFileContent(activeFile.id, cleanResponse);
-          const langName = LANGUAGE_CONFIG[currentLanguage]?.displayName || 'Code';
-          setOutput(`✓ ${langName} code automatically pasted into ${activeFile.name}. Ready to use.`);
-        } else {
-          setCode(cleanResponse);
-          setOutput('✓ Clean Python code automatically pasted into editor. Press Run to execute.');
-        }
-        speak('Code pasted into editor and ready');
-      } else {
-        speak(data.response);
-      }
-    },
-    onError: (error) => {
-      const errorMessage = { role: 'assistant' as const, content: `Error: ${error.message}` };
-      setChatHistory(prev => [...prev, errorMessage]);
-      speak(`Error: ${error.message}`);
-    }
-  });
-
   const [fontSize, setFontSize] = useState(13);
   const [showMinimap, setShowMinimap] = useState(false);
   const [isFormatting, setIsFormatting] = useState(false);
@@ -2433,7 +2008,7 @@ calculator()
     try {
       editorRef.current = editor;
 
-      // Safe focus with error handling
+      // Focus editor after a short delay
       setTimeout(() => {
         try {
           if (editor && typeof editor.focus === 'function') {
@@ -2901,7 +2476,7 @@ calculator()
   const toggleMaximize = () => {
     const terminalAreaTop = 60; // Voice controls height
     const terminalAreaBottom = 60; // Command input height
-    
+
     if (isMaximized) {
       // Restore previous size and right-side position within terminal area
       const availableHeight = window.innerHeight - terminalAreaTop - terminalAreaBottom;
@@ -2926,7 +2501,7 @@ calculator()
   return (
     <>
       {showAITests && <MonacoAITests />}
-      
+
       <div 
         className="fixed z-50 overflow-hidden shadow-2xl flex flex-col"
         style={{
@@ -2995,7 +2570,7 @@ calculator()
                 <option value="palenight">Palenight</option>
               </optgroup>
             </select>
-            
+
             {/* Language Selector */}
             <select
               value={activeFile?.language || currentLanguage}
@@ -3032,7 +2607,7 @@ calculator()
                 </option>
               ))}
             </select>
-            
+
             {/* Font Size Controls */}
             <div className="flex items-center gap-1 mr-2">
               <button
@@ -3074,7 +2649,7 @@ calculator()
               >
                 <TestTube className="w-4 h-4" />
               </Button>
-              
+
               <Button
                 onClick={formatCode}
                 variant="ghost"
@@ -3086,7 +2661,7 @@ calculator()
               >
                 {isFormatting ? '...' : 'Format'}
               </Button>
-              
+
               <Button
                 onClick={() => setShowMinimap(!showMinimap)}
                 variant="ghost"
@@ -3100,7 +2675,7 @@ calculator()
               >
                 <Code className="w-4 h-4" />
               </Button>
-              
+
               <Button
                 onClick={() => setShowMultiFileMode(!showMultiFileMode)}
                 variant="ghost"
@@ -3115,7 +2690,7 @@ calculator()
               >
                 <FileCode className="w-4 h-4" />
               </Button>
-              
+
               <Button
                 onClick={toggleMaximize}
                 variant="ghost"
@@ -3126,7 +2701,7 @@ calculator()
               >
                 {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
               </Button>
-              
+
               <Button
                 onClick={() => setShowPreview(!showPreview)}
                 variant="ghost"
@@ -3141,7 +2716,7 @@ calculator()
               >
                 {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </Button>
-              
+
               <Button
                 onClick={() => setShowChat(!showChat)}
                 variant="ghost"
@@ -3156,7 +2731,7 @@ calculator()
                 <MessageSquare className="w-4 h-4" />
               </Button>
             </div>
-            
+
             {/* Close/Quit Buttons */}
             <div className="flex items-center gap-1 ml-2" style={{ borderLeft: `1px solid ${currentPythonTheme.border}`, paddingLeft: '8px' }}>
               <Button
@@ -3169,7 +2744,7 @@ calculator()
               >
                 Save & Close
               </Button>
-              
+
               <Button
                 onClick={handleQuit}
                 variant="ghost"
@@ -3636,7 +3211,9 @@ calculator()
                           smoothScrolling: true,
                           cursorBlinking: 'smooth',
                           cursorSmoothCaretAnimation: 'on',
-                          lightbulb: { enabled: 'on' as any },
+                          lightbulb: {
+                            enabled: true
+                          },
                           matchBrackets: 'always',
                           bracketPairColorization: { enabled: true },
                           guides: { bracketPairs: true, indentation: true },
@@ -3782,7 +3359,7 @@ calculator()
 
                     // Code Actions
                     lightbulb: {
-                      enabled: 'on' as any
+                      enabled: true
                     },
 
                     // Brackets
@@ -4030,7 +3607,7 @@ calculator()
 
                       // Code Actions
                       lightbulb: {
-                        enabled: 'on' as any
+                        enabled: true
                       },
 
                       // Brackets
