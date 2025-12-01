@@ -2862,9 +2862,9 @@ calculator()
     >
         {/* Header */}
         <div 
-          className="flex items-center justify-between px-4 py-3 cursor-move"
+          className="flex items-center justify-between px-3 py-2 cursor-move"
           style={{
-            backgroundColor: `${currentPythonTheme.subtle}80`,
+            backgroundColor: `${currentPythonTheme.subtle}90`,
             borderBottom: `1px solid ${currentPythonTheme.border}`,
           }}
           onMouseDown={(e) => {
@@ -2874,13 +2874,14 @@ calculator()
             }
           }}
         >
-          <div className="flex items-center gap-3">
-            <Code className="w-5 h-5" style={{ color: currentPythonTheme.highlight }} />
-            <h3 className="font-mono text-sm font-bold" style={{ color: currentPythonTheme.text }}>
+          <div className="flex items-center gap-2">
+            <Code className="w-4 h-4" style={{ color: currentPythonTheme.highlight }} />
+            <h3 className="font-mono text-xs font-bold" style={{ color: currentPythonTheme.text }}>
               Archimedes Workshop
             </h3>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {/* Theme Selector */}
             <select
               value={pythonTheme}
               onChange={(e) => setPythonTheme(e.target.value)}
@@ -2890,8 +2891,9 @@ calculator()
                 color: currentPythonTheme.text,
                 border: `1px solid ${currentPythonTheme.border}`,
               }}
+              title="Select editor theme"
             >
-              <optgroup label="Light Themes">
+              <optgroup label="Light">
                 <option value="solarized-light">Solarized Light</option>
                 <option value="github-light">GitHub Light</option>
                 <option value="sepia">Sepia</option>
@@ -2899,7 +2901,7 @@ calculator()
                 <option value="gruvbox-light">Gruvbox Light</option>
                 <option value="one-light">One Light</option>
               </optgroup>
-              <optgroup label="Dark Themes (Easy on Eyes)">
+              <optgroup label="Dark">
                 <option value="terminal-green">Terminal Green</option>
                 <option value="nord-dark">Nord Dark</option>
                 <option value="dracula">Dracula</option>
@@ -2913,7 +2915,8 @@ calculator()
                 <option value="palenight">Palenight</option>
               </optgroup>
             </select>
-            {/* Language Selector - Always Visible */}
+            
+            {/* Language Selector */}
             <select
               value={activeFile?.language || currentLanguage}
               onChange={(e) => {
@@ -2930,8 +2933,8 @@ calculator()
                       : f
                   ));
                   toast({
-                    title: `${langConfig.icon} ${langConfig.displayName} Mode`,
-                    description: `Assistant is now set to program in ${langConfig.displayName}.`,
+                    title: `${langConfig.icon} ${langConfig.displayName}`,
+                    description: `Language changed to ${langConfig.displayName}`,
                   });
                 }
               }}
@@ -2941,7 +2944,7 @@ calculator()
                 color: currentPythonTheme.highlight,
                 border: `1px solid ${currentPythonTheme.border}`,
               }}
-              title="Set programming language"
+              title="Programming language"
             >
               {Object.entries(LANGUAGE_CONFIG).map(([lang, config]) => (
                 <option key={lang} value={lang}>
@@ -2949,88 +2952,89 @@ calculator()
                 </option>
               ))}
             </select>
-            <Button
-              onClick={() => setShowMultiFileMode(!showMultiFileMode)}
-              variant="outline"
-              size="sm"
-              className="font-mono text-xs"
-              data-testid="button-toggle-multifile"
-              style={{
-                backgroundColor: showMultiFileMode ? currentPythonTheme.highlight : currentPythonTheme.bg,
-                color: showMultiFileMode ? currentPythonTheme.bg : currentPythonTheme.highlight,
-                borderColor: currentPythonTheme.border,
-              }}
-            >
-              <FileCode className="w-4 h-4 mr-1" />
-              {showMultiFileMode ? 'Single File' : 'Multi-File'}
-            </Button>
-            <Button
-              onClick={toggleMaximize}
-              variant="outline"
-              size="sm"
-              className="font-mono text-xs"
-              style={{
-                backgroundColor: currentPythonTheme.bg,
-                color: currentPythonTheme.highlight,
-                borderColor: currentPythonTheme.border,
-              }}
-            >
-              {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-            </Button>
-            <Button
-              onClick={() => setShowPreview(!showPreview)}
-              variant="outline"
-              size="sm"
-              className="font-mono text-xs"
-              data-testid="button-toggle-preview"
-              style={{
-                backgroundColor: showPreview ? currentPythonTheme.subtle : currentPythonTheme.bg,
-                color: currentPythonTheme.highlight,
-                borderColor: currentPythonTheme.border,
-              }}
-            >
-              {showPreview ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
-              {showPreview ? 'Hide' : 'Show'} Preview
-            </Button>
-            <Button
-              onClick={() => setShowChat(!showChat)}
-              variant="outline"
-              size="sm"
-              className="font-mono text-xs"
-              style={{
-                backgroundColor: showChat ? currentPythonTheme.subtle : currentPythonTheme.bg,
-                color: currentPythonTheme.highlight,
-                borderColor: currentPythonTheme.border,
-              }}
-            >
-              <MessageSquare className="w-4 h-4 mr-2" />
-              {showChat ? 'Hide' : 'Ask'} Archimedes
-            </Button>
-            <Button
-              onClick={onClose}
-              variant="outline"
-              size="sm"
-              className="font-mono text-xs"
-              style={{
-                backgroundColor: currentPythonTheme.bg,
-                color: currentPythonTheme.text,
-                borderColor: currentPythonTheme.border,
-              }}
-            >
-              Close (Save Session)
-            </Button>
-            <Button
-              onClick={handleQuit}
-              variant="ghost"
-              size="sm"
-              className="font-mono text-xs"
-              style={{
-                backgroundColor: currentPythonTheme.bg,
-                color: 'hsl(0 70% 50%)',
-              }}
-            >
-              Quit & Clear
-            </Button>
+            
+            {/* Icon Buttons */}
+            <div className="flex items-center gap-1 ml-2" style={{ borderLeft: `1px solid ${currentPythonTheme.border}`, paddingLeft: '8px' }}>
+              <Button
+                onClick={() => setShowMultiFileMode(!showMultiFileMode)}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                data-testid="button-toggle-multifile"
+                title={showMultiFileMode ? 'Single file mode' : 'Multi-file mode'}
+                style={{
+                  backgroundColor: showMultiFileMode ? `${currentPythonTheme.highlight}20` : 'transparent',
+                  color: currentPythonTheme.highlight,
+                }}
+              >
+                <FileCode className="w-4 h-4" />
+              </Button>
+              
+              <Button
+                onClick={toggleMaximize}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                title={isMaximized ? 'Restore size' : 'Maximize'}
+                style={{ color: currentPythonTheme.highlight }}
+              >
+                {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </Button>
+              
+              <Button
+                onClick={() => setShowPreview(!showPreview)}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                data-testid="button-toggle-preview"
+                title={showPreview ? 'Hide preview' : 'Show preview'}
+                style={{
+                  backgroundColor: showPreview ? `${currentPythonTheme.highlight}20` : 'transparent',
+                  color: currentPythonTheme.highlight,
+                }}
+              >
+                {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </Button>
+              
+              <Button
+                onClick={() => setShowChat(!showChat)}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                title={showChat ? 'Hide AI assistant' : 'Show AI assistant'}
+                style={{
+                  backgroundColor: showChat ? `${currentPythonTheme.highlight}20` : 'transparent',
+                  color: currentPythonTheme.highlight,
+                }}
+              >
+                <MessageSquare className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            {/* Close/Quit Buttons */}
+            <div className="flex items-center gap-1 ml-2" style={{ borderLeft: `1px solid ${currentPythonTheme.border}`, paddingLeft: '8px' }}>
+              <Button
+                onClick={onClose}
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 font-mono text-xs"
+                title="Save and close"
+                style={{ color: currentPythonTheme.text }}
+              >
+                Save & Close
+              </Button>
+              
+              <Button
+                onClick={handleQuit}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                title="Quit and clear session"
+                style={{ color: 'hsl(0 70% 50%)' }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
