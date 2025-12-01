@@ -1,0 +1,76 @@
+# FREESTYLE MODE - Interactive Calculator with Visual Interface
+# This calculator uses input() to create an interactive experience
+# The preview panel will show input fields for you to fill in!
+
+def calculator():
+    """
+    Interactive Calculator with Visual Output
+    Uses input() for interactive GUI in preview panel
+    """
+
+    # Welcome message
+    print("╔═══════════════════════════════════════╗")
+    print("║   🧮 ARCHIMEDES CALCULATOR v7.0    ║")
+    print("╚═══════════════════════════════════════╝")
+    print()
+
+    # Display operation menu
+    print("📊 Available Operations:")
+    print("  [1] ➕ Addition")
+    print("  [2] ➖ Subtraction")
+    print("  [3] ✖️  Multiplication")
+    print("  [4] ➗ Division")
+    print("  [5] 📐 Square Root")
+    print("  [6] ⚡ Power")
+    print()
+
+    # Get user inputs through preview panel
+    operation = input("Select operation (1-6): ")
+
+    if operation in ['1', '2', '3', '4', '6']:
+        num1 = float(input("Enter first number: "))
+        num2 = float(input("Enter second number: "))
+
+        print()
+        print("═" * 40)
+        print("📝 CALCULATION RESULT:")
+        print("═" * 40)
+
+        if operation == '1':
+            result = num1 + num2
+            print(f"✅ {num1} + {num2} = {result}")
+        elif operation == '2':
+            result = num1 - num2
+            print(f"✅ {num1} - {num2} = {result}")
+        elif operation == '3':
+            result = num1 * num2
+            print(f"✅ {num1} × {num2} = {result}")
+        elif operation == '4':
+            if num2 != 0:
+                result = num1 / num2
+                print(f"✅ {num1} ÷ {num2} = {result}")
+            else:
+                print("❌ Error: Division by zero!")
+        elif operation == '6':
+            result = num1 ** num2
+            print(f"✅ {num1} ^ {num2} = {result}")
+
+    elif operation == '5':
+        num = float(input("Enter number: "))
+        if num >= 0:
+            result = num ** 0.5
+            print()
+            print("═" * 40)
+            print("📝 CALCULATION RESULT:")
+            print("═" * 40)
+            print(f"✅ √{num} = {result}")
+        else:
+            print("❌ Error: Cannot calculate square root of negative number!")
+    else:
+        print("❌ Invalid operation selected!")
+
+    print("═" * 40)
+    print("💡 Calculator session complete!")
+
+# Run the calculator
+calculator()

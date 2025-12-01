@@ -367,11 +367,12 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   }, [monacoAIMode]);
   
   useEffect(() => {
-    // Always load new initialCode when provided, takes precedence over saved session
-    if (initialCode && initialCode !== lastInitialCodeRef.current) {
+    // ALWAYS clear old saved session on mount to prevent stale code
+    localStorage.removeItem(STORAGE_KEY);
+    
+    if (initialCode) {
+      // Use the provided initialCode
       lastInitialCodeRef.current = initialCode;
-      // Clear old saved session when new code is provided
-      localStorage.removeItem(STORAGE_KEY);
       
       const extractedFiles = extractCodeBlocksFromText(initialCode);
       if (extractedFiles.length > 0) {
@@ -388,8 +389,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
         setFiles([newFile]);
         setActiveFileId(newFile.id);
       }
-    } else if (!initialCode && files.length === 0) {
-      // Start with empty editor - no saved session or default code
+    } else {
+      // Start with empty editor - no saved session
       const defaultFile: CodeFile = {
         id: `file-${Date.now()}`,
         name: 'main.py',
@@ -401,11 +402,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
     }
   }, [initialCode, initialLanguage]);
   
-  useEffect(() => {
-    if (files.length > 0 && activeFileId) {
-      saveSession(files, activeFileId);
-    }
-  }, [files, activeFileId]);
+  // Note: We no longer auto-save to localStorage to prevent stale code issues
+  // Users can manually save/download their code instead
   
   const activeFile = files.find(f => f.id === activeFileId);
   
