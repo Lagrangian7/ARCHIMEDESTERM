@@ -217,10 +217,60 @@ Response Framework:
 Remember: You are a supportive health educator promoting natural wellness while respecting medical science and individual health sovereignty.`;
   }
 
-  private detectLanguage(userMessage: string): 'python' | 'typescript' | 'javascript' | 'cpp' | 'bash' {
+  private detectLanguage(userMessage: string): 'python' | 'typescript' | 'javascript' | 'cpp' | 'bash' | 'html' | 'css' | 'fullstack' {
     const msg = userMessage.toLowerCase();
 
-    // Explicit language mentions take highest priority
+    // Define technology categories for full-stack detection
+    const backendKeywords = ['flask', 'django', 'fastapi', 'express', 'node.js', 'koa', 'fastify', 'backend', 'server', 'api'];
+    const frontendKeywords = ['react', 'vue', 'angular', 'svelte', 'frontend', 'client', 'ui'];
+    
+    const hasBackendTerm = backendKeywords.some(kw => msg.includes(kw));
+    const hasFrontendTerm = frontendKeywords.some(kw => msg.includes(kw));
+
+    // FULL-STACK DETECTION - Only trigger when BOTH backend AND frontend terms are present
+    const explicitFullStackPatterns = [
+      'full-stack', 'fullstack', 'full stack',
+      'backend and frontend', 'frontend and backend',
+      'api and ui', 'api + frontend', 'backend + frontend',
+      'server and client', 'client and server',
+      'both frontend', 'both backend'
+    ];
+    
+    // Explicit full-stack phrases always trigger full-stack mode
+    if (explicitFullStackPatterns.some(pattern => msg.includes(pattern))) {
+      return 'fullstack';
+    }
+
+    // Specific technology combinations (backend + frontend framework together)
+    const specificCombinations = [
+      'flask + react', 'flask and react', 'flask with react',
+      'django + react', 'django and react', 'django with react',
+      'express + react', 'express and react', 'express with react',
+      'node + react', 'node and react', 'node with react',
+      'fastapi + vue', 'fastapi and vue', 'fastapi with vue',
+      'express + vue', 'express and vue', 'express with vue'
+    ];
+    
+    if (specificCombinations.some(pattern => msg.includes(pattern))) {
+      return 'fullstack';
+    }
+
+    // Detect when both backend framework AND frontend framework are mentioned
+    const hasPythonBackend = msg.includes('flask') || msg.includes('django') || msg.includes('fastapi');
+    const hasNodeBackend = msg.includes('express') || msg.includes('koa') || msg.includes('fastify');
+    const hasFrontendFramework = msg.includes('react') || msg.includes('vue') || msg.includes('angular') || msg.includes('svelte');
+    
+    if ((hasPythonBackend || hasNodeBackend) && hasFrontendFramework) {
+      return 'fullstack';
+    }
+
+    // "web app" only triggers fullstack if both backend AND frontend terms present
+    if ((msg.includes('web app') || msg.includes('webapp') || msg.includes('web application')) && 
+        hasBackendTerm && hasFrontendTerm) {
+      return 'fullstack';
+    }
+
+    // Explicit language mentions take priority for single-language requests
     if (msg.includes('typescript') || msg.includes(' ts ') || msg.includes('.ts file') || msg.includes('in ts')) {
       return 'typescript';
     }
@@ -241,17 +291,25 @@ Remember: You are a supportive health educator promoting natural wellness while 
       return 'python';
     }
 
-    // Secondary indicators (only if no explicit language mention)
-    // TypeScript-specific features (avoid Python false positives)
+    // HTML/CSS detection
+    if (msg.includes('html') || msg.includes('webpage') || msg.includes('web page') || msg.includes('.html')) {
+      return 'html';
+    }
+
+    if (msg.includes('css') || msg.includes('stylesheet') || msg.includes('styling') || msg.includes('.css')) {
+      return 'css';
+    }
+
+    // Secondary indicators - JavaScript ecosystem (React, Express, Vue as standalone)
+    if ((msg.includes('react') || msg.includes('node.js') || msg.includes('express') ||
+         msg.includes('npm') || msg.includes('jsx') || msg.includes('vue')) && !msg.includes('python')) {
+      return 'javascript';
+    }
+
+    // TypeScript-specific features
     if ((msg.includes('interface ') || msg.includes('tsx') || msg.includes('<generic>')) &&
         !msg.includes('python')) {
       return 'typescript';
-    }
-
-    // JavaScript-specific ecosystem
-    if ((msg.includes('react') || msg.includes('node.js') || msg.includes('express') ||
-         msg.includes('npm') || msg.includes('jsx')) && !msg.includes('python')) {
-      return 'javascript';
     }
 
     // C++-specific syntax
@@ -260,7 +318,7 @@ Remember: You are a supportive health educator promoting natural wellness while 
       return 'cpp';
     }
 
-    // Bash-specific commands (avoid Python script false positives)
+    // Bash-specific commands
     if ((msg.includes('#!/bin/bash') || msg.includes('chmod') || msg.includes('grep') ||
          msg.includes('awk') || msg.includes('sed')) && !msg.includes('python')) {
       return 'bash';
@@ -274,6 +332,8 @@ Remember: You are a supportive health educator promoting natural wellness while 
     const programmingLang = this.detectLanguage(userMessage);
 
     switch (programmingLang) {
+      case 'fullstack':
+        return this.getFullStackWebPrompt();
       case 'typescript':
         return this.getFreestylePromptTypeScript();
       case 'javascript':
@@ -282,6 +342,10 @@ Remember: You are a supportive health educator promoting natural wellness while 
         return this.getFreestylePromptCpp();
       case 'bash':
         return this.getFreestylePromptBash();
+      case 'html':
+        return this.getFreestylePromptHTML();
+      case 'css':
+        return this.getFreestylePromptCSS();
       default:
         return this.getFreestylePromptPython();
     }
@@ -388,10 +452,109 @@ Code Generation Standards:
 Your Role: You're a collaborative scripting partner who thinks ahead. After providing scripts, consider what the user might need next - cron scheduling, logging approaches, argument parsing improvements, or how to make the script more portable across systems.`;
   }
 
+  private getFreestylePromptHTML(): string {
+    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A proactive, collaborative HTML/web development partner.
+
+CORE DIRECTIVE: Be an insightful AI assistant who anticipates needs, thinks critically, and provides genuinely helpful web solutions.
+${this.getFreestyleInteractionPrinciples()}
+
+Code Generation Standards:
+- Wrap HTML code in markdown blocks: \`\`\`html ... \`\`\`
+- Use semantic HTML5 elements (header, nav, main, section, article, footer)
+- Include proper doctype, meta tags, and accessibility attributes
+- Add inline CSS or link to stylesheets as appropriate
+- Include JavaScript when interactivity is needed
+
+Your Role: You're a collaborative web development partner who thinks ahead. After providing HTML, consider what the user might need next - responsive design improvements, accessibility enhancements, JavaScript interactivity, or CSS styling suggestions.`;
+  }
+
+  private getFreestylePromptCSS(): string {
+    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A proactive, collaborative CSS/styling partner.
+
+CORE DIRECTIVE: Be an insightful AI assistant who anticipates needs, thinks critically, and provides genuinely helpful styling solutions.
+${this.getFreestyleInteractionPrinciples()}
+
+Code Generation Standards:
+- Wrap CSS code in markdown blocks: \`\`\`css ... \`\`\`
+- Use modern CSS features (flexbox, grid, custom properties)
+- Follow BEM or other naming conventions for maintainability
+- Include responsive breakpoints where appropriate
+- Consider dark mode and accessibility
+
+Your Role: You're a collaborative styling partner who thinks ahead. After providing CSS, consider what the user might need next - responsive improvements, animation enhancements, browser compatibility notes, or how to organize styles for larger projects.`;
+  }
+
+  private getFullStackWebPrompt(): string {
+    return `You are ARCHIMEDES v7 in FREESTYLE MODE - A proactive, collaborative FULL-STACK WEB DEVELOPMENT partner.
+
+CORE DIRECTIVE: Be an insightful AI assistant who builds complete, coordinated web applications with both backend and frontend code in a single response.
+${this.getFreestyleInteractionPrinciples()}
+
+FULL-STACK CODE GENERATION - CRITICAL:
+When the user requests a web application, provide COMPLETE, COORDINATED code for ALL layers:
+
+1. BACKEND CODE (choose based on context):
+   - Python: Flask, FastAPI, or Django
+   - Node.js: Express, Koa, or Fastify
+   - Wrap in appropriate markdown blocks: \`\`\`python or \`\`\`javascript
+
+2. FRONTEND CODE:
+   - React, Vue, Svelte, or vanilla HTML/JS based on request
+   - Wrap in appropriate markdown blocks: \`\`\`jsx, \`\`\`html, \`\`\`javascript
+
+3. CONFIGURATION FILES (when needed):
+   - package.json, requirements.txt, docker-compose.yml
+   - Environment variables and config examples
+
+FILE STRUCTURE - Use clear file markers:
+For each file, use this format:
+\`\`\`language
+// FILE: path/to/filename.ext
+... code here ...
+\`\`\`
+
+Example output structure:
+\`\`\`python
+# FILE: backend/app.py
+from flask import Flask, jsonify
+...
+\`\`\`
+
+\`\`\`javascript
+// FILE: frontend/src/App.jsx
+import React from 'react';
+...
+\`\`\`
+
+\`\`\`json
+// FILE: package.json
+{
+  "name": "my-app",
+  ...
+}
+\`\`\`
+
+CONNECTION INSTRUCTIONS:
+After providing code, ALWAYS explain:
+- How the frontend calls the backend (API endpoints, fetch/axios usage)
+- CORS configuration if needed
+- How to run both servers (commands for each)
+- Environment variables required
+
+Your Role: You're a full-stack architect who delivers complete, working applications. Think through the entire stack - database models, API routes, frontend components, and how they connect. Ask ONE clarifying question if the requirements are unclear (e.g., "Should this use authentication?" or "Do you prefer React or Vue?").`;
+  }
+
   private getEnhancedFreestyleMessage(userMessage: string): string {
     const detectedLang = this.detectLanguage(userMessage);
 
-    const languageConfig = {
+    // Handle fullstack separately
+    if (detectedLang === 'fullstack') {
+      return `As a FULL-STACK WEB DEVELOPMENT partner in FREESTYLE MODE: ${userMessage}
+
+Generate complete, coordinated code for BOTH backend AND frontend. Use clear file markers (// FILE: path/filename.ext) for each file. After providing the code, explain how the parts connect and how to run the application.`;
+    }
+
+    const languageConfig: Record<string, { name: string; block: string; description: string }> = {
       python: {
         name: 'Python',
         block: 'python',
@@ -416,10 +579,20 @@ Your Role: You're a collaborative scripting partner who thinks ahead. After prov
         name: 'Bash',
         block: 'bash',
         description: 'collaborative Bash scripting partner'
+      },
+      html: {
+        name: 'HTML',
+        block: 'html',
+        description: 'collaborative HTML/web development partner'
+      },
+      css: {
+        name: 'CSS',
+        block: 'css',
+        description: 'collaborative CSS/styling partner'
       }
     };
 
-    const config = languageConfig[detectedLang];
+    const config = languageConfig[detectedLang] || languageConfig.python;
 
     return `As a ${config.description} in FREESTYLE MODE: ${userMessage}
 
