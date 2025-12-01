@@ -1972,11 +1972,11 @@ calculator()
   const { speak } = useSpeech();
   const lastSpokenChatIdRef = useRef<string>('');
 
-  // Resizable window state - start maximized by default
-  const [isMaximized, setIsMaximized] = useState(true);
+  // Resizable window state - start on right side
+  const [isMaximized, setIsMaximized] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [dimensions, setDimensions] = useState({ width: 900, height: 600 });
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
@@ -2112,13 +2112,13 @@ calculator()
 
   const currentPythonTheme = PYTHON_THEMES[pythonTheme as keyof typeof PYTHON_THEMES];
 
-  // Center window within terminal area on mount
+  // Position on right side of terminal area on mount
   useEffect(() => {
     const terminalAreaTop = 60; // Voice controls height
     const terminalAreaBottom = 60; // Command input height
-    const centerX = (window.innerWidth - dimensions.width) / 2;
-    const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - dimensions.height) / 2);
-    setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
+    const rightX = window.innerWidth - dimensions.width - 20; // 20px padding from right edge
+    const topY = terminalAreaTop + 20; // 20px padding from top
+    setPosition({ x: Math.max(0, rightX), y: topY });
   }, []);
 
   // Handle window dragging
@@ -2820,14 +2820,14 @@ calculator()
     const terminalAreaBottom = 60; // Command input height
     
     if (isMaximized) {
-      // Restore previous size and center position within terminal area
-      setDimensions({ width: 900, height: 600 });
-      const centerX = (window.innerWidth - 900) / 2;
-      const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - 600) / 2);
-      setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
+      // Restore previous size and right-side position within terminal area
+      setDimensions({ width: 800, height: 600 });
+      const rightX = window.innerWidth - 800 - 20; // 20px padding from right edge
+      const topY = terminalAreaTop + 20; // 20px padding from top
+      setPosition({ x: Math.max(0, rightX), y: topY });
       setIsMaximized(false);
     } else {
-      // Maximize to terminal area only
+      // Maximize to fill terminal area
       setIsMaximized(true);
     }
   };
