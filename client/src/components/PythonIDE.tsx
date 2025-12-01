@@ -2123,8 +2123,15 @@ calculator()
   useEffect(() => {
     const terminalAreaTop = 60; // Voice controls height
     const terminalAreaBottom = 60; // Command input height
+    const availableHeight = window.innerHeight - terminalAreaTop - terminalAreaBottom;
     const rightX = window.innerWidth - dimensions.width;
     const topY = terminalAreaTop;
+    
+    // Ensure initial dimensions fit within available space
+    if (dimensions.height > availableHeight) {
+      setDimensions(prev => ({ ...prev, height: availableHeight }));
+    }
+    
     setPosition({ x: Math.max(0, rightX), y: topY });
   }, []);
 
@@ -2135,12 +2142,13 @@ calculator()
     const handleMouseMove = (e: MouseEvent) => {
       const terminalAreaTop = 60; // Voice controls height
       const terminalAreaBottom = 60; // Command input height
+      const maxY = window.innerHeight - terminalAreaBottom - dimensions.height;
       const deltaX = e.clientX - dragStartRef.current.x;
       const deltaY = e.clientY - dragStartRef.current.y;
 
       setPosition(prev => ({
         x: Math.max(0, Math.min(window.innerWidth - dimensions.width, prev.x + deltaX)),
-        y: Math.max(terminalAreaTop, Math.min(window.innerHeight - terminalAreaBottom - dimensions.height, prev.y + deltaY))
+        y: Math.max(terminalAreaTop, Math.min(maxY, prev.y + deltaY))
       }));
 
       dragStartRef.current = { x: e.clientX, y: e.clientY };
@@ -2164,12 +2172,13 @@ calculator()
     const handleMouseMove = (e: MouseEvent) => {
       const terminalAreaTop = 60; // Voice controls height
       const terminalAreaBottom = 60; // Command input height
+      const maxHeight = window.innerHeight - terminalAreaBottom - position.y;
       const deltaX = e.clientX - resizeStartRef.current.mouseX;
       const deltaY = e.clientY - resizeStartRef.current.mouseY;
 
       setDimensions({
         width: Math.max(600, Math.min(window.innerWidth - position.x, resizeStartRef.current.width + deltaX)),
-        height: Math.max(400, Math.min(window.innerHeight - terminalAreaBottom - position.y, resizeStartRef.current.height + deltaY))
+        height: Math.max(400, Math.min(maxHeight, resizeStartRef.current.height + deltaY))
       });
     };
 
@@ -2828,12 +2837,13 @@ calculator()
     
     if (isMaximized) {
       // Restore previous size and right-side position within terminal area
+      const availableHeight = window.innerHeight - terminalAreaTop - terminalAreaBottom;
       const width = window.innerWidth / 2;
-      const height = window.innerHeight - terminalAreaTop - terminalAreaBottom;
+      const height = Math.min(availableHeight, window.innerHeight - terminalAreaTop - terminalAreaBottom);
       setDimensions({ width, height });
       const rightX = window.innerWidth - width;
       const topY = terminalAreaTop;
-      setPosition({ x: Math.max(0, rightX), y: topY });
+      setPosition({ x: Math.max(0, rightX), y: Math.max(terminalAreaTop, topY) });
       setIsMaximized(false);
     } else {
       // Maximize to fill terminal area
