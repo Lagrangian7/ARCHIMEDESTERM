@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FileText, Save, Trash2, X } from 'lucide-react';
+import { FileText, Save, Trash2, X, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -14,8 +14,10 @@ interface NotepadProps {
 export function Notepad({ notepadId, onClose }: NotepadProps) {
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('Untitled Note');
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const previewRef = useRef<HTMLDivElement>(null);
 
   // Drag state with staggered initial position based on notepad count
   const notepadIndex = parseInt(notepadId.split('-')[1]) || 0;
@@ -88,6 +90,15 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
   useEffect(() => {
     localStorage.setItem(`notepad-title-${notepadId}`, title);
   }, [title, notepadId]);
+
+  // Trigger MathJax rendering when preview mode changes or content updates
+  useEffect(() => {
+    if (isPreviewMode && previewRef.current && window.MathJax) {
+      window.MathJax.typesetPromise([previewRef.current]).catch((err: any) => {
+        console.error('MathJax typesetting error in notepad:', err);
+      });
+    }
+  }, [isPreviewMode, content]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -230,26 +241,62 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
           <Trash2 className="w-3 h-3 mr-1" />
           Clear
         </Button>
+        <Button
+          onClick={() => setIsPreviewMode(!isPreviewMode)}
+          size="sm"
+          variant="outline"
+          className="font-mono text-xs h-7 px-2.5 hover:opacity-80"
+          style={{ 
+            backgroundColor: isPreviewMode ? 'rgba(var(--terminal-highlight-rgb), 0.2)' : 'rgba(var(--terminal-subtle-rgb), 0.15)',
+            borderColor: isPreviewMode ? 'var(--terminal-highlight)' : 'rgba(var(--terminal-subtle-rgb), 0.4)', 
+            color: 'var(--terminal-text)' 
+          }}
+        >
+          <Eye className="w-3 h-3 mr-1" />
+          Preview
+        </Button>
         <div className="ml-auto text-xs font-mono" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
           {content.length}
         </div>
       </div>
 
-      {/* Text Area */}
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        onMouseDown={(e) => e.stopPropagation()}
-        className="flex-1 p-3 bg-transparent border-none outline-none resize-none font-mono text-xs"
-        style={{ 
-          color: 'var(--terminal-text)',
-          caretColor: 'var(--terminal-highlight)'
-        }}
-        placeholder="Start typing or paste your notes here..."
-        autoFocus
-        data-no-terminal-autofocus
-        data-testid="notepad-textarea"
-      />
+      {/* Text Area / Preview */}
+      {isPreviewMode ? (
+        <div
+          ref={previewRef}
+          className="flex-1 p-3 overflow-auto"
+          style={{ 
+            color: 'var(--terminal-text)',
+            backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.1)'
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          data-testid="notepad-preview"
+        >
+          {content ? (
+            <div 
+              className="notepad-preview-content text-xs leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: content }}
+            />
+          ) : (
+            <div className="text-xs opacity-50">No content to preview</div>
+          )}
+        </div>
+      ) : (
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          onMouseDown={(e) => e.stopPropagation()}
+          className="flex-1 p-3 bg-transparent border-none outline-none resize-none font-mono text-xs"
+          style={{ 
+            color: 'var(--terminal-text)',
+            caretColor: 'var(--terminal-highlight)'
+          }}
+          placeholder="Start typing or paste your notes here... (Wolfram Alpha results will render in Preview mode)"
+          autoFocus
+          data-no-terminal-autofocus
+          data-testid="notepad-textarea"
+        />
+      )}
     </div>
   );
 }
