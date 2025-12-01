@@ -1878,26 +1878,21 @@ calculator()
   const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
   const [pythonTheme, setPythonTheme] = useState('dracula'); // Default theme
   const currentPythonTheme = getTheme(pythonTheme);
-
-  // Dragging and resizing state
-  const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
-  const [dimensions, setDimensions] = useState({ width: 900, height: 700 });
-  const [position, setPosition] = useState({ x: 50, y: 50 });
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
-  const editorRef = useRef<any>(null);
-  const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [fontSize, setFontSize] = useState(13);
+  const [isFormatting, setIsFormatting] = useState(false);
+  const [showMinimap, setShowMinimap] = useState(true); // Default to showing minimap
+  const htmlPreview = ''; // Dummy variable, actual preview logic handled elsewhere
+  const [htmlPreviewState, setHtmlPreview] = useState(''); // State to hold HTML preview content
 
   // Update HTML preview when code changes (for HTML files)
   useEffect(() => {
+    const activeFile = files.find(f => f.id === activeFileId);
     if (showMultiFileMode && activeFile && activeFile.language === 'html') {
       setHtmlPreview(activeFile.content);
     } else if (!showMultiFileMode && detectLanguageFromCode(code) === 'html') {
       setHtmlPreview(code);
     }
-  }, [code, activeFile, showMultiFileMode]);
+  }, [code, files, activeFileId, showMultiFileMode]);
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     // Validate editor and monaco are properly initialized
@@ -1944,7 +1939,7 @@ calculator()
           try {
             registerCompletion(monaco, editor, {
               endpoint: '/api/code-completion',
-              language: showMultiFileMode && activeFile ? activeFile.language : 'python',
+              language: showMultiFileMode && files.find(f => f.id === activeFileId) ? files.find(f => f.id === activeFileId)!.language : 'python',
               trigger: 'onIdle'
             });
             console.debug('Monacopilot enabled as fallback (Mistral AI)');
@@ -2449,7 +2444,7 @@ calculator()
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message,
-          code: showMultiFileMode && activeFile ? activeFile.content : code,
+          code: showMultiFileMode && files.find(f => f.id === activeFileId) ? files.find(f => f.id === activeFileId)!.content : code,
           lesson: selectedLesson,
           isFreestyleMode
         }),
@@ -2462,8 +2457,66 @@ calculator()
     },
   });
 
-  // Get current file content or fallback to main code state
-  const editorContent = showMultiFileMode && activeFile ? activeFile.content : code;
+  // Helper functions for multi-file operations
+  const activeFile = files.find(f => f.id === activeFileId);
+
+  const updateFileContent = (fileId: string, content: string) => {
+    setFiles(prevFiles =>
+      prevFiles.map(f => (f.id === fileId ? { ...f, content } : f))
+    );
+  };
+
+  const updateFileName = (fileId: string, name: string) => {
+    setFiles(prevFiles =>
+      prevFiles.map(f => (f.id === fileId ? { ...f, name } : f))
+    );
+  };
+
+  const addNewFile = () => {
+    const newFileId = `file-${Date.now()}`;
+    const defaultFileName = `new_file_${files.length + 1}.py`;
+    const newFile: CodeFile = {
+      id: newFileId,
+      name: defaultFileName,
+      language: currentLanguage,
+      content: '',
+    };
+    setFiles(prev => [...prev, newFile]);
+    setActiveFileId(newFileId);
+  };
+
+  const deleteFile = (fileId: string) => {
+    if (files.length <= 1) {
+      toast({ title: 'Cannot delete', description: 'Must have at least one file.' });
+      return;
+    }
+    setFiles(prev => prev.filter(f => f.id !== fileId));
+    if (activeFileId === fileId) {
+      setActiveFileId(files[0].id); // Select the first file
+    }
+  };
+
+  const downloadFile = (file: CodeFile) => {
+    const blob = new Blob([file.content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = file.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadAllFiles = () => {
+    files.forEach(downloadFile);
+  };
+
+  // Get editor/Monaco language identifier from our language config
+  const getMonacoLanguage = (language: string) => {
+    return LANGUAGE_CONFIG[language]?.monacoLang || 'python';
+  };
+
 
   return (
     <>
@@ -2713,6 +2766,11 @@ calculator()
                     chatHistory: chatHistory
                   };
                   localStorage.setItem(PYTHON_SESSION_KEY, JSON.stringify(sessionData));
+                  if (showMultiFileMode) {
+                    localStorage.setItem(MULTI_FILE_SESSION_KEY, JSON.stringify({ files, activeFileId }));
+                  } else {
+                    localStorage.removeItem(MULTI_FILE_SESSION_KEY);
+                  }
                   onClose();
                 }}
                 variant="ghost"
@@ -3124,7 +3182,7 @@ calculator()
             )}
 
             {/* Editor with Optional Preview Panel */}
-            <div className="flex-1 border-b border-[var(--terminal-highlight)]/30 min-h-0">
+            <div className="flex-1 flex border-b border-[var(--terminal-highlight)]/30 min-h-0">
               {showPreview && (showMultiFileMode && activeFile && activeFile.language === 'html') || (!showMultiFileMode && detectLanguageFromCode(code) === 'html') ? (
                 <PanelGroup direction="horizontal" autoSaveId="python-ide-html-preview">
                   {/* Editor Panel */}
@@ -3133,7 +3191,7 @@ calculator()
                       <Editor
                         height="100%"
                         width="100%"
-                        language={showMultiFileMode && activeFile ? (LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'python') : 'python'}
+                        language={showMultiFileMode && activeFile ? getMonacoLanguage(activeFile.language) : 'python'}
                         value={showMultiFileMode && activeFile ? activeFile.content : code}
                         onChange={(value) => {
                           if (showMultiFileMode && activeFile) {
@@ -3229,7 +3287,7 @@ calculator()
                         <span>🎨 Live Preview</span>
                         <button
                           onClick={() => {
-                            const blob = new Blob([htmlPreview], { type: 'text/html' });
+                            const blob = new Blob([htmlPreviewState], { type: 'text/html' });
                             const url = URL.createObjectURL(blob);
                             window.open(url, '_blank');
                           }}
@@ -3239,7 +3297,7 @@ calculator()
                         </button>
                       </div>
                       <iframe
-                        srcDoc={htmlPreview}
+                        srcDoc={htmlPreviewState}
                         sandbox="allow-scripts allow-same-origin"
                         className="w-full h-full border-none"
                         title="HTML Preview"
@@ -3255,7 +3313,7 @@ calculator()
                       <Editor
                         height="100%"
                         width="100%"
-                        language={showMultiFileMode && activeFile ? (LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'python') : 'python'}
+                        language={showMultiFileMode && activeFile ? getMonacoLanguage(activeFile.language) : 'python'}
                         value={showMultiFileMode && activeFile ? activeFile.content : code}
                         onChange={(value) => {
                           if (showMultiFileMode && activeFile) {
@@ -3416,7 +3474,7 @@ calculator()
                             border: `1px solid ${currentPythonTheme.border}`
                           }}>
                             <div className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
-                              💡 <strong>GUI Support:</strong> Your Python code generated visual output! The preview shows tkinter windows, matplotlib plots, or other GUI elements.
+                              💡 <strong>Support:</strong> Your Python code generated visual output! The preview shows tkinter windows, matplotlib plots, or other GUI elements.
                             </div>
                           </div>
                         </div>
@@ -3503,7 +3561,7 @@ calculator()
                   <Editor
                     height="100%"
                     width="100%"
-                    language={showMultiFileMode && activeFile ? (LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'python') : 'python'}
+                    language={showMultiFileMode && activeFile ? getMonacoLanguage(activeFile.language) : 'python'}
                     value={showMultiFileMode && activeFile ? activeFile.content : code}
                     onChange={(value) => {
                       if (showMultiFileMode && activeFile) {
