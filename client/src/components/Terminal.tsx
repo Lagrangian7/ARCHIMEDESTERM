@@ -16,6 +16,7 @@ import { TalkingArchimedes } from './TalkingArchimedes';
 import { ThinkingAnimation } from './ThinkingAnimation';
 import { MatrixRain } from './MatrixRain';
 import { DraggableResponse } from './DraggableResponse';
+import { extractCodeBlocksFromText } from './CodePlayground';
 // import { ChatInterface } from './ChatInterface'; // Commented out - component not found
 import { LinkifiedText } from '@/lib/linkify';
 // import { SshwiftyInterface } from './SshwiftyInterface'; // Commented out - component not found
@@ -383,6 +384,22 @@ export function Terminal() {
       return () => clearTimeout(timer);
     }
   }, [entries, isTyping]);
+
+  // Auto-copy code from AI responses into editor
+  useEffect(() => {
+    const lastEntry = entries[entries.length - 1];
+    
+    // Check if the last entry is a new response with code blocks
+    if (lastEntry && lastEntry.type === 'response' && !isTyping) {
+      const codeFiles = extractCodeBlocksFromText(lastEntry.content);
+      
+      // If code blocks found, auto-load the first one into the editor
+      if (codeFiles.length > 0) {
+        // Store the first file for preview
+        setPreviewCode(codeFiles[0].content);
+      }
+    }
+  }, [entries, isTyping, setPreviewCode]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     // F1 key opens help menu

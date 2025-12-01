@@ -86,7 +86,7 @@ function detectLanguage(code: string, filename?: string): string {
   return 'javascript';
 }
 
-function cleanCodeFormatting(code: string): string {
+export function cleanCodeFormatting(code: string): string {
   // Split into lines and remove empty lines from start/end
   let lines = code.split(/\r?\n/);
   
@@ -120,7 +120,7 @@ function cleanCodeFormatting(code: string): string {
   return lines.join('\n');
 }
 
-function extractCodeBlocksFromText(text: string): CodeFile[] {
+export function extractCodeBlocksFromText(text: string): CodeFile[] {
   // Handle multiple markdown formats: ```lang code ```, ~~~lang code ~~~, indented code blocks
   const codeBlockRegex = /```(\w+)?\s*(?:\n|\r\n)?([\s\S]*?)```|~~~(\w+)?\s*(?:\n|\r\n)?([\s\S]*?)~~~/g;
   const files: CodeFile[] = [];
@@ -153,6 +153,8 @@ function extractCodeBlocksFromText(text: string): CodeFile[] {
   
   return files;
 }
+
+export type { CodeFile };
 
 function getDefaultFilename(language: string, index: number): string {
   const config = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.javascript;
