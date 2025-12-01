@@ -7,32 +7,36 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface NotepadProps {
+  notepadId: string;
   onClose: () => void;
 }
 
-export function Notepad({ onClose }: NotepadProps) {
+export function Notepad({ notepadId, onClose }: NotepadProps) {
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('Untitled Note');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Drag state
-  const [position, setPosition] = useState({ x: window.innerWidth - 370, y: 20 });
+  // Drag state with staggered initial position based on notepad count
+  const notepadIndex = parseInt(notepadId.split('-')[1]) || 0;
+  const offsetX = (notepadIndex % 3) * 30;
+  const offsetY = (notepadIndex % 3) * 30;
+  const [position, setPosition] = useState({ x: window.innerWidth - 370 - offsetX, y: 20 + offsetY });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Load saved content and title from localStorage on mount
   useEffect(() => {
-    const savedContent = localStorage.getItem('notepad-content');
-    const savedTitle = localStorage.getItem('notepad-title');
+    const savedContent = localStorage.getItem(`notepad-content-${notepadId}`);
+    const savedTitle = localStorage.getItem(`notepad-title-${notepadId}`);
     if (savedContent) {
       setContent(savedContent);
     }
     if (savedTitle) {
       setTitle(savedTitle);
     }
-  }, []);
+  }, [notepadId]);
 
   // Dragging handlers
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -77,13 +81,13 @@ export function Notepad({ onClose }: NotepadProps) {
 
   // Auto-save content to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('notepad-content', content);
-  }, [content]);
+    localStorage.setItem(`notepad-content-${notepadId}`, content);
+  }, [content, notepadId]);
 
   // Auto-save title to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('notepad-title', title);
-  }, [title]);
+    localStorage.setItem(`notepad-title-${notepadId}`, title);
+  }, [title, notepadId]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -105,8 +109,8 @@ export function Notepad({ onClose }: NotepadProps) {
         description: `"${title}" has been saved to your knowledge base. Use 'docs' or 'read ${title}' to access it.`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      localStorage.removeItem('notepad-content');
-      localStorage.removeItem('notepad-title');
+      localStorage.removeItem(`notepad-content-${notepadId}`);
+      localStorage.removeItem(`notepad-title-${notepadId}`);
       setContent('');
       setTitle('Untitled Note');
     },
@@ -135,8 +139,8 @@ export function Notepad({ onClose }: NotepadProps) {
     if (confirm('Clear all content?')) {
       setContent('');
       setTitle('Untitled Note');
-      localStorage.removeItem('notepad-content');
-      localStorage.removeItem('notepad-title');
+      localStorage.removeItem(`notepad-content-${notepadId}`);
+      localStorage.removeItem(`notepad-title-${notepadId}`);
     }
   };
 

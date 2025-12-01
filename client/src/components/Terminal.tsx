@@ -152,7 +152,7 @@ export function Terminal() {
   const [showAJVideo, setShowAJVideo] = useState(false);
   const [isWebampOpen, setIsWebampOpen] = useState(false); // State to track if Webamp is open
   const [showSpacewars, setShowSpacewars] = useState(false);
-  const [showNotepad, setShowNotepad] = useState(false);
+  const [notepads, setNotepads] = useState<Array<{ id: string }>>([]);
   const [showPythonIDE, setShowPythonIDE] = useState(false);
   const [showPythonLessons, setShowPythonLessons] = useState(false); // New state for Python lessons
   const [showBackgroundManager, setShowBackgroundManager] = useState(false);
@@ -574,8 +574,8 @@ export function Terminal() {
             setShowUpload={setShowUpload}
             setShowChat={setShowChat}
             unreadCount={unreadCount}
-            showNotepad={showNotepad}
-            setShowNotepad={setShowNotepad}
+            notepads={notepads}
+            setNotepads={setNotepads}
             setShowPythonIDE={setShowPythonIDE} // Pass the prop to control Python IDE visibility
             openPythonLessons={ () => setShowPythonLessons(true) } // Add callback for Python Lessons
           />
@@ -690,10 +690,14 @@ export function Terminal() {
             />
           </div>
 
-          {/* Notepad Panel - slides in from right */}
-          {showNotepad && (
-            <Notepad onClose={() => setShowNotepad(false)} />
-          )}
+          {/* Notepad Panels - multiple instances */}
+          {notepads.map((notepad) => (
+            <Notepad 
+              key={notepad.id}
+              notepadId={notepad.id}
+              onClose={() => setNotepads(prev => prev.filter(n => n.id !== notepad.id))} 
+            />
+          ))}
         </div>
 
         {/* Command Input - Fixed at bottom */}

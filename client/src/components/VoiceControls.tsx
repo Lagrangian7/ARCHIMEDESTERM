@@ -24,8 +24,8 @@ interface VoiceControlsProps {
   setShowUpload: (show: boolean) => void;
   setShowChat: (show: boolean) => void;
   unreadCount: number;
-  showNotepad: boolean;
-  setShowNotepad: (show: boolean) => void;
+  notepads: Array<{ id: string }>;
+  setNotepads: React.Dispatch<React.SetStateAction<Array<{ id: string }>>>;
   setShowPythonIDE: (show: boolean) => void;
   openPythonLessons?: () => void;
 }
@@ -43,8 +43,8 @@ export function VoiceControls({
   setShowUpload,
   setShowChat,
   unreadCount,
-  showNotepad,
-  setShowNotepad,
+  notepads,
+  setNotepads,
   setShowPythonIDE,
   openPythonLessons,
 }: VoiceControlsProps) {
@@ -124,8 +124,17 @@ export function VoiceControls({
   const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
   const [showSshwifty, setShowSshwiftyLocal] = useState(false);
 
+  const openNewNotepad = () => {
+    const newNotepad = { id: Date.now().toString() };
+    setNotepads([...notepads, newNotepad]);
+  };
+
+  const closeNotepad = (id: string) => {
+    setNotepads(notepads.filter(notepad => notepad.id !== id));
+  };
+
   return (
-    <div 
+    <div
       className="voice-controls p-2 md:p-3 border-b border-terminal-subtle flex flex-wrap md:flex-nowrap items-center justify-between gap-2 text-sm"
       style={{ background: 'var(--voice-controls-gradient, var(--terminal-bg))' }}
     >
@@ -217,10 +226,10 @@ export function VoiceControls({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => setShowNotepad(!showNotepad)}
+                    onClick={openNewNotepad}
                     variant="outline"
                     size="sm"
-                    className={`bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2 ${showNotepad ? 'bg-terminal-highlight text-terminal-bg' : ''}`}
+                    className={`bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[44px] min-w-[44px] p-2 ${notepads.length > 0 ? 'bg-terminal-highlight text-terminal-bg' : ''}`}
                     data-testid="button-notepad"
                     aria-label="Notepad"
                   >
@@ -330,6 +339,18 @@ export function VoiceControls({
           />
         </button>
       </div>
+
+      {notepads.map((notepad) => (
+        <div key={notepad.id} className="notepad-window">
+          <div className="notepad-header">
+            <h3>Notepad {notepad.id.slice(-4)}</h3>
+            <Button onClick={() => closeNotepad(notepad.id)} size="sm" variant="ghost" aria-label="Close Notepad">
+              <X size={16} />
+            </Button>
+          </div>
+          <textarea className="notepad-content" placeholder="Start typing..." />
+        </div>
+      ))}
 
       {showPrivacyEncoder && (
         <EncodeDecodeOverlay isOpen={showPrivacyEncoder} onClose={() => setShowPrivacyEncoderLocal(false)} />
