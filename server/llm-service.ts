@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { HfInference } from '@huggingface/inference';
 import { Mistral } from '@mistralai/mistralai';
 import Groq from 'groq-sdk';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { Message } from '@shared/schema';
 import { knowledgeService } from './knowledge-service';
 
@@ -28,6 +29,10 @@ const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 const groq = process.env.GROQ_API_KEY ? new Groq({
   apiKey: process.env.GROQ_API_KEY,
 }) : null;
+
+// Google Gemini client - Primary AI for Natural mode
+// Uses user's own API key for direct access to Gemini models
+const gemini = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 // Replit-specific AI configuration
 const REPLIT_AI_CONFIG = {
@@ -654,11 +659,15 @@ Make it feel like meeting an old friend who happens to know the date and has odd
         }
       }
 
-      let aiResponse: string;
+      let aiResponse: string = '';
 
       try {
-        // Use Groq as PRIMARY provider for ALL modes (free, fast)
-        if (process.env.GROQ_API_KEY) {
+        // For Natural mode: Use Gemini as PRIMARY, Groq as fallback
+        // For other modes: Use Groq as primary
+        if (safeMode === 'natural' && gemini) {
+          console.log(`[LLM] Using Gemini (Primary) for NATURAL mode`);
+          aiResponse = await this.generateGeminiDirectResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+        } else if (process.env.GROQ_API_KEY) {
           console.log(`[LLM] Using Groq (Primary, Free) for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         } else {
@@ -668,43 +677,73 @@ Make it feel like meeting an old friend who happens to know the date and has odd
         }
 
       } catch (primaryError) {
-        console.error('Primary AI (Groq) error:', primaryError);
+        console.error('Primary AI error:', primaryError);
 
-        try {
-          // Fallback chain: Replit Mistral → OpenAI → Mistral AI → Hugging Face
-          console.log(`[LLM] Falling back to Replit Mistral for ${safeMode.toUpperCase()} mode`);
-          aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-        } catch (mistralError) {
-          console.error('Replit Mistral fallback error:', mistralError);
+        // Unified fallback chain for all modes
+        // For Natural mode after Gemini fails: Groq → Replit Mistral → OpenAI → Mistral AI → Hugging Face
+        // For other modes after Groq fails: Replit Mistral → OpenAI → Mistral AI → Hugging Face
+        
+        let fallbackSuccess = false;
 
+        // First fallback: Groq (only for Natural mode when Gemini failed)
+        if (safeMode === 'natural' && process.env.GROQ_API_KEY && !fallbackSuccess) {
           try {
-            // Try OpenAI as fallback
-            if (process.env.OPENAI_API_KEY) {
-              console.log(`[LLM] Falling back to OpenAI for ${safeMode.toUpperCase()} mode`);
-              aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-            }
-            // Try Mistral AI as fallback
-            else if (process.env.MISTRAL_API_KEY) {
-              console.log(`[LLM] Falling back to Mistral AI for ${safeMode.toUpperCase()} mode`);
-              aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-            }
-            // Try Hugging Face enhanced models before final fallback
-            else {
-              console.log(`[LLM] Trying Hugging Face models for ${safeMode.toUpperCase()} mode`);
-              aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-            }
-          } catch (secondaryError) {
-            console.error('Secondary fallback error:', secondaryError);
-
-            // Final fallback to Hugging Face or static response
-            try {
-              console.log('[LLM] Final fallback to Hugging Face models');
-              aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-            } catch (tertiaryError) {
-              console.error('All AI backends exhausted:', tertiaryError);
-              aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
-            }
+            console.log(`[LLM] Gemini failed, falling back to Groq for NATURAL mode`);
+            aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+            fallbackSuccess = true;
+          } catch (groqError) {
+            console.error('Groq fallback error:', groqError);
           }
+        }
+
+        // Second fallback: Replit Mistral
+        if (!fallbackSuccess) {
+          try {
+            console.log(`[LLM] Falling back to Replit Mistral for ${safeMode.toUpperCase()} mode`);
+            aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+            fallbackSuccess = true;
+          } catch (mistralError) {
+            console.error('Replit Mistral fallback error:', mistralError);
+          }
+        }
+
+        // Third fallback: OpenAI
+        if (!fallbackSuccess && process.env.OPENAI_API_KEY) {
+          try {
+            console.log(`[LLM] Falling back to OpenAI for ${safeMode.toUpperCase()} mode`);
+            aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+            fallbackSuccess = true;
+          } catch (openaiError) {
+            console.error('OpenAI fallback error:', openaiError);
+          }
+        }
+
+        // Fourth fallback: Mistral AI
+        if (!fallbackSuccess && process.env.MISTRAL_API_KEY) {
+          try {
+            console.log(`[LLM] Falling back to Mistral AI for ${safeMode.toUpperCase()} mode`);
+            aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+            fallbackSuccess = true;
+          } catch (mistralApiError) {
+            console.error('Mistral AI fallback error:', mistralApiError);
+          }
+        }
+
+        // Fifth fallback: Hugging Face
+        if (!fallbackSuccess) {
+          try {
+            console.log(`[LLM] Trying Hugging Face models for ${safeMode.toUpperCase()} mode`);
+            aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+            fallbackSuccess = true;
+          } catch (hfError) {
+            console.error('Hugging Face fallback error:', hfError);
+          }
+        }
+
+        // Final fallback: Static response
+        if (!fallbackSuccess) {
+          console.error('All AI backends exhausted, using static response');
+          aiResponse = this.getEnhancedFallbackResponse(contextualMessage, safeMode);
         }
       }
 
@@ -860,6 +899,58 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     });
 
     const responseText = completion.choices[0]?.message?.content || 'I apologize, but I encountered an error processing your request.';
+    return this.postProcessResponse(responseText, mode);
+  }
+
+  // Direct Gemini API call using user's own GEMINI_API_KEY
+  private async generateGeminiDirectResponse(
+    userMessage: string,
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
+    conversationHistory: Message[] = [],
+    language: string = 'english',
+    isNewSession: boolean = false
+  ): Promise<string> {
+    if (!gemini) {
+      throw new Error('Gemini client not initialized - GEMINI_API_KEY is not set');
+    }
+
+    const systemPrompt = this.getSystemPrompt(mode, userMessage);
+    const greetingInstruction = this.buildSessionGreeting(isNewSession);
+    const recentHistory = this.buildConversationHistory(conversationHistory, 10);
+
+    // Use Gemini 1.5 Flash for fast, efficient responses
+    const model = gemini.getGenerativeModel({ 
+      model: 'gemini-1.5-flash',
+      systemInstruction: systemPrompt + greetingInstruction,
+      generationConfig: {
+        maxOutputTokens: mode === 'technical' ? 4000 : mode === 'health' ? 3000 : mode === 'freestyle' ? 4000 : 1500,
+        temperature: mode === 'technical' ? 0.4 : mode === 'health' ? 0.4 : mode === 'freestyle' ? 0.7 : 0.85,
+      }
+    });
+
+    // Build conversation history for Gemini
+    const history: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
+    
+    for (const msg of recentHistory) {
+      if (msg.role === 'user') {
+        history.push({ role: 'user', parts: [{ text: msg.content }] });
+      } else if (msg.role === 'assistant') {
+        history.push({ role: 'model', parts: [{ text: msg.content }] });
+      }
+    }
+
+    // Start chat with history
+    const chat = model.startChat({ history });
+    
+    // Send the current message
+    const result = await chat.sendMessage(userMessage);
+    const response = result.response;
+    const responseText = response.text();
+
+    if (!responseText) {
+      throw new Error('No response from Gemini API');
+    }
+
     return this.postProcessResponse(responseText, mode);
   }
 

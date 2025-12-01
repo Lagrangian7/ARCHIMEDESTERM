@@ -13,6 +13,7 @@
   "dependencies": {
     "@google-cloud/storage": "^7.17.1",
     "@google/genai": "^1.19.0",
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.10.0",
     "@huggingface/inference": "^4.7.1",
     "@jridgewell/trace-mapping": "^0.3.25",

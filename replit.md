@@ -47,8 +47,10 @@ Preferred communication style: Simple, everyday language.
 - **Data Isolation**: Conversations tied to session IDs for user separation
 
 ## External APIs and Services
-- **Primary AI**: Groq API (FREE tier) - Uses Llama 3.1 8B Instant model as primary AI for ALL modes
-  - Fallback chain: Groq → Replit Mistral → OpenAI → Mistral AI → Hugging Face
+- **Primary AI for Natural Mode**: Google Gemini 1.5 Flash (via user's GEMINI_API_KEY) for conversational chat
+  - Fallback: Groq Llama 3.1 8B Instant if Gemini fails or is unavailable
+- **Primary AI for Other Modes**: Groq API (FREE tier) - Uses Llama 3.1 8B Instant for Technical, Health, and Freestyle modes
+  - Full fallback chain: Gemini/Groq → Replit Mistral → OpenAI → Mistral AI → Hugging Face
 - **Academic Search**: Semantic Scholar API (FREE - 100 requests per 5 minutes, no authentication required)
 - **Computational Knowledge**: Wolfram Alpha Full Results API for math solving, data lookup, and knowledge queries
 - **Mathematical Rendering**: MathJax 3 CDN for rendering MathML and LaTeX mathematical expressions
