@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube } from 'lucide-react';
+import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import { useSpeech } from '@/contexts/SpeechContext';
@@ -1869,6 +1870,7 @@ calculator()
   const [showMultiFileMode, setShowMultiFileMode] = useState(false);
   const [showLocalInstructions, setShowLocalInstructions] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('python');
+  const [showAITests, setShowAITests] = useState(false);
 
   // Sync current file content with main code state when in multi-file mode
   const activeFile = files.find(f => f.id === activeFileId);
@@ -2905,19 +2907,22 @@ calculator()
   const terminalAreaHeight = window.innerHeight - terminalAreaTop - terminalAreaBottom;
 
   return (
-    <div 
-      className="fixed z-50 overflow-hidden shadow-2xl flex flex-col"
-      style={{
-        width: isMaximized ? '100vw' : `${dimensions.width}px`,
-        height: isMaximized ? `${terminalAreaHeight}px` : `${dimensions.height}px`,
-        left: isMaximized ? '0' : `${position.x}px`,
-        top: isMaximized ? `${terminalAreaTop}px` : `${position.y}px`,
-        backgroundColor: currentPythonTheme.bg,
-        border: `2px solid ${currentPythonTheme.border}`,
-        boxShadow: `0 0 20px ${currentPythonTheme.highlight}40`,
-      }}
-      data-no-terminal-autofocus
-    >
+    <>
+      {showAITests && <MonacoAITests />}
+      
+      <div 
+        className="fixed z-50 overflow-hidden shadow-2xl flex flex-col"
+        style={{
+          width: isMaximized ? '100vw' : `${dimensions.width}px`,
+          height: isMaximized ? `${terminalAreaHeight}px` : `${dimensions.height}px`,
+          left: isMaximized ? '0' : `${position.x}px`,
+          top: isMaximized ? `${terminalAreaTop}px` : `${position.y}px`,
+          backgroundColor: currentPythonTheme.bg,
+          border: `2px solid ${currentPythonTheme.border}`,
+          boxShadow: `0 0 20px ${currentPythonTheme.highlight}40`,
+        }}
+        data-no-terminal-autofocus
+      >
         {/* Header */}
         <div 
           className="flex items-center justify-between px-3 py-2 cursor-move"
@@ -3042,6 +3047,17 @@ calculator()
 
             {/* Icon Buttons */}
             <div className="flex items-center gap-1 ml-2" style={{ borderLeft: `1px solid ${currentPythonTheme.border}`, paddingLeft: '8px' }}>
+              <Button
+                onClick={() => setShowAITests(true)}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                title="Test AI Completions"
+                style={{ color: currentPythonTheme.highlight }}
+              >
+                <TestTube className="w-4 h-4" />
+              </Button>
+              
               <Button
                 onClick={formatCode}
                 variant="ghost"
@@ -4129,5 +4145,6 @@ calculator()
         )}
       </div>
     </div>
+    </>
   );
 }
