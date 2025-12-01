@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, ChevronDown, Info } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import { useSpeech } from '@/contexts/SpeechContext';
@@ -2390,6 +2390,20 @@ calculator()
     }
   });
 
+  const [fontSize, setFontSize] = useState(13);
+  const [showMinimap, setShowMinimap] = useState(false);
+  const [isFormatting, setIsFormatting] = useState(false);
+  const [htmlPreview, setHtmlPreview] = useState('');
+
+  // Update HTML preview when code changes (for HTML files)
+  useEffect(() => {
+    if (showMultiFileMode && activeFile && activeFile.language === 'html') {
+      setHtmlPreview(activeFile.content);
+    } else if (!showMultiFileMode && detectLanguageFromCode(code) === 'html') {
+      setHtmlPreview(code);
+    }
+  }, [code, activeFile, showMultiFileMode]);
+
   const handleEditorDidMount = (editor: any, monaco: any) => {
     // Validate editor and monaco are properly initialized
     if (!editor || !monaco) {
@@ -2435,7 +2449,7 @@ calculator()
           try {
             registerCompletion(monaco, editor, {
               endpoint: '/api/code-completion',
-              language: 'python',
+              language: showMultiFileMode && activeFile ? activeFile.language : 'python',
               trigger: 'onIdle'
             });
             console.debug('Monacopilot enabled as fallback (Mistral AI)');
@@ -2444,11 +2458,45 @@ calculator()
           }
         }
       }, 1000);
+
+      // Add keyboard shortcuts
+      editor.addAction({
+        id: 'format-document',
+        label: 'Format Document',
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyF],
+        run: () => formatCode()
+      });
+
+      editor.addAction({
+        id: 'increase-font-size',
+        label: 'Increase Font Size',
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Equal],
+        run: () => setFontSize(prev => Math.min(prev + 1, 24))
+      });
+
+      editor.addAction({
+        id: 'decrease-font-size',
+        label: 'Decrease Font Size',
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Minus],
+        run: () => setFontSize(prev => Math.max(prev - 1, 8))
+      });
     } catch (error) {
       console.error('Editor initialization error:', error);
       console.warn('IDE will work without AI completions');
     }
   };
+
+  const formatCode = useCallback(() => {
+    if (!editorRef.current) return;
+    setIsFormatting(true);
+    editorRef.current.getAction('editor.action.formatDocument')?.run();
+    setTimeout(() => setIsFormatting(false), 500);
+    toast({ title: "Code Formatted", description: "Document formatted successfully" });
+  }, [toast]);
+
+  const increaseFontSize = () => setFontSize(prev => Math.min(prev + 1, 24));
+  const decreaseFontSize = () => setFontSize(prev => Math.max(prev - 1, 8));
+  const resetFontSize = () => setFontSize(13);
 
   const handleChatSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -2963,8 +3011,63 @@ calculator()
               ))}
             </select>
             
+            {/* Font Size Controls */}
+            <div className="flex items-center gap-1 mr-2">
+              <button
+                onClick={decreaseFontSize}
+                className="text-xs px-1 hover:opacity-70"
+                style={{ color: currentPythonTheme.highlight }}
+                title="Decrease font size (Ctrl/Cmd + -)"
+              >
+                A-
+              </button>
+              <span className="text-xs" style={{ color: currentPythonTheme.text }}>{fontSize}</span>
+              <button
+                onClick={increaseFontSize}
+                className="text-xs px-1 hover:opacity-70"
+                style={{ color: currentPythonTheme.highlight }}
+                title="Increase font size (Ctrl/Cmd + +)"
+              >
+                A+
+              </button>
+              <button
+                onClick={resetFontSize}
+                className="text-xs px-1 hover:opacity-70"
+                style={{ color: currentPythonTheme.text, opacity: 0.6 }}
+                title="Reset font size"
+              >
+                ↺
+              </button>
+            </div>
+
             {/* Icon Buttons */}
             <div className="flex items-center gap-1 ml-2" style={{ borderLeft: `1px solid ${currentPythonTheme.border}`, paddingLeft: '8px' }}>
+              <Button
+                onClick={formatCode}
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 font-mono text-xs"
+                disabled={isFormatting}
+                title="Format code (Ctrl/Cmd + Shift + F)"
+                style={{ color: currentPythonTheme.highlight }}
+              >
+                {isFormatting ? '...' : 'Format'}
+              </Button>
+              
+              <Button
+                onClick={() => setShowMinimap(!showMinimap)}
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                title={showMinimap ? 'Hide minimap' : 'Show minimap'}
+                style={{
+                  backgroundColor: showMinimap ? `${currentPythonTheme.highlight}20` : 'transparent',
+                  color: currentPythonTheme.highlight,
+                }}
+              >
+                <Code className="w-4 h-4" />
+              </Button>
+              
               <Button
                 onClick={() => setShowMultiFileMode(!showMultiFileMode)}
                 variant="ghost"
@@ -3435,7 +3538,127 @@ calculator()
 
             {/* Editor with Optional Preview Panel */}
             <div className="flex-1 border-b border-[var(--terminal-highlight)]/30 min-h-0">
-              {showPreview ? (
+              {showPreview && (showMultiFileMode && activeFile && activeFile.language === 'html') || (!showMultiFileMode && detectLanguageFromCode(code) === 'html') ? (
+                <PanelGroup direction="horizontal" autoSaveId="python-ide-html-preview">
+                  {/* Editor Panel */}
+                  <Panel defaultSize={50} minSize={30}>
+                    <div className="h-full w-full relative">
+                      <Editor
+                        height="100%"
+                        width="100%"
+                        language={showMultiFileMode && activeFile ? (LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'python') : 'python'}
+                        value={showMultiFileMode && activeFile ? activeFile.content : code}
+                        onChange={(value) => {
+                          if (showMultiFileMode && activeFile) {
+                            updateFileContent(activeFile.id, value || '');
+                          } else {
+                            setCode(value || '');
+                          }
+                        }}
+                        onMount={(editor, monaco) => {
+                          try {
+                            handleEditorDidMount(editor, monaco);
+                          } catch (error) {
+                            console.error('Editor mount failed:', error);
+                            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                            setOutput(`Editor initialization error: ${errorMessage}`);
+                          }
+                        }}
+                        theme="vs-dark"
+                        loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
+                        options={{
+                          minimap: { enabled: showMinimap },
+                          fontSize: fontSize,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          padding: { top: 10, bottom: 10 },
+                          wordWrap: 'on',
+                          renderWhitespace: 'selection',
+                          renderLineHighlight: 'all',
+                          tabSize: 4,
+                          insertSpaces: true,
+                          autoIndent: 'full',
+                          formatOnPaste: true,
+                          formatOnType: true,
+                          trimAutoWhitespace: true,
+                          quickSuggestions: { other: true, comments: false, strings: true },
+                          acceptSuggestionOnEnter: 'on',
+                          parameterHints: { enabled: true, cycle: true },
+                          suggest: {
+                            showKeywords: true,
+                            showSnippets: true,
+                            showFunctions: true,
+                            showVariables: true,
+                            showClasses: true,
+                            showConstants: true,
+                            showModules: true,
+                            showProperties: true,
+                            snippetsPreventQuickSuggestions: false
+                          },
+                          hover: { enabled: true, delay: 300, sticky: true },
+                          find: { seedSearchStringFromSelection: 'selection', autoFindInSelection: 'never' },
+                          contextmenu: true,
+                          mouseWheelZoom: true,
+                          smoothScrolling: true,
+                          cursorBlinking: 'smooth',
+                          cursorSmoothCaretAnimation: 'on',
+                          lightbulb: { enabled: 'on' as any },
+                          matchBrackets: 'always',
+                          bracketPairColorization: { enabled: true },
+                          guides: { bracketPairs: true, indentation: true },
+                          selectOnLineNumbers: true,
+                          multiCursorModifier: 'ctrlCmd',
+                          scrollbar: {
+                            vertical: 'auto',
+                            horizontal: 'auto',
+                            useShadows: true,
+                            verticalScrollbarSize: 10,
+                            horizontalScrollbarSize: 10
+                          },
+                          folding: true,
+                          foldingStrategy: 'indentation',
+                          showFoldingControls: 'mouseover'
+                        }}
+                        key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
+                      />
+                    </div>
+                  </Panel>
+
+                  <PanelResizeHandle 
+                    style={{ 
+                      width: '3px', 
+                      backgroundColor: currentPythonTheme.border,
+                      cursor: 'col-resize'
+                    }} 
+                  />
+
+                  {/* Live HTML Preview Panel */}
+                  <Panel defaultSize={50} minSize={30}>
+                    <div className="h-full bg-white overflow-auto">
+                      <div className="sticky top-0 px-2 py-1 bg-gray-100 border-b text-xs font-mono text-gray-600 flex items-center justify-between">
+                        <span>🎨 Live Preview</span>
+                        <button
+                          onClick={() => {
+                            const blob = new Blob([htmlPreview], { type: 'text/html' });
+                            const url = URL.createObjectURL(blob);
+                            window.open(url, '_blank');
+                          }}
+                          className="text-blue-600 hover:underline"
+                        >
+                          Open in New Tab
+                        </button>
+                      </div>
+                      <iframe
+                        srcDoc={htmlPreview}
+                        sandbox="allow-scripts allow-same-origin"
+                        className="w-full h-full border-none"
+                        title="HTML Preview"
+                      />
+                    </div>
+                  </Panel>
+                </PanelGroup>
+              ) : showPreview ? (
                 <PanelGroup direction="horizontal" autoSaveId="python-ide-preview">
                   {/* Editor Panel */}
                   <Panel defaultSize={60} minSize={30}>
@@ -3465,8 +3688,8 @@ calculator()
                         loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
                         options={{
                     // Display
-                    minimap: { enabled: false },
-                    fontSize: 13,
+                    minimap: { enabled: showMinimap },
+                    fontSize: fontSize,
                     lineNumbers: 'on',
                     scrollBeyondLastLine: false,
                     automaticLayout: true,
@@ -3713,8 +3936,8 @@ calculator()
                     loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
                     options={{
                       // Display
-                      minimap: { enabled: false },
-                      fontSize: 13,
+                      minimap: { enabled: showMinimap },
+                      fontSize: fontSize,
                       lineNumbers: 'on',
                       scrollBeyondLastLine: false,
                       automaticLayout: true,
