@@ -370,6 +370,9 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
     // Always load new initialCode when provided, takes precedence over saved session
     if (initialCode && initialCode !== lastInitialCodeRef.current) {
       lastInitialCodeRef.current = initialCode;
+      // Clear old saved session when new code is provided
+      localStorage.removeItem(STORAGE_KEY);
+      
       const extractedFiles = extractCodeBlocksFromText(initialCode);
       if (extractedFiles.length > 0) {
         setFiles(extractedFiles);
@@ -386,21 +389,15 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
         setActiveFileId(newFile.id);
       }
     } else if (!initialCode && files.length === 0) {
-      // Only load saved session if no initialCode and no files loaded yet
-      const savedSession = loadSavedSession();
-      if (savedSession) {
-        setFiles(savedSession.files);
-        setActiveFileId(savedSession.activeFileId);
-      } else {
-        const defaultFile: CodeFile = {
-          id: `file-${Date.now()}`,
-          name: 'main.py',
-          language: 'python',
-          content: '# Start coding here\nprint("Hello, World!")'
-        };
-        setFiles([defaultFile]);
-        setActiveFileId(defaultFile.id);
-      }
+      // Start with empty editor - no saved session or default code
+      const defaultFile: CodeFile = {
+        id: `file-${Date.now()}`,
+        name: 'main.py',
+        language: 'python',
+        content: '# Write your code here\n'
+      };
+      setFiles([defaultFile]);
+      setActiveFileId(defaultFile.id);
     }
   }, [initialCode, initialLanguage]);
   
