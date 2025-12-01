@@ -27,6 +27,7 @@ import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { PythonIDE } from './PythonIDE';
 import { PythonLessons } from './PythonLessons'; // Import the new PythonLessons component
 import { CodePreview } from './CodePreview';
+import { CodePlayground } from './CodePlayground';
 import { BackgroundManager } from './BackgroundManager';
 import WebampPlayer from './WebampPlayer';
 import AJVideoPopup from './AJVideoPopup';
@@ -163,6 +164,7 @@ export function Terminal() {
     console.log('Initial background URL loaded:', saved);
     return saved || '';
   });
+  const [showCodePlayground, setShowCodePlayground] = useState(false);
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
 
@@ -393,10 +395,10 @@ export function Terminal() {
     if (lastEntry && lastEntry.type === 'response' && !isTyping) {
       const codeFiles = extractCodeBlocksFromText(lastEntry.content);
       
-      // If code blocks found, auto-load the first one into the editor
+      // If code blocks found, auto-load the first one into the editor and open playground
       if (codeFiles.length > 0) {
-        // Store the first file for preview
         setPreviewCode(codeFiles[0].content);
+        setShowCodePlayground(true);
       }
     }
   }, [entries, isTyping, setPreviewCode]);
@@ -872,8 +874,19 @@ export function Terminal() {
         onClose={() => setShowPrivacyEncoder(false)}
       />
 
-      {/* Code Preview */}
-      {previewCode && (
+      {/* Code Playground - for running code */}
+      {showCodePlayground && previewCode && (
+        <CodePlayground
+          onClose={() => {
+            setShowCodePlayground(false);
+            setPreviewCode(null);
+          }}
+          initialCode={previewCode}
+        />
+      )}
+
+      {/* Code Preview - for HTML preview only */}
+      {previewCode && !showCodePlayground && (
         <CodePreview
           code={previewCode}
           onClose={() => setPreviewCode(null)}
