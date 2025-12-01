@@ -1875,6 +1875,13 @@ calculator()
   // Sync current file content with main code state when in multi-file mode
   const activeFile = files.find(f => f.id === activeFileId);
 
+  // Update currentLanguage when activeFile changes
+  useEffect(() => {
+    if (activeFile) {
+      setCurrentLanguage(activeFile.language);
+    }
+  }, [activeFile]);
+
   // Save multi-file session to localStorage
   useEffect(() => {
     if (showMultiFileMode && files.length > 0) {
@@ -1884,16 +1891,19 @@ calculator()
 
   // Multi-file management functions
   const addNewFile = useCallback(() => {
-    const langConfig = LANGUAGE_CONFIG[currentLanguage] || LANGUAGE_CONFIG.javascript;
+    // Use the current language from state or active file
+    const lang = activeFile?.language || currentLanguage;
+    const langConfig = LANGUAGE_CONFIG[lang] || LANGUAGE_CONFIG.javascript;
     const newFile: CodeFile = {
       id: `file-${Date.now()}`,
       name: `file${files.length + 1}${langConfig.extension}`,
-      language: currentLanguage,
-      content: currentLanguage === 'python' ? '# New file\n' : '// New file\n'
+      language: lang,
+      content: lang === 'python' ? '# New file\n' : '// New file\n'
     };
     setFiles(prev => [...prev, newFile]);
     setActiveFileId(newFile.id);
-  }, [files.length, currentLanguage]);
+    setCurrentLanguage(lang);
+  }, [files.length, currentLanguage, activeFile]);
 
   const deleteFile = useCallback((id: string) => {
     if (files.length <= 1) {
@@ -1911,10 +1921,17 @@ calculator()
 
   const updateFileName = useCallback((id: string, name: string) => {
     const newLang = getLanguageFromFilename(name);
-    setFiles(prev => prev.map(f => 
-      f.id === id ? { ...f, name, language: newLang } : f
-    ));
-  }, []);
+    setFiles(prev => prev.map(f => {
+      if (f.id === id) {
+        // Update both name and language, and set current language if this is the active file
+        if (id === activeFileId) {
+          setCurrentLanguage(newLang);
+        }
+        return { ...f, name, language: newLang };
+      }
+      return f;
+    }));
+  }, [activeFileId]);
 
   const updateFileContent = useCallback((id: string, content: string) => {
     setFiles(prev => prev.map(f => 
