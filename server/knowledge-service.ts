@@ -216,6 +216,41 @@ export class KnowledgeService {
   }
 
   /**
+   * Get personality training content to inject into AI system prompts
+   * This shapes HOW the AI responds, not just WHAT it knows
+   */
+  async getPersonalityContext(userId: string): Promise<string> {
+    const personalityDocs = await storage.getPersonalityDocuments(userId);
+
+    if (personalityDocs.length === 0) {
+      return '';
+    }
+
+    const personalityContent = personalityDocs
+      .map(doc => {
+        const content = doc.content.trim();
+        const title = doc.originalName.replace(/\.[^/.]+$/, '');
+        return `[${title}]: ${content}`;
+      })
+      .join('\n\n');
+
+    return `\n\nPERSONALITY TRAINING (Incorporate this style, humor, and tone into your responses):\n${personalityContent}`;
+  }
+
+  /**
+   * Toggle a document's personality training flag
+   */
+  async toggleDocumentPersonality(documentId: string, userId: string, isPersonality: boolean): Promise<boolean> {
+    const document = await storage.getDocument(documentId);
+    if (!document || document.userId !== userId) {
+      return false;
+    }
+
+    await storage.updateDocumentPersonality(documentId, isPersonality);
+    return true;
+  }
+
+  /**
    * Delete a document and all its associated chunks
    */
   async deleteDocument(documentId: string, userId: string): Promise<boolean> {

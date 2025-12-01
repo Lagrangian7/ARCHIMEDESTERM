@@ -40,13 +40,15 @@ export interface IStorage {
   updateConversationUserId(sessionId: string, userId: string): Promise<void>;
 
   // Document methods for knowledge base
-  createDocument(document: InsertDocument & { isNote?: boolean }): Promise<Document>;
+  createDocument(document: InsertDocument & { isNote?: boolean; isPersonality?: boolean }): Promise<Document>;
   getUserDocuments(userId: string): Promise<Document[]>;
   getDocument(id: string): Promise<Document | undefined>;
   getDocumentByFilename(userId: string, filename: string): Promise<Document | undefined>;
-  updateDocument(id: string, updates: Partial<InsertDocument> & { isNote?: boolean }): Promise<Document>;
+  updateDocument(id: string, updates: Partial<InsertDocument> & { isNote?: boolean; isPersonality?: boolean }): Promise<Document>;
   deleteDocument(id: string): Promise<void>;
   searchDocuments(userId: string, query: string): Promise<Document[]>;
+  getPersonalityDocuments(userId: string): Promise<Document[]>;
+  updateDocumentPersonality(id: string, isPersonality: boolean): Promise<Document>;
 
   // Knowledge chunk methods
   createKnowledgeChunk(chunk: InsertKnowledgeChunk): Promise<KnowledgeChunk>;
@@ -234,7 +236,7 @@ export class MemStorage implements IStorage {
   }
 
   // Document methods implementation
-  async createDocument(insertDocument: InsertDocument & { isNote?: boolean }): Promise<Document> {
+  async createDocument(insertDocument: InsertDocument & { isNote?: boolean; isPersonality?: boolean }): Promise<Document> {
     const id = randomUUID();
     const now = new Date();
     const document: Document = {
@@ -250,7 +252,8 @@ export class MemStorage implements IStorage {
       keywords: insertDocument.keywords || null,
       uploadedAt: now,
       lastAccessedAt: now,
-      isNote: insertDocument.isNote || false, // Add isNote property
+      isNote: insertDocument.isNote || false,
+      isPersonality: insertDocument.isPersonality || false,
     };
     this.documents.set(id, document);
     return document;
@@ -320,6 +323,26 @@ export class MemStorage implements IStorage {
       doc.summary?.toLowerCase().includes(searchQuery) ||
       doc.keywords?.some(keyword => keyword.toLowerCase().includes(searchQuery))
     );
+  }
+
+  async getPersonalityDocuments(userId: string): Promise<Document[]> {
+    const userDocs = await this.getUserDocuments(userId);
+    return userDocs.filter(doc => doc.isPersonality === true);
+  }
+
+  async updateDocumentPersonality(id: string, isPersonality: boolean): Promise<Document> {
+    const existing = this.documents.get(id);
+    if (!existing) {
+      throw new Error("Document not found");
+    }
+
+    const updated: Document = {
+      ...existing,
+      isPersonality,
+      lastAccessedAt: new Date()
+    };
+    this.documents.set(id, updated);
+    return updated;
   }
 
   // Knowledge chunk methods implementation
@@ -546,6 +569,23 @@ export class DatabaseStorage implements IStorage {
         eq(documents.userId, userId),
         like(documents.originalName, `%${query}%`)
       ));
+  }
+
+  async getPersonalityDocuments(userId: string): Promise<Document[]> {
+    return await db.select().from(documents)
+      .where(and(
+        eq(documents.userId, userId),
+        eq(documents.isPersonality, true)
+      ))
+      .orderBy(desc(documents.uploadedAt));
+  }
+
+  async updateDocumentPersonality(id: string, isPersonality: boolean): Promise<Document> {
+    const [doc] = await db.update(documents)
+      .set({ isPersonality, lastAccessedAt: new Date() })
+      .where(eq(documents.id, id))
+      .returning();
+    return doc;
   }
 
   async createKnowledgeChunk(chunk: InsertKnowledgeChunk): Promise<KnowledgeChunk> {

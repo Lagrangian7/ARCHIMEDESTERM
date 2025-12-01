@@ -55,6 +55,7 @@ const REPLIT_AI_CONFIG = {
 
 export class LLMService {
   private static instance: LLMService;
+  private currentPersonalityContext: string = '';
 
   public static getInstance(): LLMService {
     if (!LLMService.instance) {
@@ -553,17 +554,30 @@ FORMAT REQUIREMENTS:
     mode: 'natural' | 'technical' | 'freestyle' | 'health',
     userMessage: string = ''
   ): string {
+    let basePrompt: string;
+    
     switch (mode) {
       case 'natural':
-        return this.getNaturalChatSystemPrompt();
+        basePrompt = this.getNaturalChatSystemPrompt();
+        break;
       case 'health':
-        return this.getHealthModeSystemPrompt();
+        basePrompt = this.getHealthModeSystemPrompt();
+        break;
       case 'freestyle':
-        return this.getFreestyleModeSystemPrompt('', userMessage);
+        basePrompt = this.getFreestyleModeSystemPrompt('', userMessage);
+        break;
       case 'technical':
       default:
-        return this.getTechnicalModeSystemPrompt();
+        basePrompt = this.getTechnicalModeSystemPrompt();
+        break;
     }
+
+    // Append personality training content if available
+    if (this.currentPersonalityContext) {
+      basePrompt += this.currentPersonalityContext;
+    }
+
+    return basePrompt;
   }
 
   // Helper: Consolidates session greeting logic
@@ -636,10 +650,17 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
       let contextualMessage = userMessage;
       let relevantDocuments: { fileName: string; snippet: string }[] = [];
+      let personalityContext = '';
 
-      // Get knowledge base context if user is authenticated
+      // Get knowledge base context and personality training if user is authenticated
       if (userId) {
         try {
+          // Get personality training content to shape response style
+          personalityContext = await knowledgeService.getPersonalityContext(userId);
+          if (personalityContext) {
+            console.log(`[LLM] Loaded personality training content for user ${userId}`);
+          }
+
           const knowledgeContext = await knowledgeService.getContextualKnowledge(userId, userMessage);
           if (knowledgeContext) {
             contextualMessage = `${knowledgeContext}\n\nUser Query: ${userMessage}`;
@@ -658,6 +679,9 @@ Make it feel like meeting an old friend who happens to know the date and has odd
           // Continue without knowledge context if there's an error
         }
       }
+
+      // Store personality context for use in prompt generation
+      this.currentPersonalityContext = personalityContext;
 
       let aiResponse: string = '';
 

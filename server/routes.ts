@@ -2769,7 +2769,7 @@ function windowResized() {
       const documents = await storage.getUserDocuments(userId);
       console.log(`📚 Found ${documents.length} documents for user ${userId}`);
 
-      // Return all necessary fields including mimeType and objectPath for audio files
+      // Return all necessary fields including mimeType, objectPath, and personality training status
       const documentsInfo = documents.map(doc => ({
         id: doc.id,
         originalName: doc.originalName,
@@ -2780,12 +2780,38 @@ function windowResized() {
         lastAccessedAt: doc.lastAccessedAt,
         mimeType: doc.mimeType || null,
         objectPath: doc.objectPath || null,
+        isPersonality: doc.isPersonality || false,
       }));
 
       res.json(documentsInfo);
     } catch (error) {
       console.error("Get documents error:", error);
       res.status(500).json({ error: "Failed to fetch documents" });
+    }
+  });
+
+  // Toggle document personality training status
+  app.patch("/api/documents/:id/personality", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const documentId = req.params.id;
+      const { isPersonality } = req.body;
+
+      if (typeof isPersonality !== 'boolean') {
+        return res.status(400).json({ error: "isPersonality must be a boolean" });
+      }
+
+      const success = await knowledgeService.toggleDocumentPersonality(documentId, userId, isPersonality);
+
+      if (!success) {
+        return res.status(404).json({ error: "Document not found or access denied" });
+      }
+
+      console.log(`🧠 Document ${documentId} personality training: ${isPersonality ? 'enabled' : 'disabled'}`);
+      res.json({ success: true, isPersonality });
+    } catch (error) {
+      console.error("Toggle personality error:", error);
+      res.status(500).json({ error: "Failed to update document" });
     }
   });
 

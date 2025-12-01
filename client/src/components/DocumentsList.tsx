@@ -14,7 +14,9 @@ import {
   HardDrive,
   Edit2,
   X,
-  Upload
+  Upload,
+  Brain,
+  Sparkles
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -29,7 +31,8 @@ interface Document {
   keywords: string[] | null;
   uploadedAt: string;
   lastAccessedAt: string;
-  isNote?: boolean; // Added to indicate if it's a note
+  isNote?: boolean;
+  isPersonality?: boolean;
 }
 
 interface DocumentsListProps {
@@ -114,6 +117,29 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
       toast({
         title: "Rename Failed",
         description: error.message || "Failed to rename document.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Toggle personality training mutation
+  const personalityMutation = useMutation({
+    mutationFn: async ({ documentId, isPersonality }: { documentId: string; isPersonality: boolean }) => {
+      return apiRequest('PATCH', `/api/documents/${documentId}/personality`, { isPersonality });
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: variables.isPersonality ? "Personality Training Enabled" : "Personality Training Disabled",
+        description: variables.isPersonality 
+          ? "This document will now shape Archimedes' personality and responses." 
+          : "Document removed from personality training.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update document personality setting.",
         variant: "destructive",
       });
     },
@@ -554,6 +580,18 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                                 NOTE
                               </span>
                             )}
+                            {document.isPersonality && (
+                              <span 
+                                className="px-2 py-0.5 text-xs font-mono rounded flex items-center gap-1"
+                                style={{ 
+                                  backgroundColor: 'rgba(168, 85, 247, 0.9)', 
+                                  color: 'white',
+                                }}
+                              >
+                                <Brain size={12} />
+                                PERSONALITY
+                              </span>
+                            )}
                           </div>
                           <p className="text-xs font-mono opacity-70" style={{ color: 'var(--terminal-text)' }}>
                             {formatFileSize(document.fileSize)} • {document.mimeType} • {new Date(document.uploadedAt).toLocaleDateString()}
@@ -564,7 +602,40 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                   </div>
 
                   {/* Action buttons row - always visible */}
-                  <div className="flex items-center gap-2 pl-8">
+                  <div className="flex items-center gap-2 pl-8 flex-wrap">
+                    <Button
+                      onClick={() => personalityMutation.mutate({ 
+                        documentId: document.id, 
+                        isPersonality: !document.isPersonality 
+                      })}
+                      variant="outline"
+                      size="sm"
+                      title={document.isPersonality ? "Remove from personality training" : "Use for personality training"}
+                      className="h-8 px-3 font-mono hover:bg-opacity-20"
+                      style={{ 
+                        backgroundColor: document.isPersonality 
+                          ? 'rgba(168, 85, 247, 0.25)' 
+                          : 'rgba(168, 85, 247, 0.1)',
+                        borderColor: document.isPersonality 
+                          ? 'rgba(168, 85, 247, 0.8)' 
+                          : 'rgba(168, 85, 247, 0.4)',
+                        color: '#a855f7'
+                      }}
+                      disabled={personalityMutation.isPending || renamingId !== null}
+                      data-testid={`button-personality-${document.id}`}
+                    >
+                      {document.isPersonality ? (
+                        <>
+                          <Brain size={16} className="mr-1" />
+                          Training ON
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={16} className="mr-1" />
+                          Train AI
+                        </>
+                      )}
+                    </Button>
                     <Button
                       onClick={() => handleRenameStart(document.id, document.originalName)}
                       variant="outline"

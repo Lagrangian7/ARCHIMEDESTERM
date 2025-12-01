@@ -118,6 +118,7 @@ export const documents = pgTable("documents", {
   summary: text("summary"),
   keywords: text("keywords").array(),
   isNote: boolean("is_note").notNull().default(false), // Flag for notes vs uploaded files
+  isPersonality: boolean("is_personality").notNull().default(false), // Flag for personality training content
   uploadedAt: timestamp("uploaded_at").defaultNow(),
   lastAccessedAt: timestamp("last_accessed_at").defaultNow(),
 });
