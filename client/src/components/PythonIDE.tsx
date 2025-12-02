@@ -3486,7 +3486,7 @@ calculator()
                         cursorBlinking: 'smooth',
                         cursorSmoothCaretAnimation: 'on',
                         lightbulb: {
-                          enabled: true
+                          enabled: 'on' as any
                         },
                         matchBrackets: 'always',
                         bracketPairColorization: { enabled: true },
@@ -3633,7 +3633,7 @@ calculator()
 
                   // Code Actions
                   lightbulb: {
-                    enabled: true
+                    enabled: 'on' as any
                   },
 
                   // Brackets
@@ -3881,7 +3881,7 @@ calculator()
 
               // Code Actions
               lightbulb: {
-                enabled: true
+                enabled: 'on' as any
               },
 
               // Brackets
@@ -4023,10 +4023,11 @@ calculator()
                 </pre>
               </div>
             </ScrollArea>
-              </div>
-            </Panel>
-          </PanelGroup>
+          </div>
         </div>
+      </Panel>
+    </PanelGroup>
+    </div>
 
         {/* Resize handle */}
         {!isMaximized && (
@@ -4049,14 +4050,15 @@ calculator()
           />
         )}
       </div>
-    </div>
     </>
   );
 }
 
 // Helper function to get theme styles
-function getTheme(themeName: string) {
-  const themes: Record<string, ReturnType<typeof getTheme>> = {
+type ThemeColors = { bg: string; text: string; highlight: string; border: string; subtle: string };
+
+function getTheme(themeName: string): ThemeColors {
+  const themes: Record<string, ThemeColors> = {
     'solarized-light': { bg: '#fdf6e3', text: '#657b83', highlight: '#2aa198', border: '#eee8d5', subtle: '#eee8d5' },
     'github-light': { bg: '#ffffff', text: '#24292e', highlight: '#0366d6', border: '#d1d5db', subtle: '#f6f8fa' },
     'sepia': { bg: '#f4ecd8', text: '#5b4636', highlight: '#8b4513', border: '#dcd0c0', subtle: '#e1d7c0' },
