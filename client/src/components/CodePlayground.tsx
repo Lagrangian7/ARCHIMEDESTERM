@@ -356,6 +356,15 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   const editorRef = useRef<any>(null);
   const lastInitialCodeRef = useRef<string | null>(null);
 
+  // Window management state
+  const [isMaximized, setIsMaximized] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dimensions, setDimensions] = useState({ width: 1200, height: 700 });
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
+
   const [monacoAIMode, setMonacoAIMode] = useState<MonacoAIMode>(() => {
     const saved = localStorage.getItem(MONACO_AI_MODE_KEY);
     return (saved === 'natural' || saved === 'technical' || saved === 'freestyle' || saved === 'health') 
@@ -365,6 +374,75 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   useEffect(() => {
     localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
   }, [monacoAIMode]);
+
+  // Center window on mount
+  useEffect(() => {
+    const terminalAreaTop = 60;
+    const terminalAreaBottom = 60;
+    const centerX = (window.innerWidth - dimensions.width) / 2;
+    const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - dimensions.height) / 2);
+    setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
+  }, []);
+
+  // Handle maximize toggle
+  const toggleMaximize = useCallback(() => {
+    if (isMaximized) {
+      // Restore to optimal size
+      const terminalAreaTop = 60;
+      const terminalAreaBottom = 60;
+      const centerX = (window.innerWidth - 1200) / 2;
+      const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - 700) / 2);
+      setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
+      setDimensions({ width: 1200, height: 700 });
+      setIsMaximized(false);
+    } else {
+      // Maximize
+      const terminalAreaTop = 60;
+      const terminalAreaBottom = 60;
+      setPosition({ x: 0, y: terminalAreaTop });
+      setDimensions({ width: window.innerWidth, height: window.innerHeight - terminalAreaTop - terminalAreaBottom });
+      setIsMaximized(true);
+    }
+  }, [isMaximized]);
+
+  // Mouse move handler for dragging
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging) {
+      const terminalAreaTop = 60;
+      const terminalAreaBottom = 60;
+      const deltaX = e.clientX - dragStartRef.current.x;
+      const deltaY = e.clientY - dragStartRef.current.y;
+      setPosition(prev => ({
+        x: Math.max(0, Math.min(prev.x + deltaX, window.innerWidth - dimensions.width)),
+        y: Math.max(terminalAreaTop, Math.min(prev.y + deltaY, window.innerHeight - terminalAreaBottom - dimensions.height))
+      }));
+      dragStartRef.current = { x: e.clientX, y: e.clientY };
+    } else if (isResizing) {
+      const deltaX = e.clientX - resizeStartRef.current.mouseX;
+      const deltaY = e.clientY - resizeStartRef.current.mouseY;
+      const newWidth = Math.max(600, resizeStartRef.current.width + deltaX);
+      const newHeight = Math.max(400, resizeStartRef.current.height + deltaY);
+      setDimensions({ width: newWidth, height: newHeight });
+    }
+  }, [isDragging, isResizing, dimensions.width, dimensions.height]);
+
+  // Mouse up handler
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    setIsResizing(false);
+  }, []);
+
+  // Attach mouse event listeners
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
 
   useEffect(() => {
     // ALWAYS clear old saved session on mount to prevent stale code
@@ -559,15 +637,49 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0D1117] flex flex-col" data-testid="code-playground">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[#00FF41]/30">
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" data-testid="code-playground">
+      <div 
+        className="bg-[#0D1117] flex flex-col border-2 border-[#00FF41]/30 rounded-lg shadow-2xl overflow-hidden"
+        style={isMaximized ? {
+          position: 'fixed',
+          top: `${position.y}px`,
+          left: `${position.x}px`,
+          width: `${dimensions.width}px`,
+          height: `${dimensions.height}px`
+        } : {
+          position: 'fixed',
+          top: `${position.y}px`,
+          left: `${position.x}px`,
+          width: `${dimensions.width}px`,
+          height: `${dimensions.height}px`
+        }}
+      >
+      {/* Header with drag handle */}
+      <div 
+        className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[#00FF41]/30 cursor-move"
+        onMouseDown={(e) => {
+          if (!isMaximized && e.button === 0) {
+            setIsDragging(true);
+            dragStartRef.current = { x: e.clientX, y: e.clientY };
+          }
+        }}
+        onDoubleClick={toggleMaximize}
+      >
         <div className="flex items-center gap-3">
           <FileCode className="w-5 h-5 text-[#00FF41]" />
           <h2 className="text-[#00FF41] font-mono font-bold text-lg">CODE PLAYGROUND</h2>
           <span className="text-[#00FF41]/60 text-xs font-mono">Multi-Language Editor</span>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            onClick={toggleMaximize}
+            variant="ghost"
+            size="sm"
+            className="text-[#00FF41] hover:bg-[#00FF41]/20 text-xs px-2"
+            title={isMaximized ? 'Restore' : 'Maximize'}
+          >
+            {isMaximized ? '🗗' : '🗖'}
+          </Button>
           {/* Monaco AI Mode Selector */}
           <div className="flex items-center gap-2 px-2 py-1 bg-black/40 rounded border border-[#00FF41]/20">
             <Bot className="w-4 h-4 text-[#00FF41]" />
@@ -841,6 +953,29 @@ Supported languages:
         <div className="text-[#00FF41]/50 font-mono text-xs">
           Auto-detect language • Click file to rename • Download for local use
         </div>
+      </div>
+
+      {/* Resize handle */}
+      {!isMaximized && (
+        <div
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize bg-[#00FF41]/20 hover:bg-[#00FF41]/40"
+          style={{
+            borderRight: '2px solid #00FF41',
+            borderBottom: '2px solid #00FF41',
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsResizing(true);
+            resizeStartRef.current = {
+              width: dimensions.width,
+              height: dimensions.height,
+              mouseX: e.clientX,
+              mouseY: e.clientY
+            };
+          }}
+        />
+      )}
       </div>
     </div>
   );
