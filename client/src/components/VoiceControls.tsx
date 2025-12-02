@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code, X } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -172,17 +172,21 @@ export function VoiceControls({
 
         {/* Volume Control */}
         <div className="flex items-center gap-2 px-2">
-          <Volume2 size={12} className="text-terminal-subtle" />
+          {speechVolume === 0 ? (
+            <VolumeX size={12} className="text-terminal-subtle" />
+          ) : (
+            <Volume2 size={12} className="text-terminal-subtle" />
+          )}
           <Slider
             value={[speechVolume]}
             onValueChange={handleVolumeChange}
             min={0}
             max={1}
-            step={0.1}
+            step={0.01}
             className="w-16 md:w-20"
             aria-label="AI Speech Volume"
           />
-          <span className="text-xs text-terminal-subtle min-w-[2ch]">{Math.round(speechVolume * 100)}%</span>
+          <span className="text-xs text-terminal-subtle min-w-[3ch]">{Math.round(speechVolume * 100)}%</span>
         </div>
       </div>
 

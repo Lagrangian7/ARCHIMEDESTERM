@@ -24,7 +24,7 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
   const lastSpokenRef = useRef<string>('');
   const speechTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const speak = useCallback((text: string, options: { voice?: number; rate?: number; pitch?: number; onEnd?: () => void } = {}) => {
+  const speak = useCallback((text: string, options: { voice?: number; rate?: number; pitch?: number; volume?: number; onEnd?: () => void } = {}) => {
     if (!text || text.trim() === '') return;
 
     // Cancel any ongoing speech before starting new speech

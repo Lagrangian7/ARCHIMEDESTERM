@@ -433,7 +433,7 @@ export function useSpeechRecognition() {
 
     try {
       console.log('🎙️ Attempting to start speech recognition...');
-      console.log('Browser:', navigator.userAgent.includes('Safari') ? 'Safari' : 
+      console.log('Browser:', navigator.userAgent.includes('Safari') ? 'Safari' :
                              navigator.userAgent.includes('Chrome') ? 'Chrome' : 'Other');
       recognition.start();
     } catch (error) {
