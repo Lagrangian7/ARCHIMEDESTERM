@@ -47,11 +47,24 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
   }, [speechSynthesis]); // Removed interruptCurrent from dependencies
 
   useEffect(() => {
+    // Listen for global stop events
+    const handleStopAllSpeech = () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      speechSynthesis.stop();
+      lastSpokenRef.current = '';
+      clearTimeout(speechTimeoutRef.current);
+    };
+
+    window.addEventListener('stop-all-speech', handleStopAllSpeech);
+
     return () => {
       window.speechSynthesis.cancel();
       clearTimeout(speechTimeoutRef.current);
+      window.removeEventListener('stop-all-speech', handleStopAllSpeech);
     };
-  }, []);
+  }, [speechSynthesis]);
 
   // Merge custom speak and stop with the ones from useSpeechSynthesis
   const contextValue = {

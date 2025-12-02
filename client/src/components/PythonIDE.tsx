@@ -2525,6 +2525,19 @@ calculator()
     const terminalAreaBottom = 60;
     setDimensions({ width: window.innerWidth, height: window.innerHeight - terminalAreaTop - terminalAreaBottom });
     setPosition({ x: 0, y: terminalAreaTop });
+
+    // Listen for global stop speech events
+    const handleStopSpeech = () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+
+    window.addEventListener('stop-all-speech', handleStopSpeech);
+
+    return () => {
+      window.removeEventListener('stop-all-speech', handleStopSpeech);
+    };
   }, []);
 
   // Mouse move handler for dragging

@@ -969,6 +969,18 @@ Code Execution:
       }
     }
 
+    // Stop command - halt all text-to-speech
+    if (cmd === 'stop') {
+      // Stop speech synthesis globally
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      // Dispatch event to notify all components
+      window.dispatchEvent(new CustomEvent('stop-all-speech'));
+      addEntry('system', '🔇 All speech synthesis stopped.');
+      return;
+    }
+
     // Language switching commands - flexible with translation support
     if (cmd === 'english' || cmd === 'lang english') {
       localStorage.setItem('ai-language', 'english');

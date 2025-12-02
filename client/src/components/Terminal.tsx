@@ -310,10 +310,32 @@ export function Terminal() {
       inputRef.current?.focus();
     };
 
+    // Global keyboard listener for qwerty shortcut
+    const handleGlobalKeyPress = (event: KeyboardEvent) => {
+      // Track the last 6 characters typed
+      const qwertyBuffer = (window as any).qwertyBuffer || '';
+      (window as any).qwertyBuffer = (qwertyBuffer + event.key).slice(-6).toLowerCase();
+
+      if ((window as any).qwertyBuffer === 'qwerty') {
+        if (window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+        window.dispatchEvent(new CustomEvent('stop-all-speech'));
+        (window as any).qwertyBuffer = ''; // Reset buffer
+        
+        // Visual feedback
+        addEntry('system', '🔇 Speech stopped (qwerty shortcut)');
+      }
+    };
+
     document.addEventListener('click', handleClick);
+    document.addEventListener('keypress', handleGlobalKeyPress);
     inputRef.current?.focus();
 
-    return () => document.removeEventListener('click', handleClick);
+    return () => {
+      document.removeEventListener('click', handleClick);
+      document.removeEventListener('keypress', handleGlobalKeyPress);
+    };
   }, []);
 
   // Auto-scroll to AI response popup when it appears
@@ -453,6 +475,17 @@ export function Terminal() {
     if (e.ctrlKey && e.shiftKey && e.key === 'P') {
       e.preventDefault();
       setShowPrivacyEncoder(true);
+      return;
+    }
+
+    // qwerty shortcut stops all speech
+    if (input.toLowerCase() === 'qwerty') {
+      e.preventDefault();
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      window.dispatchEvent(new CustomEvent('stop-all-speech'));
+      setInput('');
       return;
     }
 
