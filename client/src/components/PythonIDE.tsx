@@ -3081,10 +3081,14 @@ calculator()
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
 
-          {/* Chat Panel */}
-          {showChat && (
-            <div className="w-96 flex flex-col" style={{ borderRight: `1px solid ${currentPythonTheme.border}`, backgroundColor: currentPythonTheme.subtle }}>
-              <div className="p-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
+          {/* Main Content - Resizable Chat and Editor */}
+          <PanelGroup direction="horizontal" autoSaveId="python-ide-chat-editor">
+            {/* Chat Panel */}
+            {showChat && (
+              <>
+                <Panel defaultSize={30} minSize={20} maxSize={50}>
+                  <div className="h-full flex flex-col" style={{ borderRight: `1px solid ${currentPythonTheme.border}`, backgroundColor: currentPythonTheme.subtle }}>
+                    <div className="p-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
                 <div className="flex items-center gap-2 font-mono text-xs" style={{ color: currentPythonTheme.highlight }}>
                   <MessageSquare className="w-4 h-4" />
                   <span>
@@ -3211,11 +3215,22 @@ calculator()
                   </Button>
                 </div>
               </form>
-            </div>
-          )}
+                  </div>
+                </Panel>
 
-          {/* Editor/Output Section */}
-          <div className="flex-1 flex flex-col min-w-0">
+                <PanelResizeHandle 
+                  style={{ 
+                    width: '3px', 
+                    backgroundColor: currentPythonTheme.border,
+                    cursor: 'col-resize'
+                  }} 
+                />
+              </>
+            )}
+
+            {/* Editor/Output Section */}
+            <Panel defaultSize={showChat ? 70 : 100} minSize={50}>
+              <div className="h-full flex flex-col min-w-0">
           {/* FREESTYLE Mode Banner */}
           {isFreestyleMode && (
             <div className="p-4" style={{ backgroundColor: `${currentPythonTheme.highlight}10`, borderBottom: `1px solid ${currentPythonTheme.border}` }}>
@@ -4008,7 +4023,9 @@ calculator()
                 </pre>
               </div>
             </ScrollArea>
-          </div>
+              </div>
+            </Panel>
+          </PanelGroup>
         </div>
 
         {/* Resize handle */}
