@@ -1879,7 +1879,6 @@ calculator()
   const [currentLanguage, setCurrentLanguage] = useState('python');
   const [showAITests, setShowAITests] = useState(false);
   const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
-  const [showLessonsSidebar, setShowLessonsSidebar] = useState(true);
   const [pythonTheme, setPythonTheme] = useState('dracula'); // Default theme
   const currentPythonTheme = getTheme(pythonTheme);
   const [fontSize, setFontSize] = useState(13);
@@ -2979,75 +2978,6 @@ calculator()
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Sidebar - Lessons (Collapsible) */}
-          {showLessonsSidebar && (
-            <div className="w-72 overflow-y-auto flex flex-col" style={{ borderRight: `1px solid ${currentPythonTheme.border}`, backgroundColor: currentPythonTheme.subtle }}>
-              <div className="p-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
-                <div className="flex items-center gap-2 font-mono text-xs" style={{ color: currentPythonTheme.highlight }}>
-                  <BookOpen className="w-4 h-4" />
-                  <span>COMPREHENSIVE LESSONS</span>
-                </div>
-                <button
-                  onClick={() => setShowLessonsSidebar(false)}
-                  className="hover:opacity-70"
-                  style={{ color: currentPythonTheme.text }}
-                  title="Close lessons sidebar"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="p-2 space-y-1 flex-1 overflow-y-auto">
-                {/* FREESTYLE Mode Option */}
-                <button
-                  onClick={activateFreestyleMode}
-                  data-freestyle-mode
-                  className="w-full text-left px-3 py-2 rounded font-mono text-xs transition-colors"
-                  style={{
-                    backgroundColor: isFreestyleMode ? currentPythonTheme.bg : 'transparent',
-                    color: currentPythonTheme.highlight,
-                    border: isFreestyleMode ? `1px solid ${currentPythonTheme.border}` : 'none',
-                  }}
-                >
-                  <div className="font-bold flex items-center gap-2">
-                    <MessageSquare className="w-3 h-3" />
-                    FREESTYLE MODE
-                  </div>
-                  <div className="text-[10px] opacity-70 mt-1">Vibe code with AI chat - create anything!</div>
-                </button>
-
-                {/* Regular Lessons */}
-                {Object.entries(LESSONS).map(([key, lesson]) => (
-                  <button
-                    key={key}
-                    onClick={() => loadLesson(key as keyof typeof LESSONS)}
-                    className="w-full text-left px-3 py-2 rounded font-mono text-xs transition-colors"
-                    style={{
-                      backgroundColor: selectedLesson === key && !isFreestyleMode ? currentPythonTheme.bg : 'transparent',
-                      color: selectedLesson === key && !isFreestyleMode ? currentPythonTheme.highlight : currentPythonTheme.text,
-                      border: selectedLesson === key && !isFreestyleMode ? `1px solid ${currentPythonTheme.border}` : 'none',
-                    }}
-                  >
-                    <div className="font-bold">{lesson.title}</div>
-                    <div className="text-[10px] opacity-70 mt-1">{lesson.description}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Show Lessons Button (when sidebar is closed) */}
-          {!showLessonsSidebar && (
-            <div className="w-12 flex flex-col items-center py-3" style={{ borderRight: `1px solid ${currentPythonTheme.border}`, backgroundColor: currentPythonTheme.subtle }}>
-              <button
-                onClick={() => setShowLessonsSidebar(true)}
-                className="p-2 rounded hover:opacity-70"
-                style={{ color: currentPythonTheme.highlight }}
-                title="Show lessons sidebar"
-              >
-                <BookOpen className="w-5 h-5" />
-              </button>
-            </div>
-          )}
 
           {/* Editor and Output Split */}
           <div className="flex-1 flex">
