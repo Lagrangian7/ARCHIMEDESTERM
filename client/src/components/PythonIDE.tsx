@@ -2498,10 +2498,14 @@ calculator()
     onSuccess: (data) => {
       setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
       
-      // Auto-insert code if detected in response
+      // Auto-insert code if detected in response (works in all modes now)
       const extractedCode = extractCodeFromResponse(data.response);
-      if (extractedCode && isFreestyleMode) {
+      if (extractedCode) {
         insertCodeIntoEditor(extractedCode);
+        toast({
+          title: "Code Ready",
+          description: "AI-generated code has been inserted into the editor",
+        });
       }
     },
     onError: (error) => {
