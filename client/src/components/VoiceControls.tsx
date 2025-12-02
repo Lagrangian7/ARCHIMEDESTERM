@@ -220,24 +220,22 @@ export function VoiceControls({
                 </TooltipContent>
               </Tooltip>
 
-              {/* Notepad Button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={openNewNotepad}
-                    variant="outline"
-                    size="sm"
-                    className={`bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[32px] min-w-[32px] p-1.5 ${notepads.length > 0 ? 'bg-terminal-highlight text-terminal-bg' : ''}`}
-                    data-testid="button-notepad"
-                    aria-label="Notepad"
-                  >
-                    <FileText size={14} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>Notepad</p>
-                </TooltipContent>
-              </Tooltip>
+              {/* Notepad Feature Showcase */}
+            <div className="flex items-center gap-2 px-3 py-1 bg-terminal-bg/50 border border-terminal-highlight/30 rounded">
+              <FileText size={16} className="text-terminal-highlight" />
+              <span className="text-xs font-mono text-terminal-text">
+                Notepad: Save notes to knowledge base
+              </span>
+              <Button
+                onClick={openNewNotepad}
+                variant="outline"
+                size="sm"
+                className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors h-6 px-2 text-xs font-mono"
+                data-testid="button-notepad"
+              >
+                Open ({notepads.length})
+              </Button>
+            </div>
 
               {/* Upload Button */}
               <Tooltip>
