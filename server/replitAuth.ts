@@ -166,16 +166,29 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    // Always use the actual Replit domain for authentication, not localhost
-    const domain = process.env.REPLIT_DOMAINS?.split(",")[0] || req.hostname;
+    // Use the domain the user is actually on to keep them on their custom domain
+    const domains = process.env.REPLIT_DOMAINS?.split(",") || [];
+    const currentHost = req.hostname;
+    
+    // Find matching domain from registered domains, or use the current hostname
+    const domain = domains.find(d => d === currentHost) || domains[0] || currentHost;
+    
+    // Store the original domain in session so callback can redirect back to it
+    (req.session as any).loginDomain = currentHost;
+    
     passport.authenticate(`replitauth:${domain}`, {
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    // Always use the actual Replit domain for authentication, not localhost
-    const domain = process.env.REPLIT_DOMAINS?.split(",")[0] || req.hostname;
+    // Use the domain the user started login from (stored in session)
+    const domains = process.env.REPLIT_DOMAINS?.split(",") || [];
+    const loginDomain = (req.session as any).loginDomain || req.hostname;
+    
+    // Find matching domain from registered domains
+    const domain = domains.find(d => d === loginDomain) || domains[0] || req.hostname;
+    
     passport.authenticate(`replitauth:${domain}`, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
