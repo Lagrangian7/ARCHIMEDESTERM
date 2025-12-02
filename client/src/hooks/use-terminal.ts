@@ -897,7 +897,7 @@ Code Execution:
       case 'spacewars':
         (window as any).openSpacewars?.();
         addEntry('system', '🚀 Launching SPACEWAR game...');
-        break;
+        return; // Return early to skip auto-code extraction
 
       case 'workshop':
       case 'pythonide':
