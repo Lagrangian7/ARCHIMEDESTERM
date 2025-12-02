@@ -559,261 +559,260 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0D1117] overflow-hidden flex flex-col" data-testid="code-playground">
-      <div className="w-full h-full flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[#00FF41]/30">
-          <div className="flex items-center gap-3">
-            <FileCode className="w-5 h-5 text-[#00FF41]" />
-            <h2 className="text-[#00FF41] font-mono font-bold text-lg">CODE PLAYGROUND</h2>
-            <span className="text-[#00FF41]/60 text-xs font-mono">Multi-Language Editor</span>
+    <div className="fixed inset-0 z-50 bg-[#0D1117] flex flex-col" data-testid="code-playground">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[#00FF41]/30">
+        <div className="flex items-center gap-3">
+          <FileCode className="w-5 h-5 text-[#00FF41]" />
+          <h2 className="text-[#00FF41] font-mono font-bold text-lg">CODE PLAYGROUND</h2>
+          <span className="text-[#00FF41]/60 text-xs font-mono">Multi-Language Editor</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Monaco AI Mode Selector */}
+          <div className="flex items-center gap-2 px-2 py-1 bg-black/40 rounded border border-[#00FF41]/20">
+            <Bot className="w-4 h-4 text-[#00FF41]" />
+            <Select value={monacoAIMode} onValueChange={(v: MonacoAIMode) => setMonacoAIMode(v)}>
+              <SelectTrigger className="w-32 h-7 bg-transparent border-none text-[#00FF41] text-xs font-mono focus:ring-0" data-testid="select-monaco-ai-mode">
+                <SelectValue>
+                  {AI_MODE_CONFIG[monacoAIMode].icon} {AI_MODE_CONFIG[monacoAIMode].label}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-[#0D1117] border-[#00FF41]/30">
+                {(Object.keys(AI_MODE_CONFIG) as MonacoAIMode[]).map((mode) => (
+                  <SelectItem 
+                    key={mode} 
+                    value={mode}
+                    className="text-[#00FF41] hover:bg-[#00FF41]/20 focus:bg-[#00FF41]/20 font-mono text-xs"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>{AI_MODE_CONFIG[mode].icon}</span>
+                      <span>{AI_MODE_CONFIG[mode].label}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Monaco AI Mode Selector */}
-            <div className="flex items-center gap-2 px-2 py-1 bg-black/40 rounded border border-[#00FF41]/20">
-              <Bot className="w-4 h-4 text-[#00FF41]" />
-              <Select value={monacoAIMode} onValueChange={(v: MonacoAIMode) => setMonacoAIMode(v)}>
-                <SelectTrigger className="w-32 h-7 bg-transparent border-none text-[#00FF41] text-xs font-mono focus:ring-0" data-testid="select-monaco-ai-mode">
-                  <SelectValue>
-                    {AI_MODE_CONFIG[monacoAIMode].icon} {AI_MODE_CONFIG[monacoAIMode].label}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-[#0D1117] border-[#00FF41]/30">
-                  {(Object.keys(AI_MODE_CONFIG) as MonacoAIMode[]).map((mode) => (
-                    <SelectItem 
-                      key={mode} 
-                      value={mode}
-                      className="text-[#00FF41] hover:bg-[#00FF41]/20 focus:bg-[#00FF41]/20 font-mono text-xs"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span>{AI_MODE_CONFIG[mode].icon}</span>
-                        <span>{AI_MODE_CONFIG[mode].label}</span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <Button
+            onClick={() => setShowInstructions(!showInstructions)}
+            variant="ghost"
+            size="sm"
+            className="text-[#00FF41] hover:bg-[#00FF41]/20 text-xs"
+            data-testid="button-toggle-instructions"
+          >
+            <Info className="w-4 h-4 mr-1" />
+            {showInstructions ? 'Hide' : 'Show'} Instructions
+          </Button>
+          <Button
+            onClick={downloadAllFiles}
+            variant="ghost"
+            size="sm"
+            className="text-[#00FF41] hover:bg-[#00FF41]/20 text-xs"
+            data-testid="button-download-all"
+          >
+            <Download className="w-4 h-4 mr-1" />
+            Download All ({files.length})
+          </Button>
+          <Button onClick={onClose} variant="ghost" size="sm" className="text-[#00FF41] hover:bg-[#00FF41]/20">
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Instructions Panel (collapsible) */}
+      {showInstructions && (
+        <div className="px-4 py-3 bg-black/30 border-b border-[#00FF41]/20 max-h-48 overflow-y-auto">
+          <pre className="text-[#00FF41]/80 text-xs font-mono whitespace-pre-wrap">
+            {generateLocalInstructions(files)}
+          </pre>
+        </div>
+      )}
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* File Tabs Sidebar */}
+        <div className="w-48 bg-black/40 border-r border-[#00FF41]/20 flex flex-col">
+          <div className="p-2 border-b border-[#00FF41]/20">
+            <Button
+              onClick={addNewFile}
+              variant="ghost"
+              size="sm"
+              className="w-full text-[#00FF41] hover:bg-[#00FF41]/20 text-xs justify-start"
+              data-testid="button-add-file"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New File
+            </Button>
+          </div>
+          <ScrollArea className="flex-1">
+            <div className="p-2 space-y-1">
+              {files.map(file => {
+                const config = LANGUAGE_CONFIG[file.language];
+                return (
+                  <div
+                    key={file.id}
+                    className={`group flex items-center justify-between px-2 py-1.5 rounded cursor-pointer transition-colors ${
+                      activeFileId === file.id 
+                        ? 'bg-[#00FF41]/20 border border-[#00FF41]/40' 
+                        : 'hover:bg-[#00FF41]/10 border border-transparent'
+                    }`}
+                    onClick={() => setActiveFileId(file.id)}
+                    data-testid={`file-tab-${file.id}`}
+                  >
+                    <div className="flex items-center gap-2 overflow-hidden flex-1">
+                      <span className="text-sm">{config?.icon || '📄'}</span>
+                      <input
+                        type="text"
+                        value={file.name}
+                        onChange={(e) => updateFileName(file.id, e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-transparent text-[#00FF41] text-xs font-mono w-full outline-none truncate"
+                        data-testid={`input-filename-${file.id}`}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); copyToClipboard(file); }}
+                        className="p-1 hover:bg-[#00FF41]/20 rounded"
+                        data-testid={`button-copy-${file.id}`}
+                      >
+                        {copiedId === file.id ? <Check className="w-3 h-3 text-[#00FF41]" /> : <Copy className="w-3 h-3 text-[#00FF41]/60" />}
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); downloadFile(file); }}
+                        className="p-1 hover:bg-[#00FF41]/20 rounded"
+                        data-testid={`button-download-${file.id}`}
+                      >
+                        <Download className="w-3 h-3 text-[#00FF41]/60" />
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteFile(file.id); }}
+                        className="p-1 hover:bg-red-500/20 rounded"
+                        data-testid={`button-delete-${file.id}`}
+                      >
+                        <Trash2 className="w-3 h-3 text-red-400/60" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <Button
-              onClick={() => setShowInstructions(!showInstructions)}
-              variant="ghost"
-              size="sm"
-              className="text-[#00FF41] hover:bg-[#00FF41]/20 text-xs"
-              data-testid="button-toggle-instructions"
-            >
-              <Info className="w-4 h-4 mr-1" />
-              {showInstructions ? 'Hide' : 'Show'} Instructions
-            </Button>
-            <Button
-              onClick={downloadAllFiles}
-              variant="ghost"
-              size="sm"
-              className="text-[#00FF41] hover:bg-[#00FF41]/20 text-xs"
-              data-testid="button-download-all"
-            >
-              <Download className="w-4 h-4 mr-1" />
-              Download All ({files.length})
-            </Button>
-            <Button onClick={onClose} variant="ghost" size="sm" className="text-[#00FF41] hover:bg-[#00FF41]/20">
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
+          </ScrollArea>
         </div>
 
-        {/* Instructions Panel (collapsible) */}
-        {showInstructions && (
-          <div className="px-4 py-3 bg-black/30 border-b border-[#00FF41]/20 max-h-48 overflow-y-auto">
-            <pre className="text-[#00FF41]/80 text-xs font-mono whitespace-pre-wrap">
-              {generateLocalInstructions(files)}
-            </pre>
-          </div>
-        )}
-
-        <div className="flex-1 flex overflow-hidden">
-          {/* File Tabs Sidebar */}
-          <div className="w-48 bg-black/40 border-r border-[#00FF41]/20 flex flex-col">
-            <div className="p-2 border-b border-[#00FF41]/20">
-              <Button
-                onClick={addNewFile}
-                variant="ghost"
-                size="sm"
-                className="w-full text-[#00FF41] hover:bg-[#00FF41]/20 text-xs justify-start"
-                data-testid="button-add-file"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New File
-              </Button>
-            </div>
-            <ScrollArea className="flex-1">
-              <div className="p-2 space-y-1">
-                {files.map(file => {
-                  const config = LANGUAGE_CONFIG[file.language];
-                  return (
-                    <div
-                      key={file.id}
-                      className={`group flex items-center justify-between px-2 py-1.5 rounded cursor-pointer transition-colors ${
-                        activeFileId === file.id 
-                          ? 'bg-[#00FF41]/20 border border-[#00FF41]/40' 
-                          : 'hover:bg-[#00FF41]/10 border border-transparent'
-                      }`}
-                      onClick={() => setActiveFileId(file.id)}
-                      data-testid={`file-tab-${file.id}`}
-                    >
-                      <div className="flex items-center gap-2 overflow-hidden flex-1">
-                        <span className="text-sm">{config?.icon || '📄'}</span>
-                        <input
-                          type="text"
-                          value={file.name}
-                          onChange={(e) => updateFileName(file.id, e.target.value)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="bg-transparent text-[#00FF41] text-xs font-mono w-full outline-none truncate"
-                          data-testid={`input-filename-${file.id}`}
-                        />
-                      </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); copyToClipboard(file); }}
-                          className="p-1 hover:bg-[#00FF41]/20 rounded"
-                          data-testid={`button-copy-${file.id}`}
-                        >
-                          {copiedId === file.id ? <Check className="w-3 h-3 text-[#00FF41]" /> : <Copy className="w-3 h-3 text-[#00FF41]/60" />}
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); downloadFile(file); }}
-                          className="p-1 hover:bg-[#00FF41]/20 rounded"
-                          data-testid={`button-download-${file.id}`}
-                        >
-                          <Download className="w-3 h-3 text-[#00FF41]/60" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); deleteFile(file.id); }}
-                          className="p-1 hover:bg-red-500/20 rounded"
-                          data-testid={`button-delete-${file.id}`}
-                        >
-                          <Trash2 className="w-3 h-3 text-red-400/60" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+        {/* Editor Panel */}
+        <div className="flex-1 flex flex-col">
+          {activeFile && (
+            <>
+              {/* Editor Header */}
+              <div className="flex items-center justify-between px-4 py-2 bg-black/30 border-b border-[#00FF41]/20">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">{LANGUAGE_CONFIG[activeFile.language]?.icon || '📄'}</span>
+                  <span className="text-[#00FF41] font-mono text-sm">{activeFile.name}</span>
+                  <span className="text-[#00FF41]/50 text-xs font-mono">
+                    {LANGUAGE_CONFIG[activeFile.language]?.displayName || activeFile.language}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={runCode}
+                    disabled={isRunning || !EXECUTABLE_LANGUAGES.includes(activeFile.language)}
+                    size="sm"
+                    className="bg-[#00FF41] text-black hover:bg-[#00FF41]/80 font-mono text-xs"
+                    data-testid="button-run-code"
+                  >
+                    <Play className="w-4 h-4 mr-1" />
+                    {isRunning ? 'Running...' : 'Run'}
+                  </Button>
+                </div>
               </div>
-            </ScrollArea>
+
+              {/* Monaco Editor */}
+              <div className="flex-1">
+                <Editor
+                  height="100%"
+                  language={LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'plaintext'}
+                  value={activeFile.content}
+                  onChange={(value) => updateFileContent(value || '')}
+                  onMount={handleEditorMount}
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true,
+                    tabSize: 2,
+                    wordWrap: 'on',
+                    padding: { top: 10 },
+                    fontFamily: '"Fira Code", "JetBrains Mono", Consolas, monospace',
+                    fontLigatures: true,
+                    cursorBlinking: 'smooth',
+                    smoothScrolling: true,
+                    suggest: {
+                      showIcons: true,
+                      showInlineDetails: true,
+                    },
+                    autoClosingBrackets: 'always',
+                    formatOnPaste: true,
+                    formatOnType: true,
+                  }}
+                  key={`${activeFile.id}-${activeFile.language}`}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Output Panel */}
+        <div className="w-96 bg-black/40 border-l border-[#00FF41]/20 flex flex-col">
+          <div className="px-4 py-2 bg-black/30 border-b border-[#00FF41]/20 flex items-center gap-2">
+            <TerminalIcon className="w-4 h-4 text-[#00FF41]" />
+            <span className="text-[#00FF41] font-mono text-sm">Output</span>
           </div>
 
-          {/* Editor Panel */}
-          <div className="flex-1 flex flex-col">
-            {activeFile && (
-              <>
-                {/* Editor Header */}
-                <div className="flex items-center justify-between px-4 py-2 bg-black/30 border-b border-[#00FF41]/20">
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg">{LANGUAGE_CONFIG[activeFile.language]?.icon || '📄'}</span>
-                    <span className="text-[#00FF41] font-mono text-sm">{activeFile.name}</span>
-                    <span className="text-[#00FF41]/50 text-xs font-mono">
-                      {LANGUAGE_CONFIG[activeFile.language]?.displayName || activeFile.language}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={runCode}
-                      disabled={isRunning || !EXECUTABLE_LANGUAGES.includes(activeFile.language)}
-                      size="sm"
-                      className="bg-[#00FF41] text-black hover:bg-[#00FF41]/80 font-mono text-xs"
-                      data-testid="button-run-code"
-                    >
-                      <Play className="w-4 h-4 mr-1" />
-                      {isRunning ? 'Running...' : 'Run'}
-                    </Button>
-                  </div>
-                </div>
+          {/* Stdin input field */}
+          <div className="px-3 py-2 border-b border-[#00FF41]/20 bg-black/20">
+            <label className="text-[#00FF41] text-xs font-mono mb-1 block">Stdin (lines):</label>
+            <textarea
+              value={stdinInput}
+              onChange={(e) => setStdinInput(e.target.value)}
+              placeholder="Enter input for programs needing stdin..."
+              className="w-full bg-black/40 text-[#00FF41] text-xs font-mono p-2 rounded border border-[#00FF41]/20 focus:border-[#00FF41]/50 outline-none resize-none h-16"
+              data-testid="input-stdin"
+            />
+          </div>
 
-                {/* Monaco Editor */}
-                <div className="flex-1">
-                  <Editor
-                    height="100%"
-                    language={LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'plaintext'}
-                    value={activeFile.content}
-                    onChange={(value) => updateFileContent(value || '')}
-                    onMount={handleEditorMount}
-                    options={{
-                      minimap: { enabled: false },
-                      fontSize: 14,
-                      lineNumbers: 'on',
-                      scrollBeyondLastLine: false,
-                      automaticLayout: true,
-                      tabSize: 2,
-                      wordWrap: 'on',
-                      padding: { top: 10 },
-                      fontFamily: '"Fira Code", "JetBrains Mono", Consolas, monospace',
-                      fontLigatures: true,
-                      cursorBlinking: 'smooth',
-                      smoothScrolling: true,
-                      suggest: {
-                        showIcons: true,
-                        showInlineDetails: true,
-                      },
-                      autoClosingBrackets: 'always',
-                      formatOnPaste: true,
-                      formatOnType: true,
-                    }}
-                    key={`${activeFile.id}-${activeFile.language}`}
-                  />
-                </div>
-              </>
+          <ScrollArea className="flex-1">
+            {guiOutput && (
+              <div className="p-4 border-b border-[#00FF41]/20">
+                <div 
+                  className="rounded overflow-hidden"
+                  dangerouslySetInnerHTML={{ __html: guiOutput }} 
+                />
+              </div>
             )}
-          </div>
 
-          {/* Output Panel */}
-          <div className="w-96 bg-black/40 border-l border-[#00FF41]/20 flex flex-col">
-            <div className="px-4 py-2 bg-black/30 border-b border-[#00FF41]/20 flex items-center gap-2">
-              <TerminalIcon className="w-4 h-4 text-[#00FF41]" />
-              <span className="text-[#00FF41] font-mono text-sm">Output</span>
-            </div>
+            {/* Rendered output viewers */}
+            {output && output !== 'Running...\n' && (
+              <div className="p-4">
+                {outputType === 'json' && parsedData && <JsonViewer data={parsedData} />}
+                {outputType === 'csv' && parsedData && <CsvTable data={parsedData} />}
+                {outputType === 'svg' && parsedData && <SvgViewer data={parsedData} />}
+                {outputType === 'xml' && parsedData && (
+                  <pre className="p-3 bg-black/20 rounded text-[#00FF41] text-xs font-mono overflow-x-auto max-h-96">
+                    {parsedData}
+                  </pre>
+                )}
+                {outputType === 'text' && (
+                  <pre className="text-[#00FF41]/80 font-mono text-xs whitespace-pre-wrap">
+                    {output}
+                  </pre>
+                )}
+              </div>
+            )}
 
-            {/* Stdin input field */}
-            <div className="px-3 py-2 border-b border-[#00FF41]/20 bg-black/20">
-              <label className="text-[#00FF41] text-xs font-mono mb-1 block">Stdin (lines):</label>
-              <textarea
-                value={stdinInput}
-                onChange={(e) => setStdinInput(e.target.value)}
-                placeholder="Enter input for programs needing stdin..."
-                className="w-full bg-black/40 text-[#00FF41] text-xs font-mono p-2 rounded border border-[#00FF41]/20 focus:border-[#00FF41]/50 outline-none resize-none h-16"
-                data-testid="input-stdin"
-              />
-            </div>
-
-            <ScrollArea className="flex-1">
-              {guiOutput && (
-                <div className="p-4 border-b border-[#00FF41]/20">
-                  <div 
-                    className="rounded overflow-hidden"
-                    dangerouslySetInnerHTML={{ __html: guiOutput }} 
-                  />
-                </div>
-              )}
-
-              {/* Rendered output viewers */}
-              {output && output !== 'Running...\n' && (
-                <div className="p-4">
-                  {outputType === 'json' && parsedData && <JsonViewer data={parsedData} />}
-                  {outputType === 'csv' && parsedData && <CsvTable data={parsedData} />}
-                  {outputType === 'svg' && parsedData && <SvgViewer data={parsedData} />}
-                  {outputType === 'xml' && parsedData && (
-                    <pre className="p-3 bg-black/20 rounded text-[#00FF41] text-xs font-mono overflow-x-auto max-h-96">
-                      {parsedData}
-                    </pre>
-                  )}
-                  {outputType === 'text' && (
-                    <pre className="text-[#00FF41]/80 font-mono text-xs whitespace-pre-wrap">
-                      {output}
-                    </pre>
-                  )}
-                </div>
-              )}
-
-              {(!output || output === 'Running...\n') && (
-                <pre className="p-4 text-[#00FF41]/80 font-mono text-xs whitespace-pre-wrap">
-                  {output || `Run code to see output...
+            {(!output || output === 'Running...\n') && (
+              <pre className="p-4 text-[#00FF41]/80 font-mono text-xs whitespace-pre-wrap">
+                {output || `Run code to see output...
 
 ✨ Features:
 • Interactive stdin input ↑
@@ -827,21 +826,20 @@ Supported languages:
 • JavaScript/TypeScript
 • Bash/Shell • C/C++
 • Go • Rust • Ruby • PHP`}
-                </pre>
-              )}
-            </ScrollArea>
-          </div>
+              </pre>
+            )}
+          </ScrollArea>
         </div>
+      </div>
 
-        {/* Footer */}
-        <div className="px-4 py-2 bg-black/50 border-t border-[#00FF41]/30 flex items-center justify-between">
-          <div className="text-[#00FF41]/50 font-mono text-xs">
-            {files.length} file{files.length !== 1 ? 's' : ''} • 
-            Languages: {Array.from(new Set(files.map(f => LANGUAGE_CONFIG[f.language]?.displayName || f.language))).join(', ')}
-          </div>
-          <div className="text-[#00FF41]/50 font-mono text-xs">
-            Auto-detect language • Click file to rename • Download for local use
-          </div>
+      {/* Footer */}
+      <div className="px-4 py-2 bg-black/50 border-t border-[#00FF41]/30 flex items-center justify-between">
+        <div className="text-[#00FF41]/50 font-mono text-xs">
+          {files.length} file{files.length !== 1 ? 's' : ''} • 
+          Languages: {Array.from(new Set(files.map(f => LANGUAGE_CONFIG[f.language]?.displayName || f.language))).join(', ')}
+        </div>
+        <div className="text-[#00FF41]/50 font-mono text-xs">
+          Auto-detect language • Click file to rename • Download for local use
         </div>
       </div>
     </div>
