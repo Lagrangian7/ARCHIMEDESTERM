@@ -25,7 +25,6 @@ import { LinkifiedText } from '@/lib/linkify';
 // import { SpiderFoot } from './SpiderFoot'; // Commented out - component not found
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { PythonIDE } from './PythonIDE';
-import { PythonLessons } from './PythonLessons'; // Import the new PythonLessons component
 import { CodePreview } from './CodePreview';
 import { CodePlayground } from './CodePlayground';
 import { BackgroundManager } from './BackgroundManager';
@@ -100,7 +99,6 @@ export function Terminal() {
     (window as any).openSpacewars = () => setShowSpacewars(true);
     (window as any).openPythonIDE = () => setShowPythonIDE(true);
     (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
-    (window as any).openPythonLessons = () => setShowPythonLessons(true); // Add Python lessons opener
     (window as any).openWebSynth = () => setShowWebSynth(true); // Add WebSynth opener
 
     // Listen for background change events
@@ -156,7 +154,7 @@ export function Terminal() {
   const [showSpacewars, setShowSpacewars] = useState(false);
   const [notepads, setNotepads] = useState<Array<{ id: string }>>([]);
   const [showPythonIDE, setShowPythonIDE] = useState(false);
-  const [showPythonLessons, setShowPythonLessons] = useState(false); // New state for Python lessons
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const [showBackgroundManager, setShowBackgroundManager] = useState(false);
   const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>(() => {
     // Load saved background on mount
@@ -389,17 +387,17 @@ export function Terminal() {
 
   // Auto-copy code from AI responses into editor
   const lastProcessedResponseRef = useRef<string>('');
-  
+
   useEffect(() => {
     const lastEntry = entries[entries.length - 1];
-    
+
     // Check if the last entry is a new response with code blocks
     if (lastEntry && lastEntry.type === 'response' && !isTyping && lastEntry.id !== lastProcessedResponseRef.current) {
       lastProcessedResponseRef.current = lastEntry.id;
-      
+
       // First try to extract fenced code blocks
       const codeFiles = extractCodeBlocksFromText(lastEntry.content);
-      
+
       if (codeFiles.length > 0) {
         // Found fenced code blocks - use the first one
         setPreviewCode(codeFiles[0].content);
@@ -407,7 +405,7 @@ export function Terminal() {
       } else {
         // No fenced blocks - try to detect unfenced code in the response
         const content = lastEntry.content;
-        
+
         // Check for common code patterns (functions, imports, print statements, etc.)
         const codePatterns = [
           /def\s+\w+\s*\(/m,           // Python function
@@ -420,9 +418,9 @@ export function Terminal() {
           /#include\s*</m,              // C/C++ include
           /public\s+static\s+void/m,    // Java main
         ];
-        
+
         const hasCodePattern = codePatterns.some(pattern => pattern.test(content));
-        
+
         if (hasCodePattern) {
           // Extract code-like content (lines that look like code)
           const lines = content.split('\n');
@@ -433,7 +431,7 @@ export function Terminal() {
             if (trimmed.match(/^[A-Z][a-z]+.*:$/)) return false; // Skip "Here's the code:" type lines
             return true;
           });
-          
+
           if (codeLines.length > 0) {
             setPreviewCode(codeLines.join('\n'));
             setShowCodePlayground(true);
@@ -563,7 +561,6 @@ export function Terminal() {
   const MemoizedMatrixRain = useMemo(() => memo(MatrixRain), []);
   const MemoizedDraggableResponse = useMemo(() => memo(DraggableResponse), []);
   const MemoizedPythonIDE = useMemo(() => memo(PythonIDE), []); // Memoized PythonIDE
-  const MemoizedPythonLessons = useMemo(() => memo(PythonLessons), []); // Memoized PythonLessons
 
   const gradientThemes = ['midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'];
   const isGradientTheme = gradientThemes.includes(currentTheme);
@@ -635,8 +632,7 @@ export function Terminal() {
             unreadCount={unreadCount}
             notepads={notepads}
             setNotepads={setNotepads}
-            setShowPythonIDE={setShowPythonIDE} // Pass the prop to control Python IDE visibility
-            openPythonLessons={ () => setShowPythonLessons(true) } // Add callback for Python Lessons
+            setShowPythonIDE={setShowPythonIDE}
           />
         </div>
 
@@ -974,8 +970,6 @@ export function Terminal() {
 
       {/* Python IDE */}
       {showPythonIDE && <MemoizedPythonIDE onClose={() => setShowPythonIDE(false)} />}
-      {/* Python Lessons */}
-      {showPythonLessons && <MemoizedPythonLessons onClose={() => setShowPythonLessons(false)} />}
 
       {/* Background Manager */}
       {showBackgroundManager && (

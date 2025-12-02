@@ -27,7 +27,6 @@ interface VoiceControlsProps {
   notepads: Array<{ id: string }>;
   setNotepads: React.Dispatch<React.SetStateAction<Array<{ id: string }>>>;
   setShowPythonIDE: (show: boolean) => void;
-  openPythonLessons?: () => void;
 }
 
 export function VoiceControls({
@@ -46,7 +45,6 @@ export function VoiceControls({
   notepads,
   setNotepads,
   setShowPythonIDE,
-  openPythonLessons,
 }: VoiceControlsProps) {
   const { toast } = useToast();
   const {
