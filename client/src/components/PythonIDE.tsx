@@ -2015,17 +2015,6 @@ calculator()
             });
             codeiumEnabled = true;
             console.debug('✓ Codeium AI code completions enabled (FREE, unlimited)');
-            
-            // Archimedes v7 Introduction - Add to chat history
-            const introMessage = "Greetings! Archimedes version 7 AI assistant now online. I'm your friendly programming mentor and cyberpunk coding companion. Whether you need help with basics or advanced techniques, I'm here to guide you through any programming language. Let's create something amazing together!";
-            
-            setChatHistory(prev => [...prev, { 
-              role: 'assistant', 
-              content: introMessage 
-            }]);
-            
-            // Speak the introduction
-            speak(introMessage);
           }
         } catch (codeiumError) {
           console.debug('Codeium registration failed, trying fallback:', codeiumError);
@@ -2040,20 +2029,23 @@ calculator()
               trigger: 'onIdle'
             });
             console.debug('Monacopilot enabled as fallback (Mistral AI)');
-            
-            // Archimedes v7 Introduction for fallback - Add to chat history
-            const fallbackIntroMessage = "Archimedes version 7 ready. Your friendly AI programming assistant is here to help you master any language and create amazing code!";
-            
-            setChatHistory(prev => [...prev, { 
-              role: 'assistant', 
-              content: fallbackIntroMessage 
-            }]);
-            
-            speak(fallbackIntroMessage);
           } catch (monacopilotError) {
             console.debug('Monacopilot fallback also failed:', monacopilotError);
           }
         }
+
+        // Archimedes v7 Introduction - Add to chat history ONCE after AI setup
+        const introMessage = codeiumEnabled 
+          ? "Greetings! Archimedes version 7 AI assistant now online. I'm your friendly programming mentor and cyberpunk coding companion. Whether you need help with basics or advanced techniques, I'm here to guide you through any programming language. Let's create something amazing together!"
+          : "Archimedes version 7 ready. Your friendly AI programming assistant is here to help you master any language and create amazing code!";
+        
+        setChatHistory(prev => [...prev, { 
+          role: 'assistant', 
+          content: introMessage 
+        }]);
+        
+        // Speak the introduction
+        speak(introMessage);
       }, 1000);
 
       // Add keyboard shortcuts
