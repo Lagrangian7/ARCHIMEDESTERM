@@ -1907,9 +1907,9 @@ calculator()
   // Dragging and resizing state
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
-  const [position, setPosition] = useState({ x: window.innerWidth - 920, y: 50 });
-  const [dimensions, setDimensions] = useState({ width: 900, height: 700 });
+  const [isMaximized, setIsMaximized] = useState(true); // Start maximized by default
+  const [position, setPosition] = useState({ x: 0, y: 60 });
+  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight - 120 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
   const editorRef = useRef<any>(null);
@@ -2518,6 +2518,14 @@ calculator()
       setPosition({ x: 0, y: terminalAreaTop });
     }
   }, [isMaximized]);
+
+  // Initialize to full-screen on mount
+  useEffect(() => {
+    const terminalAreaTop = 60;
+    const terminalAreaBottom = 60;
+    setDimensions({ width: window.innerWidth, height: window.innerHeight - terminalAreaTop - terminalAreaBottom });
+    setPosition({ x: 0, y: terminalAreaTop });
+  }, []);
 
   // Mouse move handler for dragging
   const handleMouseMove = useCallback((e: MouseEvent) => {
