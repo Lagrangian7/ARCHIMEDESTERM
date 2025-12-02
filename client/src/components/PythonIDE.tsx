@@ -1999,6 +1999,27 @@ calculator()
   const decreaseFontSize = () => setFontSize(prev => Math.max(prev - 1, 8));
   const resetFontSize = () => setFontSize(13);
 
+  const extractCodeFromResponse = (content: string): string | null => {
+    // Extract code from markdown code blocks
+    const codeBlockMatch = content.match(/```(?:python|javascript|typescript|html|css|java|cpp|c|bash|sql|json|yaml|markdown|rust|go|php|ruby|swift|kotlin)?\n([\s\S]*?)```/);
+    if (codeBlockMatch) {
+      return codeBlockMatch[1].trim();
+    }
+    return null;
+  };
+
+  const insertCodeIntoEditor = (code: string) => {
+    if (showMultiFileMode && activeFile) {
+      updateFileContent(activeFile.id, code);
+    } else {
+      setCode(code);
+    }
+    toast({
+      title: "Code Inserted",
+      description: "AI-generated code has been inserted into the editor",
+    });
+  };
+
   const handleChatSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim() || chatMutation.isPending) return;
@@ -2476,6 +2497,12 @@ calculator()
     },
     onSuccess: (data) => {
       setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
+      
+      // Auto-insert code if detected in response
+      const extractedCode = extractCodeFromResponse(data.response);
+      if (extractedCode && isFreestyleMode) {
+        insertCodeIntoEditor(extractedCode);
+      }
     },
     onError: (error) => {
       console.error('Chat error:', error);
@@ -3053,38 +3080,52 @@ calculator()
                         </ul>
                       </div>
                     )}
-                    {chatHistory.map((msg, idx) => (
-                      <div key={idx} className={`${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                        <div 
-                          className="inline-block max-w-[90%] p-2 rounded font-mono text-xs"
-                          style={{
-                            backgroundColor: msg.role === 'user' ? currentPythonTheme.bg : currentPythonTheme.subtle,
-                            color: msg.role === 'user' ? currentPythonTheme.highlight : currentPythonTheme.text,
-                            border: `1px solid ${currentPythonTheme.border}`,
-                          }}
-                        >
-                          <div className="font-bold text-[10px] mb-1 opacity-70 flex items-center justify-between gap-2">
-                            <span>{msg.role === 'user' ? 'YOU' : 'ARCHIMEDES'}</span>
-                            {msg.role === 'assistant' && (
-                              <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(msg.content).then(() => {
-                                    speak('Code copied to clipboard');
-                                  }).catch(err => {
-                                    console.error('Failed to copy:', err);
-                                  });
-                                }}
-                                className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] transition-colors"
-                                title="Copy code to clipboard"
-                              >
-                                📋
-                              </button>
-                            )}
+                    {chatHistory.map((msg, idx) => {
+                      const hasCode = msg.role === 'assistant' && extractCodeFromResponse(msg.content);
+                      return (
+                        <div key={idx} className={`${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                          <div 
+                            className="inline-block max-w-[90%] p-2 rounded font-mono text-xs"
+                            style={{
+                              backgroundColor: msg.role === 'user' ? currentPythonTheme.bg : currentPythonTheme.subtle,
+                              color: msg.role === 'user' ? currentPythonTheme.highlight : currentPythonTheme.text,
+                              border: `1px solid ${currentPythonTheme.border}`,
+                            }}
+                          >
+                            <div className="font-bold text-[10px] mb-1 opacity-70 flex items-center justify-between gap-2">
+                              <span>{msg.role === 'user' ? 'YOU' : 'ARCHIMEDES'}</span>
+                              {msg.role === 'assistant' && (
+                                <div className="flex gap-1">
+                                  {hasCode && (
+                                    <button
+                                      onClick={() => insertCodeIntoEditor(hasCode)}
+                                      className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] transition-colors"
+                                      title="Insert code into editor"
+                                    >
+                                      ⬇️
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(msg.content).then(() => {
+                                        speak('Code copied to clipboard');
+                                      }).catch(err => {
+                                        console.error('Failed to copy:', err);
+                                      });
+                                    }}
+                                    className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] transition-colors"
+                                    title="Copy code to clipboard"
+                                  >
+                                    📋
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                            <div className="whitespace-pre-wrap">{msg.content}</div>
                           </div>
-                          <div className="whitespace-pre-wrap">{msg.content}</div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     {chatMutation.isPending && (
                       <div className="text-left">
                         <div className="inline-block p-2 rounded bg-black/50 text-[var(--terminal-text)]/70 font-mono text-xs">
