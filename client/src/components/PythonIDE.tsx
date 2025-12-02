@@ -1914,6 +1914,7 @@ calculator()
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
   const editorRef = useRef<any>(null);
   const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasGreetedRef = useRef(false); // Track if Archimedes has greeted
 
   // Mutation for saving notepad
   const saveNotepadMutation = useMutation({
@@ -2034,18 +2035,22 @@ calculator()
           }
         }
 
-        // Archimedes v7 Introduction - Add to chat history ONCE after AI setup
-        const introMessage = codeiumEnabled 
-          ? "Greetings! Archimedes version 7 AI assistant now online. I'm your friendly programming mentor and cyberpunk coding companion. Whether you need help with basics or advanced techniques, I'm here to guide you through any programming language. Let's create something amazing together!"
-          : "Archimedes version 7 ready. Your friendly AI programming assistant is here to help you master any language and create amazing code!";
-        
-        setChatHistory(prev => [...prev, { 
-          role: 'assistant', 
-          content: introMessage 
-        }]);
-        
-        // Speak the introduction
-        speak(introMessage);
+        // Archimedes v7 Introduction - Add to chat history ONCE per session
+        if (!hasGreetedRef.current) {
+          hasGreetedRef.current = true;
+          
+          const introMessage = codeiumEnabled 
+            ? "Greetings! Archimedes version 7 AI assistant now online. I'm your friendly programming mentor and cyberpunk coding companion. Whether you need help with basics or advanced techniques, I'm here to guide you through any programming language. Let's create something amazing together!"
+            : "Archimedes version 7 ready. Your friendly AI programming assistant is here to help you master any language and create amazing code!";
+          
+          setChatHistory(prev => [...prev, { 
+            role: 'assistant', 
+            content: introMessage 
+          }]);
+          
+          // Speak the introduction
+          speak(introMessage);
+        }
       }, 1000);
 
       // Add keyboard shortcuts
