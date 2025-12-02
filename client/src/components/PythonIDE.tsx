@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CodePreview } from './CodePreview';
 import { CodePlayground } from './CodePlayground';
 import { CodeSnippets } from './CodeSnippets';
+import { Notepad } from './Notepad';
 
 interface PythonIDEProps {
   onClose: () => void;
@@ -1950,7 +1951,7 @@ calculator()
           console.debug('Codeium registration failed, trying fallback:', codeiumError);
         }
 
-        // Fallback to Monacopilot/Mistral if Codeium failed
+        // Fallback to Monacopilot if Codeium failed
         if (!codeiumEnabled && typeof registerCompletion === 'function') {
           try {
             registerCompletion(monaco, editor, {
@@ -3154,7 +3155,7 @@ calculator()
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       placeholder="Describe what you want to build..."
-                      className="flex-1 rounded px-3 py-2 font-mono text-xs focus:outline-none placeholder-retro-cycle"
+                      className="flex-1 rounded px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2"
                       style={{
                         backgroundColor: currentPythonTheme.bg,
                         border: `1px solid ${currentPythonTheme.border}`,
