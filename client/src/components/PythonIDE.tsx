@@ -2064,7 +2064,7 @@ calculator()
     let inputCount = 0;
 
     while (i < code.length) {
-      // Check for triple-quoted strings first (""" or ''')
+      // Check for triple-quoted strings first (""" or '')
       if ((code.substring(i, i + 3) === '"""' || code.substring(i, i + 3) === "'''") ||
           (code[i] === 'f' && i + 1 < code.length && (code.substring(i + 1, i + 4) === '"""' || code.substring(i + 1, i + 4) === "'''"))) {
         const hasF = code[i] === 'f';
@@ -3153,8 +3153,8 @@ calculator()
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder={isFreestyleMode ? "Describe code you want to create..." : "Ask about Python code..."}
-                      className="flex-1 rounded px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2"
+                      placeholder="Describe what you want to build..."
+                      className="flex-1 rounded px-3 py-2 font-mono text-xs focus:outline-none placeholder-retro-cycle"
                       style={{
                         backgroundColor: currentPythonTheme.bg,
                         border: `1px solid ${currentPythonTheme.border}`,
