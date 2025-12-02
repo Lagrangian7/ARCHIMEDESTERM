@@ -1894,7 +1894,7 @@ calculator()
   const [currentLanguage, setCurrentLanguage] = useState('python');
   const [showAITests, setShowAITests] = useState(false);
   const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
-  const [pythonTheme, setPythonTheme] = useState('dracula'); // Default theme
+  const [pythonTheme, setPythonTheme] = useState('terminal-green'); // Default theme
   const currentPythonTheme = getTheme(pythonTheme);
   const [fontSize, setFontSize] = useState(13);
   const [isFormatting, setIsFormatting] = useState(false);
