@@ -2756,6 +2756,15 @@ calculator()
                 <option value="gruvbox-light">Gruvbox Light</option>
                 <option value="one-light">One Light</option>
               </optgroup>
+              <optgroup label="Mid-Level (Eye Friendly)">
+                <option value="soft-morning">☀️ Soft Morning</option>
+                <option value="warm-sand">🏖️ Warm Sand</option>
+                <option value="cool-mist">🌫️ Cool Mist</option>
+                <option value="lavender-dream">💜 Lavender Dream</option>
+                <option value="sage-comfort">🌿 Sage Comfort</option>
+                <option value="sky-blue-soft">☁️ Sky Blue Soft</option>
+                <option value="peachy-calm">🍑 Peachy Calm</option>
+              </optgroup>
               <optgroup label="Dark">
                 <option value="terminal-green">Terminal Green</option>
                 <option value="cyberpunk-dark">Cyberpunk Dark</option>
@@ -4122,6 +4131,15 @@ function getTheme(themeName: string): ThemeColors {
     'material-dark': { bg: '#263238', text: '#cfd8dc', highlight: '#00bcd4', border: '#37474f', subtle: '#37474f' },
     'oceanic-next': { bg: '#2b3e50', text: '#d8dee9', highlight: '#528bff', border: '#34495e', subtle: '#34495e' },
     'palenight': { bg: '#292d3e', text: '#6a737d', highlight: '#82aaff', border: '#353b50', subtle: '#353b50' },
+    
+    // New mid-level eye-friendly themes
+    'soft-morning': { bg: '#f0ece2', text: '#5a5a5a', highlight: '#6b9080', border: '#dfd3c3', subtle: '#e8dfd0' },
+    'warm-sand': { bg: '#f5f0e8', text: '#615950', highlight: '#b08968', border: '#e3ddd3', subtle: '#ede8df' },
+    'cool-mist': { bg: '#e8f0f2', text: '#576066', highlight: '#7fa99b', border: '#d6e4e7', subtle: '#dfeaec' },
+    'lavender-dream': { bg: '#f0ecf5', text: '#5d596d', highlight: '#9d8cc7', border: '#e0d9ea', subtle: '#e8e3ef' },
+    'sage-comfort': { bg: '#edf2e8', text: '#556652', highlight: '#86a67c', border: '#dde5d6', subtle: '#e5ebe0' },
+    'sky-blue-soft': { bg: '#e8f1f8', text: '#546478', highlight: '#6b9ac4', border: '#d6e5f0', subtle: '#dfeaf4' },
+    'peachy-calm': { bg: '#f8ede8', text: '#6b5d58', highlight: '#d4a59a', border: '#ecddd6', subtle: '#f2e5df' },
   };
 
   return themes[themeName] || themes['dracula']; // Fallback to dracula
