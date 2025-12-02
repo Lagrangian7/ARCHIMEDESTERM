@@ -2716,6 +2716,13 @@ calculator()
               </optgroup>
               <optgroup label="Dark">
                 <option value="terminal-green">Terminal Green</option>
+                <option value="cyberpunk-dark">Cyberpunk Dark</option>
+                <option value="forest-dark">Forest Dark</option>
+                <option value="ocean-deep">Ocean Deep</option>
+                <option value="ember-dark">Ember Dark</option>
+                <option value="twilight-dark">Twilight Dark</option>
+                <option value="arctic-dark">Arctic Dark</option>
+                <option value="royal-dark">Royal Dark</option>
                 <option value="nord-dark">Nord Dark</option>
                 <option value="dracula">Dracula</option>
                 <option value="one-dark">One Dark</option>
@@ -4039,6 +4046,13 @@ function getTheme(themeName: string) {
     'tokyo-night': { bg: '#24283b', text: '#a9b1d6', highlight: '#bb9af7', border: '#3a3f51', subtle: '#313644' },
     'monokai': { bg: '#272822', text: '#f8f8f2', highlight: '#e6db74', border: '#3e3d32', subtle: '#3e3d32' },
     'night-owl': { bg: '#011627', text: '#9b9ea0', highlight: '#7fdbca', border: '#1f2a38', subtle: '#1f2a38' },
+    'cyberpunk-dark': { bg: '#0d0208', text: '#ff006e', highlight: '#00f5ff', border: '#3c096c', subtle: '#240046' },
+    'forest-dark': { bg: '#0f2119', text: '#14fdce', highlight: '#2dffaa', border: '#021509', subtle: '#0a4d2e' },
+    'ocean-deep': { bg: '#001219', text: '#0a9396', highlight: '#94d2bd', border: '#005f73', subtle: '#003545' },
+    'ember-dark': { bg: '#1a0a0a', text: '#ff6b35', highlight: '#ffd23f', border: '#4a1c1c', subtle: '#2d0f0f' },
+    'twilight-dark': { bg: '#0f0a14', text: '#bb86fc', highlight: '#cf6bf9', border: '#2d1b3d', subtle: '#1e0f2d' },
+    'arctic-dark': { bg: '#0c1821', text: '#5eaaa8', highlight: '#a7d6d3', border: '#1c3040', subtle: '#14232e' },
+    'royal-dark': { bg: '#14082a', text: '#c77dff', highlight: '#ffd60a', border: '#291452', subtle: '#1f0c38' },
     'material-dark': { bg: '#263238', text: '#cfd8dc', highlight: '#00bcd4', border: '#37474f', subtle: '#37474f' },
     'oceanic-next': { bg: '#2b3e50', text: '#d8dee9', highlight: '#528bff', border: '#34495e', subtle: '#34495e' },
     'palenight': { bg: '#292d3e', text: '#6a737d', highlight: '#82aaff', border: '#353b50', subtle: '#353b50' },
