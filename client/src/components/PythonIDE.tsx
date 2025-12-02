@@ -2099,11 +2099,11 @@ calculator()
     e.preventDefault();
     if (!chatInput.trim() || chatMutation.isPending) return;
 
-    // Get current language from active file or default
-    const currentLang = activeFile?.language || currentLanguage;
+    // Get current programming language from active file or selected language
+    const progLang = showMultiFileMode && activeFile ? activeFile.language : currentLanguage;
 
     setChatHistory(prev => [...prev, { role: 'user', content: chatInput }]);
-    chatMutation.mutate({ message: chatInput, language: currentLang });
+    chatMutation.mutate({ message: chatInput, language: progLang });
     setChatInput('');
   };
 
@@ -2556,6 +2556,9 @@ calculator()
   // Mutation for chat requests
   const chatMutation = useMutation({
     mutationFn: async ({ message, language }: { message: string; language?: string }) => {
+      // Get current programming language from active file or selected language
+      const progLang = showMultiFileMode && activeFile ? activeFile.language : currentLanguage;
+      
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2564,7 +2567,7 @@ calculator()
           message,
           mode: isFreestyleMode ? 'freestyle' : 'technical',
           language: 'english', // Human language (English/Spanish/Japanese)
-          programmingLanguage: language || 'python' // Programming language for code generation
+          programmingLanguage: language || progLang // Programming language for code generation
         }),
       });
       if (!response.ok) {
@@ -3084,7 +3087,12 @@ calculator()
               <div className="p-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
                 <div className="flex items-center gap-2 font-mono text-xs" style={{ color: currentPythonTheme.highlight }}>
                   <MessageSquare className="w-4 h-4" />
-                  <span>{isFreestyleMode ? '🎨 FREESTYLE CODE VIBE' : 'PYTHON PROGRAMMING ASSISTANT'}</span>
+                  <span>
+                    {isFreestyleMode 
+                      ? '🎨 FREESTYLE CODE VIBE' 
+                      : `${LANGUAGE_CONFIG[activeFile?.language || currentLanguage]?.icon || '💻'} ${LANGUAGE_CONFIG[activeFile?.language || currentLanguage]?.displayName.toUpperCase() || 'CODE'} ASSISTANT`
+                    }
+                  </span>
                 </div>
                 <Button
                   onClick={() => setChatHistory([])}
@@ -3107,12 +3115,12 @@ calculator()
                 <div ref={chatScrollRef} className="p-3 space-y-3">
                   {chatHistory.length === 0 && (
                     <div className="font-mono text-xs" style={{ color: currentPythonTheme.text, opacity: 0.7 }}>
-                      <p className="mb-2">💡 Ask me about:</p>
+                      <p className="mb-2">💡 Ask me about {LANGUAGE_CONFIG[activeFile?.language || currentLanguage]?.displayName || 'code'}:</p>
                       <ul className="list-disc list-inside text-[10px]">
                         <li>Syntax and best practices</li>
                         <li>Code improvements and optimization</li>
                         <li>Debugging current errors</li>
-                        <li>Lesson-specific questions</li>
+                        <li>Language-specific features</li>
                         <li>Project structure analysis</li>
                       </ul>
                     </div>
