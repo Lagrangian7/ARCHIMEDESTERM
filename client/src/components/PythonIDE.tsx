@@ -2015,6 +2015,16 @@ calculator()
             });
             codeiumEnabled = true;
             console.debug('✓ Codeium AI code completions enabled (FREE, unlimited)');
+            
+            // Archimedes v7 Introduction
+            toast({
+              title: "🤖 Archimedes v7 AI Assistant Online",
+              description: "Hey there, code warrior! I'm your cyberpunk coding companion and programming Black Belt. Need help with any language? I got you covered - from basics to advanced wizardry. Let's vibe code together! 🚀",
+              duration: 8000,
+            });
+            
+            // Speak the introduction
+            speak("Greetings! Archimedes version 7 AI assistant now online. I'm your friendly programming mentor and cyberpunk coding companion. Whether you need help with basics or advanced techniques, I'm here to guide you through any programming language. Let's create something amazing together!");
           }
         } catch (codeiumError) {
           console.debug('Codeium registration failed, trying fallback:', codeiumError);
@@ -2029,6 +2039,15 @@ calculator()
               trigger: 'onIdle'
             });
             console.debug('Monacopilot enabled as fallback (Mistral AI)');
+            
+            // Archimedes v7 Introduction for fallback
+            toast({
+              title: "🤖 Archimedes v7 AI Assistant Online",
+              description: "Hey there! Your cyberpunk coding mentor is ready. I'm a programming samurai in all languages - let's vibe code and build something epic! 🎨💻",
+              duration: 8000,
+            });
+            
+            speak("Archimedes version 7 ready. Your friendly AI programming assistant is here to help you master any language and create amazing code!");
           } catch (monacopilotError) {
             console.debug('Monacopilot fallback also failed:', monacopilotError);
           }
