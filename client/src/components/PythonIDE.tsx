@@ -10,6 +10,9 @@ import { registerCompletion } from 'monacopilot';
 import { registerCodeiumProvider } from '@live-codes/monaco-codeium-provider';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useToast } from '@/hooks/use-toast';
+import { CodePreview } from './CodePreview';
+import { CodePlayground } from './CodePlayground';
+import { CodeSnippets } from './CodeSnippets';
 
 interface PythonIDEProps {
   onClose: () => void;
@@ -1883,7 +1886,9 @@ calculator()
   const [showMinimap, setShowMinimap] = useState(true); // Default to showing minimap
   const htmlPreview = ''; // Dummy variable, actual preview logic handled elsewhere
   const [htmlPreviewState, setHtmlPreview] = useState(''); // State to hold HTML preview content
-  
+  const [showCodePlayground, setShowCodePlayground] = useState(false);
+  const [showSnippets, setShowSnippets] = useState(false);
+
   // Dragging and resizing state
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -2426,7 +2431,7 @@ calculator()
   // Mouse move handler for dragging
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const terminalAreaTop = 60;
-    
+
     if (isDragging) {
       const deltaX = e.clientX - dragStartRef.current.x;
       const deltaY = e.clientY - dragStartRef.current.y;
@@ -2497,7 +2502,7 @@ calculator()
     },
     onSuccess: (data) => {
       setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
-      
+
       // Auto-insert code if detected in response (works in all modes now)
       const extractedCode = extractCodeFromResponse(data.response);
       if (extractedCode) {
@@ -3149,7 +3154,7 @@ calculator()
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       placeholder={isFreestyleMode ? "Describe code you want to create..." : "Ask about Python code..."}
-                      className="flex-1 rounded px-3 py-2 font-mono text-xs focus:outline-none placeholder-retro-cycle"
+                      className="flex-1 rounded px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2"
                       style={{
                         backgroundColor: currentPythonTheme.bg,
                         border: `1px solid ${currentPythonTheme.border}`,
@@ -3776,10 +3781,40 @@ calculator()
                   ) : (
                     <>
                       <Play className="w-4 h-4 mr-2" />
-                      Run Code
+                      {showMultiFileMode ? 'Run Active File' : 'Run Code'}
                     </>
                   )}
                 </Button>
+                {showMultiFileMode && files.length > 1 && (
+                  <Button
+                    onClick={() => {
+                      // Run main file or first Python file
+                      const mainFile = files.find(f => f.name === 'main.py') || files.find(f => f.language === 'python');
+                      if (mainFile) {
+                        setActiveFileId(mainFile.id);
+                        setTimeout(() => runCode(), 100);
+                      } else {
+                        toast({
+                          title: "No main file",
+                          description: "Create a main.py file or select a Python file to run",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                    disabled={isRunning}
+                    variant="outline"
+                    className="font-mono text-sm"
+                    style={{
+                      backgroundColor: currentPythonTheme.bg,
+                      color: currentPythonTheme.text,
+                      border: `1px solid ${currentPythonTheme.border}`,
+                    }}
+                    title="Run main.py or first Python file"
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Run Main
+                  </Button>
+                )}
                 <Button
                   onClick={() => {
                     if (showMultiFileMode && activeFile) {
