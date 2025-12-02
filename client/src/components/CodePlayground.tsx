@@ -70,7 +70,7 @@ function detectLanguage(code: string, filename?: string): string {
       if (config.extension === `.${ext}`) return lang;
     }
   }
-  
+
   const patterns: [RegExp, string][] = [
     [/^#!.*python|import\s+(os|sys|json|re|typing)|def\s+\w+\(.*\):|from\s+\w+\s+import|if\s+__name__\s*==\s*['"]__main__['"]/m, 'python'],
     [/^#!.*node|const\s+\w+\s*=\s*require|module\.exports|console\.log|\.forEach\(|\.map\(|=>\s*\{|async\s+function/m, 'javascript'],
@@ -90,18 +90,18 @@ function detectLanguage(code: string, filename?: string): string {
     [/<\?php|\$_GET|\$_POST|echo\s+|function\s+\w+\s*\(/m, 'php'],
     [/def\s+\w+\s*\n|puts\s+|require\s+['"]|class\s+\w+\s*<\s*\w+/m, 'ruby'],
   ];
-  
+
   for (const [pattern, lang] of patterns) {
     if (pattern.test(code)) return lang;
   }
-  
+
   return 'javascript';
 }
 
 export function cleanCodeFormatting(code: string): string {
   // Split into lines and remove empty lines from start/end
   let lines = code.split(/\r?\n/);
-  
+
   // Remove leading and trailing empty lines
   while (lines.length > 0 && !lines[0].trim()) {
     lines.shift();
@@ -109,9 +109,9 @@ export function cleanCodeFormatting(code: string): string {
   while (lines.length > 0 && !lines[lines.length - 1].trim()) {
     lines.pop();
   }
-  
+
   if (lines.length === 0) return '';
-  
+
   // Find minimum common indentation (excluding empty lines)
   let minIndent = Infinity;
   for (const line of lines) {
@@ -120,14 +120,14 @@ export function cleanCodeFormatting(code: string): string {
       minIndent = Math.min(minIndent, indent);
     }
   }
-  
+
   // Remove common indentation and trailing whitespace
   if (minIndent > 0 && minIndent !== Infinity) {
     lines = lines.map(line => line.length > minIndent ? line.slice(minIndent) : line.trimEnd());
   } else {
     lines = lines.map(line => line.trimEnd());
   }
-  
+
   // Join back together
   return lines.join('\n');
 }
@@ -138,22 +138,22 @@ export function extractCodeBlocksFromText(text: string): CodeFile[] {
   const files: CodeFile[] = [];
   let match;
   let index = 0;
-  
+
   while ((match = codeBlockRegex.exec(text)) !== null) {
     // Handle both ``` and ~~~ formats
     const specifiedLang = (match[1] || match[3] || '').toLowerCase();
     const content = cleanCodeFormatting(match[2] || match[4] || '');
-    
+
     if (content.length < 5) continue;
-    
+
     let language = specifiedLang;
     if (!language || !LANGUAGE_CONFIG[language]) {
       language = detectLanguage(content);
     }
-    
+
     const config = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.javascript;
     const baseName = getDefaultFilename(language, index);
-    
+
     files.push({
       id: `file-${Date.now()}-${index}`,
       name: baseName,
@@ -162,7 +162,7 @@ export function extractCodeBlocksFromText(text: string): CodeFile[] {
     });
     index++;
   }
-  
+
   return files;
 }
 
@@ -180,7 +180,7 @@ function getDefaultFilename(language: string, index: number): string {
     cpp: ['main.cpp', 'app.cpp', 'program.cpp'],
     bash: ['script.sh', 'run.sh', 'setup.sh'],
   };
-  
+
   const langNames = names[language] || [`file${config.extension}`];
   return langNames[index % langNames.length] || `file${index}${config.extension}`;
 }
@@ -188,16 +188,16 @@ function getDefaultFilename(language: string, index: number): string {
 function generateLocalInstructions(files: CodeFile[]): string {
   const languages = Array.from(new Set(files.map(f => f.language)));
   let instructions = '## Local Setup Instructions\n\n';
-  
+
   instructions += '### Step 1: Save the Files\n';
   instructions += 'Create a new folder and save each file with the exact filename shown.\n\n';
-  
+
   instructions += '### Step 2: Install Dependencies\n\n';
-  
+
   for (const lang of languages) {
     const config = LANGUAGE_CONFIG[lang];
     if (!config) continue;
-    
+
     switch (lang) {
       case 'python':
         instructions += `**Python:**\n- Install Python 3.x from python.org\n- Run: \`pip install -r requirements.txt\` (if needed)\n\n`;
@@ -228,7 +228,7 @@ function generateLocalInstructions(files: CodeFile[]): string {
         break;
     }
   }
-  
+
   instructions += '### Step 3: Run the Code\n';
   for (const file of files) {
     const config = LANGUAGE_CONFIG[file.language];
@@ -236,7 +236,7 @@ function generateLocalInstructions(files: CodeFile[]): string {
       instructions += `- \`${file.name}\`: ${config.runCommand} ${file.name}\n`;
     }
   }
-  
+
   return instructions;
 }
 
@@ -269,30 +269,30 @@ const EXECUTABLE_LANGUAGES = ['python', 'javascript', 'typescript', 'bash', 'cpp
 
 function renderOutputSpecial(output: string): { type: 'json' | 'csv' | 'svg' | 'xml' | 'text'; data: any } {
   const trimmed = output.trim();
-  
+
   // Try JSON
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
     try {
       return { type: 'json', data: JSON.parse(trimmed) };
     } catch { }
   }
-  
+
   // Try SVG
   if (trimmed.startsWith('<svg')) {
     return { type: 'svg', data: trimmed };
   }
-  
+
   // Try XML/HTML (but not our iframe HTML)
   if (trimmed.startsWith('<') && !trimmed.includes('srcdoc')) {
     return { type: 'xml', data: trimmed };
   }
-  
+
   // Try CSV (basic detection: lines with comma-separated values)
   if (trimmed.includes('\n') && trimmed.split('\n').every(line => line.split(',').length > 1)) {
     const lines = trimmed.split('\n').map(l => l.split(',').map(v => v.trim()));
     return { type: 'csv', data: lines };
   }
-  
+
   return { type: 'text', data: output };
 }
 
@@ -355,25 +355,25 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   const [parsedData, setParsedData] = useState<any>(null);
   const editorRef = useRef<any>(null);
   const lastInitialCodeRef = useRef<string | null>(null);
-  
+
   const [monacoAIMode, setMonacoAIMode] = useState<MonacoAIMode>(() => {
     const saved = localStorage.getItem(MONACO_AI_MODE_KEY);
     return (saved === 'natural' || saved === 'technical' || saved === 'freestyle' || saved === 'health') 
       ? saved : 'freestyle';
   });
-  
+
   useEffect(() => {
     localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
   }, [monacoAIMode]);
-  
+
   useEffect(() => {
     // ALWAYS clear old saved session on mount to prevent stale code
     localStorage.removeItem(STORAGE_KEY);
-    
+
     if (initialCode) {
       // Use the provided initialCode
       lastInitialCodeRef.current = initialCode;
-      
+
       const extractedFiles = extractCodeBlocksFromText(initialCode);
       if (extractedFiles.length > 0) {
         setFiles(extractedFiles);
@@ -401,34 +401,34 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
       setActiveFileId(defaultFile.id);
     }
   }, [initialCode, initialLanguage]);
-  
+
   // Note: We no longer auto-save to localStorage to prevent stale code issues
   // Users can manually save/download their code instead
-  
+
   const activeFile = files.find(f => f.id === activeFileId);
-  
+
   const updateFileContent = useCallback((content: string) => {
     setFiles(prev => prev.map(f => 
       f.id === activeFileId ? { ...f, content } : f
     ));
   }, [activeFileId]);
-  
+
   const updateFileName = useCallback((id: string, name: string) => {
     const ext = name.split('.').pop()?.toLowerCase();
     let newLang = files.find(f => f.id === id)?.language || 'javascript';
-    
+
     for (const [lang, config] of Object.entries(LANGUAGE_CONFIG)) {
       if (config.extension === `.${ext}`) {
         newLang = lang;
         break;
       }
     }
-    
+
     setFiles(prev => prev.map(f => 
       f.id === id ? { ...f, name, language: newLang } : f
     ));
   }, [files]);
-  
+
   const addNewFile = useCallback(() => {
     const newFile: CodeFile = {
       id: `file-${Date.now()}`,
@@ -439,7 +439,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
     setFiles(prev => [...prev, newFile]);
     setActiveFileId(newFile.id);
   }, [files.length]);
-  
+
   const deleteFile = useCallback((id: string) => {
     if (files.length <= 1) {
       toast({ title: "Cannot delete", description: "Must have at least one file.", variant: "destructive" });
@@ -453,7 +453,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
       return newFiles;
     });
   }, [files.length, activeFileId, toast]);
-  
+
   const downloadFile = useCallback((file: CodeFile) => {
     const blob = new Blob([file.content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -466,20 +466,20 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
     URL.revokeObjectURL(url);
     toast({ title: "Downloaded", description: `${file.name} saved to your computer.` });
   }, [toast]);
-  
+
   const downloadAllFiles = useCallback(() => {
     files.forEach(file => {
       setTimeout(() => downloadFile(file), 100);
     });
   }, [files, downloadFile]);
-  
+
   const copyToClipboard = useCallback(async (file: CodeFile) => {
     await navigator.clipboard.writeText(file.content);
     setCopiedId(file.id);
     setTimeout(() => setCopiedId(null), 2000);
     toast({ title: "Copied", description: `${file.name} copied to clipboard.` });
   }, [toast]);
-  
+
   // Detect output type when output changes
   useEffect(() => {
     if (output && output !== 'Running...\n') {
@@ -508,7 +508,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
       setIsRunning(false);
     }
   });
-  
+
   const runCode = useCallback(() => {
     if (!activeFile) return;
     setIsRunning(true);
@@ -520,10 +520,10 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
       stdin: stdinLines.length > 0 ? stdinInput : undefined
     });
   }, [activeFile, runMutation, stdinInput]);
-  
+
   const handleEditorMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
-    
+
     // Listen for all content changes including AI-generated suggestions
     const model = editor.getModel();
     if (model) {
@@ -532,7 +532,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
         updateFileContent(currentContent);
       });
     }
-    
+
     monaco.editor.defineTheme('archimedes-dark', {
       base: 'vs-dark',
       inherit: true,
@@ -557,10 +557,10 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
     });
     monaco.editor.setTheme('archimedes-dark');
   };
-  
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm" data-testid="code-playground">
-      <div className="w-[95vw] h-[90vh] max-w-7xl bg-[#0D1117] border border-[#00FF41]/30 rounded-lg overflow-hidden flex flex-col shadow-2xl shadow-[#00FF41]/10">
+    <div className="fixed inset-0 z-50 bg-[#0D1117] overflow-hidden flex flex-col" data-testid="code-playground">
+      <div className="w-full h-full flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[#00FF41]/30">
           <div className="flex items-center gap-3">
@@ -619,7 +619,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
             </Button>
           </div>
         </div>
-        
+
         {/* Instructions Panel (collapsible) */}
         {showInstructions && (
           <div className="px-4 py-3 bg-black/30 border-b border-[#00FF41]/20 max-h-48 overflow-y-auto">
@@ -628,7 +628,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
             </pre>
           </div>
         )}
-        
+
         <div className="flex-1 flex overflow-hidden">
           {/* File Tabs Sidebar */}
           <div className="w-48 bg-black/40 border-r border-[#00FF41]/20 flex flex-col">
@@ -699,7 +699,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
               </div>
             </ScrollArea>
           </div>
-          
+
           {/* Editor Panel */}
           <div className="flex-1 flex flex-col">
             {activeFile && (
@@ -726,7 +726,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
                     </Button>
                   </div>
                 </div>
-                
+
                 {/* Monaco Editor */}
                 <div className="flex-1">
                   <Editor
@@ -762,14 +762,14 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
               </>
             )}
           </div>
-          
+
           {/* Output Panel */}
           <div className="w-96 bg-black/40 border-l border-[#00FF41]/20 flex flex-col">
             <div className="px-4 py-2 bg-black/30 border-b border-[#00FF41]/20 flex items-center gap-2">
               <TerminalIcon className="w-4 h-4 text-[#00FF41]" />
               <span className="text-[#00FF41] font-mono text-sm">Output</span>
             </div>
-            
+
             {/* Stdin input field */}
             <div className="px-3 py-2 border-b border-[#00FF41]/20 bg-black/20">
               <label className="text-[#00FF41] text-xs font-mono mb-1 block">Stdin (lines):</label>
@@ -781,7 +781,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
                 data-testid="input-stdin"
               />
             </div>
-            
+
             <ScrollArea className="flex-1">
               {guiOutput && (
                 <div className="p-4 border-b border-[#00FF41]/20">
@@ -791,7 +791,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
                   />
                 </div>
               )}
-              
+
               {/* Rendered output viewers */}
               {output && output !== 'Running...\n' && (
                 <div className="p-4">
@@ -810,7 +810,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
                   )}
                 </div>
               )}
-              
+
               {(!output || output === 'Running...\n') && (
                 <pre className="p-4 text-[#00FF41]/80 font-mono text-xs whitespace-pre-wrap">
                   {output || `Run code to see output...
@@ -832,7 +832,7 @@ Supported languages:
             </ScrollArea>
           </div>
         </div>
-        
+
         {/* Footer */}
         <div className="px-4 py-2 bg-black/50 border-t border-[#00FF41]/30 flex items-center justify-between">
           <div className="text-[#00FF41]/50 font-mono text-xs">
