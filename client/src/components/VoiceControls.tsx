@@ -133,7 +133,7 @@ export function VoiceControls({
 
   return (
     <div
-      className="voice-controls p-2 md:p-3 border-b border-terminal-subtle flex flex-wrap md:flex-nowrap items-center justify-between gap-2 text-sm"
+      className="voice-controls p-2 md:p-3 border-b border-terminal-subtle flex flex-wrap md:flex-nowrap items-center justify-between gap-2 text-[15px]"
       style={{ background: 'var(--voice-controls-gradient, var(--terminal-bg))' }}
     >
       <div className="flex items-center gap-2 md:gap-4">
