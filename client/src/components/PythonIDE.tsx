@@ -2773,6 +2773,18 @@ calculator()
                 <option value="sky-blue-soft">☁️ Sky Blue Soft</option>
                 <option value="peachy-calm">🍑 Peachy Calm</option>
               </optgroup>
+              <optgroup label="Business Professional">
+                <option value="executive-dark">💼 Executive Dark</option>
+                <option value="corporate-blue">🏢 Corporate Blue</option>
+                <option value="finance-green">💰 Finance Green</option>
+                <option value="professional-grey">📊 Professional Grey</option>
+                <option value="banking-teal">🏦 Banking Teal</option>
+                <option value="consulting-navy">📈 Consulting Navy</option>
+                <option value="accounting-beige">📋 Accounting Beige</option>
+                <option value="law-burgundy">⚖️ Law Burgundy</option>
+                <option value="tech-startup">🚀 Tech Startup</option>
+                <option value="healthcare-white">🏥 Healthcare White</option>
+              </optgroup>
               <optgroup label="Dark">
                 <option value="terminal-green">Terminal Green</option>
                 <option value="cyberpunk-dark">Cyberpunk Dark</option>
@@ -4148,6 +4160,18 @@ function getTheme(themeName: string): ThemeColors {
     'sage-comfort': { bg: '#edf2e8', text: '#556652', highlight: '#86a67c', border: '#dde5d6', subtle: '#e5ebe0' },
     'sky-blue-soft': { bg: '#e8f1f8', text: '#546478', highlight: '#6b9ac4', border: '#d6e5f0', subtle: '#dfeaf4' },
     'peachy-calm': { bg: '#f8ede8', text: '#6b5d58', highlight: '#d4a59a', border: '#ecddd6', subtle: '#f2e5df' },
+
+    // Business Professional Themes
+    'executive-dark': { bg: '#1a1e24', text: '#d4d8de', highlight: '#4a9eff', border: '#242832', subtle: '#242832' },
+    'corporate-blue': { bg: '#1f2838', text: '#e4e7ed', highlight: '#5b9ff5', border: '#2b3346', subtle: '#2b3346' },
+    'finance-green': { bg: '#1a2e25', text: '#dfe5e1', highlight: '#40d97a', border: '#25382f', subtle: '#25382f' },
+    'professional-grey': { bg: '#22252b', text: '#e0e2e5', highlight: '#6ba3ff', border: '#2d3138', subtle: '#2d3138' },
+    'banking-teal': { bg: '#12292c', text: '#e6eceb', highlight: '#40d2c8', border: '#1c3438', subtle: '#1c3438' },
+    'consulting-navy': { bg: '#0f1833', text: '#e0e3e8', highlight: '#5b9ff5', border: '#1a2440', subtle: '#1a2440' },
+    'accounting-beige': { bg: '#ebe9dc', text: '#3d3528', highlight: '#b8863f', border: '#e3d9cc', subtle: '#e3d9cc' },
+    'law-burgundy': { bg: '#1e1414', text: '#e0dada', highlight: '#d65555', border: '#2e1f1f', subtle: '#2e1f1f' },
+    'tech-startup': { bg: '#1e1a2e', text: '#e6e4ed', highlight: '#a366ff', border: '#291f38', subtle: '#291f38' },
+    'healthcare-white': { bg: '#f5f7f9', text: '#2d3d4a', highlight: '#3d9dd6', border: '#e6ebee', subtle: '#e6ebee' },
   };
 
   return themes[themeName] || themes['dracula']; // Fallback to dracula

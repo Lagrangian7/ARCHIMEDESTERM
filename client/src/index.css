@@ -529,6 +529,127 @@
   --voice-controls-gradient: linear-gradient(135deg, hsl(280 40% 8%) 0%, hsl(200 30% 5%) 33%, hsl(118 30% 5%) 66%, hsl(0 0% 0%) 100%);
 }
 
+/* Business Professional Themes */
+.theme-executive-dark {
+  --terminal-bg: hsl(210 15% 12%);
+  --terminal-text: hsl(210 10% 85%);
+  --terminal-highlight: hsl(210 80% 55%);
+  --terminal-subtle: hsl(210 15% 18%);
+  --terminal-subtle-rgb: 36, 40, 48;
+  --terminal-logo-green: hsl(210 80% 55%);
+  --terminal-bright-green: hsl(210 70% 65%);
+  --terminal-orange: hsl(45 85% 60%);
+  --terminal-no-bg: 1;
+}
+
+.theme-corporate-blue {
+  --terminal-bg: hsl(215 25% 15%);
+  --terminal-text: hsl(215 15% 90%);
+  --terminal-highlight: hsl(215 85% 58%);
+  --terminal-subtle: hsl(215 25% 22%);
+  --terminal-subtle-rgb: 43, 51, 70;
+  --terminal-logo-green: hsl(215 85% 58%);
+  --terminal-bright-green: hsl(195 75% 65%);
+  --terminal-orange: hsl(35 90% 62%);
+  --terminal-no-bg: 1;
+}
+
+.theme-finance-green {
+  --terminal-bg: hsl(150 20% 12%);
+  --terminal-text: hsl(150 15% 88%);
+  --terminal-highlight: hsl(150 75% 45%);
+  --terminal-subtle: hsl(150 20% 18%);
+  --terminal-subtle-rgb: 25, 46, 37;
+  --terminal-logo-green: hsl(150 75% 45%);
+  --terminal-bright-green: hsl(150 65% 55%);
+  --terminal-orange: hsl(45 88% 60%);
+  --terminal-no-bg: 1;
+}
+
+.theme-professional-grey {
+  --terminal-bg: hsl(220 10% 15%);
+  --terminal-text: hsl(220 10% 88%);
+  --terminal-highlight: hsl(220 70% 60%);
+  --terminal-subtle: hsl(220 10% 22%);
+  --terminal-subtle-rgb: 51, 54, 60;
+  --terminal-logo-green: hsl(220 70% 60%);
+  --terminal-bright-green: hsl(200 65% 65%);
+  --terminal-orange: hsl(40 85% 58%);
+  --terminal-no-bg: 1;
+}
+
+.theme-banking-teal {
+  --terminal-bg: hsl(185 30% 10%);
+  --terminal-text: hsl(185 20% 90%);
+  --terminal-highlight: hsl(185 70% 50%);
+  --terminal-subtle: hsl(185 30% 16%);
+  --terminal-subtle-rgb: 18, 41, 44;
+  --terminal-logo-green: hsl(185 70% 50%);
+  --terminal-bright-green: hsl(185 60% 60%);
+  --terminal-orange: hsl(45 85% 60%);
+  --terminal-no-bg: 1;
+}
+
+.theme-consulting-navy {
+  --terminal-bg: hsl(220 40% 10%);
+  --terminal-text: hsl(220 20% 88%);
+  --terminal-highlight: hsl(220 75% 55%);
+  --terminal-subtle: hsl(220 40% 16%);
+  --terminal-subtle-rgb: 15, 24, 51;
+  --terminal-logo-green: hsl(220 75% 55%);
+  --terminal-bright-green: hsl(200 70% 65%);
+  --terminal-orange: hsl(35 88% 62%);
+  --terminal-no-bg: 1;
+}
+
+.theme-accounting-beige {
+  --terminal-bg: hsl(35 20% 92%);
+  --terminal-text: hsl(35 30% 25%);
+  --terminal-highlight: hsl(35 70% 45%);
+  --terminal-subtle: hsl(35 20% 85%);
+  --terminal-subtle-rgb: 227, 217, 204;
+  --terminal-logo-green: hsl(35 70% 45%);
+  --terminal-bright-green: hsl(25 65% 50%);
+  --terminal-orange: hsl(15 75% 55%);
+  --terminal-no-bg: 1;
+}
+
+.theme-law-burgundy {
+  --terminal-bg: hsl(0 25% 12%);
+  --terminal-text: hsl(0 15% 88%);
+  --terminal-highlight: hsl(0 60% 55%);
+  --terminal-subtle: hsl(0 25% 18%);
+  --terminal-subtle-rgb: 46, 31, 31;
+  --terminal-logo-green: hsl(0 60% 55%);
+  --terminal-bright-green: hsl(15 55% 60%);
+  --terminal-orange: hsl(45 85% 60%);
+  --terminal-no-bg: 1;
+}
+
+.theme-tech-startup {
+  --terminal-bg: hsl(265 25% 12%);
+  --terminal-text: hsl(265 15% 90%);
+  --terminal-highlight: hsl(265 75% 60%);
+  --terminal-subtle: hsl(265 25% 18%);
+  --terminal-subtle-rgb: 36, 31, 46;
+  --terminal-logo-green: hsl(265 75% 60%);
+  --terminal-bright-green: hsl(190 70% 65%);
+  --terminal-orange: hsl(45 85% 62%);
+  --terminal-no-bg: 1;
+}
+
+.theme-healthcare-white {
+  --terminal-bg: hsl(200 15% 96%);
+  --terminal-text: hsl(200 25% 20%);
+  --terminal-highlight: hsl(200 75% 45%);
+  --terminal-subtle: hsl(200 15% 88%);
+  --terminal-subtle-rgb: 230, 235, 238;
+  --terminal-logo-green: hsl(200 75% 45%);
+  --terminal-bright-green: hsl(180 65% 50%);
+  --terminal-orange: hsl(35 85% 55%);
+  --terminal-no-bg: 1;
+}
+
 /* New Eye-Friendly Themes - No Background Image */
 .theme-nord-dark {
   --terminal-bg: hsl(220 16% 22%);

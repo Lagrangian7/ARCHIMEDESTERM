@@ -228,7 +228,9 @@ export function UserProfile({ onClose }: UserProfileProps) {
                   'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle',
                   'nord-dark', 'gruvbox-dark', 'tokyo-night-dark', 'catppuccin-mocha', 'everforest-dark',
                   'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light',
-                  'midnight-gradient', 'twilight-gradient', 'ocean-gradient', 'ember-gradient'
+                  'midnight-gradient', 'twilight-gradient', 'ocean-gradient', 'ember-gradient',
+                  'executive-dark', 'corporate-blue', 'finance-green', 'professional-grey', 'banking-teal',
+                  'consulting-navy', 'accounting-beige', 'law-burgundy', 'tech-startup', 'healthcare-white'
                 ].map((theme) => (
                   <Button
                     key={theme}

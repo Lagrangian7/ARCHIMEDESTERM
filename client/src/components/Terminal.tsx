@@ -184,7 +184,9 @@ export function Terminal() {
     'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle',
     'nord-dark', 'gruvbox-dark', 'tokyo-night-dark', 'catppuccin-mocha', 'everforest-dark',
     'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light',
-    'midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'
+    'midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient',
+    'executive-dark', 'corporate-blue', 'finance-green', 'professional-grey', 'banking-teal',
+    'consulting-navy', 'accounting-beige', 'law-burgundy', 'tech-startup', 'healthcare-white'
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>(() => {
     // Load theme from user preferences, localStorage, or default to forest-gradient
