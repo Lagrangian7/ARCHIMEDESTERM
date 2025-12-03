@@ -50,8 +50,8 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [currentMode, setCurrentMode] = useState<'natural' | 'technical' | 'freestyle' | 'health'>(() => {
     // Initialize from localStorage if available, default to 'natural'
     const savedMode = localStorage.getItem('ai-mode');
-    return (savedMode === 'natural' || savedMode === 'technical' || savedMode === 'freestyle' || savedMode === 'health') 
-      ? savedMode 
+    return (savedMode === 'natural' || savedMode === 'technical' || savedMode === 'freestyle' || savedMode === 'health')
+      ? savedMode
       : 'natural';
   });
   const [isTyping, setIsTyping] = useState(false);
@@ -78,6 +78,7 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [showPythonIDE, setShowPythonIDE] = useState(false);
   const [showPythonLessons, setShowPythonLessons] = useState(false);
   const [showWebSynth, setShowWebSynth] = useState(false);
+  const [showCodePlayground, setShowCodePlayground] = useState(false); // Added state for code playground
 
   const chatMutation = useMutation({
     mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' | 'freestyle' | 'health' }) => {
@@ -2881,8 +2882,8 @@ Powered by Wolfram Alpha Full Results API`);
     clearTerminal,
     switchMode,
     getHistoryCommand,
+    isLoading: chatMutation.isPending || weatherMutation.isPending,
     loadConversation,
-    isLoading: chatMutation.isPending,
     previewCode,
     setPreviewCode,
     showPythonIDE,
@@ -2891,5 +2892,7 @@ Powered by Wolfram Alpha Full Results API`);
     setShowPythonLessons,
     showWebSynth,
     setShowWebSynth,
+    showCodePlayground, // Export showCodePlayground state
+    setShowCodePlayground, // Export setShowCodePlayground function
   };
 }

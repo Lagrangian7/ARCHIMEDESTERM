@@ -61,8 +61,10 @@ export function Terminal() {
     loadConversation,
     previewCode,
     setPreviewCode,
-    showWebSynth, // Destructure showWebSynth
-    setShowWebSynth, // Destructure setShowWebSynth
+    showWebSynth,
+    setShowWebSynth,
+    showCodePlayground,
+    setShowCodePlayground,
   } = useTerminal(() => {
     if (isAuthenticated) {
       setShowUpload(true);
@@ -162,7 +164,6 @@ export function Terminal() {
     console.log('Initial background URL loaded:', saved);
     return saved || '';
   });
-  const [showCodePlayground, setShowCodePlayground] = useState(false);
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
 
