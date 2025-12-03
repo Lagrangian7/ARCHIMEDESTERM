@@ -972,7 +972,7 @@ export function Terminal() {
             setPreviewCode(null);
           }}
           initialCode={previewCode || undefined}
-          currentTheme={theme}
+          currentTheme={currentTheme}
         />
       )}
 
