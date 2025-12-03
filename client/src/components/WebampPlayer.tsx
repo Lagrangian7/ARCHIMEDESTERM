@@ -99,21 +99,18 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
         const webamp = new Webamp({
           enableHotkeys: true,
 
-          // Initial window layout with shade mode enabled, centered horizontally
+          // Initial window layout centered horizontally - shade mode will be set programmatically
           __initialWindowLayout: {
             main: {
               position: { x: centerX, y: 0 },
-              shadeMode: true,
               closed: false,
             },
             equalizer: {
-              position: { x: centerX, y: 14 }, // 14px down (height of shaded main)
-              shadeMode: true,
+              position: { x: centerX, y: 116 }, // Below main window in normal mode
               closed: false,
             },
             playlist: {
-              position: { x: centerX, y: 28 }, // 28px down (height of shaded main + eq)
-              shadeMode: true,
+              position: { x: centerX, y: 232 }, // Below equalizer in normal mode
               closed: false,
             }
           },
@@ -618,59 +615,27 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
           webampRef.current = webamp;
           console.log('Webamp initialized successfully');
 
-          // Force all windows into shade mode using multiple methods
-          setTimeout(() => {
-            // Method 1: Try Webamp's internal store methods
-            try {
-              const store = (webamp as any)._store;
-              if (store) {
-                // Dispatch actions to toggle shade mode
-                store.dispatch({ type: 'TOGGLE_MAIN_WINDOW_SHADE_MODE' });
-                store.dispatch({ type: 'TOGGLE_EQUALIZER_SHADE_MODE' });
-                store.dispatch({ type: 'TOGGLE_PLAYLIST_SHADE_MODE' });
-                console.log('Applied shade mode via Webamp store');
-              }
-            } catch (e) {
-              console.warn('Could not use Webamp store method:', e);
-            }
-
-            // Method 2: Fallback to DOM manipulation
+          // Force all windows into shade mode immediately after render
+          const store = (webamp as any)._store;
+          if (store) {
+            // Dispatch shade mode toggles immediately
+            store.dispatch({ type: 'TOGGLE_MAIN_WINDOW_SHADE_MODE' });
+            store.dispatch({ type: 'TOGGLE_EQUALIZER_SHADE_MODE' });
+            store.dispatch({ type: 'TOGGLE_PLAYLIST_SHADE_MODE' });
+            console.log('Dispatched shade mode toggles');
+            
+            // Update positions after shade mode is applied
             setTimeout(() => {
-              const mainWindow = document.querySelector('#main-window');
-              const isMainShaded = mainWindow?.classList.contains('shade');
-              
-              if (!isMainShaded) {
-                const shadeButton = document.querySelector('#main-window #shade') || 
-                                   document.querySelector('#main-window [title="Shade Mode"]') ||
-                                   document.querySelector('#main-window .shade-button');
-                
-                if (shadeButton instanceof HTMLElement) {
-                  console.log('Clicking main window shade button');
-                  shadeButton.click();
+              store.dispatch({ 
+                type: 'UPDATE_WINDOW_POSITIONS',
+                positions: {
+                  main: { x: centerX, y: 0 },
+                  equalizer: { x: centerX, y: 14 },
+                  playlist: { x: centerX, y: 28 }
                 }
-              }
-              
-              const eqWindow = document.querySelector('#equalizer-window');
-              const isEqShaded = eqWindow?.classList.contains('shade');
-              
-              if (!isEqShaded) {
-                const eqShadeButton = document.querySelector('#equalizer-window #equalizer-shade');
-                if (eqShadeButton instanceof HTMLElement) {
-                  eqShadeButton.click();
-                }
-              }
-              
-              const playlistWindow = document.querySelector('#playlist-window');
-              const isPlaylistShaded = playlistWindow?.classList.contains('shade');
-              
-              if (!isPlaylistShaded) {
-                const playlistShadeButton = document.querySelector('#playlist-window #playlist-shade-button');
-                if (playlistShadeButton instanceof HTMLElement) {
-                  playlistShadeButton.click();
-                }
-              }
-            }, 100);
-          }, 100);
+              });
+            }, 50);
+          }
 
           // Auto-play the track
           webamp.play();
