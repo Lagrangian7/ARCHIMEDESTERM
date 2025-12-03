@@ -616,19 +616,45 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       });
     }
 
-    // Get theme colors from CSS variables
+    // Get theme colors from CSS variables and convert HSL to hex
     const computedStyle = getComputedStyle(document.documentElement);
     const terminalBg = computedStyle.getPropertyValue('--terminal-bg').trim() || '#0D1117';
     const terminalText = computedStyle.getPropertyValue('--terminal-text').trim() || '#00FF41';
     const terminalHighlight = computedStyle.getPropertyValue('--terminal-highlight').trim() || '#00FF41';
     const terminalSubtle = computedStyle.getPropertyValue('--terminal-subtle').trim() || '#1a2332';
 
-    // Convert HSL to hex if needed (simplified - works for most cases)
-    const getHexColor = (color: string) => {
-      if (color.startsWith('#')) return color.replace('#', '');
-      // For simplicity, return a default if not hex
-      return color.includes('hsl') ? terminalHighlight.replace('#', '') || '00FF41' : color;
+    // Convert HSL to hex
+    const hslToHex = (hslString: string): string => {
+      if (hslString.startsWith('#')) return hslString.replace('#', '');
+      
+      const hslMatch = hslString.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
+      if (!hslMatch) return '00FF41'; // fallback
+      
+      const h = parseInt(hslMatch[1]);
+      const s = parseInt(hslMatch[2]) / 100;
+      const l = parseInt(hslMatch[3]) / 100;
+      
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      const m = l - c / 2;
+      
+      let r = 0, g = 0, b = 0;
+      if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
+      else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
+      else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
+      else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
+      else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
+      else if (h >= 300 && h < 360) { r = c; g = 0; b = x; }
+      
+      const toHex = (n: number) => {
+        const hex = Math.round((n + m) * 255).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      };
+      
+      return toHex(r) + toHex(g) + toHex(b);
     };
+
+    const getHexColor = (color: string) => hslToHex(color);
 
     monaco.editor.defineTheme('archimedes-dynamic', {
       base: 'vs-dark',
