@@ -618,6 +618,27 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
           webampRef.current = webamp;
           console.log('Webamp initialized successfully');
 
+          // Force all windows into shade mode after a brief delay to ensure they're rendered
+          setTimeout(() => {
+            // Toggle shade mode for main window
+            const shadeButton = document.querySelector('#main-window #shade');
+            if (shadeButton instanceof HTMLElement && !document.querySelector('#main-window.shade')) {
+              shadeButton.click();
+            }
+            
+            // Toggle shade mode for equalizer
+            const eqShadeButton = document.querySelector('#equalizer-window #equalizer-shade');
+            if (eqShadeButton instanceof HTMLElement && !document.querySelector('#equalizer-window.shade')) {
+              eqShadeButton.click();
+            }
+            
+            // Toggle shade mode for playlist
+            const playlistShadeButton = document.querySelector('#playlist-window #playlist-shade-button');
+            if (playlistShadeButton instanceof HTMLElement && !document.querySelector('#playlist-window.shade')) {
+              playlistShadeButton.click();
+            }
+          }, 100);
+
           // Auto-play the track
           webamp.play();
 
