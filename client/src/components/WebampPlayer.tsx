@@ -94,6 +94,25 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
         const webamp = new Webamp({
           enableHotkeys: true,
 
+          // Initial window layout with shade mode enabled
+          __initialWindowLayout: {
+            main: {
+              position: { x: 0, y: 0 },
+              shadeMode: true,
+              closed: false,
+            },
+            equalizer: {
+              position: { x: 0, y: 14 },
+              shadeMode: true,
+              closed: false,
+            },
+            playlist: {
+              position: { x: 0, y: 28 },
+              shadeMode: true,
+              closed: false,
+            }
+          },
+
           // Milkdrop opened by default next to other windows
           __butterchurnOptions: {
             importButterchurn: () => import('butterchurn'),
@@ -355,25 +374,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             url: "/skin-technics.wsz"
           },
 
-          // Initial window layout - positioned at top center with Milkdrop
-          windowLayout: {
-            main: { 
-              position: { top: 10, left: Math.floor(window.innerWidth / 2 - 137) }
-            },
-            equalizer: { 
-              position: { top: 10, left: Math.floor(window.innerWidth / 2 + 138) },
-              closed: false
-            },
-            playlist: { 
-              position: { top: 130, left: Math.floor(window.innerWidth / 2 - 137) },
-              closed: false
-            },
-            milkdrop: {
-              position: { top: 130, left: Math.floor(window.innerWidth / 2 + 138) },
-              size: [0, 0], // Use default Milkdrop size
-              closed: false
-            }
-          },
+          
 
           // Available skins
           availableSkins: [
