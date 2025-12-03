@@ -139,7 +139,7 @@ export function VoiceControls({
       <div className="flex items-center gap-2 md:gap-4">
         <LogoIcon />
         <div className="min-w-0">
-          <h1 className="font-bold terminal-text terminal-glow text-xs md:text-[15px] whitespace-nowrap" data-testid="text-title">
+          <h1 className="font-bold terminal-text terminal-glow md:text-[15px] whitespace-nowrap text-[16px]" data-testid="text-title">
             ARCHIMEDES <span className="text-[8px] md:text-[10px]">v7</span>
           </h1>
           <div className="text-xs md:text-sm truncate">
