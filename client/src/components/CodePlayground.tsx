@@ -357,7 +357,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   const lastInitialCodeRef = useRef<string | null>(null);
 
   // Window management state
-  const [isMaximized, setIsMaximized] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(true); // Start maximized by default like Workshop
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -375,56 +375,57 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
     localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
   }, [monacoAIMode]);
 
-  // Center window on mount
+  // Initialize to full-screen on mount (matching Workshop behavior)
   useEffect(() => {
     const terminalAreaTop = 60;
     const terminalAreaBottom = 60;
-    const centerX = (window.innerWidth - dimensions.width) / 2;
-    const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - dimensions.height) / 2);
-    setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
+    setDimensions({ width: window.innerWidth, height: window.innerHeight - terminalAreaTop - terminalAreaBottom });
+    setPosition({ x: 0, y: terminalAreaTop });
   }, []);
 
-  // Handle maximize toggle
+  // Handle maximize toggle (matching Workshop behavior)
   const toggleMaximize = useCallback(() => {
+    const terminalAreaTop = 60;
+    const terminalAreaBottom = 60;
+
     if (isMaximized) {
-      // Restore to optimal size
-      const terminalAreaTop = 60;
-      const terminalAreaBottom = 60;
-      const centerX = (window.innerWidth - 1200) / 2;
-      const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - 700) / 2);
-      setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
-      setDimensions({ width: 1200, height: 700 });
+      const width = 900;
+      const height = 700;
+      setDimensions({ width, height });
+      const rightX = window.innerWidth - width - 20;
+      const topY = 50;
+      setPosition({ x: Math.max(0, rightX), y: Math.max(terminalAreaTop, topY) });
       setIsMaximized(false);
     } else {
-      // Maximize
-      const terminalAreaTop = 60;
-      const terminalAreaBottom = 60;
-      setPosition({ x: 0, y: terminalAreaTop });
-      setDimensions({ width: window.innerWidth, height: window.innerHeight - terminalAreaTop - terminalAreaBottom });
       setIsMaximized(true);
+      setDimensions({ width: window.innerWidth, height: window.innerHeight - terminalAreaTop - terminalAreaBottom });
+      setPosition({ x: 0, y: terminalAreaTop });
     }
   }, [isMaximized]);
 
-  // Mouse move handler for dragging
+  // Mouse move handler for dragging (matching Workshop behavior)
   const handleMouseMove = useCallback((e: MouseEvent) => {
+    const terminalAreaTop = 60;
+
     if (isDragging) {
-      const terminalAreaTop = 60;
-      const terminalAreaBottom = 60;
       const deltaX = e.clientX - dragStartRef.current.x;
       const deltaY = e.clientY - dragStartRef.current.y;
       setPosition(prev => ({
-        x: Math.max(0, Math.min(prev.x + deltaX, window.innerWidth - dimensions.width)),
-        y: Math.max(terminalAreaTop, Math.min(prev.y + deltaY, window.innerHeight - terminalAreaBottom - dimensions.height))
+        x: Math.max(0, Math.min(window.innerWidth - 300, prev.x + deltaX)),
+        y: Math.max(terminalAreaTop, Math.min(window.innerHeight - 200, prev.y + deltaY))
       }));
       dragStartRef.current = { x: e.clientX, y: e.clientY };
     } else if (isResizing) {
-      const deltaX = e.clientX - resizeStartRef.current.mouseX;
-      const deltaY = e.clientY - resizeStartRef.current.mouseY;
-      const newWidth = Math.max(600, resizeStartRef.current.width + deltaX);
-      const newHeight = Math.max(400, resizeStartRef.current.height + deltaY);
-      setDimensions({ width: newWidth, height: newHeight });
+      const deltaWidth = e.clientX - resizeStartRef.current.mouseX;
+      const deltaHeight = e.clientY - resizeStartRef.current.mouseY;
+      setDimensions(prev => ({
+        width: Math.max(300, Math.min(window.innerWidth - position.x, prev.width + deltaWidth)),
+        height: Math.max(300, Math.min(window.innerHeight - position.y - 60, prev.height + deltaHeight))
+      }));
+      resizeStartRef.current.mouseX = e.clientX;
+      resizeStartRef.current.mouseY = e.clientY;
     }
-  }, [isDragging, isResizing, dimensions.width, dimensions.height]);
+  }, [isDragging, isResizing, position.x, position.y]);
 
   // Mouse up handler
   const handleMouseUp = useCallback(() => {
