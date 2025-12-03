@@ -11,6 +11,7 @@ import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import playIcon from '../../../attached_assets/play icon.png';
 
 type MonacoAIMode = 'natural' | 'technical' | 'freestyle' | 'health';
 
@@ -734,7 +735,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       >
         <div className="flex items-center gap-3">
           <img 
-            src="/code-playground-icon.png" 
+            src={playIcon} 
             alt="Code Playground" 
             className="w-6 h-6"
             style={{ filter: 'invert(1) brightness(1.2)' }}
