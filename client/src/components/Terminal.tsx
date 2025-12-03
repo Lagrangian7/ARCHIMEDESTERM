@@ -800,7 +800,7 @@ export function Terminal() {
         {/* Command Input - Fixed at bottom */}
         <div className="flex-shrink-0 p-2 md:p-4 border-t border-terminal-subtle bg-terminal-bg relative z-10">
           <div className="flex items-center gap-1 md:gap-2 relative">
-            <span className="text-terminal-highlight font-semibold text-[10px] md:text-sm hidden sm:inline">archimedes@terminal:~$</span>
+            <span className="text-terminal-highlight md:text-sm hidden sm:inline text-[16px] font-bold">archimedes@terminal:~$</span>
             <span className="text-terminal-highlight font-semibold text-xs sm:hidden">$</span>
             <div className="flex-1 relative">
               <input
