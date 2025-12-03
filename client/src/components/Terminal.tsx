@@ -965,13 +965,13 @@ export function Terminal() {
       />
 
       {/* Code Playground - for running code */}
-      {showCodePlayground && previewCode && (
+      {showCodePlayground && (
         <CodePlayground
           onClose={() => {
             setShowCodePlayground(false);
             setPreviewCode(null);
           }}
-          initialCode={previewCode}
+          initialCode={previewCode || undefined}
         />
       )}
 
