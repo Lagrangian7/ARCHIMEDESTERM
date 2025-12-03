@@ -107,196 +107,196 @@
   --terminal-no-bg: 0; /* Flag to hide background image */
 }
 
-/* Professional Terminal Theme Classes - Enhanced with detailed color coordination */
+/* Professional Terminal Theme Classes - Enhanced with STRIKING gradients and vibrant colors */
 
 /* Classic Terminal Green - Professional phosphor CRT aesthetic */
 .theme-green {
-  --terminal-bg: radial-gradient(ellipse at top left, hsl(145 25% 12%) 0%, hsl(140 15% 8%) 50%, hsl(135 8% 5%) 100%);
+  --terminal-bg: radial-gradient(ellipse at top left, hsl(145 45% 18%) 0%, hsl(140 35% 12%) 30%, hsl(135 25% 8%) 70%, hsl(130 15% 4%) 100%);
   --terminal-bg-solid: hsl(140 8% 8%);
-  --terminal-text: hsl(142 65% 68%);
-  --terminal-highlight: hsl(142 75% 75%);
-  --terminal-subtle: hsl(145 25% 18%);
+  --terminal-text: hsl(142 80% 75%);
+  --terminal-highlight: hsl(142 95% 85%);
+  --terminal-subtle: hsl(145 40% 22%);
   --terminal-subtle-rgb: 36, 57, 45;
-  --terminal-logo-green: hsl(142 75% 75%);
-  --terminal-bright-green: hsl(142 85% 82%);
-  --terminal-orange: hsl(38 88% 62%);
+  --terminal-logo-green: hsl(142 95% 85%);
+  --terminal-bright-green: hsl(142 100% 90%);
+  --terminal-orange: hsl(38 100% 70%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(140 30% 12%) 0%, hsl(140 20% 8%) 50%, hsl(140 10% 5%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(140 50% 16%) 0%, hsl(145 40% 12%) 30%, hsl(140 30% 10%) 70%, hsl(135 20% 6%) 100%);
 }
 
 /* Professional Blue - Corporate command line */
 .theme-blue {
-  --terminal-bg: linear-gradient(to bottom right, hsl(215 25% 12%) 0%, hsl(210 20% 9%) 40%, hsl(205 15% 6%) 100%);
+  --terminal-bg: linear-gradient(135deg, hsl(215 50% 18%) 0%, hsl(210 45% 14%) 25%, hsl(205 40% 10%) 60%, hsl(200 35% 6%) 100%);
   --terminal-bg-solid: hsl(210 18% 9%);
-  --terminal-text: hsl(205 72% 72%);
-  --terminal-highlight: hsl(200 85% 78%);
-  --terminal-subtle: hsl(208 28% 16%);
+  --terminal-text: hsl(205 85% 78%);
+  --terminal-highlight: hsl(200 100% 85%);
+  --terminal-subtle: hsl(208 45% 20%);
   --terminal-subtle-rgb: 30, 40, 58;
-  --terminal-logo-green: hsl(200 85% 78%);
-  --terminal-bright-green: hsl(195 80% 82%);
-  --terminal-orange: hsl(42 95% 68%);
+  --terminal-logo-green: hsl(200 100% 85%);
+  --terminal-bright-green: hsl(195 95% 88%);
+  --terminal-orange: hsl(42 100% 75%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(210 35% 13%) 0%, hsl(210 25% 9%) 50%, hsl(210 15% 6%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(210 55% 18%) 0%, hsl(210 45% 14%) 40%, hsl(210 35% 10%) 70%, hsl(210 25% 6%) 100%);
 }
 
 /* Warm Orange - Modern developer aesthetic */
 .theme-orange {
-  --terminal-bg: radial-gradient(circle at bottom right, hsl(35 20% 12%) 0%, hsl(28 15% 9%) 50%, hsl(20 10% 6%) 100%);
+  --terminal-bg: radial-gradient(circle at bottom right, hsl(35 45% 18%) 0%, hsl(28 40% 14%) 30%, hsl(20 35% 10%) 60%, hsl(15 30% 6%) 100%);
   --terminal-bg-solid: hsl(25 12% 9%);
-  --terminal-text: hsl(32 78% 68%);
-  --terminal-highlight: hsl(28 88% 74%);
-  --terminal-subtle: hsl(28 22% 17%);
+  --terminal-text: hsl(32 90% 75%);
+  --terminal-highlight: hsl(28 100% 82%);
+  --terminal-subtle: hsl(28 40% 22%);
   --terminal-subtle-rgb: 52, 42, 34;
-  --terminal-logo-green: hsl(28 88% 74%);
-  --terminal-bright-green: hsl(32 90% 78%);
-  --terminal-orange: hsl(198 75% 65%);
+  --terminal-logo-green: hsl(28 100% 82%);
+  --terminal-bright-green: hsl(32 100% 85%);
+  --terminal-orange: hsl(198 90% 72%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(25 28% 12%) 0%, hsl(25 18% 8%) 50%, hsl(25 10% 5%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(25 50% 18%) 0%, hsl(28 40% 14%) 40%, hsl(25 30% 10%) 70%, hsl(20 20% 6%) 100%);
 }
 
 /* Professional Greyscale - Minimalist precision */
 .theme-greyscale {
-  --terminal-bg: linear-gradient(135deg, hsl(210 10% 13%) 0%, hsl(210 8% 10%) 50%, hsl(210 6% 7%) 100%);
+  --terminal-bg: linear-gradient(135deg, hsl(210 20% 18%) 0%, hsl(210 15% 14%) 30%, hsl(210 12% 10%) 60%, hsl(210 8% 5%) 100%);
   --terminal-bg-solid: hsl(210 6% 10%);
-  --terminal-text: hsl(210 8% 78%);
-  --terminal-highlight: hsl(210 10% 88%);
-  --terminal-subtle: hsl(210 8% 22%);
+  --terminal-text: hsl(210 15% 88%);
+  --terminal-highlight: hsl(210 20% 98%);
+  --terminal-subtle: hsl(210 18% 28%);
   --terminal-subtle-rgb: 53, 56, 60;
-  --terminal-logo-green: hsl(210 10% 88%);
-  --terminal-bright-green: hsl(210 12% 92%);
-  --terminal-orange: hsl(210 6% 65%);
+  --terminal-logo-green: hsl(210 20% 98%);
+  --terminal-bright-green: hsl(210 22% 100%);
+  --terminal-orange: hsl(210 12% 75%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(210 10% 14%) 0%, hsl(210 8% 10%) 50%, hsl(210 6% 7%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(210 20% 20%) 0%, hsl(210 15% 14%) 40%, hsl(210 12% 10%) 70%, hsl(210 8% 5%) 100%);
 }
 
 /* Ruby Red - Alert-focused professional */
 .theme-red {
-  --terminal-bg: radial-gradient(ellipse at center, hsl(358 22% 12%) 0%, hsl(355 18% 9%) 60%, hsl(350 12% 6%) 100%);
+  --terminal-bg: radial-gradient(ellipse at center, hsl(358 40% 18%) 0%, hsl(355 35% 14%) 35%, hsl(350 30% 10%) 65%, hsl(345 25% 5%) 100%);
   --terminal-bg-solid: hsl(355 15% 10%);
-  --terminal-text: hsl(358 68% 70%);
-  --terminal-highlight: hsl(2 78% 76%);
-  --terminal-subtle: hsl(356 22% 18%);
+  --terminal-text: hsl(358 85% 78%);
+  --terminal-highlight: hsl(2 100% 85%);
+  --terminal-subtle: hsl(356 40% 24%);
   --terminal-subtle-rgb: 56, 36, 38;
-  --terminal-logo-green: hsl(2 78% 76%);
-  --terminal-bright-green: hsl(5 82% 80%);
-  --terminal-orange: hsl(45 92% 66%);
+  --terminal-logo-green: hsl(2 100% 85%);
+  --terminal-bright-green: hsl(5 100% 88%);
+  --terminal-orange: hsl(45 100% 75%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(355 28% 12%) 0%, hsl(355 20% 8%) 50%, hsl(355 12% 5%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(355 45% 18%) 0%, hsl(355 35% 14%) 40%, hsl(355 25% 10%) 70%, hsl(350 20% 6%) 100%);
 }
 
 /* High Contrast Black & White - Accessibility focused */
 .theme-blackwhite {
-  --terminal-bg: linear-gradient(to right, hsl(0 0% 8%) 0%, hsl(0 0% 5%) 50%, hsl(0 0% 3%) 100%);
+  --terminal-bg: linear-gradient(45deg, hsl(0 0% 12%) 0%, hsl(0 0% 8%) 25%, hsl(0 0% 4%) 60%, hsl(0 0% 0%) 100%);
   --terminal-bg-solid: hsl(0 0% 5%);
-  --terminal-text: hsl(0 0% 96%);
+  --terminal-text: hsl(0 0% 100%);
   --terminal-highlight: hsl(0 0% 100%);
-  --terminal-subtle: hsl(0 0% 18%);
+  --terminal-subtle: hsl(0 0% 25%);
   --terminal-subtle-rgb: 46, 46, 46;
   --terminal-logo-green: hsl(0 0% 100%);
-  --terminal-bright-green: hsl(0 0% 98%);
-  --terminal-orange: hsl(0 0% 75%);
+  --terminal-bright-green: hsl(0 0% 100%);
+  --terminal-orange: hsl(0 0% 85%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(0 0% 12%) 0%, hsl(0 0% 8%) 50%, hsl(0 0% 5%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(0 0% 18%) 0%, hsl(0 0% 12%) 40%, hsl(0 0% 8%) 70%, hsl(0 0% 3%) 100%);
 }
 
 /* Patriotic - Professional American theme */
 .theme-patriot {
-  --terminal-bg: linear-gradient(160deg, hsl(220 20% 12%) 0%, hsl(358 15% 10%) 25%, hsl(220 18% 9%) 50%, hsl(220 15% 7%) 100%);
+  --terminal-bg: linear-gradient(160deg, hsl(220 45% 20%) 0%, hsl(358 40% 16%) 20%, hsl(0 0% 98%) 35%, hsl(220 40% 14%) 55%, hsl(358 35% 12%) 75%, hsl(220 35% 8%) 100%);
   --terminal-bg-solid: hsl(220 15% 10%);
-  --terminal-text: hsl(0 0% 92%);
-  --terminal-highlight: hsl(358 72% 68%);
-  --terminal-subtle: hsl(218 35% 20%);
+  --terminal-text: hsl(0 0% 98%);
+  --terminal-highlight: hsl(358 90% 75%);
+  --terminal-subtle: hsl(218 50% 26%);
   --terminal-subtle-rgb: 33, 40, 69;
-  --terminal-logo-green: hsl(358 72% 68%);
-  --terminal-bright-green: hsl(2 78% 72%);
-  --terminal-orange: hsl(214 75% 65%);
+  --terminal-logo-green: hsl(358 90% 75%);
+  --terminal-bright-green: hsl(2 95% 80%);
+  --terminal-orange: hsl(214 90% 72%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(220 30% 12%) 0%, hsl(358 25% 10%) 50%, hsl(220 20% 8%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(220 50% 18%) 0%, hsl(358 45% 14%) 30%, hsl(220 40% 12%) 70%, hsl(358 35% 10%) 100%);
 }
 
 /* Solarized - Professional color science */
 .theme-solarized {
-  --terminal-bg: radial-gradient(circle at top right, hsl(193 85% 13%) 0%, hsl(192 100% 11%) 50%, hsl(193 90% 9%) 100%);
+  --terminal-bg: radial-gradient(circle at top right, hsl(193 100% 20%) 0%, hsl(192 100% 16%) 30%, hsl(193 100% 12%) 65%, hsl(192 95% 8%) 100%);
   --terminal-bg-solid: hsl(192 100% 11%);
-  --terminal-text: hsl(186 15% 62%);
-  --terminal-highlight: hsl(45 100% 48%);
-  --terminal-subtle: hsl(193 75% 15%);
+  --terminal-text: hsl(186 25% 72%);
+  --terminal-highlight: hsl(45 100% 58%);
+  --terminal-subtle: hsl(193 90% 22%);
   --terminal-subtle-rgb: 10, 55, 67;
-  --terminal-logo-green: hsl(45 100% 48%);
-  --terminal-bright-green: hsl(186 18% 68%);
-  --terminal-orange: hsl(18 85% 52%);
+  --terminal-logo-green: hsl(45 100% 58%);
+  --terminal-bright-green: hsl(186 30% 78%);
+  --terminal-orange: hsl(18 100% 62%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(193 85% 13%) 0%, hsl(193 75% 10%) 50%, hsl(193 65% 8%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(193 100% 18%) 0%, hsl(193 95% 14%) 40%, hsl(193 90% 10%) 70%, hsl(193 85% 8%) 100%);
 }
 
 /* Commodore 64 - Vintage computing refined */
 .theme-commodore64 {
-  --terminal-bg: hsl(227 52% 28%);
-  --terminal-text: hsl(193 88% 78%);
-  --terminal-highlight: hsl(193 92% 85%);
-  --terminal-subtle: hsl(227 45% 35%);
+  --terminal-bg: radial-gradient(ellipse at center, hsl(227 70% 38%) 0%, hsl(227 65% 32%) 40%, hsl(227 60% 26%) 70%, hsl(227 55% 20%) 100%);
+  --terminal-text: hsl(193 100% 85%);
+  --terminal-highlight: hsl(193 100% 92%);
+  --terminal-subtle: hsl(227 60% 45%);
   --terminal-subtle-rgb: 50, 61, 131;
-  --terminal-logo-green: hsl(193 92% 85%);
-  --terminal-bright-green: hsl(193 88% 88%);
-  --terminal-orange: hsl(193 80% 70%);
+  --terminal-logo-green: hsl(193 100% 92%);
+  --terminal-bright-green: hsl(193 100% 95%);
+  --terminal-orange: hsl(193 95% 78%);
   --terminal-no-bg: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(227 48% 30%) 0%, hsl(227 45% 25%) 50%, hsl(227 42% 22%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(227 68% 40%) 0%, hsl(227 62% 34%) 40%, hsl(227 58% 28%) 70%, hsl(227 52% 22%) 100%);
 }
 
 /* Cyberpunk - Neon professional aesthetic */
 .theme-cyberpunk {
-  --terminal-bg: linear-gradient(45deg, hsl(315 25% 10%) 0%, hsl(280 12% 8%) 33%, hsl(180 20% 9%) 66%, hsl(280 10% 6%) 100%);
+  --terminal-bg: linear-gradient(45deg, hsl(315 50% 18%) 0%, hsl(280 35% 14%) 25%, hsl(180 45% 16%) 50%, hsl(280 30% 12%) 75%, hsl(315 40% 10%) 100%);
   --terminal-bg-solid: hsl(280 8% 8%);
-  --terminal-text: hsl(315 82% 72%);
-  --terminal-highlight: hsl(180 88% 65%);
-  --terminal-subtle: hsl(315 28% 18%);
+  --terminal-text: hsl(315 100% 80%);
+  --terminal-highlight: hsl(180 100% 75%);
+  --terminal-subtle: hsl(315 45% 24%);
   --terminal-subtle-rgb: 58, 33, 53;
-  --terminal-logo-green: hsl(315 82% 72%);
-  --terminal-bright-green: hsl(180 88% 70%);
-  --terminal-orange: hsl(52 95% 65%);
+  --terminal-logo-green: hsl(315 100% 80%);
+  --terminal-bright-green: hsl(180 100% 78%);
+  --terminal-orange: hsl(52 100% 72%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(315 35% 10%) 0%, hsl(180 25% 8%) 50%, hsl(280 15% 6%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(315 55% 18%) 0%, hsl(180 45% 14%) 30%, hsl(280 35% 12%) 70%, hsl(315 40% 10%) 100%);
 }
 
 /* Forest - Natural developer environment */
 .theme-forest {
-  --terminal-bg: radial-gradient(ellipse at bottom left, hsl(145 28% 14%) 0%, hsl(142 22% 11%) 60%, hsl(138 18% 8%) 100%);
+  --terminal-bg: radial-gradient(ellipse at bottom left, hsl(145 50% 22%) 0%, hsl(142 45% 18%) 35%, hsl(138 40% 14%) 65%, hsl(135 35% 10%) 100%);
   --terminal-bg-solid: hsl(142 22% 12%);
-  --terminal-text: hsl(125 55% 68%);
-  --terminal-highlight: hsl(95 65% 72%);
-  --terminal-subtle: hsl(142 32% 20%);
+  --terminal-text: hsl(125 75% 78%);
+  --terminal-highlight: hsl(95 85% 82%);
+  --terminal-subtle: hsl(142 50% 28%);
   --terminal-subtle-rgb: 35, 67, 48;
-  --terminal-logo-green: hsl(95 65% 72%);
-  --terminal-bright-green: hsl(125 60% 72%);
-  --terminal-orange: hsl(38 78% 62%);
+  --terminal-logo-green: hsl(95 85% 82%);
+  --terminal-bright-green: hsl(125 80% 82%);
+  --terminal-orange: hsl(38 95% 72%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(142 35% 14%) 0%, hsl(142 28% 11%) 50%, hsl(142 22% 8%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(142 55% 20%) 0%, hsl(142 48% 16%) 40%, hsl(142 40% 12%) 70%, hsl(138 35% 10%) 100%);
 }
 
 /* Ocean - Deep professional blue */
 .theme-ocean {
-  --terminal-bg: linear-gradient(to top, hsl(208 42% 13%) 0%, hsl(208 35% 11%) 50%, hsl(205 30% 9%) 100%);
+  --terminal-bg: linear-gradient(to top, hsl(208 65% 20%) 0%, hsl(208 58% 16%) 30%, hsl(205 52% 12%) 65%, hsl(202 45% 8%) 100%);
   --terminal-bg-solid: hsl(208 35% 11%);
-  --terminal-text: hsl(195 68% 72%);
-  --terminal-highlight: hsl(175 78% 68%);
-  --terminal-subtle: hsl(208 42% 18%);
+  --terminal-text: hsl(195 85% 80%);
+  --terminal-highlight: hsl(175 95% 78%);
+  --terminal-subtle: hsl(208 60% 24%);
   --terminal-subtle-rgb: 27, 40, 65;
-  --terminal-logo-green: hsl(175 78% 68%);
-  --terminal-bright-green: hsl(195 72% 75%);
-  --terminal-orange: hsl(42 88% 68%);
+  --terminal-logo-green: hsl(175 95% 78%);
+  --terminal-bright-green: hsl(195 88% 82%);
+  --terminal-orange: hsl(42 100% 75%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(208 42% 13%) 0%, hsl(208 38% 10%) 50%, hsl(208 32% 8%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(208 65% 18%) 0%, hsl(208 58% 14%) 40%, hsl(208 50% 12%) 70%, hsl(205 42% 10%) 100%);
 }
 
 /* Sunset - Warm professional gradient */
@@ -877,49 +877,49 @@
   --terminal-no-bg: 1;
 }
 
-/* New Gradient Dark Themes - Eye-Friendly with Radial Backgrounds */
+/* New Gradient Dark Themes - STRIKING Eye-Catching with Multi-Color Radial Backgrounds */
 .theme-midnight-gradient {
-  --terminal-bg: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  --terminal-bg: radial-gradient(ellipse at bottom, hsl(210 60% 28%) 0%, hsl(220 50% 18%) 30%, hsl(215 40% 12%) 60%, hsl(210 30% 6%) 100%);
   --terminal-bg-solid: #090a0f;
-  --terminal-text: hsl(210 60% 85%);
-  --terminal-highlight: hsl(200 80% 70%);
-  --terminal-subtle: hsl(220 20% 25%);
+  --terminal-text: hsl(210 80% 92%);
+  --terminal-highlight: hsl(200 100% 80%);
+  --terminal-subtle: hsl(220 40% 32%);
   --terminal-subtle-rgb: 51, 57, 77;
   --terminal-highlight-rgb: 102, 178, 214;
-  --terminal-logo-green: hsl(200 80% 70%);
-  --terminal-bright-green: hsl(210 70% 75%);
-  --terminal-orange: hsl(30 85% 65%);
+  --terminal-logo-green: hsl(200 100% 80%);
+  --terminal-bright-green: hsl(210 90% 85%);
+  --terminal-orange: hsl(30 100% 72%);
   --terminal-no-bg: 0;
   --terminal-use-gradient: 1;
   --terminal-forest-bg: 1;
 }
 
 .theme-twilight-gradient {
-  --terminal-bg: radial-gradient(ellipse at bottom, #2d1b3d 0%, #0f0a14 100%);
+  --terminal-bg: radial-gradient(ellipse at bottom, hsl(280 55% 28%) 0%, hsl(290 48% 20%) 25%, hsl(285 40% 14%) 60%, hsl(280 32% 8%) 100%);
   --terminal-bg-solid: #0f0a14;
-  --terminal-text: hsl(280 50% 85%);
-  --terminal-highlight: hsl(290 70% 75%);
-  --terminal-subtle: hsl(270 25% 25%);
+  --terminal-text: hsl(280 70% 92%);
+  --terminal-highlight: hsl(290 90% 82%);
+  --terminal-subtle: hsl(270 45% 32%);
   --terminal-subtle-rgb: 64, 48, 80;
   --terminal-highlight-rgb: 204, 128, 230;
-  --terminal-logo-green: hsl(290 70% 75%);
-  --terminal-bright-green: hsl(280 60% 80%);
-  --terminal-orange: hsl(320 75% 70%);
+  --terminal-logo-green: hsl(290 90% 82%);
+  --terminal-bright-green: hsl(280 80% 88%);
+  --terminal-orange: hsl(320 95% 78%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
 }
 
 .theme-forest-gradient {
-  --terminal-bg: radial-gradient(ellipse at bottom, #0f2119 0%, #030a06 100%);
+  --terminal-bg: radial-gradient(ellipse at bottom, hsl(160 65% 22%) 0%, hsl(155 58% 16%) 30%, hsl(150 50% 12%) 60%, hsl(145 42% 6%) 100%);
   --terminal-bg-solid: #030a06;
-  --terminal-text: #14fdce;
-  --terminal-highlight: #14fdce;
-  --terminal-subtle: #021509;
+  --terminal-text: hsl(165 100% 85%);
+  --terminal-highlight: hsl(165 100% 85%);
+  --terminal-subtle: hsl(155 80% 18%);
   --terminal-subtle-rgb: 2, 21, 9;
   --terminal-highlight-rgb: 20, 253, 206;
-  --terminal-logo-green: #14fdce;
-  --terminal-bright-green: #14fdce;
-  --terminal-orange: #14fdce;
+  --terminal-logo-green: hsl(165 100% 85%);
+  --terminal-bright-green: hsl(165 100% 85%);
+  --terminal-orange: hsl(165 100% 85%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
   font-family: 'VT323', monospace;
@@ -928,31 +928,31 @@
 
 
 .theme-ocean-gradient {
-  --terminal-bg: radial-gradient(ellipse at bottom, #1b2f3d 0%, #0a0f14 100%);
+  --terminal-bg: radial-gradient(ellipse at bottom, hsl(195 70% 28%) 0%, hsl(200 62% 20%) 30%, hsl(205 55% 14%) 60%, hsl(210 48% 8%) 100%);
   --terminal-bg-solid: #0a0f14;
-  --terminal-text: hsl(195 55% 82%);
-  --terminal-highlight: hsl(185 70% 72%);
-  --terminal-subtle: hsl(200 25% 25%);
+  --terminal-text: hsl(195 75% 90%);
+  --terminal-highlight: hsl(185 90% 80%);
+  --terminal-subtle: hsl(200 50% 32%);
   --terminal-subtle-rgb: 48, 64, 77;
   --terminal-highlight-rgb: 82, 204, 199;
-  --terminal-logo-green: hsl(185 70% 72%);
-  --terminal-bright-green: hsl(195 65% 78%);
-  --terminal-orange: hsl(40 80% 68%);
+  --terminal-logo-green: hsl(185 90% 80%);
+  --terminal-bright-green: hsl(195 85% 85%);
+  --terminal-orange: hsl(40 100% 75%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
 }
 
 .theme-ember-gradient {
-  --terminal-bg: radial-gradient(ellipse at bottom, #3d1b1b 0%, #140a0a 100%);
+  --terminal-bg: radial-gradient(ellipse at bottom, hsl(15 65% 28%) 0%, hsl(10 58% 20%) 30%, hsl(5 50% 14%) 60%, hsl(0 42% 8%) 100%);
   --terminal-bg-solid: #140a0a;
-  --terminal-text: hsl(15 55% 82%);
-  --terminal-highlight: hsl(25 75% 70%);
-  --terminal-subtle: hsl(10 30% 25%);
+  --terminal-text: hsl(15 75% 90%);
+  --terminal-highlight: hsl(25 95% 78%);
+  --terminal-subtle: hsl(10 55% 32%);
   --terminal-subtle-rgb: 77, 51, 48;
   --terminal-highlight-rgb: 214, 153, 102;
-  --terminal-logo-green: hsl(25 75% 70%);
-  --terminal-bright-green: hsl(15 65% 75%);
-  --terminal-orange: hsl(35 85% 65%);
+  --terminal-logo-green: hsl(25 95% 78%);
+  --terminal-bright-green: hsl(15 85% 82%);
+  --terminal-orange: hsl(35 100% 72%);
   --terminal-no-bg: 1;
   --terminal-use-gradient: 1;
 }
