@@ -15,7 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 type MonacoAIMode = 'natural' | 'technical' | 'freestyle' | 'health';
 
 const MONACO_AI_MODE_KEY = 'monaco-ai-mode';
-const WORKSHOP_THEME_KEY = 'python-ide-theme';
 
 const AI_MODE_CONFIG: Record<MonacoAIMode, { label: string; icon: string; description: string }> = {
   natural: { label: 'Natural', icon: '💬', description: 'Conversational coding help' },
@@ -28,6 +27,7 @@ interface CodePlaygroundProps {
   onClose: () => void;
   initialCode?: string;
   initialLanguage?: string;
+  currentTheme?: string;
 }
 
 interface CodeFile {
@@ -343,7 +343,7 @@ function SvgViewer({ data }: { data: string }) {
   );
 }
 
-export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePlaygroundProps) {
+export function CodePlayground({ onClose, initialCode, initialLanguage, currentTheme = 'green' }: CodePlaygroundProps) {
   const { toast } = useToast();
   const [files, setFiles] = useState<CodeFile[]>([]);
   const [activeFileId, setActiveFileId] = useState<string>('');
@@ -374,42 +374,10 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   });
 
   const [showOutput, setShowOutput] = useState(true);
-  const [workshopTheme, setWorkshopTheme] = useState<string>(() => {
-    return localStorage.getItem(WORKSHOP_THEME_KEY) || 'one-dark';
-  });
 
   useEffect(() => {
     localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
   }, [monacoAIMode]);
-
-  // Listen for Workshop theme changes
-  useEffect(() => {
-    const handleThemeChange = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const newTheme = customEvent.detail;
-      setWorkshopTheme(newTheme);
-      
-      // Apply theme to Monaco editor if it's mounted
-      if (editorRef.current) {
-        const monaco = (window as any).monaco;
-        if (monaco) {
-          applyMonacoTheme(monaco, newTheme);
-        }
-      }
-    };
-
-    window.addEventListener('workshop-theme-change', handleThemeChange);
-
-    // Also check localStorage on mount
-    const savedTheme = localStorage.getItem(WORKSHOP_THEME_KEY);
-    if (savedTheme && savedTheme !== workshopTheme) {
-      setWorkshopTheme(savedTheme);
-    }
-
-    return () => {
-      window.removeEventListener('workshop-theme-change', handleThemeChange);
-    };
-  }, [workshopTheme]);
 
   // Initialize to full-screen on mount (matching Workshop behavior)
   useEffect(() => {
@@ -636,48 +604,6 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
     });
   }, [activeFile, runMutation, stdinInput]);
 
-  const applyMonacoTheme = (monaco: any, themeName: string) => {
-    // Map Workshop themes to Monaco themes
-    const themeMap: Record<string, string> = {
-      // Light themes
-      'solarized-light': 'vs',
-      'github-light': 'vs',
-      'sepia': 'vs',
-      'nord-light': 'vs',
-      'gruvbox-light': 'vs',
-      'one-light': 'vs',
-      'soft-morning': 'vs',
-      'ocean-breeze': 'vs',
-      'forest-mist': 'vs',
-      'lavender-dawn': 'vs',
-      'warm-sand': 'vs',
-      
-      // Dark themes
-      'dracula': 'vs-dark',
-      'monokai': 'vs-dark',
-      'one-dark': 'vs-dark',
-      'gruvbox-dark': 'vs-dark',
-      'tokyo-night': 'vs-dark',
-      'night-owl': 'vs-dark',
-      'cyberpunk-dark': 'vs-dark',
-      'forest-dark': 'vs-dark',
-      'ocean-deep': 'vs-dark',
-      'ember-dark': 'vs-dark',
-      'twilight-dark': 'vs-dark',
-      'arctic-dark': 'vs-dark',
-      'royal-dark': 'vs-dark',
-      'matrix-green': 'vs-dark',
-      'neon-nights': 'vs-dark',
-      'synthwave': 'vs-dark',
-      'vaporwave-dreams': 'vs-dark',
-      'retro-amber': 'vs-dark',
-      'terminal-green': 'vs-dark',
-    };
-
-    const monacoTheme = themeMap[themeName] || 'vs-dark';
-    monaco.editor.setTheme(monacoTheme);
-  };
-
   const handleEditorMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
 
@@ -690,12 +616,26 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
       });
     }
 
-    monaco.editor.defineTheme('archimedes-dark', {
+    // Get theme colors from CSS variables
+    const computedStyle = getComputedStyle(document.documentElement);
+    const terminalBg = computedStyle.getPropertyValue('--terminal-bg').trim() || '#0D1117';
+    const terminalText = computedStyle.getPropertyValue('--terminal-text').trim() || '#00FF41';
+    const terminalHighlight = computedStyle.getPropertyValue('--terminal-highlight').trim() || '#00FF41';
+    const terminalSubtle = computedStyle.getPropertyValue('--terminal-subtle').trim() || '#1a2332';
+
+    // Convert HSL to hex if needed (simplified - works for most cases)
+    const getHexColor = (color: string) => {
+      if (color.startsWith('#')) return color.replace('#', '');
+      // For simplicity, return a default if not hex
+      return color.includes('hsl') ? terminalHighlight.replace('#', '') || '00FF41' : color;
+    };
+
+    monaco.editor.defineTheme('archimedes-dynamic', {
       base: 'vs-dark',
       inherit: true,
       rules: [
         { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
-        { token: 'keyword', foreground: '00FF41' },
+        { token: 'keyword', foreground: getHexColor(terminalHighlight) },
         { token: 'string', foreground: 'CE9178' },
         { token: 'number', foreground: 'B5CEA8' },
         { token: 'function', foreground: 'DCDCAA' },
@@ -703,36 +643,40 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
         { token: 'type', foreground: '4EC9B0' },
       ],
       colors: {
-        'editor.background': '#0D1117',
-        'editor.foreground': '#00FF41',
-        'editor.lineHighlightBackground': '#1a2332',
-        'editorCursor.foreground': '#00FF41',
-        'editor.selectionBackground': '#00FF4133',
-        'editorLineNumber.foreground': '#00FF4166',
-        'editorLineNumber.activeForeground': '#00FF41',
+        'editor.background': terminalBg.startsWith('#') ? terminalBg : '#0D1117',
+        'editor.foreground': terminalText.startsWith('#') ? terminalText : '#00FF41',
+        'editor.lineHighlightBackground': terminalSubtle.startsWith('#') ? terminalSubtle : '#1a2332',
+        'editorCursor.foreground': terminalHighlight.startsWith('#') ? terminalHighlight : '#00FF41',
+        'editor.selectionBackground': (terminalHighlight.startsWith('#') ? terminalHighlight : '#00FF41') + '33',
+        'editorLineNumber.foreground': (terminalHighlight.startsWith('#') ? terminalHighlight : '#00FF41') + '66',
+        'editorLineNumber.activeForeground': terminalHighlight.startsWith('#') ? terminalHighlight : '#00FF41',
       }
     });
-    
-    // Apply the current Workshop theme
-    applyMonacoTheme(monaco, workshopTheme);
+    monaco.editor.setTheme('archimedes-dynamic');
   };
 
   return (
     <div 
-      className="bg-[#0D1117] flex flex-col border-2 border-[#00FF41]/30 rounded-lg shadow-2xl overflow-hidden"
+      className={`theme-${currentTheme} flex flex-col border-2 rounded-lg shadow-2xl overflow-hidden`}
       style={{
         position: 'fixed',
         top: `${position.y}px`,
         left: `${position.x}px`,
         width: `${dimensions.width}px`,
         height: `${dimensions.height}px`,
-        zIndex: 40
+        zIndex: 40,
+        backgroundColor: 'var(--terminal-bg)',
+        borderColor: 'var(--terminal-highlight)',
       }}
       data-testid="code-playground"
     >
       {/* Header with drag handle */}
       <div 
-        className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[#00FF41]/30 cursor-move"
+        className="flex items-center justify-between px-4 py-3 cursor-move"
+        style={{
+          backgroundColor: 'var(--terminal-bg)',
+          borderBottom: '1px solid var(--terminal-subtle)',
+        }}
         onMouseDown={(e) => {
           if (!isMaximized && e.button === 0) {
             setIsDragging(true);
@@ -742,16 +686,22 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
         onDoubleClick={toggleMaximize}
       >
         <div className="flex items-center gap-3">
-          <FileCode className="w-5 h-5 text-[#00FF41]" />
-          <h2 className="text-[#00FF41] font-mono font-bold text-lg">CODE PLAYGROUND</h2>
-          <span className="text-[#00FF41]/60 text-xs font-mono">Multi-Language Editor</span>
+          <FileCode className="w-5 h-5" style={{ color: 'var(--terminal-highlight)' }} />
+          <h2 className="font-mono font-bold text-lg" style={{ color: 'var(--terminal-highlight)' }}>CODE PLAYGROUND</h2>
+          <span className="text-xs font-mono" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>Multi-Language Editor</span>
         </div>
         <div className="flex items-center gap-2">
           <Button
             onClick={toggleMaximize}
             variant="ghost"
             size="sm"
-            className="text-[#00FF41] hover:bg-[#00FF41]/20 text-xs px-2"
+            className="text-xs px-2"
+            style={{
+              color: 'var(--terminal-highlight)',
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(var(--terminal-subtle-rgb), 0.2)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
             title={isMaximized ? 'Restore' : 'Maximize'}
           >
             {isMaximized ? '🗗' : '🗖'}
