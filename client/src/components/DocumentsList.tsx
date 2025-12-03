@@ -332,8 +332,8 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
       borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)'
     }}>
       <div className="flex justify-between items-center mb-2 flex-shrink-0">
-        <h2 className="text-base font-bold font-mono flex items-center" style={{ color: 'var(--terminal-text)' }}>
-          <FileText className="mr-2" size={16} />
+        <h2 className="text-sm font-bold font-mono flex items-center" style={{ color: 'var(--terminal-text)' }}>
+          <FileText className="mr-1" size={14} />
           Documents
         </h2>
         {/* Search Bar */}
@@ -463,7 +463,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
       </div>
 
       {/* Documents Count - v2 */}
-      <div className="mb-4 text-sm flex-shrink-0" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
+      <div className="mb-2 text-xs flex-shrink-0" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
         {isLoading ? (
           <span>Loading documents...</span>
         ) : (
@@ -565,12 +565,12 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                       ) : (
                         <>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-mono font-semibold truncate" style={{ color: 'var(--terminal-text)' }}>
+                            <p className="font-mono font-semibold truncate text-xs" style={{ color: 'var(--terminal-text)' }}>
                               {document.originalName}
                             </p>
                             {document.isNote && (
                               <span 
-                                className="px-2 py-0.5 text-xs font-mono rounded"
+                                className="px-1.5 py-0.5 text-[10px] font-mono rounded"
                                 style={{ 
                                   backgroundColor: 'var(--terminal-highlight)', 
                                   color: 'var(--terminal-bg)',
@@ -582,18 +582,18 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                             )}
                             {document.isPersonality && (
                               <span 
-                                className="px-2 py-0.5 text-xs font-mono rounded flex items-center gap-1"
+                                className="px-1.5 py-0.5 text-[10px] font-mono rounded flex items-center gap-1"
                                 style={{ 
                                   backgroundColor: 'rgba(168, 85, 247, 0.9)', 
                                   color: 'white',
                                 }}
                               >
-                                <Brain size={12} />
+                                <Brain size={10} />
                                 PERSONALITY
                               </span>
                             )}
                           </div>
-                          <p className="text-xs font-mono opacity-70" style={{ color: 'var(--terminal-text)' }}>
+                          <p className="text-[10px] font-mono opacity-70" style={{ color: 'var(--terminal-text)' }}>
                             {formatFileSize(document.fileSize)} • {document.mimeType} • {new Date(document.uploadedAt).toLocaleDateString()}
                           </p>
                         </>
@@ -611,7 +611,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                       variant="outline"
                       size="sm"
                       title={document.isPersonality ? "Remove from personality training" : "Use for personality training"}
-                      className="h-8 px-3 font-mono hover:bg-opacity-20"
+                      className="h-7 px-2 font-mono hover:bg-opacity-20 text-[10px]"
                       style={{ 
                         backgroundColor: document.isPersonality 
                           ? 'rgba(168, 85, 247, 0.25)' 
@@ -626,12 +626,12 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                     >
                       {document.isPersonality ? (
                         <>
-                          <Brain size={16} className="mr-1" />
+                          <Brain size={12} className="mr-1" />
                           Training ON
                         </>
                       ) : (
                         <>
-                          <Sparkles size={16} className="mr-1" />
+                          <Sparkles size={12} className="mr-1" />
                           Train AI
                         </>
                       )}
@@ -641,7 +641,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                       variant="outline"
                       size="sm"
                       title="Rename document"
-                      className="h-8 px-3 font-mono hover:bg-opacity-20"
+                      className="h-7 px-2 font-mono hover:bg-opacity-20 text-[10px]"
                       style={{ 
                         backgroundColor: 'rgba(100, 200, 255, 0.15)',
                         borderColor: 'rgba(100, 200, 255, 0.5)',
@@ -650,7 +650,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                       disabled={renamingId !== null || deleteMutation.isPending}
                       data-testid={`button-rename-${document.id}`}
                     >
-                      <Edit2 size={16} className="mr-1" />
+                      <Edit2 size={12} className="mr-1" />
                       Rename
                     </Button>
                     <Button
@@ -658,7 +658,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                       variant="outline"
                       size="sm"
                       title="Delete document"
-                      className="h-8 px-3 font-mono hover:bg-opacity-20"
+                      className="h-7 px-2 font-mono hover:bg-opacity-20 text-[10px]"
                       style={{ 
                         backgroundColor: 'rgba(239, 68, 68, 0.15)',
                         borderColor: 'rgba(239, 68, 68, 0.5)',
@@ -667,7 +667,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                       disabled={deleteMutation.isPending || renamingId !== null}
                       data-testid={`button-delete-${document.id}`}
                     >
-                      <Trash2 size={16} className="mr-1" />
+                      <Trash2 size={12} className="mr-1" />
                       Delete
                     </Button>
                   </div>
@@ -680,8 +680,8 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
 
       {/* Footer with stats */}
       {documents.length > 0 && (
-        <div className="mt-4 pt-4 border-t flex-shrink-0" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
-          <div className="text-xs flex justify-between" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
+        <div className="mt-2 pt-2 border-t flex-shrink-0" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)' }}>
+          <div className="text-[10px] flex justify-between" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
             <span>
               Total size: {formatFileSize(
                 documents.reduce((sum, doc) => sum + parseInt(doc.fileSize), 0).toString()

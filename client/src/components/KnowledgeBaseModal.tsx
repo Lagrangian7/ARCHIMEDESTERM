@@ -143,7 +143,7 @@ export function KnowledgeBaseModal({ onClose }: KnowledgeBaseModalProps) {
           }
         }}
       >
-        <h2 className="text-sm md:text-lg font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
+        <h2 className="text-xs md:text-sm font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
           📚 Knowledge Base
         </h2>
         <div className="flex items-center gap-2">
