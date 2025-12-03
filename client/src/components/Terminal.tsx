@@ -199,6 +199,18 @@ export function Terminal() {
     }
   }, [preferences?.terminalTheme]);
 
+  // Listen for Code Playground open event from voice controls
+  useEffect(() => {
+    const handleOpenCodePlayground = () => {
+      setShowCodePlayground(true);
+    };
+    
+    window.addEventListener('open-code-playground', handleOpenCodePlayground);
+    return () => {
+      window.removeEventListener('open-code-playground', handleOpenCodePlayground);
+    };
+  }, []);
+
   // Switch theme function
   const switchTheme = useCallback(() => {
     const currentIndex = themes.indexOf(currentTheme);
