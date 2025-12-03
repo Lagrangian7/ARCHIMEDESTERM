@@ -146,25 +146,25 @@ export function KnowledgeBaseModal({ onClose }: KnowledgeBaseModalProps) {
         <h2 className="text-xs font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
           📚 Knowledge Base
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <Button
             onClick={toggleMaximize}
             variant="outline"
             size="sm"
-            className="font-mono text-xs"
+            className="font-mono text-xs p-1 h-6"
             style={{
               backgroundColor: 'var(--terminal-bg)',
               color: 'var(--terminal-highlight)',
               borderColor: 'var(--terminal-border)',
             }}
           >
-            {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isMaximized ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
           </Button>
           <Button
             onClick={onClose}
             variant="ghost"
             size="sm"
-            className="text-xl md:text-2xl hover:bg-terminal-highlight hover:text-terminal-bg transition-colors"
+            className="text-sm hover:bg-terminal-highlight hover:text-terminal-bg transition-colors p-1 h-6"
             style={{ color: 'var(--terminal-text)' }}
             data-testid="close-upload-modal"
           >
