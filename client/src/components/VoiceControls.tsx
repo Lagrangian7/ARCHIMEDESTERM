@@ -142,7 +142,7 @@ export function VoiceControls({
           <h1 className="font-bold terminal-text terminal-glow md:text-[15px] whitespace-nowrap text-[16px]" data-testid="text-title">
             ARCHIMEDES <span className="text-[8px] md:text-[10px]">v7</span>
           </h1>
-          <div className="text-xs md:text-sm truncate">
+          <div className="md:text-sm truncate text-[15px]">
             <span className="hidden sm:inline retro-cycle text-[12px]">アルキメデス</span>
           </div>
         </div>
