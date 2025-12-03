@@ -143,7 +143,7 @@ export function VoiceControls({
             ARCHIMEDES <span className="text-[8px] md:text-[10px]">v7</span>
           </h1>
           <div className="text-xs md:text-sm truncate">
-            <span className="hidden sm:inline retro-cycle text-[15px]">アルキメデス</span>
+            <span className="hidden sm:inline retro-cycle text-[12px]">アルキメデス</span>
           </div>
         </div>
 
