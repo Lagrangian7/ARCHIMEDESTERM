@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 type MonacoAIMode = 'natural' | 'technical' | 'freestyle' | 'health';
 
 const MONACO_AI_MODE_KEY = 'monaco-ai-mode';
+const WORKSHOP_THEME_KEY = 'python-ide-theme';
 
 const AI_MODE_CONFIG: Record<MonacoAIMode, { label: string; icon: string; description: string }> = {
   natural: { label: 'Natural', icon: '💬', description: 'Conversational coding help' },
@@ -373,10 +374,42 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   });
 
   const [showOutput, setShowOutput] = useState(true);
+  const [workshopTheme, setWorkshopTheme] = useState<string>(() => {
+    return localStorage.getItem(WORKSHOP_THEME_KEY) || 'one-dark';
+  });
 
   useEffect(() => {
     localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
   }, [monacoAIMode]);
+
+  // Listen for Workshop theme changes
+  useEffect(() => {
+    const handleThemeChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const newTheme = customEvent.detail;
+      setWorkshopTheme(newTheme);
+      
+      // Apply theme to Monaco editor if it's mounted
+      if (editorRef.current) {
+        const monaco = (window as any).monaco;
+        if (monaco) {
+          applyMonacoTheme(monaco, newTheme);
+        }
+      }
+    };
+
+    window.addEventListener('workshop-theme-change', handleThemeChange);
+
+    // Also check localStorage on mount
+    const savedTheme = localStorage.getItem(WORKSHOP_THEME_KEY);
+    if (savedTheme && savedTheme !== workshopTheme) {
+      setWorkshopTheme(savedTheme);
+    }
+
+    return () => {
+      window.removeEventListener('workshop-theme-change', handleThemeChange);
+    };
+  }, [workshopTheme]);
 
   // Initialize to full-screen on mount (matching Workshop behavior)
   useEffect(() => {
@@ -603,6 +636,48 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
     });
   }, [activeFile, runMutation, stdinInput]);
 
+  const applyMonacoTheme = (monaco: any, themeName: string) => {
+    // Map Workshop themes to Monaco themes
+    const themeMap: Record<string, string> = {
+      // Light themes
+      'solarized-light': 'vs',
+      'github-light': 'vs',
+      'sepia': 'vs',
+      'nord-light': 'vs',
+      'gruvbox-light': 'vs',
+      'one-light': 'vs',
+      'soft-morning': 'vs',
+      'ocean-breeze': 'vs',
+      'forest-mist': 'vs',
+      'lavender-dawn': 'vs',
+      'warm-sand': 'vs',
+      
+      // Dark themes
+      'dracula': 'vs-dark',
+      'monokai': 'vs-dark',
+      'one-dark': 'vs-dark',
+      'gruvbox-dark': 'vs-dark',
+      'tokyo-night': 'vs-dark',
+      'night-owl': 'vs-dark',
+      'cyberpunk-dark': 'vs-dark',
+      'forest-dark': 'vs-dark',
+      'ocean-deep': 'vs-dark',
+      'ember-dark': 'vs-dark',
+      'twilight-dark': 'vs-dark',
+      'arctic-dark': 'vs-dark',
+      'royal-dark': 'vs-dark',
+      'matrix-green': 'vs-dark',
+      'neon-nights': 'vs-dark',
+      'synthwave': 'vs-dark',
+      'vaporwave-dreams': 'vs-dark',
+      'retro-amber': 'vs-dark',
+      'terminal-green': 'vs-dark',
+    };
+
+    const monacoTheme = themeMap[themeName] || 'vs-dark';
+    monaco.editor.setTheme(monacoTheme);
+  };
+
   const handleEditorMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
 
@@ -637,7 +712,9 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
         'editorLineNumber.activeForeground': '#00FF41',
       }
     });
-    monaco.editor.setTheme('archimedes-dark');
+    
+    // Apply the current Workshop theme
+    applyMonacoTheme(monaco, workshopTheme);
   };
 
   return (

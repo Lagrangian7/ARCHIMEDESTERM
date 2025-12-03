@@ -1758,7 +1758,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     const saved = localStorage.getItem(MULTI_FILE_SESSION_KEY);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed = JSON.JSON.parse(saved);
         if (parsed.files && Array.isArray(parsed.files) && parsed.files.length > 0) {
           return parsed;
         }
@@ -2038,16 +2038,16 @@ calculator()
         // Archimedes v7 Introduction - Add to chat history ONCE per session
         if (!hasGreetedRef.current) {
           hasGreetedRef.current = true;
-          
+
           const introMessage = codeiumEnabled 
             ? "Greetings! Archimedes version 7 AI assistant now online. I'm your friendly programming mentor and cyberpunk coding companion. Whether you need help with basics or advanced techniques, I'm here to guide you through any programming language. Let's create something amazing together!"
             : "Archimedes version 7 ready. Your friendly AI programming assistant is here to help you master any language and create amazing code!";
-          
+
           setChatHistory(prev => [...prev, { 
             role: 'assistant', 
             content: introMessage 
           }]);
-          
+
           // Speak the introduction
           speak(introMessage);
         }
@@ -2597,7 +2597,7 @@ calculator()
     mutationFn: async ({ message, language }: { message: string; language?: string }) => {
       // Get current programming language from active file or selected language
       const progLang = showMultiFileMode && activeFile ? activeFile.language : currentLanguage;
-      
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2697,6 +2697,14 @@ calculator()
     return LANGUAGE_CONFIG[language]?.monacoLang || 'python';
   };
 
+  // Dispatch theme change event when Workshop theme changes
+  useEffect(() => {
+    localStorage.setItem('python-ide-theme', pythonTheme);
+
+    // Notify Code Playground about theme change
+    const event = new CustomEvent('workshop-theme-change', { detail: pythonTheme });
+    window.dispatchEvent(event);
+  }, [pythonTheme]);
 
   return (
     <>
@@ -3399,7 +3407,7 @@ calculator()
                 value={notepadContent}
                 onChange={(e) => setNotepadContent(e.target.value)}
                 placeholder="Type your notes here... (supports plain text and HTML for preview)"
-                className="w-full h-32 px-3 py-2 rounded font-mono text-sm border resize-none focus:outline-none focus:ring-2"
+                className="w-full h-32 px-3 py-2 rounded font-mono text-sm border focus:outline-none focus:ring-2"
                 style={{
                   backgroundColor: currentPythonTheme.bg,
                   color: currentPythonTheme.text,
@@ -4131,7 +4139,7 @@ function getTheme(themeName: string): ThemeColors {
     'material-dark': { bg: '#263238', text: '#cfd8dc', highlight: '#00bcd4', border: '#37474f', subtle: '#37474f' },
     'oceanic-next': { bg: '#2b3e50', text: '#d8dee9', highlight: '#528bff', border: '#34495e', subtle: '#34495e' },
     'palenight': { bg: '#292d3e', text: '#6a737d', highlight: '#82aaff', border: '#353b50', subtle: '#353b50' },
-    
+
     // New mid-level eye-friendly themes
     'soft-morning': { bg: '#f0ece2', text: '#5a5a5a', highlight: '#6b9080', border: '#dfd3c3', subtle: '#e8dfd0' },
     'warm-sand': { bg: '#f5f0e8', text: '#615950', highlight: '#b08968', border: '#e3ddd3', subtle: '#ede8df' },
