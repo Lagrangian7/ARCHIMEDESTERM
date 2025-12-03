@@ -740,7 +740,6 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
             className="w-6 h-6"
             style={{ filter: 'invert(1) brightness(1.2)' }}
           />
-          <span className="text-xs font-mono" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>Multi-Language Editor</span>
         </div>
         <div className="flex items-center gap-2">
           <Button
