@@ -118,7 +118,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             }
           },
 
-          // Milkdrop opened by default next to other windows
+          // Milkdrop available but not opened by default (keeps everything in shade mode)
           __butterchurnOptions: {
             importButterchurn: () => import('butterchurn'),
             getPresets: async () => {
@@ -129,7 +129,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
                 butterchurnPresetObject: presetPack[name]
               }));
             },
-            butterchurnOpen: true // Milkdrop opens on launch
+            butterchurnOpen: false // User can open Milkdrop manually if desired
           },
 
           initialTracks: [
