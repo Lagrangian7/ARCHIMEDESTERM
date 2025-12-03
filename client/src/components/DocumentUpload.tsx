@@ -193,7 +193,7 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4" data-testid="document-upload-container">
       <div
-        className="border-2 border-dashed rounded-lg p-8 text-center transition-colors"
+        className="border-2 border-dashed rounded-lg p-4 text-center transition-colors"
         style={dragOver ? {
           borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)',
           backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.05)'
@@ -286,23 +286,24 @@ export function DocumentUpload({ onUploadComplete }: DocumentUploadProps) {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            <div className="mx-auto h-12 w-12" style={{ color: 'var(--terminal-text)' }}>
+          <div className="space-y-2">
+            <div className="mx-auto h-8 w-8" style={{ color: 'var(--terminal-text)' }}>
               <Upload className="h-full w-full" />
             </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium" style={{ color: 'var(--terminal-text)' }}>
+            <div className="space-y-1">
+              <h3 className="text-sm font-medium" style={{ color: 'var(--terminal-text)' }}>
                 Upload Knowledge Documents
               </h3>
-              <p style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
+              <p className="text-xs" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
                 Drag & drop text files here, or click to browse
               </p>
-              <p className="text-sm" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
+              <p className="text-xs" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
                 Supports: TXT, MD, JSON, CSV, HTML, XML (max 5MB), MP3 (max 25MB) - up to 10 files
               </p>
             </div>
             <Button
               variant="outline"
+              size="sm"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
