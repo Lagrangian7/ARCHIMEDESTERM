@@ -733,7 +733,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
         onDoubleClick={toggleMaximize}
       >
         <div className="flex items-center gap-3">
-          <span className="text-2xl">🛠️</span>
+          <span className="text-2xl">⚙</span>
           <span className="text-xs font-mono" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>Multi-Language Editor</span>
         </div>
         <div className="flex items-center gap-2">
