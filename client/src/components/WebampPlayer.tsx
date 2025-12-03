@@ -94,25 +94,25 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
         // Calculate center X position for Webamp windows
         const webampWidth = 275; // Fixed pixel width of Webamp windows
         const screenWidth = window.innerWidth;
-        const centerX = Math.max(0, (screenWidth / 2) - (webampWidth / 2));
+        const centerX = Math.round((screenWidth / 2) - (webampWidth / 2));
 
         const webamp = new Webamp({
           enableHotkeys: true,
 
-          // Initial window layout with shade mode enabled, centered horizontally
+          // Initial window layout with shade mode enabled, centered horizontally at top
           __initialWindowLayout: {
             main: {
-              position: { x: centerX, y: 0 },
+              position: { x: centerX, y: 5 }, // Small top margin
               shadeMode: true,
               closed: false,
             },
             equalizer: {
-              position: { x: centerX, y: 14 }, // 14px down (height of shaded main)
+              position: { x: centerX, y: 19 }, // 14px height of shaded main + 5px top margin
               shadeMode: true,
               closed: false,
             },
             playlist: {
-              position: { x: centerX, y: 28 }, // 28px down (height of shaded main + eq)
+              position: { x: centerX, y: 33 }, // 28px total height + 5px top margin
               shadeMode: true,
               closed: false,
             }
