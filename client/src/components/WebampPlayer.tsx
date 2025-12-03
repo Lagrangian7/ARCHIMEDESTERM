@@ -620,24 +620,52 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
 
           // Force all windows into shade mode after a brief delay to ensure they're rendered
           setTimeout(() => {
-            // Toggle shade mode for main window
-            const shadeButton = document.querySelector('#main-window #shade');
-            if (shadeButton instanceof HTMLElement && !document.querySelector('#main-window.shade')) {
-              shadeButton.click();
+            // Check if main window is already in shade mode
+            const mainWindow = document.querySelector('#main-window');
+            const isMainShaded = mainWindow?.classList.contains('shade');
+            
+            if (!isMainShaded) {
+              // Try multiple selectors for the shade button
+              const shadeButton = document.querySelector('#main-window #shade') || 
+                                 document.querySelector('#main-window [title="Shade Mode"]') ||
+                                 document.querySelector('#main-window .shade-button');
+              
+              if (shadeButton instanceof HTMLElement) {
+                console.log('Clicking main window shade button');
+                shadeButton.click();
+              } else {
+                console.warn('Main window shade button not found');
+              }
             }
             
-            // Toggle shade mode for equalizer
-            const eqShadeButton = document.querySelector('#equalizer-window #equalizer-shade');
-            if (eqShadeButton instanceof HTMLElement && !document.querySelector('#equalizer-window.shade')) {
-              eqShadeButton.click();
+            // Check if equalizer is already in shade mode
+            const eqWindow = document.querySelector('#equalizer-window');
+            const isEqShaded = eqWindow?.classList.contains('shade');
+            
+            if (!isEqShaded) {
+              const eqShadeButton = document.querySelector('#equalizer-window #equalizer-shade');
+              if (eqShadeButton instanceof HTMLElement) {
+                console.log('Clicking equalizer shade button');
+                eqShadeButton.click();
+              } else {
+                console.warn('Equalizer shade button not found');
+              }
             }
             
-            // Toggle shade mode for playlist
-            const playlistShadeButton = document.querySelector('#playlist-window #playlist-shade-button');
-            if (playlistShadeButton instanceof HTMLElement && !document.querySelector('#playlist-window.shade')) {
-              playlistShadeButton.click();
+            // Check if playlist is already in shade mode
+            const playlistWindow = document.querySelector('#playlist-window');
+            const isPlaylistShaded = playlistWindow?.classList.contains('shade');
+            
+            if (!isPlaylistShaded) {
+              const playlistShadeButton = document.querySelector('#playlist-window #playlist-shade-button');
+              if (playlistShadeButton instanceof HTMLElement) {
+                console.log('Clicking playlist shade button');
+                playlistShadeButton.click();
+              } else {
+                console.warn('Playlist shade button not found');
+              }
             }
-          }, 100);
+          }, 200);
 
           // Auto-play the track
           webamp.play();
