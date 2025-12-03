@@ -618,11 +618,28 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
           // Force all windows into shade mode immediately after render
           const store = (webamp as any)._store;
           if (store) {
-            // Dispatch shade mode toggles immediately
-            store.dispatch({ type: 'TOGGLE_MAIN_WINDOW_SHADE_MODE' });
-            store.dispatch({ type: 'TOGGLE_EQUALIZER_SHADE_MODE' });
-            store.dispatch({ type: 'TOGGLE_PLAYLIST_SHADE_MODE' });
-            console.log('Dispatched shade mode toggles');
+            // Get current state and only toggle if not already shaded
+            const state = store.getState();
+            const { windows } = state;
+            
+            console.log('Window states:', {
+              main: windows.genWindows.main.shade,
+              equalizer: windows.genWindows.equalizer.shade,
+              playlist: windows.playlist.shadeMode
+            });
+            
+            // Only toggle if not shaded
+            if (!windows.genWindows.main.shade) {
+              store.dispatch({ type: 'TOGGLE_MAIN_WINDOW_SHADE_MODE' });
+            }
+            if (!windows.genWindows.equalizer.shade) {
+              store.dispatch({ type: 'TOGGLE_EQUALIZER_SHADE_MODE' });
+            }
+            if (!windows.playlist.shadeMode) {
+              store.dispatch({ type: 'TOGGLE_PLAYLIST_SHADE_MODE' });
+            }
+            
+            console.log('Dispatched shade mode actions');
             
             // Update positions after shade mode is applied
             setTimeout(() => {
