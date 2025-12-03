@@ -213,6 +213,44 @@ export function UserProfile({ onClose }: UserProfileProps) {
                 </Button>
               </div>
             </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2" style={{ color: 'var(--terminal-text)' }}>
+                <Settings size={16} />
+                <h4 className="font-semibold">Terminal Theme</h4>
+              </div>
+              <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto p-2" style={{ borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', border: '1px solid' }}>
+                {[
+                  'forest-gradient', 'hacker', 'green', 'blue', 'orange', 'red', 'blackwhite',
+                  'commodore64', 'cyberpunk', 'forest', 'ocean', 'sunset', 'neon', 'vintage',
+                  'arctic', 'amber', 'royal', 'vaporwave', 'desert', 'toxic', 'crimson',
+                  'lavender', 'emerald', 'midnight', 'sakura', 'copper', 'plasma',
+                  'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle',
+                  'nord-dark', 'gruvbox-dark', 'tokyo-night-dark', 'catppuccin-mocha', 'everforest-dark',
+                  'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light',
+                  'midnight-gradient', 'twilight-gradient', 'ocean-gradient', 'ember-gradient'
+                ].map((theme) => (
+                  <Button
+                    key={theme}
+                    onClick={() => {
+                      handlePreferenceUpdate({ terminalTheme: theme });
+                      localStorage.setItem('terminal-theme', theme);
+                      window.dispatchEvent(new CustomEvent('terminal-theme-change', { detail: theme }));
+                    }}
+                    variant={preferences.terminalTheme === theme ? "default" : "outline"}
+                    size="sm"
+                    className="text-xs"
+                    style={preferences.terminalTheme === theme
+                      ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
+                      : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
+                    }
+                    disabled={isUpdating}
+                  >
+                    {theme.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
