@@ -733,12 +733,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
         onDoubleClick={toggleMaximize}
       >
         <div className="flex items-center gap-3">
-          <img 
-            src="/code-playground-icon.png" 
-            alt="Code Playground" 
-            className="w-8 h-8"
-            style={{ filter: 'brightness(0) saturate(100%) invert(79%) sepia(85%) saturate(464%) hue-rotate(58deg) brightness(102%) contrast(101%)' }}
-          />
+          <span className="text-2xl">🛠️</span>
           <span className="text-xs font-mono" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>Multi-Language Editor</span>
         </div>
         <div className="flex items-center gap-2">
