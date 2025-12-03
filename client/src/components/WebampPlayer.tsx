@@ -91,23 +91,28 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
           console.error('❌ Error loading uploaded audio files:', error);
         }
 
+        // Calculate center X position for Webamp windows
+        const webampWidth = 275; // Fixed pixel width of Webamp windows
+        const screenWidth = window.innerWidth;
+        const centerX = Math.max(0, (screenWidth / 2) - (webampWidth / 2));
+
         const webamp = new Webamp({
           enableHotkeys: true,
 
-          // Initial window layout with shade mode enabled
+          // Initial window layout with shade mode enabled, centered horizontally
           __initialWindowLayout: {
             main: {
-              position: { x: 0, y: 0 },
+              position: { x: centerX, y: 0 },
               shadeMode: true,
               closed: false,
             },
             equalizer: {
-              position: { x: 0, y: 14 },
+              position: { x: centerX, y: 14 }, // 14px down (height of shaded main)
               shadeMode: true,
               closed: false,
             },
             playlist: {
-              position: { x: 0, y: 28 },
+              position: { x: centerX, y: 28 }, // 28px down (height of shaded main + eq)
               shadeMode: true,
               closed: false,
             }
