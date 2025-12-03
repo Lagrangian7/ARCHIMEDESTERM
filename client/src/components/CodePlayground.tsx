@@ -4,7 +4,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   X, Download, Play, FileCode, Copy, Check, Plus, Trash2, 
-  FileText, Terminal as TerminalIcon, Info, ChevronDown, ChevronUp, Table2, Bot 
+  FileText, Terminal as TerminalIcon, Info, ChevronDown, ChevronUp, Table2, Bot, 
+  Maximize, Minimize 
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -371,6 +372,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
       ? saved : 'freestyle';
   });
 
+  const [showOutput, setShowOutput] = useState(true);
+
   useEffect(() => {
     localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
   }, [monacoAIMode]);
@@ -702,6 +705,17 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
             </Select>
           </div>
           <Button
+            onClick={() => setShowOutput(!showOutput)}
+            variant="ghost"
+            size="sm"
+            className="text-[#00FF41] hover:bg-[#00FF41]/20 text-xs"
+            data-testid="button-expand-workspace"
+            title={showOutput ? 'Expand Workspace' : 'Show Output'}
+          >
+            {showOutput ? <Maximize className="w-4 h-4 mr-1" /> : <Minimize className="w-4 h-4 mr-1" />}
+            {showOutput ? 'Expand' : 'Restore'}
+          </Button>
+          <Button
             onClick={() => setShowInstructions(!showInstructions)}
             variant="ghost"
             size="sm"
@@ -870,12 +884,13 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
           )}
         </div>
 
-        {/* Output Panel */}
-        <div className="w-96 bg-black/40 border-l border-[#00FF41]/20 flex flex-col">
-          <div className="px-4 py-2 bg-black/30 border-b border-[#00FF41]/20 flex items-center gap-2">
-            <TerminalIcon className="w-4 h-4 text-[#00FF41]" />
-            <span className="text-[#00FF41] font-mono text-sm">Output</span>
-          </div>
+        {/* Output Panel - conditionally rendered */}
+        {showOutput && (
+          <div className="w-96 bg-black/40 border-l border-[#00FF41]/20 flex flex-col">
+            <div className="px-4 py-2 bg-black/30 border-b border-[#00FF41]/20 flex items-center gap-2">
+              <TerminalIcon className="w-4 h-4 text-[#00FF41]" />
+              <span className="text-[#00FF41] font-mono text-sm">Output</span>
+            </div>
 
           {/* Stdin input field */}
           <div className="px-3 py-2 border-b border-[#00FF41]/20 bg-black/20">
@@ -938,6 +953,7 @@ Supported languages:
             )}
           </ScrollArea>
         </div>
+        )}
       </div>
 
       {/* Footer */}
