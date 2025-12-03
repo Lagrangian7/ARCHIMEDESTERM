@@ -327,14 +327,14 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
   }
 
   return (
-    <div className="border rounded-lg p-6 w-full h-full flex flex-col" data-no-terminal-autofocus style={{
+    <div className="border rounded-lg p-3 w-full h-full flex flex-col" data-no-terminal-autofocus style={{
       backgroundColor: 'var(--terminal-bg)',
       borderColor: 'rgba(var(--terminal-subtle-rgb), 0.2)'
     }}>
-      <div className="flex justify-between items-center mb-4 flex-shrink-0">
-        <h2 className="text-xl font-bold font-mono flex items-center" style={{ color: 'var(--terminal-text)' }}>
-          <FileText className="mr-2" size={20} />
-          Knowledge Base Documents
+      <div className="flex justify-between items-center mb-2 flex-shrink-0">
+        <h2 className="text-base font-bold font-mono flex items-center" style={{ color: 'var(--terminal-text)' }}>
+          <FileText className="mr-2" size={16} />
+          Documents
         </h2>
         {/* Search Bar */}
         <div className="flex-grow mx-4">

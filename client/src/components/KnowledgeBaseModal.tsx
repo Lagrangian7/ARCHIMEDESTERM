@@ -129,7 +129,7 @@ export function KnowledgeBaseModal({ onClose }: KnowledgeBaseModalProps) {
     >
       {/* Header */}
       <div 
-        className="flex items-center justify-between px-4 py-3 cursor-move"
+        className="flex items-center justify-between px-3 py-2 cursor-move"
         style={{
           backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.8)',
           borderBottom: `1px solid var(--terminal-highlight)`,
@@ -143,8 +143,8 @@ export function KnowledgeBaseModal({ onClose }: KnowledgeBaseModalProps) {
           }
         }}
       >
-        <h2 className="text-sm md:text-xl font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
-          📚 Knowledge Base Manager
+        <h2 className="text-sm md:text-lg font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
+          📚 Knowledge Base
         </h2>
         <div className="flex items-center gap-2">
           <Button
@@ -174,7 +174,7 @@ export function KnowledgeBaseModal({ onClose }: KnowledgeBaseModalProps) {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-hidden flex flex-col p-4 gap-4">
+      <div className="flex-1 overflow-hidden flex flex-col p-2 gap-2">
         <div className="flex-shrink-0">
           <DocumentUpload />
         </div>
