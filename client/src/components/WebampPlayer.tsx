@@ -99,18 +99,21 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
         const webamp = new Webamp({
           enableHotkeys: true,
 
-          // Initial window layout centered horizontally - shade mode will be set programmatically
+          // Initial window layout with shade mode enabled, centered horizontally
           __initialWindowLayout: {
             main: {
               position: { x: centerX, y: 0 },
+              shadeMode: true,
               closed: false,
             },
             equalizer: {
-              position: { x: centerX, y: 116 }, // Below main window in normal mode
+              position: { x: centerX, y: 14 }, // 14px down (height of shaded main)
+              shadeMode: true,
               closed: false,
             },
             playlist: {
-              position: { x: centerX, y: 232 }, // Below equalizer in normal mode
+              position: { x: centerX, y: 28 }, // 28px down (height of shaded main + eq)
+              shadeMode: true,
               closed: false,
             }
           },
@@ -615,44 +618,26 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
           webampRef.current = webamp;
           console.log('Webamp initialized successfully');
 
-          // Force all windows into shade mode immediately after render
-          const store = (webamp as any)._store;
-          if (store) {
-            // Get current state and only toggle if not already shaded
-            const state = store.getState();
-            const { windows } = state;
-            
-            console.log('Window states:', {
-              main: windows.genWindows.main.shade,
-              equalizer: windows.genWindows.equalizer.shade,
-              playlist: windows.playlist.shadeMode
-            });
-            
-            // Only toggle if not shaded
-            if (!windows.genWindows.main.shade) {
-              store.dispatch({ type: 'TOGGLE_MAIN_WINDOW_SHADE_MODE' });
-            }
-            if (!windows.genWindows.equalizer.shade) {
-              store.dispatch({ type: 'TOGGLE_EQUALIZER_SHADE_MODE' });
-            }
-            if (!windows.playlist.shadeMode) {
-              store.dispatch({ type: 'TOGGLE_PLAYLIST_SHADE_MODE' });
+          // Force all windows into shade mode after a brief delay to ensure they're rendered
+          setTimeout(() => {
+            // Toggle shade mode for main window
+            const shadeButton = document.querySelector('#main-window #shade');
+            if (shadeButton instanceof HTMLElement && !document.querySelector('#main-window.shade')) {
+              shadeButton.click();
             }
             
-            console.log('Dispatched shade mode actions');
+            // Toggle shade mode for equalizer
+            const eqShadeButton = document.querySelector('#equalizer-window #equalizer-shade');
+            if (eqShadeButton instanceof HTMLElement && !document.querySelector('#equalizer-window.shade')) {
+              eqShadeButton.click();
+            }
             
-            // Update positions after shade mode is applied
-            setTimeout(() => {
-              store.dispatch({ 
-                type: 'UPDATE_WINDOW_POSITIONS',
-                positions: {
-                  main: { x: centerX, y: 0 },
-                  equalizer: { x: centerX, y: 14 },
-                  playlist: { x: centerX, y: 28 }
-                }
-              });
-            }, 50);
-          }
+            // Toggle shade mode for playlist
+            const playlistShadeButton = document.querySelector('#playlist-window #playlist-shade-button');
+            if (playlistShadeButton instanceof HTMLElement && !document.querySelector('#playlist-window.shade')) {
+              playlistShadeButton.click();
+            }
+          }, 100);
 
           // Auto-play the track
           webamp.play();
