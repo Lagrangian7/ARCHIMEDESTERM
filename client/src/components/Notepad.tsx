@@ -218,7 +218,7 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
           size="sm"
           className="font-mono text-xs h-7 px-2.5"
           style={{ 
-            backgroundColor: '#24252f', 
+            backgroundColor: 'var(--terminal-highlight)', 
             color: 'var(--terminal-bg)',
             fontWeight: 500
           }}
