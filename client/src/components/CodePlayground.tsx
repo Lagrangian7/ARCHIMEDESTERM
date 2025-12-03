@@ -734,12 +734,6 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
         onDoubleClick={toggleMaximize}
       >
         <div className="flex items-center gap-3">
-          <img 
-            src={playIcon} 
-            alt="Code Playground" 
-            className="w-6 h-6"
-            style={{ filter: 'invert(1) brightness(1.2)' }}
-          />
         </div>
         <div className="flex items-center gap-2">
           <Button
