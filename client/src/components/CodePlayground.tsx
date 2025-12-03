@@ -638,23 +638,18 @@ export function CodePlayground({ onClose, initialCode, initialLanguage }: CodePl
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center" data-testid="code-playground">
-      <div 
-        className="bg-[#0D1117] flex flex-col border-2 border-[#00FF41]/30 rounded-lg shadow-2xl overflow-hidden"
-        style={isMaximized ? {
-          position: 'fixed',
-          top: `${position.y}px`,
-          left: `${position.x}px`,
-          width: `${dimensions.width}px`,
-          height: `${dimensions.height}px`
-        } : {
-          position: 'fixed',
-          top: `${position.y}px`,
-          left: `${position.x}px`,
-          width: `${dimensions.width}px`,
-          height: `${dimensions.height}px`
-        }}
-      >
+    <div 
+      className="bg-[#0D1117] flex flex-col border-2 border-[#00FF41]/30 rounded-lg shadow-2xl overflow-hidden"
+      style={{
+        position: 'fixed',
+        top: `${position.y}px`,
+        left: `${position.x}px`,
+        width: `${dimensions.width}px`,
+        height: `${dimensions.height}px`,
+        zIndex: 40
+      }}
+      data-testid="code-playground"
+    >
       {/* Header with drag handle */}
       <div 
         className="flex items-center justify-between px-4 py-3 bg-black/50 border-b border-[#00FF41]/30 cursor-move"
@@ -977,7 +972,6 @@ Supported languages:
           }}
         />
       )}
-      </div>
     </div>
   );
 }
