@@ -107,426 +107,462 @@
   --terminal-no-bg: 0; /* Flag to hide background image */
 }
 
-/* Terminal Theme Classes */
+/* Professional Terminal Theme Classes - Enhanced with detailed color coordination */
+
+/* Classic Terminal Green - Professional phosphor CRT aesthetic */
 .theme-green {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(118 100% 63%);
-  --terminal-highlight: hsl(118 100% 75%);
-  --terminal-subtle: hsl(151 43% 24%);
-  --terminal-subtle-rgb: 27, 67, 50;
-  --terminal-logo-green: hsl(118 100% 75%);
-  --terminal-bright-green: hsl(118 100% 75%);
-  --terminal-orange: hsl(30 100% 50%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(118 40% 8%) 0%, hsl(0 0% 0%) 100%);
+  --terminal-bg: hsl(140 8% 8%);
+  --terminal-text: hsl(142 65% 68%);
+  --terminal-highlight: hsl(142 75% 75%);
+  --terminal-subtle: hsl(145 25% 18%);
+  --terminal-subtle-rgb: 36, 57, 45;
+  --terminal-logo-green: hsl(142 75% 75%);
+  --terminal-bright-green: hsl(142 85% 82%);
+  --terminal-orange: hsl(38 88% 62%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(140 30% 12%) 0%, hsl(140 20% 8%) 50%, hsl(140 10% 5%) 100%);
 }
 
+/* Professional Blue - Corporate command line */
 .theme-blue {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(200 100% 70%);
-  --terminal-highlight: hsl(200 100% 80%);
-  --terminal-subtle: hsl(200 43% 24%);
-  --terminal-subtle-rgb: 35, 55, 87;
-  --terminal-logo-green: hsl(200 100% 80%);
-  --terminal-bright-green: hsl(200 100% 80%);
-  --terminal-orange: hsl(45 100% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(200 50% 8%) 0%, hsl(0 0% 0%) 100%);
+  --terminal-bg: hsl(210 18% 9%);
+  --terminal-text: hsl(205 72% 72%);
+  --terminal-highlight: hsl(200 85% 78%);
+  --terminal-subtle: hsl(208 28% 16%);
+  --terminal-subtle-rgb: 30, 40, 58;
+  --terminal-logo-green: hsl(200 85% 78%);
+  --terminal-bright-green: hsl(195 80% 82%);
+  --terminal-orange: hsl(42 95% 68%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(210 35% 13%) 0%, hsl(210 25% 9%) 50%, hsl(210 15% 6%) 100%);
 }
 
+/* Warm Orange - Modern developer aesthetic */
 .theme-orange {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(30 100% 70%);
-  --terminal-highlight: hsl(30 100% 80%);
-  --terminal-subtle: hsl(30 43% 24%);
-  --terminal-subtle-rgb: 87, 52, 35;
-  --terminal-logo-green: hsl(30 100% 80%);
-  --terminal-bright-green: hsl(30 100% 80%);
-  --terminal-orange: hsl(200 100% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(30 50% 8%) 0%, hsl(0 0% 0%) 100%);
+  --terminal-bg: hsl(25 12% 9%);
+  --terminal-text: hsl(32 78% 68%);
+  --terminal-highlight: hsl(28 88% 74%);
+  --terminal-subtle: hsl(28 22% 17%);
+  --terminal-subtle-rgb: 52, 42, 34;
+  --terminal-logo-green: hsl(28 88% 74%);
+  --terminal-bright-green: hsl(32 90% 78%);
+  --terminal-orange: hsl(198 75% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(25 28% 12%) 0%, hsl(25 18% 8%) 50%, hsl(25 10% 5%) 100%);
 }
 
+/* Professional Greyscale - Minimalist precision */
 .theme-greyscale {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(0 0% 75%);
-  --terminal-highlight: hsl(0 0% 90%);
-  --terminal-subtle: hsl(0 0% 25%);
-  --terminal-subtle-rgb: 64, 64, 64;
-  --terminal-logo-green: hsl(0 0% 90%);
-  --terminal-bright-green: hsl(0 0% 90%);
-  --terminal-orange: hsl(0 0% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(0 0% 10%) 0%, hsl(0 0% 0%) 100%);
+  --terminal-bg: hsl(210 6% 10%);
+  --terminal-text: hsl(210 8% 78%);
+  --terminal-highlight: hsl(210 10% 88%);
+  --terminal-subtle: hsl(210 8% 22%);
+  --terminal-subtle-rgb: 53, 56, 60;
+  --terminal-logo-green: hsl(210 10% 88%);
+  --terminal-bright-green: hsl(210 12% 92%);
+  --terminal-orange: hsl(210 6% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(210 10% 14%) 0%, hsl(210 8% 10%) 50%, hsl(210 6% 7%) 100%);
 }
 
+/* Ruby Red - Alert-focused professional */
 .theme-red {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(0 100% 70%);
-  --terminal-highlight: hsl(0 100% 80%);
-  --terminal-subtle: hsl(0 43% 24%);
-  --terminal-subtle-rgb: 87, 35, 35;
-  --terminal-logo-green: hsl(0 100% 80%);
-  --terminal-bright-green: hsl(0 100% 80%);
-  --terminal-orange: hsl(45 100% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(0 50% 8%) 0%, hsl(0 0% 0%) 100%);
+  --terminal-bg: hsl(355 15% 10%);
+  --terminal-text: hsl(358 68% 70%);
+  --terminal-highlight: hsl(2 78% 76%);
+  --terminal-subtle: hsl(356 22% 18%);
+  --terminal-subtle-rgb: 56, 36, 38;
+  --terminal-logo-green: hsl(2 78% 76%);
+  --terminal-bright-green: hsl(5 82% 80%);
+  --terminal-orange: hsl(45 92% 66%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(355 28% 12%) 0%, hsl(355 20% 8%) 50%, hsl(355 12% 5%) 100%);
 }
 
+/* High Contrast Black & White - Accessibility focused */
 .theme-blackwhite {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(0 0% 100%);
+  --terminal-bg: hsl(0 0% 5%);
+  --terminal-text: hsl(0 0% 96%);
   --terminal-highlight: hsl(0 0% 100%);
-  --terminal-subtle: hsl(0 0% 30%);
-  --terminal-subtle-rgb: 77, 77, 77;
+  --terminal-subtle: hsl(0 0% 18%);
+  --terminal-subtle-rgb: 46, 46, 46;
   --terminal-logo-green: hsl(0 0% 100%);
-  --terminal-bright-green: hsl(0 0% 100%);
-  --terminal-orange: hsl(0 0% 80%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(0 0% 15%) 0%, hsl(0 0% 0%) 100%);
+  --terminal-bright-green: hsl(0 0% 98%);
+  --terminal-orange: hsl(0 0% 75%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(0 0% 12%) 0%, hsl(0 0% 8%) 50%, hsl(0 0% 5%) 100%);
 }
 
+/* Patriotic - Professional American theme */
 .theme-patriot {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(0 0% 95%);
-  --terminal-highlight: hsl(0 85% 65%);
-  --terminal-subtle: hsl(220 50% 25%);
-  --terminal-subtle-rgb: 32, 45, 96;
-  --terminal-logo-green: hsl(0 85% 65%);
-  --terminal-bright-green: hsl(0 85% 65%);
-  --terminal-orange: hsl(220 80% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(220 40% 8%) 0%, hsl(0 30% 5%) 50%, hsl(0 0% 0%) 100%);
+  --terminal-bg: hsl(220 15% 10%);
+  --terminal-text: hsl(0 0% 92%);
+  --terminal-highlight: hsl(358 72% 68%);
+  --terminal-subtle: hsl(218 35% 20%);
+  --terminal-subtle-rgb: 33, 40, 69;
+  --terminal-logo-green: hsl(358 72% 68%);
+  --terminal-bright-green: hsl(2 78% 72%);
+  --terminal-orange: hsl(214 75% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(220 30% 12%) 0%, hsl(358 25% 10%) 50%, hsl(220 20% 8%) 100%);
 }
 
+/* Solarized - Professional color science */
 .theme-solarized {
-  --terminal-bg: hsl(193 100% 11%);
-  --terminal-text: hsl(186 10% 55%);
-  --terminal-highlight: hsl(45 100% 35%);
-  --terminal-subtle: hsl(192 81% 14%);
-  --terminal-subtle-rgb: 7, 54, 66;
-  --terminal-logo-green: hsl(45 100% 35%);
-  --terminal-bright-green: hsl(186 8% 62%);
-  --terminal-orange: hsl(18 80% 45%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(193 60% 12%) 0%, hsl(193 80% 8%) 100%);
+  --terminal-bg: hsl(192 100% 11%);
+  --terminal-text: hsl(186 15% 62%);
+  --terminal-highlight: hsl(45 100% 48%);
+  --terminal-subtle: hsl(193 75% 15%);
+  --terminal-subtle-rgb: 10, 55, 67;
+  --terminal-logo-green: hsl(45 100% 48%);
+  --terminal-bright-green: hsl(186 18% 68%);
+  --terminal-orange: hsl(18 85% 52%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(193 85% 13%) 0%, hsl(193 75% 10%) 50%, hsl(193 65% 8%) 100%);
 }
 
+/* Commodore 64 - Vintage computing refined */
 .theme-commodore64 {
-  --terminal-bg: hsl(225 67% 25%);
-  --terminal-text: hsl(195 100% 75%);
-  --terminal-highlight: hsl(195 100% 85%);
-  --terminal-subtle: hsl(225 67% 35%);
-  --terminal-subtle-rgb: 42, 56, 143;
-  --terminal-logo-green: hsl(195 100% 85%);
-  --terminal-bright-green: hsl(195 100% 85%);
-  --terminal-orange: hsl(195 100% 65%);
+  --terminal-bg: hsl(227 52% 28%);
+  --terminal-text: hsl(193 88% 78%);
+  --terminal-highlight: hsl(193 92% 85%);
+  --terminal-subtle: hsl(227 45% 35%);
+  --terminal-subtle-rgb: 50, 61, 131;
+  --terminal-logo-green: hsl(193 92% 85%);
+  --terminal-bright-green: hsl(193 88% 88%);
+  --terminal-orange: hsl(193 80% 70%);
   --terminal-no-bg: 1;
-  --voice-controls-gradient: linear-gradient(135deg, hsl(225 67% 28%) 0%, hsl(225 67% 20%) 100%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(227 48% 30%) 0%, hsl(227 45% 25%) 50%, hsl(227 42% 22%) 100%);
 }
 
+/* Cyberpunk - Neon professional aesthetic */
 .theme-cyberpunk {
-  --terminal-bg: hsl(0 0% 5%);
-  --terminal-text: hsl(315 100% 70%);
-  --terminal-highlight: hsl(180 100% 60%);
-  --terminal-subtle: hsl(315 50% 25%);
-  --terminal-subtle-rgb: 95, 32, 80;
-  --terminal-logo-green: hsl(315 100% 70%);
-  --terminal-bright-green: hsl(180 100% 60%);
-  --terminal-orange: hsl(50 100% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(315 50% 8%) 0%, hsl(180 30% 5%) 50%, hsl(0 0% 3%) 100%);
+  --terminal-bg: hsl(280 8% 8%);
+  --terminal-text: hsl(315 82% 72%);
+  --terminal-highlight: hsl(180 88% 65%);
+  --terminal-subtle: hsl(315 28% 18%);
+  --terminal-subtle-rgb: 58, 33, 53;
+  --terminal-logo-green: hsl(315 82% 72%);
+  --terminal-bright-green: hsl(180 88% 70%);
+  --terminal-orange: hsl(52 95% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(315 35% 10%) 0%, hsl(180 25% 8%) 50%, hsl(280 15% 6%) 100%);
 }
 
+/* Forest - Natural developer environment */
 .theme-forest {
-  --terminal-bg: hsl(140 30% 10%);
-  --terminal-text: hsl(110 60% 65%);
-  --terminal-highlight: hsl(85 70% 75%);
-  --terminal-subtle: hsl(140 40% 20%);
-  --terminal-subtle-rgb: 31, 71, 46;
-  --terminal-logo-green: hsl(85 70% 75%);
-  --terminal-bright-green: hsl(110 60% 65%);
-  --terminal-orange: hsl(35 80% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(140 35% 12%) 0%, hsl(140 30% 8%) 100%);
+  --terminal-bg: hsl(142 22% 12%);
+  --terminal-text: hsl(125 55% 68%);
+  --terminal-highlight: hsl(95 65% 72%);
+  --terminal-subtle: hsl(142 32% 20%);
+  --terminal-subtle-rgb: 35, 67, 48;
+  --terminal-logo-green: hsl(95 65% 72%);
+  --terminal-bright-green: hsl(125 60% 72%);
+  --terminal-orange: hsl(38 78% 62%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(142 35% 14%) 0%, hsl(142 28% 11%) 50%, hsl(142 22% 8%) 100%);
 }
 
+/* Ocean - Deep professional blue */
 .theme-ocean {
-  --terminal-bg: hsl(210 50% 8%);
-  --terminal-text: hsl(195 80% 70%);
-  --terminal-highlight: hsl(175 90% 65%);
-  --terminal-subtle: hsl(210 60% 18%);
-  --terminal-subtle-rgb: 18, 41, 73;
-  --terminal-logo-green: hsl(175 90% 65%);
-  --terminal-bright-green: hsl(195 80% 70%);
-  --terminal-orange: hsl(40 95% 65%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(210 55% 10%) 0%, hsl(210 50% 6%) 100%);
+  --terminal-bg: hsl(208 35% 11%);
+  --terminal-text: hsl(195 68% 72%);
+  --terminal-highlight: hsl(175 78% 68%);
+  --terminal-subtle: hsl(208 42% 18%);
+  --terminal-subtle-rgb: 27, 40, 65;
+  --terminal-logo-green: hsl(175 78% 68%);
+  --terminal-bright-green: hsl(195 72% 75%);
+  --terminal-orange: hsl(42 88% 68%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(208 42% 13%) 0%, hsl(208 38% 10%) 50%, hsl(208 32% 8%) 100%);
 }
 
+/* Sunset - Warm professional gradient */
 .theme-sunset {
-  --terminal-bg: hsl(15 40% 10%);
-  --terminal-text: hsl(25 100% 70%);
-  --terminal-highlight: hsl(350 90% 65%);
-  --terminal-subtle: hsl(15 50% 20%);
-  --terminal-subtle-rgb: 77, 38, 26;
-  --terminal-logo-green: hsl(350 90% 65%);
-  --terminal-bright-green: hsl(25 100% 70%);
-  --terminal-orange: hsl(50 100% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(15 45% 12%) 0%, hsl(350 40% 8%) 50%, hsl(0 0% 5%) 100%);
+  --terminal-bg: hsl(18 28% 12%);
+  --terminal-text: hsl(28 85% 70%);
+  --terminal-highlight: hsl(352 78% 68%);
+  --terminal-subtle: hsl(18 35% 19%);
+  --terminal-subtle-rgb: 65, 40, 31;
+  --terminal-logo-green: hsl(352 78% 68%);
+  --terminal-bright-green: hsl(28 88% 74%);
+  --terminal-orange: hsl(48 92% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(18 38% 14%) 0%, hsl(352 32% 11%) 50%, hsl(18 25% 8%) 100%);
 }
 
+/* Neon - Electric professional */
 .theme-neon {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(280 100% 75%);
-  --terminal-highlight: hsl(160 100% 50%);
-  --terminal-subtle: hsl(280 60% 25%);
-  --terminal-subtle-rgb: 102, 26, 102;
-  --terminal-logo-green: hsl(160 100% 50%);
-  --terminal-bright-green: hsl(280 100% 75%);
-  --terminal-orange: hsl(330 100% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(280 50% 8%) 0%, hsl(160 30% 5%) 50%, hsl(0 0% 0%) 100%);
+  --terminal-bg: hsl(280 8% 6%);
+  --terminal-text: hsl(285 88% 75%);
+  --terminal-highlight: hsl(165 92% 58%);
+  --terminal-subtle: hsl(285 35% 18%);
+  --terminal-subtle-rgb: 58, 30, 66;
+  --terminal-logo-green: hsl(165 92% 58%);
+  --terminal-bright-green: hsl(285 90% 78%);
+  --terminal-orange: hsl(330 92% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(285 40% 9%) 0%, hsl(165 28% 7%) 50%, hsl(280 15% 5%) 100%);
 }
 
+/* Vintage - Classic terminal refined */
 .theme-vintage {
-  --terminal-bg: hsl(40 20% 15%);
-  --terminal-text: hsl(35 60% 65%);
-  --terminal-highlight: hsl(25 70% 55%);
-  --terminal-subtle: hsl(40 30% 25%);
-  --terminal-subtle-rgb: 82, 72, 45;
-  --terminal-logo-green: hsl(25 70% 55%);
-  --terminal-bright-green: hsl(35 60% 65%);
-  --terminal-orange: hsl(15 80% 50%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(40 25% 17%) 0%, hsl(40 20% 12%) 100%);
+  --terminal-bg: hsl(38 18% 16%);
+  --terminal-text: hsl(35 55% 68%);
+  --terminal-highlight: hsl(28 65% 62%);
+  --terminal-subtle: hsl(38 25% 24%);
+  --terminal-subtle-rgb: 73, 64, 46;
+  --terminal-logo-green: hsl(28 65% 62%);
+  --terminal-bright-green: hsl(35 60% 70%);
+  --terminal-orange: hsl(18 75% 58%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(38 28% 18%) 0%, hsl(38 22% 14%) 50%, hsl(38 18% 12%) 100%);
 }
 
+/* Arctic - Cool professional clarity */
 .theme-arctic {
-  --terminal-bg: hsl(200 40% 12%);
-  --terminal-text: hsl(190 70% 80%);
-  --terminal-highlight: hsl(185 100% 90%);
-  --terminal-subtle: hsl(200 50% 22%);
-  --terminal-subtle-rgb: 28, 50, 67;
-  --terminal-logo-green: hsl(185 100% 90%);
-  --terminal-bright-green: hsl(190 70% 80%);
-  --terminal-orange: hsl(210 60% 70%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(200 45% 14%) 0%, hsl(200 40% 10%) 100%);
+  --terminal-bg: hsl(198 32% 13%);
+  --terminal-text: hsl(188 65% 78%);
+  --terminal-highlight: hsl(183 88% 85%);
+  --terminal-subtle: hsl(198 38% 21%);
+  --terminal-subtle-rgb: 33, 50, 63;
+  --terminal-logo-green: hsl(183 88% 85%);
+  --terminal-bright-green: hsl(188 70% 82%);
+  --terminal-orange: hsl(208 58% 72%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(198 40% 15%) 0%, hsl(198 35% 12%) 50%, hsl(198 30% 10%) 100%);
 }
 
+/* Amber - Warm professional alertness */
 .theme-amber {
-  --terminal-bg: hsl(0 0% 8%);
-  --terminal-text: hsl(45 100% 70%);
-  --terminal-highlight: hsl(40 100% 75%);
-  --terminal-subtle: hsl(45 60% 20%);
-  --terminal-subtle-rgb: 82, 66, 20;
-  --terminal-logo-green: hsl(40 100% 75%);
-  --terminal-bright-green: hsl(45 100% 70%);
-  --terminal-orange: hsl(30 100% 65%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(45 50% 10%) 0%, hsl(0 0% 5%) 100%);
+  --terminal-bg: hsl(38 10% 10%);
+  --terminal-text: hsl(45 88% 70%);
+  --terminal-highlight: hsl(42 92% 75%);
+  --terminal-subtle: hsl(42 28% 18%);
+  --terminal-subtle-rgb: 58, 52, 33;
+  --terminal-logo-green: hsl(42 92% 75%);
+  --terminal-bright-green: hsl(45 90% 75%);
+  --terminal-orange: hsl(32 88% 68%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(42 35% 12%) 0%, hsl(42 25% 9%) 50%, hsl(38 18% 7%) 100%);
 }
 
+/* Hacker - Matrix-style professional */
 .theme-hacker {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(120 100% 40%);
-  --terminal-highlight: hsl(120 100% 60%);
-  --terminal-subtle: hsl(120 40% 15%);
-  --terminal-subtle-rgb: 23, 54, 23;
-  --terminal-logo-green: hsl(120 100% 60%);
-  --terminal-bright-green: hsl(120 100% 70%);
-  --terminal-orange: hsl(60 100% 50%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(120 50% 6%) 0%, hsl(0 0% 0%) 100%);
+  --terminal-bg: hsl(120 8% 5%);
+  --terminal-text: hsl(125 88% 52%);
+  --terminal-highlight: hsl(125 92% 65%);
+  --terminal-subtle: hsl(125 28% 14%);
+  --terminal-subtle-rgb: 26, 46, 26;
+  --terminal-logo-green: hsl(125 92% 65%);
+  --terminal-bright-green: hsl(125 88% 72%);
+  --terminal-orange: hsl(58 95% 58%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(125 35% 8%) 0%, hsl(125 25% 6%) 50%, hsl(120 15% 4%) 100%);
 }
 
+/* Royal - Luxury professional purple */
 .theme-royal {
-  --terminal-bg: hsl(260 50% 10%);
-  --terminal-text: hsl(280 80% 75%);
-  --terminal-highlight: hsl(50 100% 65%);
-  --terminal-subtle: hsl(260 60% 20%);
-  --terminal-subtle-rgb: 41, 20, 82;
-  --terminal-logo-green: hsl(50 100% 65%);
-  --terminal-bright-green: hsl(280 80% 75%);
-  --terminal-orange: hsl(320 70% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(260 55% 12%) 0%, hsl(50 40% 8%) 50%, hsl(260 50% 8%) 100%);
+  --terminal-bg: hsl(262 35% 12%);
+  --terminal-text: hsl(280 72% 75%);
+  --terminal-highlight: hsl(48 95% 68%);
+  --terminal-subtle: hsl(262 42% 19%);
+  --terminal-subtle-rgb: 45, 28, 74;
+  --terminal-logo-green: hsl(48 95% 68%);
+  --terminal-bright-green: hsl(280 75% 78%);
+  --terminal-orange: hsl(320 68% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(262 45% 14%) 0%, hsl(48 35% 10%) 50%, hsl(262 38% 11%) 100%);
 }
 
+/* Vaporwave - Aesthetic professional */
 .theme-vaporwave {
-  --terminal-bg: hsl(300 60% 8%);
-  --terminal-text: hsl(330 100% 75%);
-  --terminal-highlight: hsl(180 100% 70%);
-  --terminal-subtle: hsl(300 50% 18%);
-  --terminal-subtle-rgb: 58, 23, 58;
-  --terminal-logo-green: hsl(180 100% 70%);
-  --terminal-bright-green: hsl(330 100% 75%);
-  --terminal-orange: hsl(270 100% 70%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(300 60% 10%) 0%, hsl(180 40% 6%) 50%, hsl(300 60% 6%) 100%);
+  --terminal-bg: hsl(298 42% 10%);
+  --terminal-text: hsl(328 88% 75%);
+  --terminal-highlight: hsl(178 92% 68%);
+  --terminal-subtle: hsl(298 35% 17%);
+  --terminal-subtle-rgb: 54, 28, 56;
+  --terminal-logo-green: hsl(178 92% 68%);
+  --terminal-bright-green: hsl(328 90% 78%);
+  --terminal-orange: hsl(272 88% 72%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(298 48% 12%) 0%, hsl(178 35% 8%) 50%, hsl(298 40% 9%) 100%);
 }
 
+/* Desert - Sandy professional warmth */
 .theme-desert {
-  --terminal-bg: hsl(30 40% 12%);
-  --terminal-text: hsl(40 85% 65%);
-  --terminal-highlight: hsl(20 90% 60%);
-  --terminal-subtle: hsl(30 50% 22%);
-  --terminal-subtle-rgb: 71, 56, 28;
-  --terminal-logo-green: hsl(20 90% 60%);
-  --terminal-bright-green: hsl(40 85% 65%);
-  --terminal-orange: hsl(10 95% 55%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(30 45% 14%) 0%, hsl(30 40% 10%) 100%);
+  --terminal-bg: hsl(32 32% 13%);
+  --terminal-text: hsl(42 78% 68%);
+  --terminal-highlight: hsl(22 82% 65%);
+  --terminal-subtle: hsl(32 38% 21%);
+  --terminal-subtle-rgb: 63, 50, 33;
+  --terminal-logo-green: hsl(22 82% 65%);
+  --terminal-bright-green: hsl(42 82% 70%);
+  --terminal-orange: hsl(12 88% 62%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(32 42% 15%) 0%, hsl(32 36% 12%) 50%, hsl(32 30% 10%) 100%);
 }
 
+/* Toxic - Radioactive professional */
 .theme-toxic {
-  --terminal-bg: hsl(0 0% 5%);
-  --terminal-text: hsl(80 100% 50%);
-  --terminal-highlight: hsl(65 100% 45%);
-  --terminal-subtle: hsl(80 60% 15%);
-  --terminal-subtle-rgb: 41, 61, 15;
-  --terminal-logo-green: hsl(65 100% 45%);
-  --terminal-bright-green: hsl(80 100% 50%);
-  --terminal-orange: hsl(50 100% 50%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(80 50% 7%) 0%, hsl(0 0% 3%) 100%);
+  --terminal-bg: hsl(75 12% 8%);
+  --terminal-text: hsl(82 92% 58%);
+  --terminal-highlight: hsl(68 95% 52%);
+  --terminal-subtle: hsl(78 32% 14%);
+  --terminal-subtle-rgb: 40, 54, 24;
+  --terminal-logo-green: hsl(68 95% 52%);
+  --terminal-bright-green: hsl(82 92% 62%);
+  --terminal-orange: hsl(52 95% 58%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(78 40% 10%) 0%, hsl(78 28% 7%) 50%, hsl(75 18% 6%) 100%);
 }
 
+/* Crimson - Professional warning red */
 .theme-crimson {
-  --terminal-bg: hsl(0 40% 8%);
-  --terminal-text: hsl(350 100% 70%);
-  --terminal-highlight: hsl(15 100% 65%);
-  --terminal-subtle: hsl(0 50% 18%);
-  --terminal-subtle-rgb: 73, 23, 23;
-  --terminal-logo-green: hsl(15 100% 65%);
-  --terminal-bright-green: hsl(350 100% 70%);
-  --terminal-orange: hsl(30 100% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(0 45% 10%) 0%, hsl(0 40% 6%) 100%);
+  --terminal-bg: hsl(355 28% 10%);
+  --terminal-text: hsl(352 88% 70%);
+  --terminal-highlight: hsl(18 92% 68%);
+  --terminal-subtle: hsl(355 35% 17%);
+  --terminal-subtle-rgb: 58, 28, 31;
+  --terminal-logo-green: hsl(18 92% 68%);
+  --terminal-bright-green: hsl(352 90% 74%);
+  --terminal-orange: hsl(32 88% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(355 38% 12%) 0%, hsl(355 32% 9%) 50%, hsl(355 25% 7%) 100%);
 }
 
+/* Lavender - Soft professional purple */
 .theme-lavender {
-  --terminal-bg: hsl(270 40% 10%);
-  --terminal-text: hsl(290 70% 75%);
-  --terminal-highlight: hsl(310 80% 70%);
-  --terminal-subtle: hsl(270 50% 20%);
-  --terminal-subtle-rgb: 51, 26, 77;
-  --terminal-logo-green: hsl(310 80% 70%);
-  --terminal-bright-green: hsl(290 70% 75%);
-  --terminal-orange: hsl(330 75% 65%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(270 45% 12%) 0%, hsl(270 40% 8%) 100%);
+  --terminal-bg: hsl(272 32% 12%);
+  --terminal-text: hsl(288 68% 75%);
+  --terminal-highlight: hsl(308 75% 72%);
+  --terminal-subtle: hsl(272 38% 19%);
+  --terminal-subtle-rgb: 48, 30, 66;
+  --terminal-logo-green: hsl(308 75% 72%);
+  --terminal-bright-green: hsl(288 72% 78%);
+  --terminal-orange: hsl(328 72% 68%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(272 42% 14%) 0%, hsl(272 36% 11%) 50%, hsl(272 30% 9%) 100%);
 }
 
+/* Emerald - Professional green clarity */
 .theme-emerald {
-  --terminal-bg: hsl(160 50% 8%);
-  --terminal-text: hsl(140 80% 60%);
-  --terminal-highlight: hsl(165 90% 65%);
-  --terminal-subtle: hsl(160 60% 18%);
-  --terminal-subtle-rgb: 18, 58, 49;
-  --terminal-logo-green: hsl(165 90% 65%);
-  --terminal-bright-green: hsl(140 80% 60%);
-  --terminal-orange: hsl(120 75% 55%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(160 55% 10%) 0%, hsl(160 50% 6%) 100%);
+  --terminal-bg: hsl(162 38% 10%);
+  --terminal-text: hsl(145 72% 65%);
+  --terminal-highlight: hsl(168 82% 68%);
+  --terminal-subtle: hsl(162 45% 17%);
+  --terminal-subtle-rgb: 24, 54, 45;
+  --terminal-logo-green: hsl(168 82% 68%);
+  --terminal-bright-green: hsl(145 75% 68%);
+  --terminal-orange: hsl(128 72% 62%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(162 48% 12%) 0%, hsl(162 42% 9%) 50%, hsl(162 35% 7%) 100%);
 }
 
+/* Midnight - Deep professional night */
 .theme-midnight {
-  --terminal-bg: hsl(220 60% 6%);
-  --terminal-text: hsl(210 90% 65%);
-  --terminal-highlight: hsl(200 100% 70%);
-  --terminal-subtle: hsl(220 70% 16%);
-  --terminal-subtle-rgb: 12, 20, 69;
-  --terminal-logo-green: hsl(200 100% 70%);
-  --terminal-bright-green: hsl(210 90% 65%);
-  --terminal-orange: hsl(190 85% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(220 65% 8%) 0%, hsl(220 60% 4%) 100%);
+  --terminal-bg: hsl(218 48% 8%);
+  --terminal-text: hsl(208 82% 68%);
+  --terminal-highlight: hsl(198 92% 72%);
+  --terminal-subtle: hsl(218 55% 15%);
+  --terminal-subtle-rgb: 17, 24, 60;
+  --terminal-logo-green: hsl(198 92% 72%);
+  --terminal-bright-green: hsl(208 85% 72%);
+  --terminal-orange: hsl(188 78% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(218 58% 10%) 0%, hsl(218 52% 7%) 50%, hsl(218 45% 6%) 100%);
 }
 
+/* Sakura - Professional cherry blossom */
 .theme-sakura {
-  --terminal-bg: hsl(340 30% 12%);
-  --terminal-text: hsl(320 80% 75%);
-  --terminal-highlight: hsl(0 85% 70%);
-  --terminal-subtle: hsl(340 40% 22%);
-  --terminal-subtle-rgb: 71, 38, 56;
-  --terminal-logo-green: hsl(0 85% 70%);
-  --terminal-bright-green: hsl(320 80% 75%);
-  --terminal-orange: hsl(10 90% 65%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(340 35% 14%) 0%, hsl(340 30% 10%) 100%);
+  --terminal-bg: hsl(338 25% 13%);
+  --terminal-text: hsl(318 75% 75%);
+  --terminal-highlight: hsl(358 78% 72%);
+  --terminal-subtle: hsl(338 32% 21%);
+  --terminal-subtle-rgb: 61, 36, 48;
+  --terminal-logo-green: hsl(358 78% 72%);
+  --terminal-bright-green: hsl(318 78% 78%);
+  --terminal-orange: hsl(12 85% 68%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(338 35% 15%) 0%, hsl(338 28% 12%) 50%, hsl(338 22% 10%) 100%);
 }
 
+/* Copper - Metallic professional warmth */
 .theme-copper {
-  --terminal-bg: hsl(20 40% 10%);
-  --terminal-text: hsl(30 75% 60%);
-  --terminal-highlight: hsl(25 85% 65%);
-  --terminal-subtle: hsl(20 50% 20%);
-  --terminal-subtle-rgb: 64, 40, 26;
-  --terminal-logo-green: hsl(25 85% 65%);
-  --terminal-bright-green: hsl(30 75% 60%);
-  --terminal-orange: hsl(15 90% 55%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(20 45% 12%) 0%, hsl(20 40% 8%) 100%);
+  --terminal-bg: hsl(22 32% 12%);
+  --terminal-text: hsl(32 72% 65%);
+  --terminal-highlight: hsl(28 78% 68%);
+  --terminal-subtle: hsl(22 38% 19%);
+  --terminal-subtle-rgb: 56, 38, 30;
+  --terminal-logo-green: hsl(28 78% 68%);
+  --terminal-bright-green: hsl(32 75% 68%);
+  --terminal-orange: hsl(18 82% 62%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(22 42% 14%) 0%, hsl(22 36% 11%) 50%, hsl(22 30% 9%) 100%);
 }
 
+/* Plasma - Electric professional energy */
 .theme-plasma {
-  --terminal-bg: hsl(0 0% 3%);
-  --terminal-text: hsl(290 100% 70%);
-  --terminal-highlight: hsl(340 100% 65%);
-  --terminal-subtle: hsl(290 70% 15%);
-  --terminal-subtle-rgb: 77, 15, 77;
-  --terminal-logo-green: hsl(340 100% 65%);
-  --terminal-bright-green: hsl(290 100% 70%);
-  --terminal-orange: hsl(20 100% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(290 60% 6%) 0%, hsl(340 40% 4%) 50%, hsl(0 0% 2%) 100%);
+  --terminal-bg: hsl(288 8% 6%);
+  --terminal-text: hsl(292 92% 72%);
+  --terminal-highlight: hsl(338 95% 68%);
+  --terminal-subtle: hsl(292 35% 14%);
+  --terminal-subtle-rgb: 54, 24, 56;
+  --terminal-logo-green: hsl(338 95% 68%);
+  --terminal-bright-green: hsl(292 90% 75%);
+  --terminal-orange: hsl(22 92% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(292 42% 8%) 0%, hsl(338 35% 6%) 50%, hsl(288 25% 5%) 100%);
 }
 
+/* Atari - Retro professional warmth */
 .theme-atari {
-  --terminal-bg: hsl(30 50% 10%);
-  --terminal-text: hsl(50 100% 65%);
-  --terminal-highlight: hsl(10 100% 60%);
-  --terminal-subtle: hsl(30 60% 20%);
-  --terminal-subtle-rgb: 82, 51, 20;
-  --terminal-logo-green: hsl(10 100% 60%);
-  --terminal-bright-green: hsl(50 100% 65%);
-  --terminal-orange: hsl(30 100% 55%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(30 55% 12%) 0%, hsl(10 50% 8%) 50%, hsl(30 50% 8%) 100%);
+  --terminal-bg: hsl(32 38% 12%);
+  --terminal-text: hsl(48 92% 68%);
+  --terminal-highlight: hsl(12 95% 65%);
+  --terminal-subtle: hsl(32 45% 19%);
+  --terminal-subtle-rgb: 69, 51, 27;
+  --terminal-logo-green: hsl(12 95% 65%);
+  --terminal-bright-green: hsl(48 90% 70%);
+  --terminal-orange: hsl(32 92% 62%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(32 48% 14%) 0%, hsl(12 42% 10%) 50%, hsl(32 40% 11%) 100%);
 }
 
+/* NES - Professional retro gaming */
 .theme-nes {
-  --terminal-bg: hsl(220 60% 12%);
-  --terminal-text: hsl(0 100% 65%);
-  --terminal-highlight: hsl(200 100% 70%);
-  --terminal-subtle: hsl(220 70% 22%);
-  --terminal-subtle-rgb: 20, 36, 87;
-  --terminal-logo-green: hsl(200 100% 70%);
-  --terminal-bright-green: hsl(0 100% 65%);
-  --terminal-orange: hsl(120 80% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(220 65% 14%) 0%, hsl(0 50% 8%) 50%, hsl(220 60% 10%) 100%);
+  --terminal-bg: hsl(218 48% 14%);
+  --terminal-text: hsl(358 92% 68%);
+  --terminal-highlight: hsl(198 95% 72%);
+  --terminal-subtle: hsl(218 55% 21%);
+  --terminal-subtle-rgb: 24, 34, 75;
+  --terminal-logo-green: hsl(198 95% 72%);
+  --terminal-bright-green: hsl(358 90% 70%);
+  --terminal-orange: hsl(128 78% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(218 58% 16%) 0%, hsl(358 45% 10%) 50%, hsl(218 52% 13%) 100%);
 }
 
+/* Game Boy - Classic portable refined */
 .theme-gameboy {
-  --terminal-bg: hsl(80 20% 15%);
-  --terminal-text: hsl(80 60% 60%);
-  --terminal-highlight: hsl(90 70% 75%);
-  --terminal-subtle: hsl(80 30% 25%);
-  --terminal-subtle-rgb: 51, 64, 45;
-  --terminal-logo-green: hsl(90 70% 75%);
-  --terminal-bright-green: hsl(80 60% 60%);
-  --terminal-orange: hsl(70 80% 50%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(80 25% 17%) 0%, hsl(80 20% 13%) 100%);
+  --terminal-bg: hsl(82 18% 16%);
+  --terminal-text: hsl(82 55% 65%);
+  --terminal-highlight: hsl(88 65% 75%);
+  --terminal-subtle: hsl(82 25% 24%);
+  --terminal-subtle-rgb: 54, 63, 48;
+  --terminal-logo-green: hsl(88 65% 75%);
+  --terminal-bright-green: hsl(82 60% 68%);
+  --terminal-orange: hsl(72 75% 58%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(82 28% 18%) 0%, hsl(82 22% 15%) 50%, hsl(82 18% 13%) 100%);
 }
 
+/* Arcade - Professional neon gaming */
 .theme-arcade {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(190 100% 60%);
-  --terminal-highlight: hsl(320 100% 65%);
-  --terminal-subtle: hsl(190 60% 20%);
-  --terminal-subtle-rgb: 20, 61, 72;
-  --terminal-logo-green: hsl(320 100% 65%);
-  --terminal-bright-green: hsl(190 100% 60%);
-  --terminal-orange: hsl(60 100% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(190 50% 6%) 0%, hsl(320 40% 5%) 50%, hsl(0 0% 0%) 100%);
+  --terminal-bg: hsl(188 8% 6%);
+  --terminal-text: hsl(188 92% 65%);
+  --terminal-highlight: hsl(318 95% 68%);
+  --terminal-subtle: hsl(188 35% 18%);
+  --terminal-subtle-rgb: 30, 51, 57;
+  --terminal-logo-green: hsl(318 95% 68%);
+  --terminal-bright-green: hsl(188 90% 68%);
+  --terminal-orange: hsl(58 95% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(188 40% 8%) 0%, hsl(318 35% 7%) 50%, hsl(188 25% 5%) 100%);
 }
 
+/* Spectrum - Professional multicolor */
 .theme-spectrum {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(0 100% 70%);
-  --terminal-highlight: hsl(240 100% 70%);
-  --terminal-subtle: hsl(0 60% 20%);
-  --terminal-subtle-rgb: 82, 20, 20;
-  --terminal-logo-green: hsl(240 100% 70%);
-  --terminal-bright-green: hsl(0 100% 70%);
-  --terminal-orange: hsl(60 100% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(0 50% 6%) 0%, hsl(240 50% 5%) 50%, hsl(0 0% 0%) 100%);
+  --terminal-bg: hsl(0 8% 5%);
+  --terminal-text: hsl(358 92% 72%);
+  --terminal-highlight: hsl(238 95% 72%);
+  --terminal-subtle: hsl(358 35% 18%);
+  --terminal-subtle-rgb: 58, 30, 33;
+  --terminal-logo-green: hsl(238 95% 72%);
+  --terminal-bright-green: hsl(358 90% 75%);
+  --terminal-orange: hsl(58 95% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(358 42% 8%) 0%, hsl(238 38% 7%) 50%, hsl(0 25% 5%) 100%);
 }
 
+/* Rainbow Cycle - Professional spectrum */
 .theme-rainbow-cycle {
-  --terminal-bg: hsl(0 0% 0%);
-  --terminal-text: hsl(118 100% 63%);
-  --terminal-highlight: hsl(200 100% 70%);
-  --terminal-subtle: hsl(280 40% 20%);
-  --terminal-subtle-rgb: 51, 31, 82;
-  --terminal-logo-green: hsl(320 100% 65%);
-  --terminal-bright-green: hsl(180 100% 60%);
-  --terminal-orange: hsl(50 100% 60%);
-  --voice-controls-gradient: linear-gradient(135deg, hsl(280 40% 8%) 0%, hsl(200 30% 5%) 33%, hsl(118 30% 5%) 66%, hsl(0 0% 0%) 100%);
+  --terminal-bg: hsl(240 8% 6%);
+  --terminal-text: hsl(142 88% 65%);
+  --terminal-highlight: hsl(198 92% 72%);
+  --terminal-subtle: hsl(278 28% 19%);
+  --terminal-subtle-rgb: 52, 35, 73;
+  --terminal-logo-green: hsl(318 92% 68%);
+  --terminal-bright-green: hsl(178 90% 65%);
+  --terminal-orange: hsl(48 95% 65%);
+  --voice-controls-gradient: linear-gradient(135deg, hsl(278 35% 10%) 0%, hsl(198 28% 7%) 33%, hsl(142 25% 7%) 66%, hsl(240 18% 5%) 100%);
 }
 
 /* Business Professional Themes */
