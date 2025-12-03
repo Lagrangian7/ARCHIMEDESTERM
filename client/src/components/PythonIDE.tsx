@@ -2717,7 +2717,8 @@ calculator()
           height: isMaximized ? `${terminalAreaHeight}px` : `${dimensions.height}px`,
           left: isMaximized ? '0' : `${position.x}px`,
           top: isMaximized ? `${terminalAreaTop}px` : `${position.y}px`,
-          backgroundColor: currentPythonTheme.bg,
+          background: currentPythonTheme.gradient ? currentPythonTheme.bg : undefined,
+          backgroundColor: currentPythonTheme.gradient ? undefined : currentPythonTheme.bg,
           border: `2px solid ${currentPythonTheme.border}`,
           boxShadow: `0 0 20px ${currentPythonTheme.highlight}40`,
         }}
@@ -2727,7 +2728,9 @@ calculator()
         <div 
           className="flex items-center justify-between px-3 py-2 rounded-t-lg cursor-move flex-shrink-0"
           style={{
-            backgroundColor: `${currentPythonTheme.subtle}90`,
+            background: currentPythonTheme.gradient 
+              ? `linear-gradient(to right, ${currentPythonTheme.subtle}dd, ${currentPythonTheme.subtle}90)`
+              : `${currentPythonTheme.subtle}90`,
             borderBottom: `1px solid ${currentPythonTheme.border}`,
           }}
           onMouseDown={(e) => {
@@ -4123,7 +4126,7 @@ calculator()
 }
 
 // Helper function to get theme styles
-type ThemeColors = { bg: string; text: string; highlight: string; border: string; subtle: string };
+type ThemeColors = { bg: string; text: string; highlight: string; border: string; subtle: string; gradient?: boolean };
 
 function getTheme(themeName: string): ThemeColors {
   const themes: Record<string, ThemeColors> = {
@@ -4141,37 +4144,37 @@ function getTheme(themeName: string): ThemeColors {
     'tokyo-night': { bg: '#24283b', text: '#a9b1d6', highlight: '#bb9af7', border: '#3a3f51', subtle: '#313644' },
     'monokai': { bg: '#272822', text: '#f8f8f2', highlight: '#e6db74', border: '#3e3d32', subtle: '#3e3d32' },
     'night-owl': { bg: '#011627', text: '#9b9ea0', highlight: '#7fdbca', border: '#1f2a38', subtle: '#1f2a38' },
-    'cyberpunk-dark': { bg: '#0d0208', text: '#ff006e', highlight: '#00f5ff', border: '#3c096c', subtle: '#240046' },
-    'forest-dark': { bg: '#0f2119', text: '#14fdce', highlight: '#2dffaa', border: '#021509', subtle: '#0a4d2e' },
-    'ocean-deep': { bg: '#001219', text: '#0a9396', highlight: '#94d2bd', border: '#005f73', subtle: '#003545' },
-    'ember-dark': { bg: '#1a0a0a', text: '#ff6b35', highlight: '#ffd23f', border: '#4a1c1c', subtle: '#2d0f0f' },
-    'twilight-dark': { bg: '#0f0a14', text: '#bb86fc', highlight: '#cf6bf9', border: '#2d1b3d', subtle: '#1e0f2d' },
-    'arctic-dark': { bg: '#0c1821', text: '#5eaaa8', highlight: '#a7d6d3', border: '#1c3040', subtle: '#14232e' },
-    'royal-dark': { bg: '#14082a', text: '#c77dff', highlight: '#ffd60a', border: '#291452', subtle: '#1f0c38' },
+    'cyberpunk-dark': { bg: 'linear-gradient(45deg, hsl(315 50% 18%) 0%, hsl(280 35% 14%) 25%, hsl(180 45% 16%) 50%, hsl(280 30% 12%) 75%, hsl(315 40% 10%) 100%)', text: '#ff006e', highlight: '#00f5ff', border: '#3c096c', subtle: '#240046', gradient: true },
+    'forest-dark': { bg: 'radial-gradient(ellipse at bottom left, hsl(145 50% 22%) 0%, hsl(142 45% 18%) 35%, hsl(138 40% 14%) 65%, hsl(135 35% 10%) 100%)', text: '#14fdce', highlight: '#2dffaa', border: '#021509', subtle: '#0a4d2e', gradient: true },
+    'ocean-deep': { bg: 'linear-gradient(to top, hsl(208 65% 20%) 0%, hsl(208 58% 16%) 30%, hsl(205 52% 12%) 65%, hsl(202 45% 8%) 100%)', text: '#0a9396', highlight: '#94d2bd', border: '#005f73', subtle: '#003545', gradient: true },
+    'ember-dark': { bg: 'radial-gradient(ellipse at bottom, hsl(15 65% 28%) 0%, hsl(10 58% 20%) 30%, hsl(5 50% 14%) 60%, hsl(0 42% 8%) 100%)', text: '#ff6b35', highlight: '#ffd23f', border: '#4a1c1c', subtle: '#2d0f0f', gradient: true },
+    'twilight-dark': { bg: 'radial-gradient(ellipse at bottom, hsl(280 55% 28%) 0%, hsl(290 48% 20%) 25%, hsl(285 40% 14%) 60%, hsl(280 32% 8%) 100%)', text: '#bb86fc', highlight: '#cf6bf9', border: '#2d1b3d', subtle: '#1e0f2d', gradient: true },
+    'arctic-dark': { bg: 'radial-gradient(ellipse at top, hsl(183 42% 16%) 0%, hsl(198 32% 13%) 50%, hsl(200 28% 10%) 100%)', text: '#5eaaa8', highlight: '#a7d6d3', border: '#1c3040', subtle: '#14232e', gradient: true },
+    'royal-dark': { bg: 'linear-gradient(135deg, hsl(280 40% 14%) 0%, hsl(262 35% 11%) 40%, hsl(48 30% 10%) 70%, hsl(262 30% 9%) 100%)', text: '#c77dff', highlight: '#ffd60a', border: '#291452', subtle: '#1f0c38', gradient: true },
     'material-dark': { bg: '#263238', text: '#cfd8dc', highlight: '#00bcd4', border: '#37474f', subtle: '#37474f' },
     'oceanic-next': { bg: '#2b3e50', text: '#d8dee9', highlight: '#528bff', border: '#34495e', subtle: '#34495e' },
     'palenight': { bg: '#292d3e', text: '#6a737d', highlight: '#82aaff', border: '#353b50', subtle: '#353b50' },
 
-    // New mid-level eye-friendly themes
-    'soft-morning': { bg: '#f0ece2', text: '#5a5a5a', highlight: '#6b9080', border: '#dfd3c3', subtle: '#e8dfd0' },
-    'warm-sand': { bg: '#f5f0e8', text: '#615950', highlight: '#b08968', border: '#e3ddd3', subtle: '#ede8df' },
-    'cool-mist': { bg: '#e8f0f2', text: '#576066', highlight: '#7fa99b', border: '#d6e4e7', subtle: '#dfeaec' },
-    'lavender-dream': { bg: '#f0ecf5', text: '#5d596d', highlight: '#9d8cc7', border: '#e0d9ea', subtle: '#e8e3ef' },
-    'sage-comfort': { bg: '#edf2e8', text: '#556652', highlight: '#86a67c', border: '#dde5d6', subtle: '#e5ebe0' },
-    'sky-blue-soft': { bg: '#e8f1f8', text: '#546478', highlight: '#6b9ac4', border: '#d6e5f0', subtle: '#dfeaf4' },
-    'peachy-calm': { bg: '#f8ede8', text: '#6b5d58', highlight: '#d4a59a', border: '#ecddd6', subtle: '#f2e5df' },
+    // New mid-level eye-friendly themes with gradients
+    'soft-morning': { bg: 'linear-gradient(135deg, #f5f2ea 0%, #f0ece2 50%, #ebe5d8 100%)', text: '#5a5a5a', highlight: '#6b9080', border: '#dfd3c3', subtle: '#e8dfd0', gradient: true },
+    'warm-sand': { bg: 'radial-gradient(ellipse at center, #faf5ed 0%, #f5f0e8 50%, #f0ebe3 100%)', text: '#615950', highlight: '#b08968', border: '#e3ddd3', subtle: '#ede8df', gradient: true },
+    'cool-mist': { bg: 'linear-gradient(to bottom, #edf5f7 0%, #e8f0f2 50%, #e3ebee 100%)', text: '#576066', highlight: '#7fa99b', border: '#d6e4e7', subtle: '#dfeaec', gradient: true },
+    'lavender-dream': { bg: 'radial-gradient(circle at top, #f5f0fa 0%, #f0ecf5 50%, #ebe7f0 100%)', text: '#5d596d', highlight: '#9d8cc7', border: '#e0d9ea', subtle: '#e8e3ef', gradient: true },
+    'sage-comfort': { bg: 'linear-gradient(135deg, #f2f7ed 0%, #edf2e8 50%, #e8ede3 100%)', text: '#556652', highlight: '#86a67c', border: '#dde5d6', subtle: '#e5ebe0', gradient: true },
+    'sky-blue-soft': { bg: 'radial-gradient(ellipse at top, #edf6fd 0%, #e8f1f8 50%, #e3ecf3 100%)', text: '#546478', highlight: '#6b9ac4', border: '#d6e5f0', subtle: '#dfeaf4', gradient: true },
+    'peachy-calm': { bg: 'linear-gradient(to right, #fdf2ed 0%, #f8ede8 50%, #f3e8e3 100%)', text: '#6b5d58', highlight: '#d4a59a', border: '#ecddd6', subtle: '#f2e5df', gradient: true },
 
-    // Business Professional Themes
-    'executive-dark': { bg: '#1a1e24', text: '#d4d8de', highlight: '#4a9eff', border: '#242832', subtle: '#242832' },
-    'corporate-blue': { bg: '#1f2838', text: '#e4e7ed', highlight: '#5b9ff5', border: '#2b3346', subtle: '#2b3346' },
-    'finance-green': { bg: '#1a2e25', text: '#dfe5e1', highlight: '#40d97a', border: '#25382f', subtle: '#25382f' },
-    'professional-grey': { bg: '#22252b', text: '#e0e2e5', highlight: '#6ba3ff', border: '#2d3138', subtle: '#2d3138' },
-    'banking-teal': { bg: '#12292c', text: '#e6eceb', highlight: '#40d2c8', border: '#1c3438', subtle: '#1c3438' },
-    'consulting-navy': { bg: '#0f1833', text: '#e0e3e8', highlight: '#5b9ff5', border: '#1a2440', subtle: '#1a2440' },
-    'accounting-beige': { bg: '#ebe9dc', text: '#3d3528', highlight: '#b8863f', border: '#e3d9cc', subtle: '#e3d9cc' },
-    'law-burgundy': { bg: '#1e1414', text: '#e0dada', highlight: '#d65555', border: '#2e1f1f', subtle: '#2e1f1f' },
-    'tech-startup': { bg: '#1e1a2e', text: '#e6e4ed', highlight: '#a366ff', border: '#291f38', subtle: '#291f38' },
-    'healthcare-white': { bg: '#f5f7f9', text: '#2d3d4a', highlight: '#3d9dd6', border: '#e6ebee', subtle: '#e6ebee' },
+    // Business Professional Themes with gradients
+    'executive-dark': { bg: 'radial-gradient(ellipse at top left, hsl(210 65% 28%) 0%, hsl(195 55% 22%) 25%, hsl(215 50% 16%) 50%, hsl(235 45% 12%) 75%, hsl(220 35% 6%) 100%)', text: '#d4d8de', highlight: '#4a9eff', border: '#242832', subtle: '#242832', gradient: true },
+    'corporate-blue': { bg: 'conic-gradient(from 45deg at 30% 70%, hsl(215 75% 32%) 0%, hsl(200 68% 26%) 25%, hsl(220 62% 20%) 50%, hsl(205 55% 16%) 75%, hsl(210 48% 10%) 100%)', text: '#e4e7ed', highlight: '#5b9ff5', border: '#2b3346', subtle: '#2b3346', gradient: true },
+    'finance-green': { bg: 'linear-gradient(135deg, hsl(150 65% 26%) 0%, hsl(165 58% 20%) 20%, hsl(145 52% 16%) 40%, hsl(130 45% 12%) 60%, hsl(155 38% 8%) 80%, hsl(145 32% 5%) 100%)', text: '#dfe5e1', highlight: '#40d97a', border: '#25382f', subtle: '#25382f', gradient: true },
+    'professional-grey': { bg: 'radial-gradient(ellipse at bottom right, hsl(220 40% 26%) 0%, hsl(210 35% 20%) 30%, hsl(215 30% 16%) 60%, hsl(205 25% 12%) 80%, hsl(220 20% 7%) 100%)', text: '#e0e2e5', highlight: '#6ba3ff', border: '#2d3138', subtle: '#2d3138', gradient: true },
+    'banking-teal': { bg: 'conic-gradient(from 90deg at 50% 50%, hsl(185 70% 24%) 0%, hsl(175 62% 18%) 25%, hsl(180 55% 14%) 50%, hsl(190 48% 10%) 75%, hsl(185 42% 6%) 100%)', text: '#e6eceb', highlight: '#40d2c8', border: '#1c3438', subtle: '#1c3438', gradient: true },
+    'consulting-navy': { bg: 'radial-gradient(ellipse at center, hsl(220 80% 22%) 0%, hsl(235 70% 18%) 25%, hsl(215 65% 14%) 50%, hsl(230 58% 10%) 75%, hsl(220 50% 6%) 100%)', text: '#e0e3e8', highlight: '#5b9ff5', border: '#1a2440', subtle: '#1a2440', gradient: true },
+    'accounting-beige': { bg: 'linear-gradient(160deg, hsl(35 60% 98%) 0%, hsl(42 55% 94%) 25%, hsl(30 50% 90%) 50%, hsl(38 45% 86%) 75%, hsl(35 40% 82%) 100%)', text: '#3d3528', highlight: '#b8863f', border: '#e3d9cc', subtle: '#e3d9cc', gradient: true },
+    'law-burgundy': { bg: 'conic-gradient(from 180deg at 40% 60%, hsl(0 65% 24%) 0%, hsl(355 58% 18%) 30%, hsl(340 50% 14%) 60%, hsl(0 45% 10%) 80%, hsl(355 38% 6%) 100%)', text: '#e0dada', highlight: '#d65555', border: '#2e1f1f', subtle: '#2e1f1f', gradient: true },
+    'tech-startup': { bg: 'linear-gradient(45deg, hsl(265 70% 26%) 0%, hsl(280 62% 20%) 20%, hsl(190 55% 18%) 40%, hsl(270 52% 14%) 60%, hsl(185 45% 12%) 80%, hsl(265 42% 8%) 100%)', text: '#e6e4ed', highlight: '#a366ff', border: '#291f38', subtle: '#291f38', gradient: true },
+    'healthcare-white': { bg: 'radial-gradient(ellipse at top right, hsl(200 50% 99%) 0%, hsl(185 45% 96%) 25%, hsl(195 40% 94%) 50%, hsl(210 35% 92%) 75%, hsl(200 30% 88%) 100%)', text: '#2d3d4a', highlight: '#3d9dd6', border: '#e6ebee', subtle: '#e6ebee', gradient: true },
   };
 
   return themes[themeName] || themes['dracula']; // Fallback to dracula
