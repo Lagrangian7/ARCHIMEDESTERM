@@ -129,7 +129,7 @@ export function KnowledgeBaseModal({ onClose }: KnowledgeBaseModalProps) {
     >
       {/* Header */}
       <div 
-        className="flex items-center justify-between px-3 py-2 cursor-move"
+        className="flex items-center justify-between px-2 py-1 cursor-move"
         style={{
           backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.8)',
           borderBottom: `1px solid var(--terminal-highlight)`,
@@ -143,7 +143,7 @@ export function KnowledgeBaseModal({ onClose }: KnowledgeBaseModalProps) {
           }
         }}
       >
-        <h2 className="text-xs md:text-sm font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
+        <h2 className="text-xs font-bold font-mono" style={{ color: 'var(--terminal-text)' }}>
           📚 Knowledge Base
         </h2>
         <div className="flex items-center gap-2">
