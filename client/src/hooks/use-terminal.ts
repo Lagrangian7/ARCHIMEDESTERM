@@ -913,12 +913,16 @@ Code Execution:
         break;
 
       case 'code':
+        setShowPythonIDE(true);
+        addEntry('response', 'Opening Archimedes Workshop...', 'technical');
+        break;
+
       case 'playground':
       case 'codeplayground':
       case 'code-playground':
       case 'editor':
-        (window as any).openPythonIDE?.();
-        addEntry('system', '📝 Opening Archimedes Workshop...\n\nMulti-language editor with:\n• Python, JavaScript, TypeScript, Java, C++, Rust, Go, Ruby, PHP\n• Click "Multi-File" button to enable multi-language mode\n• Download files with proper extensions\n• Local execution instructions\n\nTip: Use the lessons sidebar for Python tutorials!');
+        setShowCodePlayground(true);
+        addEntry('system', '📝 Opening Code Playground...\n\nMulti-language editor with:\n• Python, JavaScript, TypeScript, Java, C++, Rust, Go, Ruby, PHP\n• Multi-file support enabled by default\n• Interactive stdin input for programs\n• Auto-detect JSON, CSV, SVG output\n• GUI rendering for matplotlib, tkinter\n• Download files with proper extensions\n• Local execution instructions');
         break;
 
       case 'synth':
