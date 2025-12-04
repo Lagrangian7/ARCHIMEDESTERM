@@ -1097,6 +1097,12 @@ Code Execution:
       return;
     }
 
+    if (cmd === 'theme') {
+      const currentTheme = localStorage.getItem('terminal-theme') || 'forest-gradient';
+      addEntry('system', `Current theme: ${currentTheme}\n\nUse "theme list" to see all available themes\nUse "theme <name>" to change theme`);
+      return;
+    }
+
     if (cmd === 'theme list') {
       const themesList = [
         'commodore64', 'green', 'blue', 'orange', 'greyscale', 'red', 'blackwhite', 'patriot', 'solarized',
@@ -1105,7 +1111,7 @@ Code Execution:
         'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
       ];
 
-      const currentTheme = localStorage.getItem('terminal-theme') || 'spectrum';
+      const currentTheme = localStorage.getItem('terminal-theme') || 'forest-gradient';
       const formattedList = themesList.map(theme =>
         theme === currentTheme ? `  ▶ ${theme} (current)` : `    ${theme}`
       ).join('\n');
