@@ -112,6 +112,11 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
   // Track mouse position for bubble placement
   const mousePositionRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
+  // State for mouse position used in flashlight effect
+  const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
+  const bubbleRef = useRef<HTMLDivElement>(null);
+
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       mousePositionRef.current = { x: e.clientX, y: e.clientY };
@@ -328,7 +333,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     // Prevent dragging if clicking on a button or other interactive element
     const target = e.target as HTMLElement;
-    
+
     // Check if we're clicking on a button or within the button area
     // Check the target itself and all parents up to the current element
     if (
@@ -358,17 +363,21 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
   }, [position]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
+    if (isDragging && bubbleRef.current) {
+      const deltaX = e.clientX - dragOffset.x;
+      const deltaY = e.clientY - dragOffset.y;
 
-    // Calculate position relative to viewport (fixed positioning)
-    const newX = e.clientX - dragOffset.x;
-    const newY = e.clientY - dragOffset.y;
+      setPosition({
+        x: deltaX,
+        y: deltaY
+      });
 
-    // Allow unlimited movement - no boundaries
-    setPosition({
-      x: newX,
-      y: newY
-    });
+      // Update mouse position for flashlight effect
+      const rect = bubbleRef.current.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      setMousePosition({ x, y });
+    }
   }, [isDragging, dragOffset]);
 
   const handleMouseUp = useCallback(() => {
@@ -445,13 +454,16 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       {/* Floating draggable version - always visible and follows scroll */}
       {position && showFloating && (
         <div
-          className="fixed z-50 cursor-move group"
+          ref={bubbleRef}
+          className="glow-hover-container fixed z-50 cursor-move group"
           style={{
             left: position.x,
             top: position.y - scrollOffset,
             transition: isDragging ? 'none' : 'top 0.15s ease-out, left 0.15s ease-out',
-            pointerEvents: 'auto'
-          }}
+            pointerEvents: 'auto',
+            '--mouse-x': `${mousePosition.x}%`,
+            '--mouse-y': `${mousePosition.y}%`
+          } as React.CSSProperties}
           onMouseDown={handleMouseDown}
           onDoubleClick={handleDoubleClick}
           data-testid={`draggable-response-${entryId}`}
