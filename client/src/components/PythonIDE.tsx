@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot } from 'lucide-react';
 import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -1903,13 +1903,13 @@ calculator()
   const [htmlPreviewState, setHtmlPreview] = useState(''); // State to hold HTML preview content
   const [showCodePlayground, setShowCodePlayground] = useState(false);
   const [showSnippets, setShowSnippets] = useState(false);
+  const [showProjectBuilder, setShowProjectBuilder] = useState(false); // State for Project Builder toggle
 
   // Dragging and resizing state
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isMaximized, setIsMaximized] = useState(true); // Start maximized by default
   const [position, setPosition] = useState({ x: 0, y: 60 });
-  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight - 120 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
   const editorRef = useRef<any>(null);
@@ -2947,6 +2947,39 @@ calculator()
               </Button>
 
               <Button
+                onClick={() => setShowSnippets(!showSnippets)}
+                variant="outline"
+                size="sm"
+                className="font-mono text-xs h-8 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
+                style={{
+                  backgroundColor: showSnippets ? `${currentPythonTheme.highlight}20` : 'transparent',
+                  color: currentPythonTheme.text,
+                  borderColor: showSnippets ? currentPythonTheme.highlight : `${currentPythonTheme.border}60`
+                }}
+                data-testid="button-toggle-snippets"
+              >
+                <Code className="w-4 h-4 mr-2" />
+                {showSnippets ? 'Hide' : 'Show'} Snippets
+              </Button>
+
+              <Button
+                onClick={() => setShowProjectBuilder(!showProjectBuilder)}
+                variant="outline"
+                size="sm"
+                className="font-mono text-xs h-8 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
+                style={{
+                  backgroundColor: showProjectBuilder ? `${currentPythonTheme.highlight}20` : 'transparent',
+                  color: currentPythonTheme.text,
+                  borderColor: showProjectBuilder ? currentPythonTheme.highlight : `${currentPythonTheme.border}60`
+                }}
+                data-testid="button-toggle-project-builder"
+                title="AI Project Builder - Agent & Architect collaboration"
+              >
+                <Bot className="w-4 h-4 mr-2" />
+                Project Builder
+              </Button>
+
+              <Button
                 onClick={toggleMaximize}
                 variant="ghost"
                 size="sm"
@@ -3520,61 +3553,61 @@ calculator()
                       theme="vs-dark"
                       loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
                       options={{
-                        minimap: { enabled: showMinimap },
-                        fontSize: fontSize,
-                        lineNumbers: 'on',
-                        scrollBeyondLastLine: false,
-                        automaticLayout: true,
-                        padding: { top: 10, bottom: 10 },
-                        wordWrap: 'on',
-                        renderWhitespace: 'selection',
-                        renderLineHighlight: 'all',
-                        tabSize: 4,
-                        insertSpaces: true,
-                        autoIndent: 'full',
-                        formatOnPaste: true,
-                        formatOnType: true,
-                        trimAutoWhitespace: true,
-                        quickSuggestions: { other: true, comments: false, strings: true },
-                        acceptSuggestionOnEnter: 'on',
-                        parameterHints: { enabled: true, cycle: true },
-                        suggest: {
-                          showKeywords: true,
-                          showSnippets: true,
-                          showFunctions: true,
-                          showVariables: true,
-                          showClasses: true,
-                          showConstants: true,
-                          showModules: true,
-                          showProperties: true,
-                          snippetsPreventQuickSuggestions: false
-                        },
-                        hover: { enabled: true, delay: 300, sticky: true },
-                        find: { seedSearchStringFromSelection: 'selection', autoFindInSelection: 'never' },
-                        contextmenu: true,
-                        mouseWheelZoom: true,
-                        smoothScrolling: true,
-                        cursorBlinking: 'smooth',
-                        cursorSmoothCaretAnimation: 'on',
-                        lightbulb: {
-                          enabled: 'on' as any
-                        },
-                        matchBrackets: 'always',
-                        bracketPairColorization: { enabled: true },
-                        guides: { bracketPairs: true, indentation: true },
-                        selectOnLineNumbers: true,
-                        multiCursorModifier: 'ctrlCmd',
-                        scrollbar: {
-                          vertical: 'auto',
-                          horizontal: 'auto',
-                          useShadows: true,
-                          verticalScrollbarSize: 10,
-                          horizontalScrollbarSize: 10
-                        },
-                        folding: true,
-                        foldingStrategy: 'indentation',
-                        showFoldingControls: 'mouseover'
-                      }}
+                  minimap: { enabled: showMinimap },
+                  fontSize: fontSize,
+                  lineNumbers: 'on',
+                  scrollBeyondLastLine: false,
+                  automaticLayout: true,
+                  padding: { top: 10, bottom: 10 },
+                  wordWrap: 'on',
+                  renderWhitespace: 'selection',
+                  renderLineHighlight: 'all',
+                  tabSize: 4,
+                  insertSpaces: true,
+                  autoIndent: 'full',
+                  formatOnPaste: true,
+                  formatOnType: true,
+                  trimAutoWhitespace: true,
+                  quickSuggestions: { other: true, comments: false, strings: true },
+                  acceptSuggestionOnEnter: 'on',
+                  parameterHints: { enabled: true, cycle: true },
+                  suggest: {
+                    showKeywords: true,
+                    showSnippets: true,
+                    showFunctions: true,
+                    showVariables: true,
+                    showClasses: true,
+                    showConstants: true,
+                    showModules: true,
+                    showProperties: true,
+                    snippetsPreventQuickSuggestions: false
+                  },
+                  hover: { enabled: true, delay: 300, sticky: true },
+                  find: { seedSearchStringFromSelection: 'selection', autoFindInSelection: 'never' },
+                  contextmenu: true,
+                  mouseWheelZoom: true,
+                  smoothScrolling: true,
+                  cursorBlinking: 'smooth',
+                  cursorSmoothCaretAnimation: 'on',
+                  lightbulb: {
+                    enabled: 'on' as any
+                  },
+                  matchBrackets: 'always',
+                  bracketPairColorization: { enabled: true },
+                  guides: { bracketPairs: true, indentation: true },
+                  selectOnLineNumbers: true,
+                  multiCursorModifier: 'ctrlCmd',
+                  scrollbar: {
+                    vertical: 'auto',
+                    horizontal: 'auto',
+                    useShadows: true,
+                    verticalScrollbarSize: 10,
+                    horizontalScrollbarSize: 10
+                  },
+                  folding: true,
+                  foldingStrategy: 'indentation',
+                  showFoldingControls: 'mouseover'
+                }}
                       key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
                     />
                   </div>

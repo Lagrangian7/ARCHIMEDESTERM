@@ -200,7 +200,7 @@ function initializeCitySkyline() {
     let buildingHeight = random(5, 12); // Random building heights for upper city - increased for more gameplay layers
 
     // Randomly select building type for this column
-    let buildingType = random(['normal', 'honeycomb', 'neon', 'industrial', 'glass']);
+    let buildingType = random(['normal', 'honeycomb', 'industrial', 'glass', 'neon']);
     let buildingColor = getBuildingColor(buildingType);
 
     // Create the upper city buildings (destructible)
@@ -497,7 +497,7 @@ function draw() {
     }
     let sx = (star.x / star.z) * 200;
     let sy = (star.y / star.z) * 200;
-    
+
     let size = map(star.z, 0, 1000, 3, 0);
     fill(255);
     noStroke();
@@ -841,6 +841,8 @@ function draw() {
 
     if (invader.pattern === 'random') {
       // Random movement pattern
+      if (invader.randomVx === undefined) invader.randomVx = random(-0.5, 0.5);
+      if (invader.randomVy === undefined) invader.randomVy = random(-0.5, 0.5);
       invader.individualX += invader.randomVx;
       invader.individualY += invader.randomVy;
 
@@ -2025,6 +2027,251 @@ function windowResized() {
     res.send(gameHtml);
   });
 
+  // AI Project Builder - Agent & Architect collaboration
+  app.post('/api/project-builder', async (req, res) => {
+    try {
+      const { spec, language } = req.body;
+
+      if (!spec?.trim()) {
+        return res.status(400).json({ error: 'Project specification is required' });
+      }
+
+      const agentMessages: Array<{ role: 'agent' | 'architect', content: string }> = [];
+
+      // Agent phase: Plan the architecture
+      agentMessages.push({ 
+        role: 'agent', 
+        content: 'Analyzing project requirements and planning architecture...' 
+      });
+
+      const agentPrompt = `You are the AGENT. Analyze this project spec and create a detailed file structure plan:
+"${spec}"
+
+Target language: ${language || 'python'}
+
+Respond with a JSON array of files needed. Each file should have:
+{
+  "name": "filename.ext",
+  "language": "languageId",
+  "purpose": "what this file does",
+  "dependencies": ["file1.ext", "file2.ext"]
+}
+
+Plan a complete, production-ready project structure. Be thorough.`;
+
+      const agentResponse = await llmService.generateCompletion(agentPrompt, {
+        model: 'mistral',
+        temperature: 0.3,
+        max_tokens: 2000
+      });
+
+      let filePlan: any[] = [];
+      try {
+        const jsonMatch = agentResponse.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          filePlan = JSON.parse(jsonMatch[0]);
+        }
+      } catch (e) {
+        console.error('Failed to parse agent response:', e);
+      }
+
+      if (filePlan.length === 0) {
+        throw new Error('Agent failed to create file plan');
+      }
+
+      agentMessages.push({ 
+        role: 'agent', 
+        content: `Planned ${filePlan.length} files: ${filePlan.map(f => f.name).join(', ')}` 
+      });
+
+      // Architect phase: Implement each file
+      const files = [];
+      for (const fileSpec of filePlan) {
+        agentMessages.push({ 
+          role: 'architect', 
+          content: `Implementing ${fileSpec.name}...` 
+        });
+
+        const architectPrompt = `You are the ARCHITECT. Implement this file based on the project spec:
+
+Project: "${spec}"
+File: ${fileSpec.name}
+Purpose: ${fileSpec.purpose}
+Language: ${fileSpec.language}
+
+Write COMPLETE, PRODUCTION-READY code. Include:
+- Proper imports/dependencies
+- Error handling
+- Comments explaining key sections
+- Best practices for ${fileSpec.language}
+
+ONLY output the code, no explanations.`;
+
+        const code = await llmService.generateCompletion(architectPrompt, {
+          model: 'mistral',
+          temperature: 0.7,
+          max_tokens: 4000
+        });
+
+        // Extract code from markdown blocks if present
+        let cleanCode = code;
+        const codeBlockMatch = code.match(/```(?:\w+)?\n([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          cleanCode = codeBlockMatch[1].trim();
+        }
+
+        files.push({
+          name: fileSpec.name,
+          language: fileSpec.language,
+          content: cleanCode
+        });
+
+        agentMessages.push({ 
+          role: 'architect', 
+          content: `✓ ${fileSpec.name} implemented (${cleanCode.split('\n').length} lines)` 
+        });
+      }
+
+      agentMessages.push({ 
+        role: 'agent', 
+        content: `Project complete! All ${files.length} files generated and ready.` 
+      });
+
+      res.json({
+        success: true,
+        files,
+        agentMessages
+      });
+
+    } catch (error) {
+      console.error('Project builder error:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Project generation failed' 
+      });
+    }
+  });
+
+  // Execute Python code with GUI support
+  app.post('/api/execute/python', async (req, res) => {
+    try {
+      const { code } = req.body;
+
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({
+          success: false,
+          error: 'Code is required and must be a string'
+        });
+      }
+
+      // Check if code uses GUI libraries
+      const hasGuiLibraries = /import\s+(tkinter|matplotlib|pygame|turtle|PyQt|PySide)/i.test(code);
+
+      // Wrap GUI code to capture output as HTML/image
+      const wrappedCode = hasGuiLibraries ? `
+import sys
+import io
+import base64
+
+# Capture GUI output
+_gui_output = None
+
+${code}
+
+# For matplotlib, capture plot as base64 image
+try:
+    import matplotlib.pyplot as plt
+    if plt.get_fignums():
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', bbox_inches='tight')
+        buf.seek(0)
+        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
+        plt.close('all')
+except ImportError:
+    pass
+except Exception as e:
+    print(f'GUI rendering error: {e}', file=sys.stderr)
+
+# For tkinter, we can't render in headless but we'll note it
+try:
+    import tkinter as tk
+    if tk._default_root:
+        print('__GUI_OUTPUT__:<div style="padding:20px; background:#f0f0f0; border-radius:8px;"><strong>🖼️ Tkinter GUI Application</strong><br/>GUI window was created but cannot be displayed in headless mode.<br/>Run this code locally to see the interface.</div>')
+except:
+    pass
+` : code;
+
+      const startTime = Date.now();
+      const timeout = 30000; // 30 second timeout
+
+      const result = await new Promise<{ stdout: string; stderr: string; code: number }>((resolve, reject) => {
+        const pythonProcess = spawn('python3', ['-c', wrappedCode]);
+        let stdout = '';
+        let stderr = '';
+        let killed = false;
+
+        const timer = setTimeout(() => {
+          killed = true;
+          pythonProcess.kill();
+          reject(new Error('Execution timeout (30 seconds) - Code took too long to execute'));
+        }, timeout);
+
+        pythonProcess.stdout.on('data', (data) => {
+          stdout += data.toString();
+        });
+
+        pythonProcess.stderr.on('data', (data) => {
+          stderr += data.toString();
+        });
+
+        pythonProcess.on('close', (code) => {
+          clearTimeout(timer);
+          if (!killed) {
+            resolve({ stdout, stderr, code: code || 0 });
+          }
+        });
+
+        pythonProcess.on('error', (error) => {
+          clearTimeout(timer);
+          reject(error);
+        });
+      });
+
+      const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+      // Extract GUI output if present
+      let guiOutput = null;
+      let textOutput = result.stdout;
+      const guiMatch = result.stdout.match(/__GUI_OUTPUT__:(.*)/);
+      if (guiMatch) {
+        guiOutput = guiMatch[1];
+        textOutput = result.stdout.replace(/__GUI_OUTPUT__:.*/, '').trim();
+      }
+
+      if (result.code !== 0) {
+        return res.json({
+          success: false,
+          error: result.stderr,
+          output: textOutput,
+          guiOutput,
+          executionTime
+        });
+      }
+
+      res.json({
+        success: true,
+        output: textOutput,
+        guiOutput,
+        executionTime
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Execution failed'
+      });
+    }
+  });
+
   // Multi-language code execution endpoints
   app.post('/api/execute/javascript', isAuthenticated, async (req, res) => {
     const { code } = req.body;
@@ -2289,9 +2536,9 @@ function windowResized() {
           const hasPygame = /import\s+pygame/i.test(code);
           const hasTurtle = /import\s+turtle|from\s+turtle/i.test(code);
           const hasGuiLibraries = hasMatplotlib || hasTkinter || hasPygame || hasTurtle;
-          
+
           let wrappedCode = code;
-          
+
           if (hasGuiLibraries) {
             // Create a comprehensive GUI capture wrapper
             wrappedCode = `
@@ -2327,17 +2574,17 @@ def _do_tkinter_capture():
         if _tk_root and _tk_root.winfo_exists():
             _tk_root.update_idletasks()
             _tk_root.update()
-            
+
             # Use PIL to capture the full screen and crop to window
             from PIL import Image
             import subprocess
-            
+
             # Get window geometry
             x = _tk_root.winfo_rootx()
             y = _tk_root.winfo_rooty()
             w = _tk_root.winfo_width()
             h = _tk_root.winfo_height()
-            
+
             # Try using scrot for screenshot
             try:
                 screenshot_file = f'/tmp/tk_capture_{os.getpid()}.png'
@@ -2372,7 +2619,7 @@ class _PatchedTk(_original_Tk):
         global _tk_root
         super().__init__(*args, **kwargs)
         _tk_root = self
-    
+
     def mainloop(self, n=0):
         # Schedule capture after allowing window to render
         self.after(500, _do_tkinter_capture)
@@ -2447,18 +2694,18 @@ def _capture_turtle():
     try:
         import subprocess
         from PIL import Image
-        
+
         screen = _turtle_module.getscreen()
         screen.update()
         time.sleep(0.2)
-        
+
         canvas = screen.getcanvas()
         eps_file = f'/tmp/turtle_{os.getpid()}.eps'
         png_file = f'/tmp/turtle_{os.getpid()}.png'
-        
+
         # Save as PostScript
         canvas.postscript(file=eps_file, colormode='color')
-        
+
         # Convert EPS to PNG using Ghostscript
         try:
             subprocess.run([
@@ -2466,7 +2713,7 @@ def _capture_turtle():
                 '-sDEVICE=png16m', '-r150',
                 f'-sOutputFile={png_file}', eps_file
             ], timeout=10, check=True, capture_output=True)
-            
+
             img = Image.open(png_file)
             buf = io.BytesIO()
             img.save(buf, format='PNG')
@@ -2706,7 +2953,7 @@ if _virtual_display_started:
             .replace(/'/g, '&#39;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
-          
+
           output = `HTML Preview rendered below.\n\nTo run locally:\n1. Save as index.html\n2. Open in browser`;
           // Use sandbox with restrictive permissions - only allow scripts, no same-origin access
           guiOutput = `<iframe srcdoc="${escapedForSrcdoc}" sandbox="allow-scripts" style="width:100%;height:400px;border:1px solid #00FF41;border-radius:4px;background:white;"></iframe>`;
@@ -3351,9 +3598,9 @@ if _virtual_display_started:
     try {
       const userId = req.user.claims.sub;
       console.log(`📤 Exporting documents for user: ${userId}`);
-      
+
       const documents = await storage.getUserDocuments(userId);
-      
+
       // Export full document data (excluding IDs which will be regenerated on import)
       const exportData = {
         exportedAt: new Date().toISOString(),
@@ -3370,9 +3617,9 @@ if _virtual_display_started:
           isNote: doc.isNote,
         }))
       };
-      
+
       console.log(`📤 Exported ${documents.length} documents`);
-      
+
       // Set headers for file download
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename="archimedes-documents-${new Date().toISOString().split('T')[0]}.json"`);
@@ -3395,7 +3642,7 @@ if _virtual_display_started:
     objectPath: z.string().nullable().optional(),
     isNote: z.boolean().optional(),
   });
-  
+
   const importRequestSchema = z.object({
     documents: z.array(importDocumentSchema).max(500), // Max 500 documents per import
   });
@@ -3403,7 +3650,7 @@ if _virtual_display_started:
   app.post("/api/documents/import", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      
+
       // Validate request body with Zod
       const parseResult = importRequestSchema.safeParse(req.body);
       if (!parseResult.success) {
@@ -3412,16 +3659,16 @@ if _virtual_display_started:
           details: parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
         });
       }
-      
+
       const { documents } = parseResult.data;
-      
+
       console.log(`📥 Importing ${documents.length} documents for user: ${userId}`);
-      
+
       let imported = 0;
       let skipped = 0;
       const errors: string[] = [];
       const skippedNames: string[] = [];
-      
+
       for (const doc of documents) {
         try {
           // Check if document with same name already exists
@@ -3431,7 +3678,7 @@ if _virtual_display_started:
             skippedNames.push(doc.originalName);
             continue;
           }
-          
+
           // Create new document with server-controlled timestamps
           await storage.createDocument({
             userId,
@@ -3450,9 +3697,9 @@ if _virtual_display_started:
           errors.push(`Failed to import "${doc.originalName}": ${docError instanceof Error ? docError.message : 'Unknown error'}`);
         }
       }
-      
+
       console.log(`📥 Import complete: ${imported} imported, ${skipped} skipped (already exist), ${errors.length} errors`);
-      
+
       res.json({
         success: true,
         imported,
