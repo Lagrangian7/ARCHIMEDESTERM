@@ -78,7 +78,6 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [showPythonIDE, setShowPythonIDE] = useState(false);
   const [showPythonLessons, setShowPythonLessons] = useState(false);
   const [showWebSynth, setShowWebSynth] = useState(false);
-  const [showCodePlayground, setShowCodePlayground] = useState(false); // Added state for code playground
 
   const chatMutation = useMutation({
     mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' | 'freestyle' | 'health' }) => {
@@ -911,16 +910,12 @@ Code Execution:
         break;
 
       case 'code':
-        setShowPythonIDE(true);
-        addEntry('response', 'Opening Archimedes Workshop...', 'technical');
-        break;
-
       case 'playground':
       case 'codeplayground':
       case 'code-playground':
       case 'editor':
-        setShowCodePlayground(true);
-        addEntry('system', '📝 Opening Code Playground...\n\nMulti-language editor with:\n• Python, JavaScript, TypeScript, Java, C++, Rust, Go, Ruby, PHP\n• Multi-file support enabled by default\n• Interactive stdin input for programs\n• Auto-detect JSON, CSV, SVG output\n• GUI rendering for matplotlib, tkinter\n• Download files with proper extensions\n• Local execution instructions');
+        setShowPythonIDE(true);
+        addEntry('response', 'Opening Archimedes Workshop...', 'technical');
         break;
 
       case 'synth':
@@ -2895,7 +2890,5 @@ Powered by Wolfram Alpha Full Results API`);
     setShowPythonLessons,
     showWebSynth,
     setShowWebSynth,
-    showCodePlayground, // Export showCodePlayground state
-    setShowCodePlayground, // Export setShowCodePlayground function
   };
 }

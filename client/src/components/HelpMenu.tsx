@@ -449,12 +449,12 @@ const helpMenuItems: HelpMenuItem[] = [
     icon: <TerminalIcon size={16} />
   },
 
-  // Archimedes Workshop (Python IDE)
+  // Archimedes Workshop (Multi-language IDE)
   {
     id: 'workshop',
     category: 'Tools',
     title: 'Archimedes Workshop',
-    description: 'Interactive Python learning environment with comprehensive lessons and AI-assisted coding',
+    description: 'Multi-language IDE with AI assistance, code execution, and learning materials (Python, JS, C++, Rust, Go, etc.)',
     command: 'workshop',
     example: 'workshop',
     icon: <TerminalIcon size={16} />
