@@ -887,7 +887,21 @@ Format your response as JSON:
         undefined,
         'english',
         false
+      );
 
+      // Try to extract JSON
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const analysis = JSON.parse(jsonMatch[0]);
+        res.json({ success: true, analysis });
+      } else {
+        res.json({ success: true, analysis: { cause: response, fix: code, tip: 'Review the AI suggestion' } });
+      }
+    } catch (error) {
+      console.error('Error analysis failed:', error);
+      res.status(500).json({ error: 'Analysis failed' });
+    }
+  });
 
   // AI-powered code quality analysis
   app.post('/api/analyze-quality', async (req, res) => {
