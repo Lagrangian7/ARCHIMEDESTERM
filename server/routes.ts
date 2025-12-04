@@ -847,210 +847,42 @@ function draw() {
       invader.individualY += invader.randomVy;
 
       // Bounce off boundaries
-
-
-  // AI-powered error analysis and fix suggestions
-  app.post('/api/analyze-error', async (req, res) => {
-    try {
-      const { code, error, language } = req.body;
-
-      if (!code || !error) {
-        return res.status(400).json({ error: 'Code and error message required' });
-      }
-
-      const prompt = `You are an expert debugger. Analyze this ${language || 'code'} error and provide a fix.
-
-CODE:
-\`\`\`${language || 'text'}
-${code}
-\`\`\`
-
-ERROR:
-${error}
-
-Provide:
-1. Root cause explanation (1 sentence)
-2. Fixed code (complete, runnable)
-3. Prevention tip (1 sentence)
-
-Format your response as JSON:
-{
-  "cause": "explanation",
-  "fix": "corrected code",
-  "tip": "prevention advice"
-}`;
-
-      const response = await llmService.generateResponse(
-        prompt,
-        'freestyle',
-        [],
-        undefined,
-        'english',
-        false
-
-
-  // AI-powered code quality analysis
-  app.post('/api/analyze-quality', async (req, res) => {
-    try {
-      const { code, language } = req.body;
-
-      if (!code) {
-        return res.status(400).json({ error: 'Code required' });
-      }
-
-      const prompt = `Analyze this ${language || 'code'} for quality improvements. Be concise.
-
-\`\`\`${language || 'text'}
-${code}
-\`\`\`
-
-Provide:
-1. Quality score (1-10)
-2. Top 3 improvements (brief)
-3. Refactored code (if needed)
-
-JSON format:
-{
-  "score": 8,
-  "improvements": ["Add error handling", "Extract magic numbers", "Add type hints"],
-  "refactored": "improved code or null"
-}`;
-
-      const response = await llmService.generateResponse(
-        prompt,
-        'technical',
-        [],
-        undefined,
-        'english',
-        false
-      );
-
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const analysis = JSON.parse(jsonMatch[0]);
-        res.json({ success: true, analysis });
-      } else {
-        res.json({ success: true, analysis: { score: 7, improvements: ['Review code structure'], refactored: null } });
-      }
-    } catch (error) {
-      console.error('Quality analysis failed:', error);
-      res.status(500).json({ error: 'Analysis failed' });
-    }
-  });
-
-      );
-
-      // Try to extract JSON
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const analysis = JSON.parse(jsonMatch[0]);
-        res.json({ success: true, analysis });
-      } else {
-        res.json({ success: true, analysis: { cause: response, fix: code, tip: 'Review the AI suggestion' } });
-      }
-    } catch (error) {
-      console.error('Error analysis failed:', error);
-      res.status(500).json({ error: 'Analysis failed' });
-    }
-  });
-
       if (invader.individualX > width/3 || invader.individualX < -width/3) {
         invader.randomVx *= -1;
       }
       if (invader.individualY > height/3 || invader.individualY < -height/3) {
         invader.randomVy *= -1;
       }
-
       x = invader.individualX;
       y = invader.individualY;
-    } else if (invader.pattern === 'individual-circle') {
-      // Individual circular pattern
-      x = invader.individualX + cos(invader.angle) * invader.individualRadius;
-      y = invader.individualY + sin(invader.angle) * invader.individualRadius;
-      invader.angle += speed * 0.02;
-    } else if (invader.pattern === 'individual-square') {
-      // Individual square pattern
-      let t = invader.t;
-      let side = floor(t * 4);
-      let progress = (t * 4) % 1;
-      let size = invader.individualRadius;
-
-      if (side === 0) {
-        x = invader.individualX - size + progress * size * 2;
-        y = invader.individualY - size;
-      } else if (side === 1) {
-        x = invader.individualX + size;
-        y = invader.individualY - size + progress * size * 2;
-      } else if (side === 2) {
-        x = invader.individualX + size - progress * size * 2;
-        y = invader.individualY + size;
-      } else {
-        x = invader.individualX - size;
-        y = invader.individualY + size - progress * size * 2;
-      }
-      invader.t = (invader.t + speed * 0.01) % 1;
-    } else if (invader.pattern === 'individual-hexagon') {
-      // Individual hexagon pattern
-      let angle = invader.t * TWO_PI;
-      let side = floor(invader.t * 6);
-      let nextAngle = ((side + 1) / 6) * TWO_PI;
-      let progress = (invader.t * 6) % 1;
-
-      let x1 = cos(side * TWO_PI / 6) * invader.individualRadius;
-      let y1 = sin(side * TWO_PI / 6) * invader.individualRadius;
-      let x2 = cos(nextAngle) * invader.individualRadius;
-      let y2 = sin(nextAngle) * invader.individualRadius;
-
-      x = invader.individualX + x1 + (x2 - x1) * progress;
-      y = invader.individualY + y1 + (y2 - y1) * progress;
-      invader.t = (invader.t + speed * 0.01) % 1;
-    } else if (invader.pattern === 'individual-octagon') {
-      // Individual octagon pattern
-      let side = floor(invader.t * 8);
-      let nextAngle = ((side + 1) / 8) * TWO_PI;
-      let progress = (invader.t * 8) % 1;
-
-      let x1 = cos(side * TWO_PI / 8) * invader.individualRadius;
-      let y1 = sin(side * TWO_PI / 8) * invader.individualRadius;
-      let x2 = cos(nextAngle) * invader.individualRadius;
-      let y2 = sin(nextAngle) * invader.individualRadius;
-
-      x = invader.individualX + x1 + (x2 - x1) * progress;
-      y = invader.individualY + y1 + (y2 - y1) * progress;
-      invader.t = (invader.t + speed * 0.01) % 1;
-    } else if (invader.pattern === 'individual-figure8') {
-      // Individual figure-8 pattern
-      let angle = invader.t * TWO_PI;
-      x = invader.individualX + sin(angle) * invader.individualRadius;
-      y = invader.individualY + sin(angle * 2) * invader.individualRadius * 0.5;
-      invader.t = (invader.t + speed * 0.01) % 1;
     } else if (invader.pattern === 'wheel') {
-      x = cos(invader.angle) * (baseWheelRadius * spread);
-      y = sin(invader.angle) * (baseWheelRadius * spread);
-      invader.angle += speed;
+      let baseX = cos(invader.angle) * (baseWheelRadius * spread);
+      let baseY = sin(invader.angle) * (baseWheelRadius * spread);
+      let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+      let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+      x = baseX + jitterX;
+      y = baseY + jitterY;
     } else if (invader.pattern === 'rectangle') {
       let pos = getRectangularPosition(invader.t, spread);
-      x = pos.x;
-      y = pos.y;
-      invader.t = (invader.t + speed / 10) % 1;
+      let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+      let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+      x = pos.x + jitterX;
+      y = pos.y + jitterY;
     } else if (invader.pattern === 'figure8') {
       let pos = getFigure8Position(invader.t, spread);
-      x = pos.x;
-      y = pos.y;
-      invader.t = (invader.t + speed / 10) % 1;
+      let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+      let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+      x = pos.x + jitterX;
+      y = pos.y + jitterY;
     } else {
       let pos = getCombinedPosition(invader.t, spread);
-      x = pos.x;
-      y = pos.y;
-      invader.t = (invader.t + speed / 10) % 1;
+      let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+      let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
+      x = pos.x + jitterX;
+      y = pos.y + jitterY;
     }
 
-    invader.noiseT += 0.01;
-    let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-    let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-    x += jitterX;
-    y += jitterY;
-
+    // Mouse avoidance
     let mouseXWorld = mouseX - width / 2;
     let mouseYWorld = mouseY - height / 2;
     let dx = x - mouseXWorld;
@@ -1068,1028 +900,70 @@ JSON format:
       y += avoidY;
     }
 
-    if (random() < invaderFireProbability) {
-      invaderLasers.push({
-        x: x,
-        y: y + 10,
-        vy: 3
-      });
-      playEnemyLaserSound();
+    invader.t += speed;
+    invader.noiseT += 0.01;
+    if (invader.pattern === 'wheel') {
+      invader.angle += speed * 0.0003;
     }
 
+    // Draw invader
     push();
     translate(x, y);
-    // Use invader's pattern color for glow with transparency
-    let glowColor = invader.color;
-    fill(glowColor.levels[0], glowColor.levels[1], glowColor.levels[2], glowAlpha);
-    noStroke();
-    let glowSize = invader.type === 0 ? 30 : invader.type === 1 ? 37.5 : 30;
-    ellipse(0, 0, glowSize);
     fill(invader.color);
     noStroke();
-    if (invader.type === 0) {
-      rectMode(CENTER);
-      rect(0, 0, 20, 15);
-      rect(-10, -10 + limbOffset, 5, 5);
-      rect(10, -10 + limbOffset, 5, 5);
-      rect(-5, 10 + limbOffset, 5, 5);
-      rect(5, 10 + limbOffset, 5, 5);
-      // Random colored highlights - larger and more visible
-      fill(invader.highlightColor);
-      rect(0, -3, 8, 3);
-      rect(-10, -10 + limbOffset, 4, 4);
-      rect(10, -10 + limbOffset, 4, 4);
-      if (frameCount % (2 * blinkInterval) < blinkInterval) {
-        fill(0, 255, 0);
-        rect(-5, -2, 3, 3);
-        rect(5, -2, 3, 3);
-      }
-    } else if (invader.type === 1) {
-      rectMode(CENTER);
-      rect(0, 0, 25, 15);
-      rect(-15 + limbOffset, 0, 5, 5);
-      rect(15 - limbOffset, 0, 5, 5);
-      rect(-10, 10 + limbOffset, 5, 5);
-      rect(10, 10 + limbOffset, 5, 5);
-      // Random colored highlights - larger and more visible
-      fill(invader.highlightColor);
-      rect(0, -2, 10, 3);
-      rect(-15 + limbOffset, 0, 4, 4);
-      rect(15 - limbOffset, 0, 4, 4);
-      if (frameCount % (2 * blinkInterval) < blinkInterval) {
-        fill(0, 255, 0);
-        rect(-5, 0, 3, 3);
-        rect(5, 0, 3, 3);
-      }
-    } else {
-      rectMode(CENTER);
-      rect(0, 0, 20, 20);
-      rect(-10, 10 + limbOffset, 5, 5);
-      rect(10, 10 + limbOffset, 5, 5);
-      // Random colored highlights - larger and more visible
-      fill(invader.highlightColor);
-      rect(0, -4, 10, 3);
-      rect(-10, 10 + limbOffset, 4, 4);
-      rect(10, 10 + limbOffset, 4, 4);
-      fill(0);
-      rect(-5, -2, 4, 4);
-      rect(5, -2, 4, 4);
-      if (frameCount % (2 * blinkInterval) < blinkInterval) {
-        fill(0, 255, 0);
-        rect(0, 5, 3, 3);
-      }
-    }
+    rect(-10, -10, 20, 20);
+    fill(0);
+    rect(-7, -5, 4, 4);
+    rect(3, -5, 4, 4);
+    rect(-10, 10 + limbOffset, 4, 6);
+    rect(6, 10 - limbOffset, 4, 6);
     pop();
   }
 
-  for (let i = invaderLasers.length - 1; i >= 0; i--) {
-    let laser = invaderLasers[i];
-    laser.y += laser.vy;
-    if (laser.y > height / 2 + 50) {
-      invaderLasers.splice(i, 1);
-      continue;
-    }
-    fill(255, 0, 0);
-    noStroke();
-    rect(laser.x, laser.y, 3, 8);
-  }
-
-  // Update and render player lasers
-  for (let i = playerLasers.length - 1; i >= 0; i--) {
-    let laser = playerLasers[i];
-    laser.x += laser.vx;
-    laser.y += laser.vy;
-
-    // Remove lasers that go off screen
-    if (laser.x < -width / 2 - 50 || laser.x > width / 2 + 50 ||
-        laser.y < -height / 2 - 50 || laser.y > height / 2 + 50) {
-      playerLasers.splice(i, 1);
-      continue;
-    }
-
-    // Add position to trail
-    laser.trail.push({x: laser.x, y: laser.y});
-    if (laser.trail.length > 8) {
-      laser.trail.shift(); // Keep trail length manageable
-    }
-
-    // Draw high-visibility laser trail
-    for (let t = 0; t < laser.trail.length; t++) {
-      let alpha = map(t, 0, laser.trail.length - 1, 50, 255);
-      let size = map(t, 0, laser.trail.length - 1, 2, 8);
-      fill(red(laser.color), green(laser.color), blue(laser.color), alpha);
-      noStroke();
-      ellipse(laser.trail[t].x, laser.trail[t].y, size, size);
-    }
-
-    // Draw bright main laser bolt with glow effect
-    // Outer glow
-    fill(red(laser.color), green(laser.color), blue(laser.color), 100);
-    ellipse(laser.x, laser.y, 12, 12);
-    // Main bolt
-    fill(laser.color);
-    ellipse(laser.x, laser.y, 6, 12);
-    // Inner bright core
-    fill(255, 255, 255, 200);
-    ellipse(laser.x, laser.y, 3, 8);
-
-    // Check collision with invaders
-    const { spread } = getLevelModifiers();
-    for (let j = invaders.length - 1; j >= 0; j--) {
-      let invader = invaders[j];
-      let x, y;
-
-      if (invader.pattern === 'wheel') {
-        let baseX = cos(invader.angle) * (baseWheelRadius * spread);
-        let baseY = sin(invader.angle) * (baseWheelRadius * spread);
-        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        x = baseX + jitterX;
-        y = baseY + jitterY;
-      } else if (invader.pattern === 'rectangle') {
-        let pos = getRectangularPosition(invader.t, spread);
-        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        x = pos.x + jitterX;
-        y = pos.y + jitterY;
-      } else if (invader.pattern === 'figure8') {
-        let pos = getFigure8Position(invader.t, spread);
-        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        x = pos.x + jitterX;
-        y = pos.y + jitterY;
-      } else {
-        let pos = getCombinedPosition(invader.t, spread);
-        let jitterX = noise(invader.noiseSeedX + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        let jitterY = noise(invader.noiseSeedY + invader.noiseT) * jitterAmplitude * 2 - jitterAmplitude;
-        x = pos.x + jitterX;
-        y = pos.y + jitterY;
-      }
-
-      // Apply mouse avoidance to get final position
-      let mouseXWorld = mouseX - width / 2;
-      let mouseYWorld = mouseY - height / 2;
-      let dx = x - mouseXWorld;
-      let dy = y - mouseYWorld;
-      let distance = sqrt(dx * dx + dy * dy);
-      if (distance < avoidanceRadius && distance > 0) {
-        let avoidX = (dx / distance) * avoidanceStrength;
-        let avoidY = (dy / distance) * avoidanceStrength;
-        let avoidMag = sqrt(avoidX * avoidX + avoidY * avoidY);
-        if (avoidMag > maxAvoidanceSpeed) {
-          avoidX = (avoidX / avoidMag) * maxAvoidanceSpeed;
-          avoidY = (avoidY / avoidMag) * maxAvoidanceSpeed;
-        }
-        x += avoidX;
-        y += avoidY;
-      }
-
-      // Prevent invaders from flying below turret tops
-      let turretTopY = height / 2 - 80 - 180 - 20; // Ground - turret height - clearance
-      if (y > turretTopY) {
-        y = turretTopY;
-      }
-
-      // Check collision
-      if (laser.x > x - 15 && laser.x < x + 15 && laser.y > y - 15 && laser.y < y + 15) {
-        // Create explosion particles
-        for (let k = 0; k < 25; k++) {
-          particles.push({
-            x: x,
-            y: y,
-            vx: random(-3, 3),
-            vy: random(-3, 3),
-            lifetime: 30
-          });
-        }
-
-        // Play explosion sound
-        playExplosionSound();
-
-        // Remove invader and laser
-        invaders.splice(j, 1);
-        playerLasers.splice(i, 1);
-        score += pointsPerHit;
-        break;
-      }
-    }
-
-    // Check collision with UFO
-    if (ufo && ufo.active) {
-      if (laser.x > ufo.x - 25 && laser.x < ufo.x + 25 && laser.y > ufo.y - 15 && laser.y < ufo.y + 15) {
-        // Create bigger explosion for UFO
-        for (let k = 0; k < 35; k++) {
-          particles.push({
-            x: ufo.x,
-            y: ufo.y,
-            vx: random(-5, 5),
-            vy: random(-5, 5),
-            lifetime: 40
-          });
-        }
-
-        // Play explosion sound
-        playExplosionSound();
-
-        // Stop UFO humming sound
-        stopUfoHum();
-
-        // Stop UFO sound effect
-        stopUfoSound();
-
-        // Remove UFO and laser, award bonus points
-        ufo = null;
-        playerLasers.splice(i, 1);
-        score += ufoPoints; // Bonus points for hitting UFO
-        break;
-      }
-    }
-
-    // Check collision with Nyan Cat
-    if (nyanCat && nyanCat.active) {
-      if (laser.x > nyanCat.x - 20 && laser.x < nyanCat.x + 20 && laser.y > nyanCat.y - 15 && laser.y < nyanCat.y + 15) {
-        // Create colorful explosion for Nyan Cat
-        for (let k = 0; k < 30; k++) {
-          let colors = [color(255, 0, 0), color(255, 165, 0), color(255, 255, 0), color(0, 255, 0), color(0, 0, 255), color(75, 0, 130), color(148, 0, 211)];
-          particles.push({
-            x: nyanCat.x,
-            y: nyanCat.y,
-            vx: random(-4, 4),
-            vy: random(-4, 4),
-            lifetime: 35,
-            color: colors[floor(random(colors.length))],
-            size: random(4, 8)
-          });
-        }
-
-        // Play explosion sound
-        playExplosionSound();
-
-        // Remove Nyan Cat and laser, award mega bonus points
-        nyanCat = null;
-        playerLasers.splice(i, 1);
-        score += 100; // Mega bonus for hitting Nyan Cat
-        break;
-      }
-    }
-  }
-
+  // Draw particles
   for (let i = particles.length - 1; i >= 0; i--) {
     let p = particles[i];
     p.x += p.vx;
     p.y += p.vy;
     p.lifetime--;
-
-    if (p.color && p.size) {
-      // Muzzle blast particles with custom colors and sizes
-      fill(red(p.color), green(p.color), blue(p.color), p.lifetime * 15);
-      noStroke();
-      ellipse(p.x, p.y, p.size, p.size);
-    } else {
-      // Regular explosion particles
-      fill(0, 255, 0, p.lifetime * 10);
-      noStroke();
-      rect(p.x, p.y, 3, 3);
-    }
-
     if (p.lifetime <= 0) {
       particles.splice(i, 1);
+      continue;
     }
+    fill(255, 200, 0, p.lifetime * 10);
+    noStroke();
+    ellipse(p.x, p.y, 4, 4);
   }
 
-  // Draw crosshair at mouse position
-  let crosshairX = mouseX - width / 2;
-  let crosshairY = mouseY - height / 2;
-  stroke(0, 255, 255);
-  strokeWeight(2);
-  line(crosshairX - 10, crosshairY, crosshairX + 10, crosshairY);
-  line(crosshairX, crosshairY - 10, crosshairX, crosshairY + 10);
-  noStroke();
-
-  // Game stats at top corners
-  fill(0, 255, 0);
-  textSize(20);
-
-  // Top left - Score and Invaders
-  textAlign(LEFT, TOP);
-  text("Score: " + score, -width / 2 + 20, -height / 2 + 20);
-  text("Invaders: " + invaders.length, -width / 2 + 20, -height / 2 + 50);
-
-  // Top right - Level
-  textAlign(RIGHT, TOP);
-  text("Level: " + level, width / 2 - 20, -height / 2 + 20);
-
-  // Render city skyline
-  renderCitySkyline();
-
-  // Check collision between enemy projectiles and skyline
-  checkSkylineCollisions();
-
-  // Check if skyline is completely destroyed
-  if (isSkylineDestroyed()) {
-    gameOver();
-    return;
-  }
-
-  fill(0, 255, 255);
-  textSize(16);
-  text("Click to shoot!", -width / 2 + 20, height / 2 - 20);
-
-  if (invaders.length === 0) {
+  // Check for level completion
+  if (invaders.length === 0 && !gameEnded) {
     level++;
-    if (level <= 4) {
-      pattern = 'wheel';
-    } else if (level <= 8) {
-      pattern = 'rectangle';
-    } else if (level <= 12) {
-      pattern = 'figure8';
-    } else {
-      pattern = 'combined';
-    }
     spawnInvaders();
   }
-}
 
-function drawHoneycombPattern(x, y, w, h, cellSize) {
-  // Draw hexagonal honeycomb pattern
-  let rows = Math.floor(h / (cellSize * 0.75));
-  let cols = Math.floor(w / cellSize);
-
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      let hexX = x + col * cellSize + (row % 2) * (cellSize / 2);
-      let hexY = y + row * cellSize * 0.75;
-
-      if (hexX + cellSize <= x + w && hexY + cellSize <= y + h) {
-        drawHexagon(hexX + cellSize/2, hexY + cellSize/2, cellSize/3);
-      }
-    }
-  }
-}
-
-function drawHexagon(centerX, centerY, radius) {
-  beginShape();
-  for (let i = 0; i < 6; i++) {
-    let angle = TWO_PI / 6 * i;
-    let x = centerX + cos(angle) * radius;
-    let y = centerY + sin(angle) * radius;
-    vertex(x, y);
-  }
-  endShape(CLOSE);
-}
-
-function renderBuildingBlock(block) {
-  if (block.destroyed) return;
-
-  // Handle flashing effect
-  if (block.flashTimer > 0 && !block.isFoundation) {
-    fill(255, 255, 255); // Bright white flash
-    stroke(255, 255, 255);
-    block.flashTimer--; // Decrement flash timer
-
-    // Destroy block when flash is done (only non-foundation blocks)
-    if (block.flashTimer <= 0) {
-      block.destroyed = true;
-    }
-  } else {
-    // Set colors based on building type
-    fill(block.buildingColor.fill[0], block.buildingColor.fill[1], block.buildingColor.fill[2]);
-    stroke(block.buildingColor.stroke[0], block.buildingColor.stroke[1], block.buildingColor.stroke[2]);
-  }
-
-  strokeWeight(1);
-
-  // Render based on building type
-  switch (block.buildingType) {
-    case 'honeycomb':
-      // Draw base rectangle first
-      rect(block.x, block.y, block.width, block.height);
-      // Add honeycomb pattern on top
-      stroke(block.buildingColor.stroke[0] + 40, block.buildingColor.stroke[1] + 40, block.buildingColor.stroke[2] + 40);
-      strokeWeight(0.5);
-      drawHoneycombPattern(block.x + 2, block.y + 2, block.width - 4, block.height - 4, 8);
-      break;
-
-    case 'neon':
-      // Draw with glowing effect
-      rect(block.x, block.y, block.width, block.height);
-      // Add inner glow lines
-      stroke(block.buildingColor.stroke[0] + 80, block.buildingColor.stroke[1] + 80, block.buildingColor.stroke[2] + 80);
-      strokeWeight(0.5);
-      line(block.x + 3, block.y + 3, block.x + block.width - 3, block.y + 3);
-      line(block.x + 3, block.y + block.height - 3, block.x + block.width - 3, block.y + block.height - 3);
-      break;
-
-    case 'industrial':
-      // Draw with rivets/bolts pattern
-      rect(block.x, block.y, block.width, block.height);
-      fill(block.buildingColor.stroke[0], block.buildingColor.stroke[1], block.buildingColor.stroke[2]);
-      noStroke();
-      // Add rivet dots
-      for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 2; j++) {
-          ellipse(block.x + 4 + i * 6, block.y + 4 + j * 8, 2, 2);
-        }
-      }
-      break;
-
-    case 'glass':
-      // Draw with reflective pattern
-      rect(block.x, block.y, block.width, block.height);
-      // Add window grid
-      stroke(block.buildingColor.stroke[0] + 60, block.buildingColor.stroke[1] + 60, block.buildingColor.stroke[2] + 60);
-      strokeWeight(0.5);
-      // Vertical lines
-      line(block.x + block.width/3, block.y, block.x + block.width/3, block.y + block.height);
-      line(block.x + 2*block.width/3, block.y, block.x + 2*block.width/3, block.y + block.height);
-      // Horizontal line
-      line(block.x, block.y + block.height/2, block.x + block.width, block.y + block.height/2);
-      break;
-
-    default: // normal and foundation
-      rect(block.x, block.y, block.width, block.height);
-      break;
-  }
-}
-
-function renderCitySkyline() {
-  for (let block of cityBlocks) {
-    renderBuildingBlock(block);
-  }
-
-  // Render turrets on the sides
-  renderTurrets();
-}
-
-function renderTurrets() {
-  let groundY = height / 2 - 80;
-  let leftTurretX = -width / 2 + 30;
-  let rightTurretX = width / 2 - 70;
-  let turretHeight = 180; // Make turrets much taller than skyline
-
-  // Convert mouse position to world coordinates
-  let mouseWorldX = mouseX - width / 2;
-  let mouseWorldY = mouseY - height / 2;
-
-  // Left turret
-  fill(80, 80, 120);
-  stroke(120, 120, 180);
-  strokeWeight(2);
-  rect(leftTurretX, groundY - turretHeight, 40, turretHeight); // Tall base
-  fill(60, 60, 100);
-  rect(leftTurretX + 5, groundY - turretHeight - 20, 30, 25); // Top section
-  rect(leftTurretX + 10, groundY - turretHeight - 35, 20, 20); // Cannon mount
-
-  // Left cannon barrel pointing at mouse
-  let leftCannonBaseX = leftTurretX + 20;
-  let leftCannonBaseY = groundY - turretHeight - 25;
-  let leftDx = mouseWorldX - leftCannonBaseX;
-  let leftDy = mouseWorldY - leftCannonBaseY;
-  let leftAngle = atan2(leftDy, leftDx);
-  let cannonLength = 30;
-  let leftCannonEndX = leftCannonBaseX + cos(leftAngle) * cannonLength;
-  let leftCannonEndY = leftCannonBaseY + sin(leftAngle) * cannonLength;
-
-  stroke(255, 100, 100);
-  strokeWeight(6);
-  line(leftCannonBaseX, leftCannonBaseY, leftCannonEndX, leftCannonEndY);
-
-  // Right turret
-  fill(80, 80, 120);
-  stroke(120, 120, 180);
-  strokeWeight(2);
-  rect(rightTurretX, groundY - turretHeight, 40, turretHeight); // Tall base
-  fill(60, 60, 100);
-  rect(rightTurretX + 5, groundY - turretHeight - 20, 30, 25); // Top section
-  rect(rightTurretX + 10, groundY - turretHeight - 35, 20, 20); // Cannon mount
-
-  // Right cannon barrel pointing at mouse
-  let rightCannonBaseX = rightTurretX + 20;
-  let rightCannonBaseY = groundY - turretHeight - 25;
-  let rightDx = mouseWorldX - rightCannonBaseX;
-  let rightDy = mouseWorldY - rightCannonBaseY;
-  let rightAngle = atan2(rightDy, rightDx);
-  let rightCannonEndX = rightCannonBaseX + cos(rightAngle) * cannonLength;
-  let rightCannonEndY = rightCannonBaseY + sin(rightAngle) * cannonLength;
-
-  stroke(255, 100, 100);
-  strokeWeight(6);
-  line(rightCannonBaseX, rightCannonBaseY, rightCannonEndX, rightCannonEndY);
-
-  noStroke();
-}
-
-function playLaserSound() {
-  if (!audioContext) return;
-
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  // Laser sound: high-pitched zap that drops in frequency
-  oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.15);
-
-  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-
-  oscillator.type = 'sawtooth';
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.15);
-}
-
-function startUfoHum() {
-  if (!audioContext || ufoOscillator) return;
-
-  ufoOscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-
-  ufoOscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  // UFO hum: low-frequency oscillating drone
-  ufoOscillator.frequency.setValueAtTime(60, audioContext.currentTime);
-  gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-
-  ufoOscillator.type = 'sine';
-  ufoOscillator.start(audioContext.currentTime);
-
-  // Modulate the frequency for that classic UFO wobble
-  const lfo = audioContext.createOscillator();
-  const lfoGain = audioContext.createGain();
-  lfo.connect(lfoGain);
-  lfoGain.connect(ufoOscillator.frequency);
-  lfo.frequency.value = 3; // 3Hz wobble
-  lfoGain.gain.value = 10; // Frequency modulation depth
-  lfo.start();
-}
-
-function startUfoSound() {
-  if (ufoAudio) {
-    ufoAudio.pause();
-    ufoAudio = null;
-  }
-
-  try {
-    ufoAudio = new Audio('/attached_assets/ufo_4_1758648473127.wav');
-    ufoAudio.volume = 0.3; // Set volume to 30%
-    ufoAudio.loop = true; // Loop continuously while UFO is active
-
-    // Try to play immediately
-    const playPromise = ufoAudio.play();
-
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.log('UFO sound failed to play:', error);
-      });
-    }
-  } catch (error) {
-    console.log('Failed to load UFO sound:', error);
-  }
-}
-
-function stopUfoSound() {
-  if (ufoAudio) {
-    ufoAudio.pause();
-    ufoAudio.currentTime = 0;
-    ufoAudio = null;
-  }
-}
-
-function stopUfoHum() {
-  if (ufoOscillator) {
-    ufoOscillator.stop();
-    ufoOscillator = null;
-  }
-}
-
-function playNyanCatSound() {
-  if (!audioContext) return;
-
-  // Play a cute cat-like meow sound
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  // Cat meow: starts high, dips down, then back up
-  oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
-  oscillator.frequency.exponentialRampToValueAtTime(350, audioContext.currentTime + 0.3);
-
-  gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-
-  oscillator.type = 'triangle';
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.3);
-}
-
-function playUfoLaserSound() {
-  if (!audioContext) return;
-
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  // UFO laser: extremely subtle, whisper-quiet alien sound
-  oscillator.frequency.setValueAtTime(380, audioContext.currentTime); // Lower starting frequency
-  oscillator.frequency.linearRampToValueAtTime(240, audioContext.currentTime + 0.06); // Gentler frequency change
-
-  // Ultra-quiet volume with soft attack and decay
-  gainNode.gain.setValueAtTime(0.0, audioContext.currentTime); // Start silent
-  gainNode.gain.linearRampToValueAtTime(0.06, audioContext.currentTime + 0.01); // Soft attack
-  gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.06); // Soft decay
-
-  oscillator.type = 'sine'; // Smoothest wave type
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.06); // Very brief duration
-}
-
-function playEnemyLaserSound() {
-  if (!audioContext) return;
-
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  // Enemy laser: deeper, more menacing sound, but quieter
-  oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.2);
-
-  gainNode.gain.setValueAtTime(0.12, audioContext.currentTime); // Reduced from 0.25 to 0.12
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-
-  oscillator.type = 'square';
-  oscillator.start(audioContext.currentTime);
-  oscillator.stop(audioContext.currentTime + 0.2);
-}
-
-function playExplosionSound() {
-  if (!audioContext) return;
-
-  // Create white noise for explosion base
-  const bufferSize = audioContext.sampleRate * 0.4; // 0.4 seconds
-  const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-  const data = buffer.getChannelData(0);
-
-  // Generate white noise
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = Math.random() * 2 - 1;
-  }
-
-  const noiseSource = audioContext.createBufferSource();
-  noiseSource.buffer = buffer;
-
-  // Create filter for shaping the explosion
-  const filter = audioContext.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(800, audioContext.currentTime);
-  filter.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.4);
-
-  // Create gain envelope for explosion
-  const gainNode = audioContext.createGain();
-  gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-
-  // Connect the nodes
-  noiseSource.connect(filter);
-  filter.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  // Add low-frequency rumble
-  const rumbleOsc = audioContext.createOscillator();
-  const rumbleGain = audioContext.createGain();
-
-  rumbleOsc.frequency.setValueAtTime(60, audioContext.currentTime);
-  rumbleOsc.frequency.exponentialRampToValueAtTime(20, audioContext.currentTime + 0.3);
-  rumbleGain.gain.setValueAtTime(0.3, audioContext.currentTime);
-  rumbleGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-
-  rumbleOsc.connect(rumbleGain);
-  rumbleGain.connect(audioContext.destination);
-
-  // Start the explosion
-  noiseSource.start(audioContext.currentTime);
-  noiseSource.stop(audioContext.currentTime + 0.4);
-  rumbleOsc.start(audioContext.currentTime);
-  rumbleOsc.stop(audioContext.currentTime + 0.3);
-}
-
-// Soundtrack playlist for the game
-let soundtrackPlaylist = [
-  '/attached_assets/mode_1759293195149.mp3',
-  '/attached_assets/serpent_1759431415420.mp3',
-  '/attached_assets/fortress_1759293202674.mp3',
-  '/attached_assets/mode_1759293195149.mp3'
-];
-let currentTrackIndex = 0;
-
-function playNextTrack() {
-  // Add some randomization - 70% chance to cycle to next track, 30% chance to pick random
-  if (Math.random() < 0.7) {
-    // Cycle to next track in playlist
-    currentTrackIndex = (currentTrackIndex + 1) % soundtrackPlaylist.length;
-  } else {
-    // Pick a random track (but different from current)
-    let newIndex = currentTrackIndex;
-    while (newIndex === currentTrackIndex && soundtrackPlaylist.length > 1) {
-      newIndex = Math.floor(Math.random() * soundtrackPlaylist.length);
-    }
-    currentTrackIndex = newIndex;
-  }
-
-  console.log('Playing next track:', soundtrackPlaylist[currentTrackIndex]);
-
-  // Load and play the next track
-  if (backgroundMusic) {
-    backgroundMusic.pause();
-    backgroundMusic = null;
-  }
-
-  startBackgroundMusic();
-}
-
-function startBackgroundMusic() {
-  if (backgroundMusic) {
-    // If music already exists but is paused, restart it
-    if (backgroundMusic.paused) {
-      backgroundMusic.currentTime = 0;
-      backgroundMusic.play().catch(error => {
-        console.log('Background music failed to restart:', error);
-      });
-    }
-    return; // Already playing
-  }
-
-  try {
-    // Load current track from playlist
-    backgroundMusic = new Audio(soundtrackPlaylist[currentTrackIndex]);
-    backgroundMusic.volume = 0.4; // Set volume to 40%
-    backgroundMusic.loop = false; // Don't loop individual tracks
-
-    // Set up event listener to play next track when current one ends
-    backgroundMusic.addEventListener('ended', playNextTrack);
-
-    // Try to play immediately, but handle autoplay restrictions
-    const playPromise = backgroundMusic.play();
-
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.log('Background music failed to play (autoplay restriction):', error);
-        // Store music object so it can play on first user interaction
-      });
-    }
-  } catch (error) {
-    console.log('Failed to load background music:', error);
-  }
-}
-
-function stopBackgroundMusic() {
-  if (backgroundMusic) {
-    backgroundMusic.pause();
-    backgroundMusic.currentTime = 0;
-    backgroundMusic.removeEventListener('ended', playNextTrack);
-    backgroundMusic = null;
-  }
-}
-
-function createMuzzleBlast(x, y) {
-  // Create bright muzzle flash particles
-  for (let i = 0; i < 15; i++) {
-    particles.push({
-      x: x + random(-5, 5),
-      y: y + random(-5, 5),
-      vx: random(-2, 2),
-      vy: random(-2, 2),
-      lifetime: 15,
-      color: color(255, 255, 100), // Bright yellow flash
-      size: random(3, 8)
-    });
-  }
-
-  // Create bright blast ring
-  for (let i = 0; i < 10; i++) {
-    particles.push({
-      x: x,
-      y: y,
-      vx: random(-4, 4),
-      vy: random(-4, 4),
-      lifetime: 10,
-      color: color(255, 150, 0), // Orange blast
-      size: random(2, 5)
-    });
-  }
-}
-
-function checkSkylineCollisions() {
-  // Check UFO lasers hitting skyline
-  for (let i = ufoLasers.length - 1; i >= 0; i--) {
-    let laser = ufoLasers[i];
-    for (let j = cityBlocks.length - 1; j >= 0; j--) {
-      let block = cityBlocks[j];
-      if (!block.destroyed &&
-          laser.x > block.x && laser.x < block.x + block.width &&
-          laser.y > block.y && laser.y < block.y + block.height) {
-        // Only destroy non-foundation blocks
-        if (!block.isFoundation) {
-          destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
-        }
-        ufoLasers.splice(i, 1);
-        break;
-      }
-    }
-  }
-
-  // Check invader lasers hitting skyline
-  for (let i = invaderLasers.length - 1; i >= 0; i--) {
-    let laser = invaderLasers[i];
-    for (let j = cityBlocks.length - 1; j >= 0; j--) {
-      let block = cityBlocks[j];
-      if (!block.destroyed &&
-          laser.x > block.x && laser.x < block.x + block.width &&
-          laser.y > block.y && laser.y < block.y + block.height) {
-        // Only destroy non-foundation blocks
-        if (!block.isFoundation) {
-          destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
-        }
-        invaderLasers.splice(i, 1);
-        break;
-      }
-    }
-  }
-
-  // Check nyan cat bombs hitting skyline
-  for (let i = nyanCatBombs.length - 1; i >= 0; i--) {
-    let bomb = nyanCatBombs[i];
-    for (let j = cityBlocks.length - 1; j >= 0; j--) {
-      let block = cityBlocks[j];
-      if (!block.destroyed &&
-          bomb.x > block.x && bomb.x < block.x + block.width &&
-          bomb.y > block.y && bomb.y < block.y + block.height) {
-        // Only destroy non-foundation blocks
-        if (!block.isFoundation) {
-          destroySkylineBlock(j, block.x + block.width/2, block.y + block.height/2);
-        }
-        nyanCatBombs.splice(i, 1);
-        break;
-      }
-    }
-  }
-}
-
-function keyPressed() {
-  // Don't allow pausing if game has ended
-  if (gameEnded) return;
-
-  // Handle spacebar (32) and Enter key (13) for pause/unpause
-  if (keyCode === 32 || keyCode === 13) {
-    gamePaused = !gamePaused;
-
-    // Also pause/unpause background music
-    if (gamePaused) {
-      if (backgroundMusic && !backgroundMusic.paused) {
-        backgroundMusic.pause();
-      }
-    } else {
-      if (backgroundMusic && backgroundMusic.paused) {
-        backgroundMusic.play().catch(error => {
-          console.log('Background music failed to resume:', error);
-        });
-      }
-    }
-  }
-}
-
-function destroySkylineBlock(blockIndex, explosionX, explosionY) {
-  let block = cityBlocks[blockIndex];
-
-  // Decrement health instead of immediate destruction
-  if (block.health !== undefined) {
-    block.health--;
-  }
-
-  // Set flash timer for hit effect
-  block.flashTimer = 15; // Flash for 15 frames
-
-  // Only mark as destroyed when health reaches 0
-  if (block.health <= 0) {
-    block.destroyed = true;
-
-    // Create explosion particles only on final destruction
-    for (let i = 0; i < 20; i++) {
-      particles.push({
-        x: explosionX,
-        y: explosionY,
-        vx: random(-4, 4),
-        vy: random(-4, 4),
-        lifetime: 40
-      });
-    }
-
-    // Play explosion sound
-    playExplosionSound();
-  } else {
-    // Just play a hit sound for damage
-    playLaserSound();
-  }
-}
-
-function isSkylineDestroyed() {
-  // Only check non-foundation blocks for game over condition
-  return cityBlocks.filter(block => !block.isFoundation).every(block => block.destroyed);
-}
-
-function gameOver() {
-  // Only execute once
-  if (gameEnded) return;
-
-  gameEnded = true;
-
-  // Stop background music
-  stopBackgroundMusic();
-
-  // Stop UFO sounds if active
-  stopUfoHum();
-  stopUfoSound();
-
-  // Stop the draw loop
-  noLoop();
-
-  fill(255, 0, 0);
-  textSize(32);
-  textAlign(CENTER);
-  text("CITY DESTROYED!", 0, -50);
-  text("GAME OVER", 0, 0);
-  text("Restarting...", 0, 50);
-
-  // Reset game after 3 seconds
-  setTimeout(() => {
-    level = 1;
-    score = 0;
-    pattern = 'wheel';
-    invaders = [];
-    particles = [];
-    ufoLasers = [];
-    invaderLasers = [];
-    playerLasers = [];
-    nyanCatBombs = [];
-    ufo = null;
-    nyanCat = null;
-    rainbowTrails = [];
-    gameEnded = false;
-    initializeCitySkyline();
-    spawnInvaders();
-
-    // Occasionally start with a different track on game restart (30% chance)
-    if (Math.random() < 0.3) {
-      currentTrackIndex = Math.floor(Math.random() * soundtrackPlaylist.length);
-      console.log('Game restart: Starting with track', currentTrackIndex);
-    }
-
-    // Restart background music and resume game loop
-    startBackgroundMusic();
-    loop();
-  }, 3000);
+  pop();
 }
 
 function mousePressed() {
-  // Start background music on first user interaction (for autoplay policy)
-  if (backgroundMusic && backgroundMusic.paused) {
-    startBackgroundMusic();
-  }
+  if (gameEnded || gamePaused) return;
 
-  // Don't allow shooting if game has ended
-  if (gameEnded) return;
+  let cannonY = height / 2 - 40;
+  let leftTurretX = -15;
+  let rightTurretX = 15;
+  let targetX = mouseX - width / 2;
+  let targetY = mouseY - height / 2;
 
-  // Convert screen coordinates to world coordinates
-  let worldX = mouseX - width / 2;
-  let worldY = mouseY - height / 2;
+  let leftDx = targetX - leftTurretX;
+  let leftDy = targetY - cannonY;
+  let rightDx = targetX - rightTurretX;
+  let rightDy = targetY - cannonY;
 
-  // Fire from exact turret positions
-  let groundY = height / 2 - 80;
-  let turretHeight = 180;
-  let leftTurretX = -width / 2 + 50; // Center of left turret
-  let rightTurretX = width / 2 - 50; // Center of right turret
-  let cannonY = groundY - turretHeight - 25; // From cannon barrels
-
-  // Calculate direction vectors for both cannons to converge at mouse position
-  let leftDx = worldX - leftTurretX;
-  let leftDy = worldY - cannonY;
   let leftDistance = sqrt(leftDx * leftDx + leftDy * leftDy);
-
-  let rightDx = worldX - rightTurretX;
-  let rightDy = worldY - cannonY;
   let rightDistance = sqrt(rightDx * rightDx + rightDy * rightDy);
 
-  // Normalize and set speed
+  if (leftDistance === 0) leftDistance = 1;
+  if (rightDistance === 0) rightDistance = 1;
+
   let speed = 15;
   let leftVx = (leftDx / leftDistance) * speed;
   let leftVy = (leftDy / leftDistance) * speed;
@@ -2166,11 +1040,14 @@ Respond with a JSON array of files needed. Each file should have:
 
 Plan a complete, production-ready project structure. Be thorough.`;
 
-      const agentResponse = await llmService.generateCompletion(agentPrompt, {
-        model: 'mistral',
-        temperature: 0.3,
-        max_tokens: 2000
-      });
+      const agentResponse = await llmService.generateResponse(
+        agentPrompt,
+        'freestyle',
+        [],
+        undefined,
+        'english',
+        false
+      );
 
       let filePlan: any[] = [];
       try {
@@ -2214,11 +1091,14 @@ Write COMPLETE, PRODUCTION-READY code. Include:
 
 ONLY output the code, no explanations.`;
 
-        const code = await llmService.generateCompletion(architectPrompt, {
-          model: 'mistral',
-          temperature: 0.7,
-          max_tokens: 4000
-        });
+        const code = await llmService.generateResponse(
+          architectPrompt,
+          'freestyle',
+          [],
+          undefined,
+          'english',
+          false
+        );
 
         // Extract code from markdown blocks if present
         let cleanCode = code;
