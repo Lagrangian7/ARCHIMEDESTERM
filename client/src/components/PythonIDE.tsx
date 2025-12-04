@@ -1910,6 +1910,7 @@ calculator()
   const [isResizing, setIsResizing] = useState(false);
   const [isMaximized, setIsMaximized] = useState(true); // Start maximized by default
   const [position, setPosition] = useState({ x: 0, y: 60 });
+  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight - 120 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
   const editorRef = useRef<any>(null);
