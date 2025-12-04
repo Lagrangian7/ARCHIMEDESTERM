@@ -6,7 +6,6 @@ import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
 import { useSpeech } from '@/contexts/SpeechContext';
-import { registerCompletion } from 'monacopilot';
 import { registerCodeiumProvider } from '@live-codes/monaco-codeium-provider';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import { useToast } from '@/hooks/use-toast';
@@ -2051,11 +2050,8 @@ calculator()
         }
       }, 100);
 
-      // Setup AI code completions with Codeium as default, Monacopilot as fallback
+      // Setup Codeium AI code completions (FREE, unlimited, no API key needed)
       setTimeout(() => {
-        let codeiumEnabled = false;
-
-        // Try Codeium first (FREE, unlimited, no API key needed)
         try {
           if (typeof registerCodeiumProvider === 'function') {
             registerCodeiumProvider(monaco, {
@@ -2063,34 +2059,17 @@ calculator()
                 console.debug('Codeium completion accepted:', acceptedText.substring(0, 50) + '...');
               }
             });
-            codeiumEnabled = true;
-            console.debug('✓ Codeium AI code completions enabled (FREE, unlimited)');
+            console.log('✓ Codeium AI code completions enabled (FREE, unlimited)');
           }
         } catch (codeiumError) {
-          console.debug('Codeium registration failed, trying fallback:', codeiumError);
-        }
-
-        // Fallback to Monacopilot if Codeium failed
-        if (!codeiumEnabled && typeof registerCompletion === 'function') {
-          try {
-            registerCompletion(monaco, editor, {
-              endpoint: '/api/code-completion',
-              language: showMultiFileMode && files.find(f => f.id === activeFileId) ? files.find(f => f.id === activeFileId)!.language : 'python',
-              trigger: 'onIdle'
-            });
-            console.debug('Monacopilot enabled as fallback (Mistral AI)');
-          } catch (monacopilotError) {
-            console.debug('Monacopilot fallback also failed:', monacopilotError);
-          }
+          console.warn('Codeium registration failed:', codeiumError);
         }
 
         // Archimedes v7 Introduction - Add to chat history ONCE per session
         if (!hasGreetedRef.current) {
           hasGreetedRef.current = true;
 
-          const introMessage = codeiumEnabled 
-            ? "Greetings! Archimedes version 7 AI assistant now online. I'm your friendly programming mentor and cyberpunk coding companion. Whether you need help with basics or advanced techniques, I'm here to guide you through any programming language. Let's create something amazing together!"
-            : "Archimedes version 7 ready. Your friendly AI programming assistant is here to help you master any language and create amazing code!";
+          const introMessage = "Greetings! Archimedes version 7 AI assistant now online with Codeium-powered code completions. I'm your friendly programming mentor and cyberpunk coding companion. Whether you need help with basics or advanced techniques, I'm here to guide you through any programming language. Let's create something amazing together!";
 
           setChatHistory(prev => [...prev, { 
             role: 'assistant', 
