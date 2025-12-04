@@ -455,7 +455,7 @@ const helpMenuItems: HelpMenuItem[] = [
     category: 'Tools',
     title: 'Archimedes Workshop',
     description: 'Interactive Python learning environment with comprehensive lessons and AI-assisted coding',
-    command: 'workshop / pythonide / learnpython / pyide',
+    command: 'workshop',
     example: 'workshop',
     icon: <TerminalIcon size={16} />
   },

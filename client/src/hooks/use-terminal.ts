@@ -901,9 +901,6 @@ Code Execution:
         return; // Return early to skip auto-code extraction
 
       case 'workshop':
-      case 'pythonide':
-      case 'learnpython':
-      case 'pyide':
         setShowPythonIDE(true);
         addEntry('response', 'Opening Archimedes Workshop...', 'technical');
         break;
