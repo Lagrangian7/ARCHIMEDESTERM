@@ -1138,6 +1138,40 @@ ONLY output the code, no explanations.`;
     }
   });
 
+  // Collaborative AI Code Review - Multiple satellite AIs analyze code
+  app.post('/api/collaborative-review', async (req, res) => {
+    try {
+      const { code, language, projectName } = req.body;
+
+      if (!code?.trim()) {
+        return res.status(400).json({ error: 'Code is required for review' });
+      }
+
+      console.log(`[Collaborative Review] Starting review for ${language || 'unknown'} code`);
+
+      const result = await llmService.collaborativeCodeReview(
+        code,
+        language || 'python',
+        projectName
+      );
+
+      res.json({
+        success: true,
+        ...result
+      });
+
+    } catch (error) {
+      console.error('Collaborative review error:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Code review failed',
+        reviews: [],
+        summary: 'Unable to complete code review',
+        overallRating: 0
+      });
+    }
+  });
+
   // Execute Python code with GUI support
   app.post('/api/execute/python', async (req, res) => {
     try {

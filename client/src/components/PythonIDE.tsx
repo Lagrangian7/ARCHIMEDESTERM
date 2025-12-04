@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle } from 'lucide-react';
 import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -1995,6 +1995,70 @@ calculator()
     }
   }, [analyzeCodeQualityMutation, code, files, activeFileId, showMultiFileMode]);
 
+  // Collaborative AI Review state
+  const [showCollaborativeReview, setShowCollaborativeReview] = useState(false);
+  const [collaborativeReviewResult, setCollaborativeReviewResult] = useState<{
+    reviews: Array<{ provider: string; model: string; feedback: string; rating: number; status: 'success' | 'error' }>;
+    summary: string;
+    overallRating: number;
+  } | null>(null);
+
+  // Mutation for Collaborative AI Code Review
+  const collaborativeReviewMutation = useMutation({
+    mutationFn: async ({ codeToReview, language, projectName }: { codeToReview: string; language: string; projectName?: string }) => {
+      const response = await fetch('/api/collaborative-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ code: codeToReview, language, projectName }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Collaborative review failed');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setCollaborativeReviewResult({
+        reviews: data.reviews || [],
+        summary: data.summary || 'Review completed',
+        overallRating: data.overallRating || 0
+      });
+      setShowCollaborativeReview(true);
+      toast({
+        title: "Collaborative Review Complete",
+        description: data.summary,
+      });
+      speak(`Collaborative code review complete. ${data.summary}`);
+    },
+    onError: (error: Error) => {
+      console.error('Collaborative review error:', error);
+      toast({
+        title: "Review Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Function to trigger collaborative code review
+  const startCollaborativeReview = useCallback(() => {
+    const currentActiveFile = files.find(f => f.id === activeFileId);
+    const currentCode = showMultiFileMode && currentActiveFile ? currentActiveFile.content : code;
+    const currentLang = showMultiFileMode && currentActiveFile ? currentActiveFile.language : currentLanguage;
+    
+    if (currentCode.trim()) {
+      speak("Initiating collaborative code review with satellite AI systems.");
+      collaborativeReviewMutation.mutate({ 
+        codeToReview: currentCode, 
+        language: currentLang,
+        projectName: showMultiFileMode && currentActiveFile ? currentActiveFile.name : undefined
+      });
+    } else {
+      toast({ title: "No code to review", description: "Please write some code first." });
+    }
+  }, [collaborativeReviewMutation, code, files, activeFileId, showMultiFileMode, currentLanguage, speak]);
 
   const runCodeMutation = useMutation({
     mutationFn: async ({ code, inputs }: { code: string; inputs?: string[] }) => {
@@ -4138,6 +4202,31 @@ calculator()
                   Show Guidance
                 </Button>
               )}
+              <Button
+                onClick={startCollaborativeReview}
+                disabled={collaborativeReviewMutation.isPending}
+                variant="outline"
+                className="font-mono text-sm"
+                data-testid="button-collaborative-review"
+                style={{
+                  backgroundColor: currentPythonTheme.bg,
+                  color: '#ff6b6b',
+                  border: `1px solid ${currentPythonTheme.border}`,
+                }}
+                title="Get collaborative feedback from multiple AI systems"
+              >
+                {collaborativeReviewMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Reviewing...
+                  </>
+                ) : (
+                  <>
+                    <Users className="w-4 h-4 mr-2" />
+                    AI Review
+                  </>
+                )}
+              </Button>
             </div>
             <div className="font-mono text-xs" style={{ color: `${currentPythonTheme.text}B0` }}>
               {currentLesson.tasks.length > 0 && (
@@ -4182,6 +4271,134 @@ calculator()
           />
         )}
       </div>
+
+      {/* Collaborative AI Review Panel */}
+      {showCollaborativeReview && collaborativeReviewResult && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
+          onClick={() => setShowCollaborativeReview(false)}
+          data-testid="panel-collaborative-review"
+        >
+          <div 
+            className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-lg shadow-2xl"
+            style={{ 
+              backgroundColor: currentPythonTheme.bg,
+              border: `2px solid ${currentPythonTheme.border}`,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div 
+              className="px-6 py-4 flex items-center justify-between"
+              style={{ 
+                backgroundColor: currentPythonTheme.subtle,
+                borderBottom: `1px solid ${currentPythonTheme.border}`,
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <Users className="w-6 h-6" style={{ color: '#ff6b6b' }} />
+                <div>
+                  <h2 className="font-mono text-lg font-bold" style={{ color: currentPythonTheme.highlight }}>
+                    Collaborative AI Code Review
+                  </h2>
+                  <p className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
+                    {collaborativeReviewResult.summary}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 px-4 py-2 rounded" style={{ backgroundColor: currentPythonTheme.bg }}>
+                  <Star className="w-5 h-5" style={{ color: '#ffd700' }} />
+                  <span className="font-mono text-xl font-bold" style={{ color: currentPythonTheme.highlight }}>
+                    {collaborativeReviewResult.overallRating}/10
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCollaborativeReview(false)}
+                  style={{ color: currentPythonTheme.text }}
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Review Cards */}
+            <ScrollArea className="h-[calc(90vh-120px)]">
+              <div className="p-6 space-y-6">
+                {collaborativeReviewResult.reviews.map((review, index) => (
+                  <div 
+                    key={index}
+                    className="rounded-lg overflow-hidden"
+                    style={{ 
+                      backgroundColor: currentPythonTheme.subtle,
+                      border: `1px solid ${currentPythonTheme.border}`,
+                    }}
+                    data-testid={`review-card-${review.provider.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    {/* Provider Header */}
+                    <div 
+                      className="px-4 py-3 flex items-center justify-between"
+                      style={{ 
+                        backgroundColor: review.status === 'success' ? currentPythonTheme.bg : '#ff6b6b20',
+                        borderBottom: `1px solid ${currentPythonTheme.border}`,
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        {review.status === 'success' ? (
+                          <CheckCircle2 className="w-5 h-5" style={{ color: '#4ade80' }} />
+                        ) : (
+                          <AlertCircle className="w-5 h-5" style={{ color: '#ff6b6b' }} />
+                        )}
+                        <div>
+                          <span className="font-mono text-sm font-bold" style={{ color: currentPythonTheme.highlight }}>
+                            {review.provider}
+                          </span>
+                          <span className="font-mono text-xs ml-2" style={{ color: currentPythonTheme.text }}>
+                            ({review.model})
+                          </span>
+                        </div>
+                      </div>
+                      {review.status === 'success' && (
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4" style={{ color: '#ffd700' }} />
+                          <span className="font-mono text-sm font-bold" style={{ color: currentPythonTheme.text }}>
+                            {review.rating}/10
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Feedback Content */}
+                    <div className="p-4">
+                      <pre 
+                        className="font-mono text-xs whitespace-pre-wrap leading-relaxed"
+                        style={{ color: currentPythonTheme.text }}
+                      >
+                        {review.feedback}
+                      </pre>
+                    </div>
+                  </div>
+                ))}
+
+                {collaborativeReviewResult.reviews.length === 0 && (
+                  <div className="text-center py-12">
+                    <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: '#ff6b6b' }} />
+                    <p className="font-mono text-sm" style={{ color: currentPythonTheme.text }}>
+                      No AI reviewers were able to analyze the code.
+                    </p>
+                    <p className="font-mono text-xs mt-2" style={{ color: `${currentPythonTheme.text}80` }}>
+                      Please check API configurations for Groq, Gemini, or Mistral.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        </div>
+      )}
     </>
   );
 }

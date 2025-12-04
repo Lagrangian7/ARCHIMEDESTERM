@@ -1419,6 +1419,208 @@ ${code}`;
       return ''; // Return empty string on error - graceful degradation
     }
   }
+
+  async collaborativeCodeReview(
+    code: string,
+    language: string = 'python',
+    projectName?: string
+  ): Promise<{
+    reviews: Array<{
+      provider: string;
+      model: string;
+      feedback: string;
+      rating: number;
+      status: 'success' | 'error';
+    }>;
+    summary: string;
+    overallRating: number;
+  }> {
+    const reviews: Array<{
+      provider: string;
+      model: string;
+      feedback: string;
+      rating: number;
+      status: 'success' | 'error';
+    }> = [];
+
+    const reviewPrompt = `You are a senior code reviewer analyzing ${language} code${projectName ? ` for project "${projectName}"` : ''}. 
+
+Provide a thorough code review with:
+1. **Code Quality** - Is the code clean, readable, well-organized?
+2. **Best Practices** - Does it follow ${language} conventions and patterns?
+3. **Potential Issues** - Any bugs, security concerns, or edge cases?
+4. **Performance** - Any optimization opportunities?
+5. **Suggestions** - Concrete improvements with examples
+
+At the end, provide a rating from 1-10 (10 being excellent).
+Format your rating as: RATING: X/10
+
+Code to review:
+\`\`\`${language}
+${code}
+\`\`\``;
+
+    const extractRating = (feedback: string): number => {
+      const ratingMatch = feedback.match(/RATING:\s*(\d+(?:\.\d+)?)\s*\/\s*10/i);
+      return ratingMatch ? Math.min(10, Math.max(1, parseFloat(ratingMatch[1]))) : 7;
+    };
+
+    const reviewPromises: Promise<void>[] = [];
+
+    if (groq) {
+      reviewPromises.push(
+        (async () => {
+          try {
+            const response = await groq.chat.completions.create({
+              model: 'llama-3.1-8b-instant',
+              messages: [
+                { role: 'system', content: 'You are Groq Llama, a fast and efficient AI code reviewer focused on performance and clarity.' },
+                { role: 'user', content: reviewPrompt }
+              ],
+              max_tokens: 2000,
+              temperature: 0.4,
+            });
+            const feedback = response.choices[0]?.message?.content || 'Unable to generate review';
+            reviews.push({
+              provider: 'Groq',
+              model: 'Llama 3.1 8B',
+              feedback,
+              rating: extractRating(feedback),
+              status: 'success'
+            });
+          } catch (error) {
+            console.error('Groq review error:', error);
+            reviews.push({
+              provider: 'Groq',
+              model: 'Llama 3.1 8B',
+              feedback: 'Review unavailable - service error',
+              rating: 0,
+              status: 'error'
+            });
+          }
+        })()
+      );
+    }
+
+    if (gemini) {
+      reviewPromises.push(
+        (async () => {
+          try {
+            const model = gemini.getGenerativeModel({
+              model: 'gemini-1.5-flash',
+              generationConfig: { maxOutputTokens: 2000, temperature: 0.4 }
+            });
+            const result = await model.generateContent([
+              { text: 'You are Gemini, Google\'s AI focused on comprehensive analysis and safety considerations.' },
+              { text: reviewPrompt }
+            ]);
+            const feedback = result.response.text();
+            reviews.push({
+              provider: 'Google Gemini',
+              model: 'Gemini 1.5 Flash',
+              feedback,
+              rating: extractRating(feedback),
+              status: 'success'
+            });
+          } catch (error) {
+            console.error('Gemini review error:', error);
+            reviews.push({
+              provider: 'Google Gemini',
+              model: 'Gemini 1.5 Flash',
+              feedback: 'Review unavailable - service error',
+              rating: 0,
+              status: 'error'
+            });
+          }
+        })()
+      );
+    }
+
+    if (process.env.MISTRAL_API_KEY) {
+      reviewPromises.push(
+        (async () => {
+          try {
+            const response = await mistral.chat.complete({
+              model: 'mistral-large-latest',
+              messages: [
+                { role: 'system', content: 'You are Mistral AI, a European AI focused on precise technical analysis and code architecture.' },
+                { role: 'user', content: reviewPrompt }
+              ],
+              maxTokens: 2000,
+              temperature: 0.4,
+            });
+            const feedback = typeof response.choices?.[0]?.message?.content === 'string' 
+              ? response.choices[0].message.content 
+              : 'Unable to generate review';
+            reviews.push({
+              provider: 'Mistral AI',
+              model: 'Mistral Large',
+              feedback,
+              rating: extractRating(feedback),
+              status: 'success'
+            });
+          } catch (error) {
+            console.error('Mistral review error:', error);
+            reviews.push({
+              provider: 'Mistral AI',
+              model: 'Mistral Large',
+              feedback: 'Review unavailable - service error',
+              rating: 0,
+              status: 'error'
+            });
+          }
+        })()
+      );
+    }
+
+    await Promise.all(reviewPromises);
+
+    const successfulReviews = reviews.filter(r => r.status === 'success' && r.rating > 0);
+    const overallRating = successfulReviews.length > 0
+      ? Math.round((successfulReviews.reduce((sum, r) => sum + r.rating, 0) / successfulReviews.length) * 10) / 10
+      : 0;
+
+    const providerCount = successfulReviews.length;
+    let summary = '';
+
+    if (providerCount === 0) {
+      summary = 'No AI reviewers were able to analyze the code. Please check API configurations.';
+    } else {
+      const commonIssues: string[] = [];
+      const allFeedback = successfulReviews.map(r => r.feedback.toLowerCase()).join(' ');
+      
+      if (allFeedback.includes('error handling') || allFeedback.includes('exception')) {
+        commonIssues.push('error handling improvements');
+      }
+      if (allFeedback.includes('performance') || allFeedback.includes('optimization')) {
+        commonIssues.push('performance optimization');
+      }
+      if (allFeedback.includes('readability') || allFeedback.includes('documentation')) {
+        commonIssues.push('code documentation');
+      }
+      if (allFeedback.includes('security') || allFeedback.includes('validation')) {
+        commonIssues.push('security considerations');
+      }
+
+      summary = `Collaborative review by ${providerCount} AI${providerCount > 1 ? 's' : ''} (${successfulReviews.map(r => r.provider).join(', ')}). `;
+      summary += `Overall rating: ${overallRating}/10. `;
+      if (commonIssues.length > 0) {
+        summary += `Key areas for improvement: ${commonIssues.join(', ')}.`;
+      } else if (overallRating >= 8) {
+        summary += 'Code quality is excellent with minor suggestions.';
+      } else if (overallRating >= 6) {
+        summary += 'Code is functional with room for improvement.';
+      } else {
+        summary += 'Significant improvements recommended.';
+      }
+    }
+
+    return {
+      reviews,
+      summary,
+      overallRating
+    };
+  }
 }
 
 export const llmService = LLMService.getInstance();
