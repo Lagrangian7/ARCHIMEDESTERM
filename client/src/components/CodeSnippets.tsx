@@ -1,8 +1,8 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Copy, Check } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
 
 interface Snippet {
   name: string;
@@ -128,6 +128,72 @@ interface CodeSnippetsProps {
 export function CodeSnippets({ language, onInsert, theme }: CodeSnippetsProps) {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const snippets = SNIPPETS[language] || [];
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [aiGeneratedSnippets, setAiGeneratedSnippets] = useState<Array<{
+    name: string;
+    description: string;
+    code: string;
+    language: string;
+    category: string;
+  }>>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const generateSnippetMutation = useMutation({
+    mutationFn: async (query: string) => {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          message: `Generate a code snippet for: ${query}. Respond with just the code in a markdown block.`,
+          mode: 'freestyle',
+        }),
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.response) {
+        const codeMatch = data.response.match(/```(\w+)?\n([\s\S]*?)```/);
+        if (codeMatch) {
+          const newSnippet = {
+            name: `AI: ${searchQuery}`,
+            description: 'AI-generated snippet',
+            code: codeMatch[2].trim(),
+            language: codeMatch[1] || 'python',
+            category: 'ai-generated'
+          };
+          setAiGeneratedSnippets(prev => [newSnippet, ...prev]);
+        }
+      }
+      setIsGenerating(false);
+    },
+    onError: () => setIsGenerating(false),
+  });
+
+  const handleAiGenerate = () => {
+    if (searchQuery.trim() && !isGenerating) {
+      setIsGenerating(true);
+      generateSnippetMutation.mutate(searchQuery);
+    }
+  };
+
+  const allSnippets = [
+    ...aiGeneratedSnippets.map(s => ({ ...s, category: 'ai-generated' })),
+    ...Object.entries(SNIPPETS)
+      .flatMap(([category, snippets]) =>
+        snippets.map(snippet => ({ ...snippet, category }))
+      )
+  ];
+
+  const filteredSnippets = allSnippets
+    .filter(snippet => {
+      const matchesSearch = snippet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           snippet.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || snippet.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+
 
   const handleCopy = (code: string, index: number) => {
     onInsert(code);
@@ -135,7 +201,7 @@ export function CodeSnippets({ language, onInsert, theme }: CodeSnippetsProps) {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  if (snippets.length === 0) {
+  if (snippets.length === 0 && aiGeneratedSnippets.length === 0) {
     return (
       <div className="p-4 text-center" style={{ color: theme.text }}>
         <p className="text-sm opacity-70">No snippets available for {language}</p>
@@ -146,7 +212,38 @@ export function CodeSnippets({ language, onInsert, theme }: CodeSnippetsProps) {
   return (
     <ScrollArea className="h-full">
       <div className="p-3 space-y-2">
-        {snippets.map((snippet, index) => (
+        <div className="flex items-center gap-2 mb-3">
+          <input
+            type="text"
+            placeholder="Search snippets or AI prompt..."
+            className="flex-1 px-2 py-1 rounded border"
+            style={{ backgroundColor: theme.subtle, borderColor: theme.border, color: theme.text }}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Button onClick={handleAiGenerate} disabled={isGenerating} style={{ backgroundColor: theme.highlight }}>
+            {isGenerating ? 'Generating...' : 'AI Generate'}
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {['all', 'python', 'javascript', 'ai-generated'].map(category => (
+            <Button
+              key={category}
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedCategory(category)}
+              style={{
+                backgroundColor: selectedCategory === category ? theme.highlight : theme.bg,
+                borderColor: theme.border,
+                color: selectedCategory === category ? theme.text : theme.text,
+                opacity: selectedCategory === category ? 1 : 0.7
+              }}
+            >
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </Button>
+          ))}
+        </div>
+        {filteredSnippets.map((snippet, index) => (
           <div
             key={index}
             className="p-3 rounded border"

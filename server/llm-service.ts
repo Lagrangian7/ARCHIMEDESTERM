@@ -1306,7 +1306,8 @@ This is a fallback response. The actual AI analysis could not be completed.`;
   async generateCodeCompletion(
     code: string,
     language: string = 'python',
-    filename?: string
+    filename?: string,
+    projectContext?: { files: Array<{ name: string; content: string; language: string }> }
   ): Promise<string> {
     try {
       // Language-specific style guidelines
@@ -1326,7 +1327,21 @@ This is a fallback response. The actual AI analysis could not be completed.`;
 
       const styleGuide = styleGuides[language.toLowerCase()] || 'follow best practices';
 
-      const systemPrompt = `You are an expert ${language} code completion assistant. Your task is to provide concise, accurate code completions.
+      // Build context from other project files
+      let contextInfo = '';
+      if (projectContext && projectContext.files.length > 1) {
+        const otherFiles = projectContext.files
+          .filter(f => f.name !== filename)
+          .slice(0, 3) // Limit to 3 most relevant files
+          .map(f => `File: ${f.name}\n${f.content.slice(0, 500)}...`) // First 500 chars
+          .join('\n\n');
+        
+        if (otherFiles) {
+          contextInfo = `\n\nProject Context (other files):\n${otherFiles}`;
+        }
+      }
+
+      const systemPrompt = `You are an expert ${language} code completion assistant with full project awareness. Your task is to provide concise, accurate code completions.
 
 CRITICAL RULES:
 1. Only provide the completion text - NO explanations, NO markdown, NO code blocks
@@ -1334,10 +1349,12 @@ CRITICAL RULES:
 3. Keep completions focused and relevant
 4. Provide syntactically correct code
 5. ${styleGuide}
-6. Return ONLY the code that should be added, nothing else`;
+6. Use imports/references from other project files when relevant
+7. Return ONLY the code that should be added, nothing else`;
 
-      const userPrompt = `Complete this ${language} code${filename ? ` from ${filename}` : ''}:
+      const userPrompt = `Complete this ${language} code${filename ? ` from ${filename}` : ''}:${contextInfo}
 
+Current file code:
 ${code}`;
 
       const chatResponse = await mistral.chat.complete({
@@ -1346,7 +1363,7 @@ ${code}`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        maxTokens: 500, // Keep completions concise
+        maxTokens: 600, // Slightly increased for context-aware completions
         temperature: 0.2, // Low temperature for more predictable completions
         topP: 0.95,
       });

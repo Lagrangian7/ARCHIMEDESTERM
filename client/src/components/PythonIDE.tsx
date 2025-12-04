@@ -47,7 +47,7 @@ const LANGUAGE_CONFIG: Record<string, {
   yaml: { extension: '.yaml', monacoLang: 'yaml', displayName: 'YAML', runCommand: 'N/A', icon: '📝' },
   markdown: { extension: '.md', monacoLang: 'markdown', displayName: 'Markdown', runCommand: 'preview', icon: '📄' },
   rust: { extension: '.rs', monacoLang: 'rust', displayName: 'Rust', runCommand: 'cargo run', icon: '🦀' },
-  go: { extension: '.go', monacoLang: 'go', displayName: 'Go', runCommand: 'go run', icon: '🐹' },
+  go: { extension: '.go', monacoLang: 'go', runCommand: 'go run', icon: '🐹' },
   php: { extension: '.php', monacoLang: 'php', displayName: 'PHP', runCommand: 'php', icon: '🐘' },
   ruby: { extension: '.rb', monacoLang: 'ruby', displayName: 'Ruby', runCommand: 'ruby', icon: '💎' },
   swift: { extension: '.swift', monacoLang: 'swift', displayName: 'Swift', runCommand: 'swift', icon: '🍎' },
@@ -1758,7 +1758,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     const saved = localStorage.getItem(MULTI_FILE_SESSION_KEY);
     if (saved) {
       try {
-        const parsed = JSON.JSON.parse(saved);
+        const parsed = JSON.parse(saved);
         if (parsed.files && Array.isArray(parsed.files) && parsed.files.length > 0) {
           return parsed;
         }
@@ -1910,7 +1910,6 @@ calculator()
   const [isResizing, setIsResizing] = useState(false);
   const [isMaximized, setIsMaximized] = useState(true); // Start maximized by default
   const [position, setPosition] = useState({ x: 0, y: 60 });
-  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight - 120 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
   const editorRef = useRef<any>(null);
@@ -1948,6 +1947,53 @@ calculator()
       });
     },
   });
+
+  // Mutation for code quality analysis
+  const analyzeCodeQualityMutation = useMutation({
+    mutationFn: async (codeToAnalyze: string) => {
+      const response = await fetch('/api/analyze/quality', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ code: codeToAnalyze }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Code analysis failed');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      const analysisResult = data.analysis || 'No specific issues found.';
+      toast({
+        title: "Code Quality Analysis",
+        description: analysisResult,
+      });
+      // Optionally, display this in chat or a dedicated panel
+      setChatHistory(prev => [...prev, { role: 'assistant', content: `ARCHIMEDES Analysis:\n\n${analysisResult}` }]);
+    },
+    onError: (error: Error) => {
+      console.error('Code analysis error:', error);
+      toast({
+        title: "Analysis Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      setChatHistory(prev => [...prev, { role: 'assistant', content: `Error during code analysis: ${error.message}` }]);
+    },
+  });
+
+  // Function to trigger code quality analysis
+  const analyzeCodeQuality = useCallback(() => {
+    const currentCode = showMultiFileMode && activeFile ? activeFile.content : code;
+    if (currentCode.trim()) {
+      analyzeCodeQualityMutation.mutate(currentCode);
+    } else {
+      toast({ title: "No code to analyze", description: "Please write some code first." });
+    }
+  }, [analyzeCodeQualityMutation, code, activeFile, showMultiFileMode]);
+
 
   const runCodeMutation = useMutation({
     mutationFn: async ({ code, inputs }: { code: string; inputs?: string[] }) => {
@@ -2891,15 +2937,15 @@ calculator()
               </Button>
 
               <Button
-                onClick={formatCode}
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2 font-mono text-xs"
-                disabled={isFormatting}
-                title="Format code (Ctrl/Cmd + Shift + F)"
-                style={{ color: currentPythonTheme.highlight }}
+                onClick={analyzeCodeQuality}
+                disabled={!code.trim()}
+                className="flex items-center gap-2 bg-purple-600/20 hover:bg-purple-600/30"
+                title="AI Quality Analysis"
               >
-                {isFormatting ? '...' : 'Format'}
+                <Bot className="w-4 h-4" />
+                Analyze
               </Button>
 
               <Button
@@ -4184,7 +4230,7 @@ function getTheme(themeName: string): ThemeColors {
     'ember-dark': { bg: 'radial-gradient(ellipse at bottom, hsl(15 65% 28%) 0%, hsl(10 58% 20%) 30%, hsl(5 50% 14%) 60%, hsl(0 42% 8%) 100%)', text: '#ff6b35', highlight: '#ffd23f', border: '#4a1c1c', subtle: '#2d0f0f', gradient: true },
     'twilight-dark': { bg: 'radial-gradient(ellipse at bottom, hsl(280 55% 28%) 0%, hsl(290 48% 20%) 25%, hsl(285 40% 14%) 60%, hsl(280 32% 8%) 100%)', text: '#bb86fc', highlight: '#cf6bf9', border: '#2d1b3d', subtle: '#1e0f2d', gradient: true },
     'arctic-dark': { bg: 'radial-gradient(ellipse at top, hsl(183 42% 16%) 0%, hsl(198 32% 13%) 50%, hsl(200 28% 10%) 100%)', text: '#5eaaa8', highlight: '#a7d6d3', border: '#1c3040', subtle: '#14232e', gradient: true },
-    'royal-dark': { bg: 'linear-gradient(135deg, hsl(280 40% 14%) 0%, hsl(262 35% 11%) 40%, hsl(48 30% 10%) 70%, hsl(262 30% 9%) 100%)', text: '#c77dff', highlight: '#ffd60a', border: '#291452', subtle: '#1f0c38', gradient: true },
+    'royal-dark': { bg: 'linear-gradient(135deg, hsl(280 40% 14%) 0%, hsl(262 35% 11%) 40%, hsl(48 30% 10%) 70%, hsl(262 30% 9%) 100%)', text: '#e6e4ed', highlight: '#c77dff', border: '#291452', subtle: '#1f0c38', gradient: true },
     'material-dark': { bg: '#263238', text: '#cfd8dc', highlight: '#00bcd4', border: '#37474f', subtle: '#37474f' },
     'oceanic-next': { bg: '#2b3e50', text: '#d8dee9', highlight: '#528bff', border: '#34495e', subtle: '#34495e' },
     'palenight': { bg: '#292d3e', text: '#6a737d', highlight: '#82aaff', border: '#353b50', subtle: '#353b50' },

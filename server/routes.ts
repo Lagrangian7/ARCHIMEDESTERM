@@ -847,6 +847,113 @@ function draw() {
       invader.individualY += invader.randomVy;
 
       // Bounce off boundaries
+
+
+  // AI-powered error analysis and fix suggestions
+  app.post('/api/analyze-error', async (req, res) => {
+    try {
+      const { code, error, language } = req.body;
+
+      if (!code || !error) {
+        return res.status(400).json({ error: 'Code and error message required' });
+      }
+
+      const prompt = `You are an expert debugger. Analyze this ${language || 'code'} error and provide a fix.
+
+CODE:
+\`\`\`${language || 'text'}
+${code}
+\`\`\`
+
+ERROR:
+${error}
+
+Provide:
+1. Root cause explanation (1 sentence)
+2. Fixed code (complete, runnable)
+3. Prevention tip (1 sentence)
+
+Format your response as JSON:
+{
+  "cause": "explanation",
+  "fix": "corrected code",
+  "tip": "prevention advice"
+}`;
+
+      const response = await llmService.generateResponse(
+        prompt,
+        'freestyle',
+        [],
+        undefined,
+        'english',
+        false
+
+
+  // AI-powered code quality analysis
+  app.post('/api/analyze-quality', async (req, res) => {
+    try {
+      const { code, language } = req.body;
+
+      if (!code) {
+        return res.status(400).json({ error: 'Code required' });
+      }
+
+      const prompt = `Analyze this ${language || 'code'} for quality improvements. Be concise.
+
+\`\`\`${language || 'text'}
+${code}
+\`\`\`
+
+Provide:
+1. Quality score (1-10)
+2. Top 3 improvements (brief)
+3. Refactored code (if needed)
+
+JSON format:
+{
+  "score": 8,
+  "improvements": ["Add error handling", "Extract magic numbers", "Add type hints"],
+  "refactored": "improved code or null"
+}`;
+
+      const response = await llmService.generateResponse(
+        prompt,
+        'technical',
+        [],
+        undefined,
+        'english',
+        false
+      );
+
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const analysis = JSON.parse(jsonMatch[0]);
+        res.json({ success: true, analysis });
+      } else {
+        res.json({ success: true, analysis: { score: 7, improvements: ['Review code structure'], refactored: null } });
+      }
+    } catch (error) {
+      console.error('Quality analysis failed:', error);
+      res.status(500).json({ error: 'Analysis failed' });
+    }
+  });
+
+      );
+
+      // Try to extract JSON
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const analysis = JSON.parse(jsonMatch[0]);
+        res.json({ success: true, analysis });
+      } else {
+        res.json({ success: true, analysis: { cause: response, fix: code, tip: 'Review the AI suggestion' } });
+      }
+    } catch (error) {
+      console.error('Error analysis failed:', error);
+      res.status(500).json({ error: 'Analysis failed' });
+    }
+  });
+
       if (invader.individualX > width/3 || invader.individualX < -width/3) {
         invader.randomVx *= -1;
       }
