@@ -47,7 +47,7 @@ const LANGUAGE_CONFIG: Record<string, {
   yaml: { extension: '.yaml', monacoLang: 'yaml', displayName: 'YAML', runCommand: 'N/A', icon: '📝' },
   markdown: { extension: '.md', monacoLang: 'markdown', displayName: 'Markdown', runCommand: 'preview', icon: '📄' },
   rust: { extension: '.rs', monacoLang: 'rust', displayName: 'Rust', runCommand: 'cargo run', icon: '🦀' },
-  go: { extension: '.go', monacoLang: 'go', runCommand: 'go run', icon: '🐹' },
+  go: { extension: '.go', monacoLang: 'go', displayName: 'Go', runCommand: 'go run', icon: '🐹' },
   php: { extension: '.php', monacoLang: 'php', displayName: 'PHP', runCommand: 'php', icon: '🐘' },
   ruby: { extension: '.rb', monacoLang: 'ruby', displayName: 'Ruby', runCommand: 'ruby', icon: '💎' },
   swift: { extension: '.swift', monacoLang: 'swift', displayName: 'Swift', runCommand: 'swift', icon: '🍎' },
@@ -1910,6 +1910,7 @@ calculator()
   const [isResizing, setIsResizing] = useState(false);
   const [isMaximized, setIsMaximized] = useState(true); // Start maximized by default
   const [position, setPosition] = useState({ x: 0, y: 60 });
+  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight - 120 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
   const editorRef = useRef<any>(null);
@@ -1986,13 +1987,14 @@ calculator()
 
   // Function to trigger code quality analysis
   const analyzeCodeQuality = useCallback(() => {
-    const currentCode = showMultiFileMode && activeFile ? activeFile.content : code;
+    const currentActiveFile = files.find(f => f.id === activeFileId);
+    const currentCode = showMultiFileMode && currentActiveFile ? currentActiveFile.content : code;
     if (currentCode.trim()) {
       analyzeCodeQualityMutation.mutate(currentCode);
     } else {
       toast({ title: "No code to analyze", description: "Please write some code first." });
     }
-  }, [analyzeCodeQualityMutation, code, activeFile, showMultiFileMode]);
+  }, [analyzeCodeQualityMutation, code, files, activeFileId, showMultiFileMode]);
 
 
   const runCodeMutation = useMutation({
