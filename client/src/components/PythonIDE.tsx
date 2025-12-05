@@ -144,7 +144,7 @@ const LESSONS = {
   basics: {
     title: "Python Basics & Best Practices",
     description: "Learn fundamental Python syntax and coding standards",
-    guidance: `ARCHIMEDES: Welcome, aspiring programmer! Let's start with the fundamentals. Python emphasizes readability and simplicity - write code that's clear and maintainable. Follow PEP 8 style guidelines: use 4 spaces for indentation, lowercase with underscores for variables, and clear naming conventions.`,
+    guidance: ``,
     code: `#!/usr/bin/env python3
 """
 Python Basics and Best Practices
