@@ -21,6 +21,7 @@ import compression from "compression";
 import { spawn } from "child_process";
 import dns from 'dns/promises';
 import { URL } from 'url';
+import net from 'net';
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { writeFile, unlink } from 'fs/promises';
@@ -29,7 +30,7 @@ import { tmpdir } from 'os';
 export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check endpoint - MUST be first, before any middleware
-  // This allows deployment health checks to succeed quickly
+  // This allows deployment health checks to succeed quickly (v2.0)
   app.get('/health', (req, res) => {
     res.status(200).json({
       status: 'ok',
@@ -1496,7 +1497,6 @@ except:
     // Helper to run a process with timeout using spawn (safer than exec)
     const runProcess = (cmd: string, args: string[], timeout: number = 10000, stdinData?: string): Promise<{ stdout: string; stderr: string; code: number }> => {
       return new Promise((resolve, reject) => {
-        const { spawn } = require('child_process');
         const proc = spawn(cmd, args, { timeout, stdio: stdinData ? ['pipe', 'pipe', 'pipe'] : ['inherit', 'pipe', 'pipe'] });
         let stdout = '';
         let stderr = '';
@@ -4108,10 +4108,7 @@ except:
       let formatted = `╭─ SSL/TLS Certificate Analysis for ${domain}\n`;
 
       try {
-        // Get certificate information via HTTPS connection
-        const https = require('https');
-        const { URL } = require('url');
-
+        // Get certificate information via HTTPS connection (using imported https module)
         const checkSSL = new Promise((resolve, reject) => {
           const options = {
             hostname: domain,
@@ -4283,9 +4280,8 @@ except:
 
       let formatted = `╭─ Port Scan for ${target}\n`;
 
-      // Common ports to scan
+      // Common ports to scan (using imported net module)
       const commonPorts = [21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 993, 995, 1723, 3389, 5432, 3306];
-      const net = require('net');
       const openPorts: number[] = [];
 
       formatted += `├─ Scanning ${commonPorts.length} common ports...\n`;
