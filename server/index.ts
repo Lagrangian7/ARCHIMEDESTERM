@@ -58,6 +58,14 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    log(`🚀 ARCHIMEDES Terminal serving on port ${port}`);
+    log(`🌐 Access at: http://0.0.0.0:${port}`);
+  }).on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      log(`❌ Port ${port} is already in use`);
+      process.exit(1);
+    } else {
+      throw err;
+    }
   });
 })();

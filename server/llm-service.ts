@@ -1347,6 +1347,9 @@ Conversation Context:\n`;
 
     for (const model of models) {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
         const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
           method: 'POST',
           headers: {
@@ -1364,8 +1367,11 @@ Conversation Context:\n`;
               top_p: 0.9,
               repetition_penalty: 1.1
             }
-          })
+          }),
+          signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (response.ok) {
           const result = await response.json();
@@ -1379,12 +1385,12 @@ Conversation Context:\n`;
           }
         }
       } catch (error) {
-        console.log(`Replit-optimized model ${model} failed, trying next...`);
+        console.log(`Model ${model} failed, trying next...`);
         continue;
       }
     }
 
-    throw new Error('All Replit-optimized models failed');
+    throw new Error('All models failed');
   }
 
   private postProcessResponse(response: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): string {
