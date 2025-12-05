@@ -32,7 +32,9 @@ const groq = process.env.GROQ_API_KEY ? new Groq({
 
 // Google Gemini client - Primary AI for Natural mode
 // Uses user's own API key for direct access to Gemini models
-const gemini = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
+// Falls back to GOOGLE_API_KEY if GEMINI_API_KEY is not available
+const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+const gemini = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
 
 // Replit-specific AI configuration
 const REPLIT_AI_CONFIG = {
