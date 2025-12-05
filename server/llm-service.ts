@@ -33,8 +33,11 @@ const groq = process.env.GROQ_API_KEY ? new Groq({
 // Google Gemini client - Primary AI for Natural mode
 // Uses user's own API key for direct access to Gemini models
 // Falls back to GOOGLE_API_KEY if GEMINI_API_KEY is not available
-const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+// Handle case where multiple keys might be concatenated - extract first valid 39-char key
+const rawGeminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '';
+const geminiApiKey = rawGeminiKey.startsWith('AIzaSy') ? rawGeminiKey.slice(0, 39) : rawGeminiKey;
 const gemini = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
+console.log('[LLM] Gemini initialized with key length:', geminiApiKey.length);
 
 // Replit-specific AI configuration
 const REPLIT_AI_CONFIG = {
