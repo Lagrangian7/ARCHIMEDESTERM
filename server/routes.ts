@@ -4822,9 +4822,8 @@ except:
           formatted += \`├─ Target Categories: \${meta['cfr-target-category'].join(', ')}\n\`;
         }
 
-        if (meta['cfr-type-of-incident```javascript
         if (meta['cfr-type-of-incident']) {
-          formatted += \`├─ Incident Type: \${meta['cfr-type-of-incident']}\n\`;
+          formatted += `├─ Incident Type: ${meta['cfr-type-of-incident']}\n`;
         }
 
         if (meta.synonyms) {
