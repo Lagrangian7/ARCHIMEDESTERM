@@ -1757,7 +1757,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     const saved = localStorage.getItem(MULTI_FILE_SESSION_KEY);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed = JSON.JSON.parse(saved);
         if (parsed.files && Array.isArray(parsed.files) && parsed.files.length > 0) {
           return parsed;
         }
@@ -1909,7 +1909,6 @@ calculator()
   const [isResizing, setIsResizing] = useState(false);
   const [isMaximized, setIsMaximized] = useState(true); // Start maximized by default
   const [position, setPosition] = useState({ x: 0, y: 60 });
-  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight - 120 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
   const editorRef = useRef<any>(null);
@@ -2005,40 +2004,73 @@ calculator()
 
   // Mutation for Collaborative AI Code Review
   const collaborativeReviewMutation = useMutation({
-    mutationFn: async ({ codeToReview, language, projectName }: { codeToReview: string; language: string; projectName?: string }) => {
-      const response = await fetch('/api/code/review', {
+    mutationFn: async ({ codeToReview, language, projectName }: { codeToReview: string; language: string; projectName: string }) => {
+      const response = await fetch('/api/ai/collaborative-review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ code: codeToReview, language, projectName }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Collaborative review failed');
-      }
+      if (!response.ok) throw new Error('Failed to get collaborative review');
       return response.json();
     },
     onSuccess: (data) => {
-      setCollaborativeReviewResult({
-        reviews: data.reviews || [],
-        summary: data.summary || 'Review completed',
-        overallRating: data.overallRating || 0
-      });
+      setCollaborativeReviewResult(data);
       setShowCollaborativeReview(true);
-      toast({
-        title: "Collaborative Review Complete",
-        description: data.summary,
-      });
-      speak(`Collaborative code review complete. ${data.summary}`);
+      toast({ title: "Collaborative Review Complete", description: "Multiple AI models have reviewed your code." });
+
+      // Speak the summary and each review using text-to-speech
+      if (window.speechSynthesis && data) {
+        // Stop any ongoing speech
+        window.speechSynthesis.cancel();
+
+        // Speak the overall summary first
+        const summaryUtterance = new SpeechSynthesisUtterance(
+          `Collaborative AI Review Summary. Overall rating: ${data.overallRating} out of 10. ${data.summary}`
+        );
+        summaryUtterance.rate = 1.1;
+        summaryUtterance.pitch = 0.6;
+        summaryUtterance.volume = 0.63;
+
+        window.speechSynthesis.speak(summaryUtterance);
+
+        // Speak each individual review after the summary
+        summaryUtterance.onend = () => {
+          if (data.reviews && data.reviews.length > 0) {
+            let reviewIndex = 0;
+
+            const speakNextReview = () => {
+              if (reviewIndex < data.reviews.length) {
+                const review = data.reviews[reviewIndex];
+
+                if (review.status === 'success') {
+                  const reviewText = `${review.provider} using ${review.model}. Rating: ${review.rating} out of 10. ${review.feedback}`;
+                  const reviewUtterance = new SpeechSynthesisUtterance(reviewText);
+                  reviewUtterance.rate = 1.1;
+                  reviewUtterance.pitch = 0.6;
+                  reviewUtterance.volume = 0.63;
+
+                  reviewUtterance.onend = () => {
+                    reviewIndex++;
+                    // Small delay between reviews
+                    setTimeout(speakNextReview, 500);
+                  };
+
+                  window.speechSynthesis.speak(reviewUtterance);
+                } else {
+                  // Skip failed reviews and move to next
+                  reviewIndex++;
+                  setTimeout(speakNextReview, 100);
+                }
+              }
+            };
+
+            speakNextReview();
+          }
+        };
+      }
     },
-    onError: (error: Error) => {
-      console.error('Collaborative review error:', error);
-      toast({
-        title: "Review Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: () => {
+      toast({ title: "Review Failed", description: "Could not complete collaborative review.", variant: "destructive" });
     },
   });
 
@@ -2047,7 +2079,7 @@ calculator()
     const currentActiveFile = files.find(f => f.id === activeFileId);
     const currentCode = showMultiFileMode && currentActiveFile ? currentActiveFile.content : code;
     const currentLang = showMultiFileMode && currentActiveFile ? currentActiveFile.language : currentLanguage;
-    
+
     if (currentCode.trim()) {
       speak("Initiating collaborative code review with satellite AI systems.");
       collaborativeReviewMutation.mutate({ 
@@ -4436,7 +4468,7 @@ function getTheme(themeName: string): ThemeColors {
     // New mid-level eye-friendly themes with gradients
     'soft-morning': { bg: 'linear-gradient(135deg, #f5f2ea 0%, #f0ece2 50%, #ebe5d8 100%)', text: '#5a5a5a', highlight: '#6b9080', border: '#dfd3c3', subtle: '#e8dfd0', gradient: true },
     'warm-sand': { bg: 'radial-gradient(ellipse at center, #faf5ed 0%, #f5f0e8 50%, #f0ebe3 100%)', text: '#615950', highlight: '#b08968', border: '#e3ddd3', subtle: '#ede8df', gradient: true },
-    'cool-mist': { bg: 'linear-gradient(to bottom, #edf5f7 0%, #e8f0f2 50%, #e3ebee 100%)', text: '#576066', highlight: '#7fa99b', border: '#d6e4e7', subtle: '#dfeaec', gradient: true },
+    'cool-mist': { bg: 'linear-gradient(to bottom, #edf5f7 0%, #e8f1f2 50%, #e3ebee 100%)', text: '#576066', highlight: '#7fa99b', border: '#d6e4e7', subtle: '#dfeaec', gradient: true },
     'lavender-dream': { bg: 'radial-gradient(circle at top, #f5f0fa 0%, #f0ecf5 50%, #ebe7f0 100%)', text: '#5d596d', highlight: '#9d8cc7', border: '#e0d9ea', subtle: '#e8e3ef', gradient: true },
     'sage-comfort': { bg: 'linear-gradient(135deg, #f2f7ed 0%, #edf2e8 50%, #e8ede3 100%)', text: '#556652', highlight: '#86a67c', border: '#dde5d6', subtle: '#e5ebe0', gradient: true },
     'sky-blue-soft': { bg: 'radial-gradient(ellipse at top, #edf6fd 0%, #e8f1f8 50%, #e3ecf3 100%)', text: '#546478', highlight: '#6b9ac4', border: '#d6e5f0', subtle: '#dfeaf4', gradient: true },
