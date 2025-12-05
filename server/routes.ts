@@ -1139,35 +1139,29 @@ ONLY output the code, no explanations.`;
   });
 
   // Collaborative AI Code Review - Multiple satellite AIs analyze code
-  app.post('/api/collaborative-review', async (req, res) => {
+  // Collaborative code review endpoint
+  app.post('/api/code/review', async (req, res) => {
     try {
-      const { code, language, projectName } = req.body;
+      const { code, language = 'python', projectName, filePath, relatedFiles } = req.body;
 
-      if (!code?.trim()) {
-        return res.status(400).json({ error: 'Code is required for review' });
+      if (!code) {
+        return res.status(400).json({ error: 'Code is required' });
       }
 
-      console.log(`[Collaborative Review] Starting review for ${language || 'unknown'} code`);
-
       const result = await llmService.collaborativeCodeReview(
-        code,
-        language || 'python',
-        projectName
+        code, 
+        language, 
+        projectName, 
+        filePath, 
+        relatedFiles
       );
 
-      res.json({
-        success: true,
-        ...result
-      });
-
+      res.json(result);
     } catch (error) {
-      console.error('Collaborative review error:', error);
+      console.error('Code review error:', error);
       res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Code review failed',
-        reviews: [],
-        summary: 'Unable to complete code review',
-        overallRating: 0
+        error: 'Failed to perform code review',
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -1608,7 +1602,7 @@ def _do_tkinter_capture():
 
             # Try using scrot for screenshot
             try:
-                screenshot_file = f'/tmp/tk_capture_{os.getpid()}.png'
+                screenshot_file = f'/tmp/tk_capture_${os.getpid()}.png'
                 subprocess.run(['scrot', '-o', screenshot_file], timeout=5, check=True)
                 img = Image.open(screenshot_file)
                 # Crop to window area
@@ -1721,8 +1715,8 @@ def _capture_turtle():
         time.sleep(0.2)
 
         canvas = screen.getcanvas()
-        eps_file = f'/tmp/turtle_{os.getpid()}.eps'
-        png_file = f'/tmp/turtle_{os.getpid()}.png'
+        eps_file = f'/tmp/turtle_${os.getpid()}.eps'
+        png_file = f'/tmp/turtle_${os.getpid()}.png'
 
         # Save as PostScript
         canvas.postscript(file=eps_file, colormode='color')
@@ -1745,7 +1739,7 @@ def _capture_turtle():
         except Exception as gs_err:
             # Fallback: try using scrot for screen capture
             try:
-                screenshot_file = f'/tmp/turtle_scrot_{os.getpid()}.png'
+                screenshot_file = f'/tmp/turtle_scrot_${os.getpid()}.png'
                 subprocess.run(['scrot', '-o', screenshot_file], timeout=5, check=True)
                 img = Image.open(screenshot_file)
                 buf = io.BytesIO()
@@ -4834,7 +4828,7 @@ except:
         }
 
         if (meta.synonyms) {
-          formatted += `├─ Known Aliases: ${meta.synonyms.join(', ')}\n`;
+          formatted += `├─\n├─ Known Aliases: ${meta.synonyms.join(', ')}\n`;
         }
 
         if (meta.refs) {

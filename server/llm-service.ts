@@ -1594,7 +1594,9 @@ ${code}`;
   async collaborativeCodeReview(
     code: string,
     language: string = 'python',
-    projectName?: string
+    projectName?: string,
+    filePath?: string,
+    relatedFiles?: Array<{ path: string; content: string }>
   ): Promise<{
     reviews: Array<{
       provider: string;
@@ -1614,19 +1616,40 @@ ${code}`;
       status: 'success' | 'error';
     }> = [];
 
-    const reviewPrompt = `You are a senior code reviewer analyzing ${language} code${projectName ? ` for project "${projectName}"` : ''}. 
+    // Build codebase context
+    let codebaseContext = '';
+    
+    if (projectName) {
+      codebaseContext += `\n**Project**: ${projectName}`;
+    }
+    
+    if (filePath) {
+      codebaseContext += `\n**File Path**: ${filePath}`;
+    }
+    
+    if (relatedFiles && relatedFiles.length > 0) {
+      codebaseContext += `\n\n**Related Files in Codebase**:\n`;
+      relatedFiles.forEach((file, idx) => {
+        codebaseContext += `\n${idx + 1}. ${file.path}\n\`\`\`${language}\n${file.content.slice(0, 500)}${file.content.length > 500 ? '...' : ''}\n\`\`\`\n`;
+      });
+    }
 
-Provide a thorough code review with:
-1. **Code Quality** - Is the code clean, readable, well-organized?
-2. **Best Practices** - Does it follow ${language} conventions and patterns?
-3. **Potential Issues** - Any bugs, security concerns, or edge cases?
-4. **Performance** - Any optimization opportunities?
-5. **Suggestions** - Concrete improvements with examples
+    const reviewPrompt = `You are a senior code reviewer analyzing ${language} code with FULL PROJECT CONTEXT.
+${codebaseContext}
+
+**Your Task**: Review the code below considering:
+1. **Code Quality** - Cleanliness, readability, organization
+2. **Architecture Fit** - Does it align with existing patterns in related files?
+3. **Best Practices** - ${language} conventions and established project patterns
+4. **Integration** - How well does it integrate with the codebase shown above?
+5. **Potential Issues** - Bugs, security concerns, edge cases, breaking changes
+6. **Performance** - Optimization opportunities considering the broader system
+7. **Suggestions** - Concrete improvements with examples that fit the project architecture
 
 At the end, provide a rating from 1-10 (10 being excellent).
 Format your rating as: RATING: X/10
 
-Code to review:
+**Code to Review**:
 \`\`\`${language}
 ${code}
 \`\`\``;
