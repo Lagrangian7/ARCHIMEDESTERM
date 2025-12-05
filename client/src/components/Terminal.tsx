@@ -191,8 +191,8 @@ export function Terminal() {
     'real-estate', 'auditing-cream', 'venture-capital', 'insurance-navy', 'logistics-orange'
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>(() => {
-    // Load theme from user preferences, localStorage, or default to forest-gradient
-    return preferences?.terminalTheme || localStorage.getItem('terminal-theme') || 'forest-gradient';
+    // Load theme from user preferences, localStorage, or default to hacker
+    return preferences?.terminalTheme || localStorage.getItem('terminal-theme') || 'hacker';
   });
 
   // Update theme when user preferences change
