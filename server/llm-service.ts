@@ -14,9 +14,10 @@ const replitAI = new OpenAI({
 });
 
 // Legacy Mistral client (if using your own API key)
-const mistral = new Mistral({
+// Only initialize if API key is available to prevent crashes
+const mistral = process.env.MISTRAL_API_KEY ? new Mistral({
   apiKey: process.env.MISTRAL_API_KEY,
-});
+}) : null;
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -1237,6 +1238,9 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     language: string = 'english',
     isNewSession: boolean = false
   ): Promise<string> {
+    if (!mistral) {
+      throw new Error('Mistral API key not configured');
+    }
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
     const recentHistory = this.buildConversationHistory(conversationHistory, 8);
@@ -1515,6 +1519,9 @@ This is a fallback response. The actual AI analysis could not be completed.`;
     projectContext?: { files: Array<{ name: string; content: string; language: string }> }
   ): Promise<string> {
     try {
+      if (!mistral) {
+        return ''; // No Mistral API key configured, return empty completion
+      }
       // Language-specific style guidelines
       const styleGuides: Record<string, string> = {
         python: 'follow PEP 8 style guidelines',
@@ -1742,7 +1749,7 @@ ${code}
       );
     }
 
-    if (process.env.MISTRAL_API_KEY) {
+    if (process.env.MISTRAL_API_KEY && mistral) {
       reviewPromises.push(
         (async () => {
           try {
