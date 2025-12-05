@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,17 @@ export function ConversationHistory({ onClose, onLoadConversation }: Conversatio
   const { isAuthenticated } = useAuth();
   const { conversations, isLoading } = useConversationHistory();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+
+  // Memoized sorting by timestamp (most recent first) - optimized Timsort via native sort
+  const sortedConversations = useMemo(() => {
+    if (!conversations || conversations.length === 0) return [];
+    
+    return [...conversations].sort((a, b) => {
+      const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+      const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+      return dateB - dateA; // Descending order (most recent first)
+    });
+  }, [conversations]);
 
   if (!isAuthenticated) {
     return (
@@ -122,7 +133,7 @@ export function ConversationHistory({ onClose, onLoadConversation }: Conversatio
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 h-[60vh]">
             <ScrollArea className="border-r border-green-400/20">
               <div className="p-4 space-y-3">
-                {conversations.map((conversation) => (
+                {sortedConversations.map((conversation) => (
                   <div
                     key={conversation.id}
                     className={`cursor-pointer p-4 rounded-lg border transition-colors ${

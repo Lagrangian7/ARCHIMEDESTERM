@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -39,6 +39,47 @@ interface DocumentsListProps {
   onClose?: () => void;
 }
 
+// Debounce hook for smooth search
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// Sort comparator with multiple keys
+type SortKey = 'name' | 'date' | 'size';
+type SortOrder = 'asc' | 'desc';
+
+function createSortComparator(key: SortKey, order: SortOrder) {
+  return (a: any, b: any) => {
+    let comparison = 0;
+
+    switch (key) {
+      case 'name':
+        comparison = a.originalName.localeCompare(b.originalName);
+        break;
+      case 'date':
+        comparison = new Date(b.uploadedAt || 0).getTime() - new Date(a.uploadedAt || 0).getTime();
+        break;
+      case 'size':
+        comparison = parseInt(b.fileSize || '0') - parseInt(a.fileSize || '0');
+        break;
+    }
+
+    return order === 'asc' ? comparison : -comparison;
+  };
+}
+
 export function DocumentsList({ onClose }: DocumentsListProps = {}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -49,11 +90,47 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Sorting state
+  const [sortKey, setSortKey] = useState<SortKey>('date');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
+  // Debounce search query for smooth performance
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
   // Query for user documents
   const { data: documents = [], isLoading, error } = useQuery<Document[]>({
     queryKey: ['/api/documents'],
     retry: 1,
   });
+
+  // Memoized filtering and sorting for optimal performance
+  const filteredAndSortedDocuments = useMemo(() => {
+    if (!documents) return [];
+
+    // Filter by search query
+    const filtered = debouncedSearchQuery
+      ? documents.filter((doc) =>
+          doc.originalName.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          doc.summary?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          doc.keywords?.some((kw: string) => kw.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
+        )
+      : documents;
+
+    // Sort with cached comparator
+    const sorted = [...filtered].sort(createSortComparator(sortKey, sortOrder));
+
+    return sorted;
+  }, [documents, debouncedSearchQuery, sortKey, sortOrder]);
+
+  // Toggle sort order
+  const toggleSort = useCallback((key: SortKey) => {
+    if (sortKey === key) {
+      setSortOrder(order => order === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortOrder('desc');
+    }
+  }, [sortKey]);
 
   // Migrate documents mutation
   const migrateMutation = useMutation({
@@ -145,7 +222,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
     },
   });
 
-  // Search documents mutation
+  // Search documents mutation (not used for filtering, but kept for potential future use)
   const searchMutation = useMutation({
     mutationFn: async (query: string) => {
       return apiRequest('POST', '/api/documents/search', { query });
@@ -223,7 +300,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-      
+
       if (!data.documents || !Array.isArray(data.documents)) {
         throw new Error('Invalid import file format');
       }
@@ -236,7 +313,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
         variant: "destructive",
       });
     }
-    
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -288,16 +365,6 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
     setRenamingId(null);
     setNewName('');
   };
-
-  // Memoize filtered documents to prevent unnecessary recalculations
-  const filteredDocuments = useMemo(() => {
-    return documents.filter(doc =>
-      doc.originalName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.keywords?.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  }, [documents, searchQuery]);
-
 
   if (error) {
     return (
@@ -468,10 +535,25 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
           <span>Loading documents...</span>
         ) : (
           <span>
-            Showing {filteredDocuments.length} of {documents.length} document{documents.length !== 1 ? 's' : ''}
+            Showing {filteredAndSortedDocuments.length} of {documents.length} document{documents.length !== 1 ? 's' : ''}
             {searchQuery && ` matching "${searchQuery}"`}
           </span>
         )}
+      </div>
+
+      {/* Documents List Header with Sorting Controls */}
+      <div className="flex items-center justify-between mb-2 text-xs font-mono font-semibold px-2 py-1 rounded-md flex-shrink-0"
+           style={{ color: 'var(--terminal-text)', opacity: 0.7, backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.1)' }}>
+        <button onClick={() => toggleSort('name')} className="flex-1 text-left cursor-pointer hover:opacity-100 flex items-center gap-1" style={{ opacity: sortKey === 'name' ? 1 : 0.7 }}>
+          Name {sortKey === 'name' && (sortOrder === 'asc' ? '▲' : '▼')}
+        </button>
+        <button onClick={() => toggleSort('date')} className="flex-1 text-left cursor-pointer hover:opacity-100 flex items-center gap-1" style={{ opacity: sortKey === 'date' ? 1 : 0.7 }}>
+          Uploaded {sortKey === 'date' && (sortOrder === 'asc' ? '▲' : '▼')}
+        </button>
+        <button onClick={() => toggleSort('size')} className="flex-1 text-left cursor-pointer hover:opacity-100 flex items-center gap-1" style={{ opacity: sortKey === 'size' ? 1 : 0.7 }}>
+          Size {sortKey === 'size' && (sortOrder === 'asc' ? '▲' : '▼')}
+        </button>
+        <div className="flex-1">Actions</div>
       </div>
 
       {/* Documents List */}
@@ -481,7 +563,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
             <HardDrive className="mx-auto mb-2" size={24} />
             Loading your documents...
           </div>
-        ) : filteredDocuments.length === 0 ? (
+        ) : filteredAndSortedDocuments.length === 0 ? (
           <div className="text-center py-8" style={{ color: 'var(--terminal-text)', opacity: 0.6 }}>
             {documents.length === 0 ? (
               <>
@@ -498,7 +580,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredDocuments.map((document) => (
+            {filteredAndSortedDocuments.map((document) => (
               <div
                 key={document.id}
                 className="border rounded-lg p-4 transition-colors"

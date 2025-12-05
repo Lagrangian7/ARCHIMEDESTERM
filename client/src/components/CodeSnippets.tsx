@@ -1,8 +1,25 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Copy, Check } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
+
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 interface Snippet {
   name: string;
@@ -186,13 +203,31 @@ export function CodeSnippets({ language, onInsert, theme }: CodeSnippetsProps) {
       )
   ];
 
-  const filteredSnippets = allSnippets
-    .filter(snippet => {
-      const matchesSearch = snippet.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           snippet.description.toLowerCase().includes(searchQuery.toLowerCase());
+  // Debounced search for smooth performance
+  const debouncedSearchQuery = useDebounce(searchQuery, 250);
+
+  // Memoized filtered and sorted snippets with multi-key sorting
+  const filteredSnippets = useMemo(() => {
+    const filtered = allSnippets.filter(snippet => {
+      const matchesSearch = snippet.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+                           snippet.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || snippet.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
+
+    // Multi-key sort: category first, then name
+    return filtered.sort((a, b) => {
+      // Primary sort: category
+      const categoryOrder = { 'ai-generated': 0, 'python': 1, 'javascript': 2 };
+      const catA = categoryOrder[a.category as keyof typeof categoryOrder] ?? 999;
+      const catB = categoryOrder[b.category as keyof typeof categoryOrder] ?? 999;
+      
+      if (catA !== catB) return catA - catB;
+      
+      // Secondary sort: name
+      return a.name.localeCompare(b.name);
+    });
+  }, [allSnippets, debouncedSearchQuery, selectedCategory]);
 
 
   const handleCopy = (code: string, index: number) => {
