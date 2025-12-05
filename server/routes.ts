@@ -1139,9 +1139,8 @@ ONLY output the code, no explanations.`;
     }
   });
 
-  // Collaborative AI Code Review - Multiple satellite AIs analyze code
-  // Collaborative code review endpoint
-  app.post('/api/code/review', isAuthenticated, async (req, res) => {
+  // Collaborative AI Code Review - Uses Groq (free Llama AI)
+  app.post('/api/code/review', async (req, res) => {
     try {
       const { code, language = 'python', projectName, filePath, relatedFiles } = req.body;
 
