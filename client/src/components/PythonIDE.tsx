@@ -2005,11 +2005,23 @@ calculator()
 
   // Mutation for Collaborative AI Code Review
   const collaborativeReviewMutation = useMutation({
-    mutationFn: async ({ codeToReview, language, projectName }: { codeToReview: string; language: string; projectName: string }) => {
-      const response = await fetch('/api/ai/collaborative-review', {
+    mutationFn: async ({ codeToReview, language, projectName, filePath, relatedFiles }: { 
+      codeToReview: string; 
+      language: string; 
+      projectName?: string; 
+      filePath?: string; 
+      relatedFiles?: Array<{ path: string; content: string }>;
+    }) => {
+      const response = await fetch('/api/code/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: codeToReview, language, projectName }),
+        body: JSON.stringify({ 
+          code: codeToReview, 
+          language, 
+          projectName, 
+          filePath, 
+          relatedFiles 
+        }),
       });
       if (!response.ok) throw new Error('Failed to get collaborative review');
       return response.json();
