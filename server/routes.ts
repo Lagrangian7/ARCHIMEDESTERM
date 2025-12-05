@@ -1065,7 +1065,7 @@ Plan a complete, production-ready project structure. Be thorough.`;
 
       agentMessages.push({ 
         role: 'agent', 
-        content: \`Planned ${filePlan.length} files: ${filePlan.map(f => f.name).join(', ')}\` 
+        content: `Planned ${filePlan.length} files: ${filePlan.map(f => f.name).join(', ')}` 
       });
 
       // Architect phase: Implement each file
@@ -1073,7 +1073,7 @@ Plan a complete, production-ready project structure. Be thorough.`;
       for (const fileSpec of filePlan) {
         agentMessages.push({ 
           role: 'architect', 
-          content: \`Implementing ${fileSpec.name}...\` 
+          content: `Implementing ${fileSpec.name}...` 
         });
 
         const architectPrompt = `You are the ARCHITECT. Implement this file based on the project spec:
@@ -1115,7 +1115,7 @@ ONLY output the code, no explanations.`;
 
         agentMessages.push({ 
           role: 'architect', 
-          content: \`✓ ${fileSpec.name} implemented (${cleanCode.split('\n').length} lines)\` 
+          content: `✓ ${fileSpec.name} implemented (${cleanCode.split('\n').length} lines)` 
         });
       }
 
@@ -1304,7 +1304,7 @@ except:
       const execAsync = promisify(exec);
 
       const startTime = Date.now();
-      const { stdout, stderr } = await execAsync(\`node -e \${JSON.stringify(code)}\`, {
+      const { stdout, stderr } = await execAsync(`node -e ${JSON.stringify(code)}`, {
         timeout: 10000,
         maxBuffer: 1024 * 1024
       });
@@ -1343,11 +1343,11 @@ except:
       const execAsync = promisify(exec);
       const path = await import('path');
 
-      tmpFile = path.join('/tmp', \`code_\${Date.now()}.ts\`);
+      tmpFile = path.join('/tmp', `code_${Date.now()}.ts`);
       await fs.writeFile(tmpFile, code);
 
       const startTime = Date.now();
-      const { stdout, stderr } = await execAsync(\`npx tsx \${tmpFile}\`, {
+      const { stdout, stderr } = await execAsync(`npx tsx ${tmpFile}`, {
         timeout: 15000,
         maxBuffer: 1024 * 1024
       });
@@ -1434,12 +1434,12 @@ except:
       const execAsync = promisify(exec);
       const path = await import('path');
 
-      tmpFile = path.join('/tmp', \`code_\${Date.now()}.cpp\`);
-      tmpExec = path.join('/tmp', \`exec_\${Date.now()}\`);
+      tmpFile = path.join('/tmp', `code_${Date.now()}.cpp`);
+      tmpExec = path.join('/tmp', `exec_${Date.now()}`);
       await fs.writeFile(tmpFile, code);
 
       // Compile
-      await execAsync(\`g++ \${tmpFile} -o \${tmpExec}\`, { timeout: 15000 });
+      await execAsync(`g++ ${tmpFile} -o ${tmpExec}`, { timeout: 15000 });
 
       // Execute
       const startTime = Date.now();
@@ -1505,7 +1505,7 @@ except:
         const timer = setTimeout(() => {
           killed = true;
           proc.kill('SIGKILL');
-          reject(new Error(\`Execution timeout (\${timeout / 1000} seconds)\`));
+          reject(new Error(`Execution timeout (${timeout / 1000} seconds)`));
         }, timeout);
 
         // Write stdin if provided
@@ -1602,7 +1602,7 @@ def _do_tkinter_capture():
 
             # Try using scrot for screenshot
             try:
-                screenshot_file = f'/tmp/tk_capture_${os.getpid()}.png'
+                screenshot_file = f'/tmp/tk_capture_{os.getpid()}.png'
                 subprocess.run(['scrot', '-o', screenshot_file], timeout=5, check=True)
                 img = Image.open(screenshot_file)
                 # Crop to window area
@@ -1714,8 +1714,8 @@ def _capture_turtle():
         time.sleep(0.2)
 
         canvas = screen.getcanvas()
-        eps_file = f'/tmp/turtle_${os.getpid()}.eps'
-        png_file = f'/tmp/turtle_${os.getpid()}.png'
+        eps_file = f'/tmp/turtle_{os.getpid()}.eps'
+        png_file = f'/tmp/turtle_{os.getpid()}.png'
 
         # Save as PostScript
         canvas.postscript(file=eps_file, colormode='color')
@@ -1738,7 +1738,7 @@ def _capture_turtle():
         except Exception as gs_err:
             # Fallback: try using scrot for screen capture
             try:
-                screenshot_file = f'/tmp/turtle_scrot_${os.getpid()}.png'
+                screenshot_file = f'/tmp/turtle_scrot_{os.getpid()}.png'
                 subprocess.run(['scrot', '-o', screenshot_file], timeout=5, check=True)
                 img = Image.open(screenshot_file)
                 buf = io.BytesIO()
@@ -1837,7 +1837,7 @@ if _virtual_display_started:
 
         case 'typescript':
         case 'ts': {
-          const tmpFile = path.join('/tmp', \`ts_\${randomId}.ts\`);
+          const tmpFile = path.join('/tmp', `ts_${randomId}.ts`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
             const result = await runProcess('npx', ['tsx', tmpFile], 15000, stdin);
@@ -1853,7 +1853,7 @@ if _virtual_display_started:
         case 'shell':
         case 'sh': {
           // Write to temp file and execute (safer than passing code to bash -c)
-          const tmpFile = path.join('/tmp', \`sh_\${randomId}.sh\`);
+          const tmpFile = path.join('/tmp', `sh_${randomId}.sh`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
             const result = await runProcess('bash', [tmpFile], 10000, stdin);
@@ -1867,8 +1867,8 @@ if _virtual_display_started:
 
         case 'cpp':
         case 'c++': {
-          const tmpFile = path.join('/tmp', \`cpp_\${randomId}.cpp\`);
-          const tmpExec = path.join('/tmp', \`exec_\${randomId}\`);
+          const tmpFile = path.join('/tmp', `cpp_${randomId}.cpp`);
+          const tmpExec = path.join('/tmp', `exec_${randomId}`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
             // Compile using spawn with array args
@@ -1885,8 +1885,8 @@ if _virtual_display_started:
         }
 
         case 'c': {
-          const tmpFile = path.join('/tmp', \`c_\${randomId}.c\`);
-          const tmpExec = path.join('/tmp', \`exec_\${randomId}\`);
+          const tmpFile = path.join('/tmp', `c_${randomId}.c`);
+          const tmpExec = path.join('/tmp', `exec_${randomId}`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
             // Compile using spawn with array args
@@ -1904,7 +1904,7 @@ if _virtual_display_started:
 
         case 'go':
         case 'golang': {
-          const tmpFile = path.join('/tmp', \`go_\${randomId}.go\`);
+          const tmpFile = path.join('/tmp', `go_${randomId}.go`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
             const result = await runProcess('go', ['run', tmpFile], 15000, stdin);
@@ -1918,8 +1918,8 @@ if _virtual_display_started:
 
         case 'rust':
         case 'rs': {
-          const tmpFile = path.join('/tmp', \`rs_\${randomId}.rs\`);
-          const tmpExec = path.join('/tmp', \`exec_\${randomId}\`);
+          const tmpFile = path.join('/tmp', `rs_${randomId}.rs`);
+          const tmpExec = path.join('/tmp', `exec_${randomId}`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
             // Compile using spawn with array args
@@ -1946,8 +1946,8 @@ if _virtual_display_started:
 
         case 'php': {
           // Write to temp file (safer than -r with complex code)
-          const tmpFile = path.join('/tmp', \`php_\${randomId}.php\`);
-          await fs.writeFile(tmpFile, \`<?php\n\${code}\n?>\`, { mode: 0o600 });
+          const tmpFile = path.join('/tmp', `php_${randomId}.php`);
+          await fs.writeFile(tmpFile, `<?php\n${code}\n?>`, { mode: 0o600 });
           try {
             const result = await runProcess('php', [tmpFile], 10000, stdin);
             output = result.stdout;
@@ -1970,7 +1970,7 @@ if _virtual_display_started:
 
           output = 'HTML Preview rendered below.\n\nTo run locally:\n1. Save as index.html\n2. Open in browser';
           // Use sandbox with restrictive permissions - only allow scripts, no same-origin access
-          guiOutput = \`<iframe srcdoc="\${escapedForSrcdoc}" sandbox="allow-scripts" style="width:100%;height:400px;border:1px solid #00FF41;border-radius:4px;background:white;"></iframe>\`;
+          guiOutput = `<iframe srcdoc="${escapedForSrcdoc}" sandbox="allow-scripts" style="width:100%;height:400px;border:1px solid #00FF41;border-radius:4px;background:white;"></iframe>`;
           break;
         }
 
@@ -1978,7 +1978,7 @@ if _virtual_display_started:
           return res.json({
             success: false,
             output: '',
-            error: \`Language '\${lang}' is not supported for execution.\n\nSupported languages: python, javascript, typescript, bash, c, cpp, go, rust, ruby, php, html\`,
+            error: `Language '${lang}' is not supported for execution.\n\nSupported languages: python, javascript, typescript, bash, c, cpp, go, rust, ruby, php, html`,
             executionTime: '0'
           });
       }
@@ -2303,7 +2303,7 @@ if _virtual_display_started:
       // Process files in parallel for better performance
       const fileProcessingPromises = req.files.map(async (file: any) => {
         try {
-          console.log(\`📤 Processing file: \${file.originalname}, size: \${file.size}, mimetype: \${file.mimetype}\`);
+          console.log(`📤 Processing file: ${file.originalname}, size: ${file.size}, mimetype: ${file.mimetype}`);
 
           // Determine if the file is an audio file (based on mimetype or extension)
           const isAudioFile = file.mimetype.startsWith('audio/') ||
@@ -2323,19 +2323,19 @@ if _virtual_display_started:
               else mimeType = 'audio/mpeg'; // default
             }
 
-            console.log(\`🎵 Creating audio document: \${file.originalname} with mimeType: \${mimeType}\`);
+            console.log(`🎵 Creating audio document: ${file.originalname} with mimeType: ${mimeType}`);
 
             // Create document with metadata - mimeType is crucial for Webamp detection
             const document = await knowledgeService.processDocument(null, {
               userId,
-              fileName: \`\${randomUUID()}-\${file.originalname}\`,
+              fileName: `${randomUUID()}-${file.originalname}`,
               originalName: file.originalname,
               fileSize: file.size.toString(),
               mimeType: mimeType,
               objectPath: undefined // Will be set by separate PUT request
             });
 
-            console.log(\`✅ Audio document created - ID: \${document.id}, name: \${document.originalName}, mimeType: \${document.mimeType}\`);
+            console.log(`✅ Audio document created - ID: ${document.id}, name: ${document.originalName}, mimeType: ${document.mimeType}`);
 
             return {
               type: 'success',
@@ -2362,17 +2362,17 @@ if _virtual_display_started:
               return { type: 'error', file: file.originalname, error: "File content is too large (max 5MB)" };
             }
 
-            console.log(\`📄 Creating text document: \${file.originalname}\`);
+            console.log(`📄 Creating text document: ${file.originalname}`);
 
             const document = await knowledgeService.processDocument(content, {
               userId,
-              fileName: \`\${randomUUID()}-\${file.originalname}\`,
+              fileName: `${randomUUID()}-${file.originalname}`,
               originalName: file.originalname,
               fileSize: file.size.toString(),
               mimeType: file.mimetype,
             });
 
-            console.log(\`✅ Text document created - ID: \${document.id}, name: \${document.originalName}\`);
+            console.log(`✅ Text document created - ID: ${document.id}, name: ${document.originalName}`);
 
             return {
               type: 'success',
@@ -2387,7 +2387,7 @@ if _virtual_display_started:
             };
           }
         } catch (fileError) {
-          console.error(\`❌ Error processing file \${file.originalname}:\`, fileError);
+          console.error(`❌ Error processing file ${file.originalname}:`, fileError);
           return { type: 'error', file: file.originalname, error: "Failed to process file" };
         }
       });
@@ -2409,7 +2409,7 @@ if _virtual_display_started:
       });
 
       res.json({
-        message: \`Successfully processed \${results.length} of \${req.files.length} files\`,
+        message: `Successfully processed ${results.length} of ${req.files.length} files`,
         documents: results,
         errors: errors,
         totalUploaded: results.length,
@@ -2452,7 +2452,7 @@ if _virtual_display_started:
       // Process the document
       const document = await knowledgeService.processDocument(content, {
         userId,
-        fileName: \`\${randomUUID()}-\${finalFilename}\`,
+        fileName: `${randomUUID()}-${finalFilename}`,
         originalName: finalFilename,
         fileSize: Buffer.byteLength(content, 'utf8').toString(),
         mimeType: 'text/plain',
@@ -2479,14 +2479,14 @@ if _virtual_display_started:
   app.post("/api/documents/migrate", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      console.log(\`🔄 Migration requested by user: \${userId}\`);
+      console.log(`🔄 Migration requested by user: ${userId}`);
 
       const { migrateDocumentsToUser } = await import('./migrate-documents');
       const result = await migrateDocumentsToUser(userId);
 
       res.json({
         success: true,
-        message: \`Successfully migrated \${result.migrated} documents\`,
+        message: `Successfully migrated ${result.migrated} documents`,
         ...result
       });
     } catch (error) {
@@ -2520,9 +2520,9 @@ if _virtual_display_started:
         byUserId[uid].documents.push(doc.originalName);
       });
 
-      console.log(\`📊 Total documents in database: \${allDocs.length}\`);
-      console.log(\`📊 Your userId: \${userId}\`);
-      console.log(\`📊 Documents by userId:\`, Object.fromEntries(
+      console.log(`📊 Total documents in database: ${allDocs.length}`);
+      console.log(`📊 Your userId: ${userId}`);
+      console.log(`📊 Documents by userId:`, Object.fromEntries(
         Object.entries(byUserId).map(([uid, data]) => [uid, data.count])
       ));
 
@@ -2539,7 +2539,7 @@ if _virtual_display_started:
           Object.entries(byUserId).map(([uid, data]) => [uid, { count: data.count, actualUserId: data.actualUserId }])
         ),
         needsMigration: nullCount > 0,
-        migrationAdvice: nullCount > 0 ? \`Click "Migrate Docs" button to assign \${nullCount} orphaned documents to your account\` : 'No migration needed',
+        migrationAdvice: nullCount > 0 ? `Click "Migrate Docs" button to assign ${nullCount} orphaned documents to your account` : 'No migration needed',
         sampleOrphanedDocs: allDocs.filter(d => !d.userId || d.userId === '').slice(0, 5).map(d => ({
           id: d.id,
           name: d.originalName,
@@ -2557,9 +2557,9 @@ if _virtual_display_started:
   app.get("/api/documents", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      console.log(\`📚 Fetching documents for user: \${userId}\`);
+      console.log(`📚 Fetching documents for user: ${userId}`);
       const documents = await storage.getUserDocuments(userId);
-      console.log(\`📚 Found \${documents.length} documents for user \${userId}\`);
+      console.log(`📚 Found ${documents.length} documents for user ${userId}`);
 
       // Return all necessary fields including mimeType, objectPath, and personality training status
       const documentsInfo = documents.map(doc => ({
@@ -2599,7 +2599,7 @@ if _virtual_display_started:
         return res.status(404).json({ error: "Document not found or access denied" });
       }
 
-      console.log(\`🧠 Document \${documentId} personality training: \${isPersonality ? 'enabled' : 'disabled'}\`);
+      console.log(`🧠 Document ${documentId} personality training: ${isPersonality ? 'enabled' : 'disabled'}`);
       res.json({ success: true, isPersonality });
     } catch (error) {
       console.error("Toggle personality error:", error);
@@ -2611,7 +2611,7 @@ if _virtual_display_started:
   app.get("/api/documents/export", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      console.log(\`📤 Exporting documents for user: \${userId}\`);
+      console.log(`📤 Exporting documents for user: ${userId}`);
 
       const documents = await storage.getUserDocuments(userId);
 
@@ -2632,11 +2632,11 @@ if _virtual_display_started:
         }))
       };
 
-      console.log(\`📤 Exported \${documents.length} documents\`);
+      console.log(`📤 Exported ${documents.length} documents`);
 
       // Set headers for file download
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', \`attachment; filename="archimedes-documents-\${new Date().toISOString().split('T')[0]}.json"\`);
+      res.setHeader('Content-Disposition', `attachment; filename="archimedes-documents-${new Date().toISOString().split('T')[0]}.json"`);
       res.json(exportData);
     } catch (error) {
       console.error("Export documents error:", error);
@@ -2670,13 +2670,13 @@ if _virtual_display_started:
       if (!parseResult.success) {
         return res.status(400).json({ 
           error: "Invalid import data format",
-          details: parseResult.error.errors.map(e => \`\${e.path.join('.')}: \${e.message}\`).join(', ')
+          details: parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
         });
       }
 
       const { documents } = parseResult.data;
 
-      console.log(\`📥 Importing \${documents.length} documents for user: \${userId}\`);
+      console.log(`📥 Importing ${documents.length} documents for user: ${userId}`);
 
       let imported = 0;
       let skipped = 0;
@@ -2708,11 +2708,11 @@ if _virtual_display_started:
           });
           imported++;
         } catch (docError) {
-          errors.push(\`Failed to import "\${doc.originalName}": \${docError instanceof Error ? docError.message : 'Unknown error'}\`);
+          errors.push(`Failed to import "${doc.originalName}": ${docError instanceof Error ? docError.message : 'Unknown error'}`);
         }
       }
 
-      console.log(\`📥 Import complete: \${imported} imported, \${skipped} skipped (already exist), \${errors.length} errors\`);
+      console.log(`📥 Import complete: ${imported} imported, ${skipped} skipped (already exist), ${errors.length} errors`);
 
       res.json({
         success: true,
@@ -2720,7 +2720,7 @@ if _virtual_display_started:
         skipped,
         skippedNames: skippedNames.length > 0 ? skippedNames : undefined,
         errors: errors.length > 0 ? errors : undefined,
-        message: \`Imported \${imported} documents. \${skipped} skipped (already exist).\`
+        message: `Imported ${imported} documents. ${skipped} skipped (already exist).`
       });
     } catch (error) {
       console.error("Import documents error:", error);
@@ -2803,14 +2803,14 @@ if _virtual_display_started:
       const document = await storage.getDocumentByFilename(userId, filename);
       if (!document) {
         return res.status(404).json({
-          error: \`Document '\${filename}' not found\`,
-          formatted: \`❌ Document '\${filename}' not found in knowledge base.\n\nUse 'docs' command to list available documents.\`
+          error: `Document '${filename}' not found`,
+          formatted: `❌ Document '${filename}' not found in knowledge base.\n\nUse 'docs' command to list available documents.`
         });
       }
 
       res.json({
         document,
-        formatted: \`📖 Reading: \${document.originalName}\n\n\${document.content}\n\n📊 Summary: \${document.summary || 'No summary available'}\n🏷️  Keywords: \${document.keywords?.join(', ') || 'None'}\`
+        formatted: `📖 Reading: ${document.originalName}\n\n${document.content}\n\n📊 Summary: ${document.summary || 'No summary available'}\n🏷️  Keywords: ${document.keywords?.join(', ') || 'None'}`
       });
     } catch (error) {
       console.error("Read document error:", error);
@@ -2872,7 +2872,7 @@ if _virtual_display_started:
         return res.status(400).json({ error: "Valid content is required" });
       }
 
-      const fileName = \`\${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.txt\`;
+      const fileName = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.txt`;
 
       const document = await knowledgeService.processDocument(content, {
         userId,
@@ -2913,7 +2913,7 @@ if _virtual_display_started:
         return res.status(404).json({ error: "Note not found" });
       }
 
-      const fileName = title ? \`\${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.txt\` : document.fileName;
+      const fileName = title ? `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.txt` : document.fileName;
 
       await storage.updateDocument(documentId, {
         originalName: title || document.originalName,
@@ -3090,7 +3090,7 @@ if _virtual_display_started:
         count: '10'
       });
 
-      const response = await fetch(\`https://api.search.brave.com/res/v1/web/search?\${searchParams.toString()}\`, {
+      const response = await fetch(`https://api.search.brave.com/res/v1/web/search?${searchParams.toString()}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -3102,12 +3102,12 @@ if _virtual_display_started:
       if (!response.ok) {
         // Capture the actual error response from Brave API
         const errorText = await response.text();
-        console.error(\`Brave API detailed error: \${response.status} \${response.statusText} | \${errorText}\`);
+        console.error(`Brave API detailed error: ${response.status} ${response.statusText} | ${errorText}`);
 
         // Return 400 for client errors (422) instead of 500
         const statusCode = response.status === 422 ? 400 : 500;
         return res.status(statusCode).json({
-          error: \`Brave API error: \${response.status} \${response.statusText}\`,
+          error: `Brave API error: ${response.status} ${response.statusText}`,
           details: errorText
         });
       }
@@ -3222,7 +3222,7 @@ if _virtual_display_started:
     try {
       const authorName = req.params.name;
       const response = await gutendxService.getBooksByAuthor(authorName);
-      const formatted = gutendxService.formatSearchResults(response, \`author: \${authorName}\`);
+      const formatted = gutendxService.formatSearchResults(response, `author: ${authorName}`);
 
       res.json({
         results: response,
@@ -3239,7 +3239,7 @@ if _virtual_display_started:
     try {
       const topic = req.params.topic;
       const response = await gutendxService.getBooksByTopic(topic);
-      const formatted = gutendxService.formatSearchResults(response, \`topic: \${topic}\`);
+      const formatted = gutendxService.formatSearchResults(response, `topic: ${topic}`);
 
       res.json({
         results: response,
@@ -3259,7 +3259,7 @@ if _virtual_display_started:
       const quote = await marketstackService.getLatestQuote(symbol);
 
       if (!quote) {
-        return res.status(404).json({ error: \`No data found for symbol \${symbol}\` });
+        return res.status(404).json({ error: `No data found for symbol ${symbol}` });
       }
 
       const formatted = marketstackService.formatQuoteForTerminal(quote);
@@ -3428,7 +3428,7 @@ except:
       const info = await marketstackService.getTickerInfo(symbol);
 
       if (!info) {
-        return res.status(404).json({ error: \`No company information found for symbol \${symbol}\` });
+        return res.status(404).json({ error: `No company information found for symbol ${symbol}` });
       }
 
       const formatted = marketstackService.formatTickerInfoForTerminal(info);
@@ -3455,13 +3455,13 @@ except:
       if (tickers.length === 0) {
         return res.json({
           tickers: [],
-          formatted: \`No stocks found matching "\${query}". Try different keywords or check the symbol.\`
+          formatted: `No stocks found matching "${query}". Try different keywords or check the symbol.`
         });
       }
 
-      const formatted = \`Stock Search Results for "\${query}":\n\n\` +
+      const formatted = `Stock Search Results for "${query}":\n\n` +
         tickers.map((ticker, index) =>
-          \`\${index + 1}. \${ticker.symbol} - \${ticker.name}\n   Exchange: \${ticker.stock_exchange.name} (\${ticker.country})\`
+          `${index + 1}. ${ticker.symbol} - ${ticker.name}\n   Exchange: ${ticker.stock_exchange.name} (${ticker.country})`
         ).join('\n\n') +
         `\n\nUse 'stock quote <symbol>' to get current prices.`;
 
@@ -3526,12 +3526,12 @@ except:
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log(\`🔍 WHOIS lookup for: \${domain}\`);
+        console.log(`🔍 WHOIS lookup for: ${domain}`);
       }
 
       // Try RDAP first (more reliable and standardized)
       try {
-        const rdapResponse = await fetch(\`https://rdap.org/domain/\${domain}\`, {
+        const rdapResponse = await fetch(`https://rdap.org/domain/${domain}`, {
           signal: AbortSignal.timeout(8000),
           headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
         });
@@ -3539,15 +3539,15 @@ except:
         if (rdapResponse.ok) {
           const rdapData = await rdapResponse.json();
 
-          let formatted = \`╭─ WHOIS Information for \${domain}\n\`;
-          formatted += \`├─ Domain: \${domain}\n\`;
+          let formatted = `╭─ WHOIS Information for ${domain}\n`;
+          formatted += `├─ Domain: ${domain}\n`;
 
           // Extract registrar from entities
           const registrar = rdapData.entities?.find((entity: any) =>
             entity.roles?.includes('registrar'))?.vcardArray?.[1]?.find((item: any) =>
               item[0] === 'fn')?.[3];
           if (registrar) {
-            formatted += \`├─ Registrar: \${registrar}\n\`;
+            formatted += `├─ Registrar: ${registrar}\n`;
           }
 
           // Extract dates from events
@@ -3557,30 +3557,30 @@ except:
             const lastChanged = rdapData.events.find((event: any) => event.eventAction === 'last changed');
 
             if (registration?.eventDate) {
-              formatted += \`├─ Creation Date: \${registration.eventDate.split('T')[0]}\n\`;
+              formatted += `├─ Creation Date: ${registration.eventDate.split('T')[0]}\n`;
             }
             if (expiration?.eventDate) {
-              formatted += \`├─ Expiration Date: \${expiration.eventDate.split('T')[0]}\n\`;
+              formatted += `├─ Expiration Date: ${expiration.eventDate.split('T')[0]}\n`;
             }
             if (lastChanged?.eventDate) {
-              formatted += \`├─ Updated Date: \${lastChanged.eventDate.split('T')[0]}\n\`;
+              formatted += `├─ Updated Date: ${lastChanged.eventDate.split('T')[0]}\n`;
             }
           }
 
           // Extract status
           if (rdapData.status) {
-            formatted += \`├─ Domain Status: \${rdapData.status.join(', ')}\n\`;
+            formatted += `├─ Domain Status: ${rdapData.status.join(', ')}\n`;
           }
 
           // Extract nameservers
           if (rdapData.nameservers) {
             const nameServers = rdapData.nameservers.map((ns: any) => ns.ldhName).slice(0, 4);
             if (nameServers.length > 0) {
-              formatted += \`├─ Name Servers: \${nameServers.join(', ')}\n\`;
+              formatted += `├─ Name Servers: ${nameServers.join(', ')}\n`;
             }
           }
 
-          formatted += \`╰─ Query completed using RDAP\`;
+          formatted += `╰─ Query completed using RDAP`;
           res.json({ formatted });
           return;
         }
@@ -3590,7 +3590,7 @@ except:
 
       // Fallback to whois.vu API
       try {
-        const whoisResponse = await fetch(\`https://api.whois.vu/?q=\${domain}\`, {
+        const whoisResponse = await fetch(`https://api.whois.vu/?q=${domain}`, {
           signal: AbortSignal.timeout(8000),
           headers: { 'User-Agent': 'ARCHIMEDES-OSINT/1.0' }
         });
@@ -3598,30 +3598,30 @@ except:
         if (whoisResponse.ok) {
           const whoisData = await whoisResponse.json();
 
-          let formatted = \`╭─ WHOIS Information for \${domain}\n\`;
-          formatted += \`├─ Domain: \${domain}\n\`;
+          let formatted = `╭─ WHOIS Information for ${domain}\n`;
+          formatted += `├─ Domain: ${domain}\n`;
 
           if (whoisData.registrar) {
-            formatted += \`├─ Registrar: \${whoisData.registrar}\n\`;
+            formatted += `├─ Registrar: ${whoisData.registrar}\n`;
           }
           if (whoisData.registered) {
-            formatted += \`├─ Creation Date: \${whoisData.registered}\n\`;
+            formatted += `├─ Creation Date: ${whoisData.registered}\n`;
           }
           if (whoisData.expires) {
-            formatted += \`├─ Expiration Date: \${whoisData.expires}\n\`;
+            formatted += `├─ Expiration Date: ${whoisData.expires}\n`;
           }
           if (whoisData.updated) {
-            formatted += \`├─ Updated Date: \${whoisData.updated}\n\`;
+            formatted += `├─ Updated Date: ${whoisData.updated}\n`;
           }
           if (whoisData.nameservers && whoisData.nameservers.length > 0) {
-            formatted += \`├─ Name Servers: \${whoisData.nameservers.slice(0, 4).join(', ')}\n\`;
+            formatted += `├─ Name Servers: ${whoisData.nameservers.slice(0, 4).join(', ')}\n`;
           }
           if (whoisData.status) {
             const status = Array.isArray(whoisData.status) ? whoisData.status.join(', ') : whoisData.status;
-            formatted += \`├─ Domain Status: \${status}\n\`;
+            formatted += `├─ Domain Status: ${status}\n`;
           }
 
-          formatted += \`╰─ Query completed using WHOIS API\`;
+          formatted += `╰─ Query completed using WHOIS API`;
           res.json({ formatted });
           return;
         }
@@ -3631,49 +3631,49 @@ except:
 
       // Final fallback: Enhanced DNS-only information
       try {
-        let formatted = \`╭─ Domain Information for \${domain}\n\`;
+        let formatted = `╭─ Domain Information for ${domain}\n`;
         let hasData = false;
 
         // Get A records
         try {
           const addresses = await dns.resolve4(domain);
-          formatted += \`├─ IPv4 Addresses: \${addresses.join(', ')}\n\`;
+          formatted += `├─ IPv4 Addresses: ${addresses.join(', ')}\n`;
           hasData = true;
         } catch (e) {}
 
         // Get AAAA records
         try {
           const ipv6Addresses = await dns.resolve6(domain);
-          formatted += \`├─ IPv6 Addresses: \${ipv6Addresses.join(', ')}\n\`;
+          formatted += `├─ IPv6 Addresses: ${ipv6Addresses.join(', ')}\n`;
           hasData = true;
         } catch (e) {}
 
         // Get MX records
         try {
           const mxRecords = await dns.resolveMx(domain);
-          const mxList = mxRecords.map(mx => \`\${mx.exchange} (\${mx.priority})\`).join(', ');
-          formatted += \`├─ Mail Servers: \${mxList}\n\`;
+          const mxList = mxRecords.map(mx => `${mx.exchange} (${mx.priority})`).join(', ');
+          formatted += `├─ Mail Servers: ${mxList}\n`;
           hasData = true;
         } catch (e) {}
 
         // Get NS records
         try {
           const nsRecords = await dns.resolveNs(domain);
-          formatted += \`├─ Name Servers: \${nsRecords.join(', ')}\n\`;
+          formatted += `├─ Name Servers: ${nsRecords.join(', ')}\n`;
           hasData = true;
         } catch (e) {}
 
         if (hasData) {
-          formatted += \`╰─ DNS resolution complete (WHOIS services unavailable)\`;
+          formatted += `╰─ DNS resolution complete (WHOIS services unavailable)`;
           res.json({ formatted });
         } else {
           res.json({
-            formatted: \`╭─ Domain lookup for \${domain}\n╰─ Domain does not resolve or is not accessible\`
+            formatted: `╭─ Domain lookup for ${domain}\n╰─ Domain does not resolve or is not accessible`
           });
         }
       } catch (finalError) {
         res.json({
-          formatted: \`╭─ Domain lookup for \${domain}\n╰─ All lookup methods failed - domain may not exist\`
+          formatted: `╭─ Domain lookup for ${domain}\n╰─ All lookup methods failed - domain may not exist`
         });
       }
     } catch (error) {
@@ -3734,38 +3734,38 @@ except:
           results.CNAME = await dns.resolveCname(domain);
         } catch (e) {}
 
-        let formatted = \`╭─ DNS Records for \${domain}\n\`;
+        let formatted = `╭─ DNS Records for ${domain}\n`;
 
         if (results.A.length) {
-          formatted += \`├─ A Records: \${results.A.join(', ')}\n\`;
+          formatted += `├─ A Records: ${results.A.join(', ')}\n`;
         }
 
         if (results.AAAA.length) {
-          formatted += \`├─ AAAA Records: \${results.AAAA.join(', ')}\n\`;
+          formatted += `├─ AAAA Records: ${results.AAAA.join(', ')}\n`;
         }
 
         if (results.MX.length) {
-          formatted += \`├─ MX Records: \${results.MX.map(mx => \`\${mx.exchange} (\${mx.priority})\`).join(', ')}\n\`;
+          formatted += `├─ MX Records: ${results.MX.map(mx => `${mx.exchange} (${mx.priority})`).join(', ')}\n`;
         }
 
         if (results.NS.length) {
-          formatted += \`├─ NS Records: \${results.NS.join(', ')}\n\`;
+          formatted += `├─ NS Records: ${results.NS.join(', ')}\n`;
         }
 
         if (results.TXT.length) {
-          formatted += \`├─ TXT Records: \${results.TXT.map(txt => txt.join(' ')).join(', ')}\n\`;
+          formatted += `├─ TXT Records: ${results.TXT.map(txt => txt.join(' ')).join(', ')}\n`;
         }
 
         if (results.CNAME) {
-          formatted += \`├─ CNAME: \${results.CNAME.join(', ')}\n\`;
+          formatted += `├─ CNAME: ${results.CNAME.join(', ')}\n`;
         }
 
-        formatted += \`╰─ DNS lookup complete\`;
+        formatted += `╰─ DNS lookup complete`;
 
         res.json({ formatted });
 
       } catch (error) {
-        res.json({ formatted: \`╭─ DNS lookup for \${domain}\n╰─ No DNS records found or domain does not exist\` });
+        res.json({ formatted: `╭─ DNS lookup for ${domain}\n╰─ No DNS records found or domain does not exist` });
       }
     } catch (error) {
       console.error('DNS error:', error);
@@ -3787,28 +3787,28 @@ except:
 
       try {
         // Use ip-api.com free service
-        const response = await fetch(\`http://ip-api.com/json/\${ip}?fields=status,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as\`);
+        const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as`);
         const data = await response.json();
 
         if (data.status === 'success') {
-          const formatted = \`
-╭─ IP Geolocation for \${ip}
-├─ Country: \${data.country} (\${data.countryCode})
-├─ Region: \${data.regionName} (\${data.region})
-├─ City: \${data.city}
-├─ Postal Code: \${data.zip || 'N/A'}
-├─ Coordinates: \${data.lat}, \${data.lon}
-├─ Timezone: \${data.timezone}
-├─ ISP: \${data.isp}
-├─ Organization: \${data.org}
-╰─ AS: \${data.as}\`;
+          const formatted = `
+╭─ IP Geolocation for ${ip}
+├─ Country: ${data.country} (${data.countryCode})
+├─ Region: ${data.regionName} (${data.region})
+├─ City: ${data.city}
+├─ Postal Code: ${data.zip || 'N/A'}
+├─ Coordinates: ${data.lat}, ${data.lon}
+├─ Timezone: ${data.timezone}
+├─ ISP: ${data.isp}
+├─ Organization: ${data.org}
+╰─ AS: ${data.as}`;
 
           res.json({ formatted });
         } else {
-          res.json({ formatted: \`╭─ IP Geolocation for \${ip}\n╰─ Geolocation data not available for this IP\` });
+          res.json({ formatted: `╭─ IP Geolocation for ${ip}\n╰─ Geolocation data not available for this IP` });
         }
       } catch (apiError) {
-        res.json({ formatted: \`╭─ IP Geolocation for \${ip}\n╰─ Geolocation service temporarily unavailable\` });
+        res.json({ formatted: `╭─ IP Geolocation for ${ip}\n╰─ Geolocation service temporarily unavailable` });
       }
     } catch (error) {
       console.error('GeoIP error:', error);
@@ -3844,19 +3844,19 @@ except:
           }
         });
 
-        let formatted = \`╭─ HTTP Headers for \${url}\n\`;
-        formatted += \`├─ Status: \${response.status} \${response.statusText}\n\`;
+        let formatted = `╭─ HTTP Headers for ${url}\n`;
+        formatted += `├─ Status: ${response.status} ${response.statusText}\n`;
 
         response.headers.forEach((value, key) => {
-          formatted += \`├─ \${key}: \${value}\n\`;
+          formatted += `├─ ${key}: ${value}\n`;
         });
 
-        formatted += \`╰─ Header analysis complete\`;
+        formatted += `╰─ Header analysis complete`;
 
         res.json({ formatted });
 
       } catch (fetchError) {
-        res.json({ formatted: \`╭─ HTTP Headers for \${url}\n╰─ Unable to fetch headers - site may be unreachable\` });
+        res.json({ formatted: `╭─ HTTP Headers for ${url}\n╰─ Unable to fetch headers - site may be unreachable` });
       }
     } catch (error) {
       console.error('Headers error:', error);
@@ -3874,35 +3874,35 @@ except:
 
       try {
         // Use Wayback Machine CDX API
-        const cdxUrl = \`https://web.archive.org/cdx/search/cdx?url=\${encodeURIComponent(url)}&output=json&limit=10&sort=timestamp\`;
+        const cdxUrl = `https://web.archive.org/cdx/search/cdx?url=${encodeURIComponent(url)}&output=json&limit=10&sort=timestamp`;
         const response = await fetch(cdxUrl);
         const data = await response.json();
 
         if (data && data.length > 1) {
-          let formatted = \`╭─ Wayback Machine snapshots for \${url}\n\`;
+          let formatted = `╭─ Wayback Machine snapshots for ${url}\n`;
 
           // Skip first row which contains headers
           const snapshots = data.slice(1, 6); // Show max 5 snapshots
 
           snapshots.forEach((snapshot: any, index: number) => {
             const timestamp = snapshot[1];
-            const date = \`\${timestamp.slice(0,4)}-\${timestamp.slice(4,6)}-\${timestamp.slice(6,8)} \${timestamp.slice(8,10)}:\${timestamp.slice(10,12)}\`;
+            const date = `${timestamp.slice(0,4)}-${timestamp.slice(4,6)}-${timestamp.slice(6,8)} ${timestamp.slice(8,10)}:${timestamp.slice(10,12)}`;
             const statusCode = snapshot[4];
-            const archiveUrl = \`https://web.archive.org/web/\${timestamp}/\${url}\`;
+            const archiveUrl = `https://web.archive.org/web/${timestamp}/${url}`;
 
-            formatted += \`├─ \${index + 1}. \${date} (Status: \${statusCode})\n\`;
-            formatted += \`│   \${archiveUrl}\n\`;
+            formatted += `├─ ${index + 1}. ${date} (Status: ${statusCode})\n`;
+            formatted += `│   ${archiveUrl}\n`;
           });
 
-          formatted += \`╰─ Found \${data.length - 1} total snapshots\`;
+          formatted += `╰─ Found ${data.length - 1} total snapshots`;
 
           res.json({ formatted });
         } else {
-          res.json({ formatted: \`╭─ Wayback Machine lookup for \${url}\n╰─ No archived snapshots found\` });
+          res.json({ formatted: `╭─ Wayback Machine lookup for ${url}\n╰─ No archived snapshots found` });
         }
 
       } catch (apiError) {
-        res.json({ formatted: \`╭─ Wayback Machine lookup for \${url}\n╰─ Archive service temporarily unavailable\` });
+        res.json({ formatted: `╭─ Wayback Machine lookup for ${url}\n╰─ Archive service temporarily unavailable` });
       }
     } catch (error) {
       console.error('Wayback error:', error);
@@ -3922,16 +3922,16 @@ except:
 
       // List of platforms to check
       const platforms = [
-        { name: 'GitHub', url: \`https://github.com/\${username}\`, checkType: 'status' },
-        { name: 'Twitter', url: \`https://twitter.com/\${username}\`, checkType: 'status' },
-        { name: 'Instagram', url: \`https://instagram.com/\${username}\`, checkType: 'status' },
-        { name: 'Reddit', url: \`https://reddit.com/user/\${username}\`, checkType: 'status' },
-        { name: 'YouTube', url: \`https://youtube.com/@\${username}\`, checkType: 'status' },
-        { name: 'Medium', url: \`https://medium.com/@\${username}\`, checkType: 'status' },
-        { name: 'LinkedIn', url: \`https://linkedin.com/in/\${username}\`, checkType: 'status' }
+        { name: 'GitHub', url: `https://github.com/${username}`, checkType: 'status' },
+        { name: 'Twitter', url: `https://twitter.com/${username}`, checkType: 'status' },
+        { name: 'Instagram', url: `https://instagram.com/${username}`, checkType: 'status' },
+        { name: 'Reddit', url: `https://reddit.com/user/${username}`, checkType: 'status' },
+        { name: 'YouTube', url: `https://youtube.com/@${username}`, checkType: 'status' },
+        { name: 'Medium', url: `https://medium.com/@${username}`, checkType: 'status' },
+        { name: 'LinkedIn', url: `https://linkedin.com/in/${username}`, checkType: 'status' }
       ];
 
-      let formatted = \`╭─ Username availability check: \${username}\n\`;
+      let formatted = `╭─ Username availability check: ${username}\n`;
 
       const checks = await Promise.allSettled(
         platforms.map(async (platform) => {
@@ -3957,9 +3957,9 @@ except:
           const { platform, exists, status } = result.value;
           const indicator = exists ? '❌' : '✅';
           const statusText = exists ? 'Taken' : 'Available';
-          formatted += \`├─ \${indicator} \${platform}: \${statusText}\n\`;
+          formatted += `├─ ${indicator} ${platform}: ${statusText}\n`;
         } else {
-          formatted += \`├─ ⚠️  \${platforms[index].name}: Check failed\n\`;
+          formatted += `├─ ⚠️  ${platforms[index].name}: Check failed\n`;
         }
       });
 
@@ -3991,22 +3991,22 @@ except:
       // Try DNS resolution first
       const addresses = await dns.resolve4(target);
 
-      let formatted = \`╭─ Network Analysis for \${target}\n\`;
-      formatted += \`├─ DNS Resolution: SUCCESS\n\`;
-      formatted += \`├─ Resolved to: \${addresses[0]}\n\`;
+      let formatted = `╭─ Network Analysis for ${target}\n`;
+      formatted += `├─ DNS Resolution: SUCCESS\n`;
+      formatted += `├─ Resolved to: ${addresses[0]}\n`;
       if (addresses.length > 1) {
-        formatted += \`├─ Additional IPs: \${addresses.slice(1).join(', ')}\n\`;
+        formatted += `├─ Additional IPs: ${addresses.slice(1).join(', ')}\n`;
       }
-      formatted += \`├─ Status: System traceroute not available\n\`;
-      formatted += \`├─ Note: Basic network connectivity confirmed via DNS\n\`;
+      formatted += `├─ Status: System traceroute not available\n`;
+      formatted += `├─ Note: Basic network connectivity confirmed via DNS\n`;
       formatted += `╰─ Analysis complete`;
 
       res.json({ formatted });
 
     } catch (error: any) {
-      let formatted = \`╭─ Network Analysis for \${target}\n\`;
-      formatted += \`├─ DNS Resolution: FAILED\n\`;
-      formatted += \`├─ Error: Target unreachable or invalid\n\`;
+      let formatted = `╭─ Network Analysis for ${target}\n`;
+      formatted += `├─ DNS Resolution: FAILED\n`;
+      formatted += `├─ Error: Target unreachable or invalid\n`;
       formatted += `╰─ Analysis complete`;
 
       res.json({ formatted });
@@ -4024,7 +4024,7 @@ except:
         return res.status(400).json({ error: 'Invalid domain format' });
       }
 
-      let formatted = \`╭─ Subdomain Enumeration for \${domain}\n\`;
+      let formatted = `╭─ Subdomain Enumeration for ${domain}\n`;
 
       // Common subdomain wordlist
       const commonSubdomains = [
@@ -4046,7 +4046,7 @@ except:
         const batch = commonSubdomains.slice(i, i + maxConcurrent);
 
         const batchPromises = batch.map(async (subdomain) => {
-          const fullDomain = \`\${subdomain}.\${domain}\`;
+          const fullDomain = `${subdomain}.${domain}`;
           try {
             const addresses = await dns.resolve4(fullDomain);
             if (addresses && addresses.length > 0) {
@@ -4061,7 +4061,7 @@ except:
         const batchResults = await Promise.all(batchPromises);
         batchResults.forEach(result => {
           if (result) {
-            foundSubdomains.push(\`\${result.subdomain} → \${result.ip}\`);
+            foundSubdomains.push(`${result.subdomain} → ${result.ip}`);
           }
         });
 
@@ -4072,18 +4072,18 @@ except:
       }
 
       if (foundSubdomains.length > 0) {
-        formatted += \`├─ Found \${foundSubdomains.length} active subdomains:\n\`;
+        formatted += `├─ Found ${foundSubdomains.length} active subdomains:\n`;
         foundSubdomains.forEach((subdomain, index) => {
           const prefix = index === foundSubdomains.length - 1 ? '╰─' : '├─';
-          formatted += \`\${prefix} \${subdomain}\n\`;
+          formatted += `${prefix} ${subdomain}\n`;
         });
       } else {
-        formatted += \`├─ No common subdomains discovered\n\`;
+        formatted += `├─ No common subdomains discovered\n`;
         formatted += `╰─ Try advanced enumeration tools for comprehensive scanning`;
       }
 
       if (foundSubdomains.length > 0 && foundSubdomains.length < commonSubdomains.length) {
-        formatted += `╰─ Scanned \${commonSubdomains.length} common patterns`;
+        formatted += `╰─ Scanned ${commonSubdomains.length} common patterns`;
       }
 
       res.json({ formatted });
@@ -4105,7 +4105,7 @@ except:
         return res.status(400).json({ error: 'Invalid domain format' });
       }
 
-      let formatted = \`╭─ SSL/TLS Certificate Analysis for \${domain}\n\`;
+      let formatted = `╭─ SSL/TLS Certificate Analysis for ${domain}\n`;
 
       try {
         // Get certificate information via HTTPS connection
@@ -4141,11 +4141,11 @@ except:
         const cert: any = await checkSSL;
 
         if (cert && cert.subject) {
-          formatted += \`├─ Certificate Found: ✅\n\`;
-          formatted += \`├─ Subject: \${cert.subject.CN || 'N/A'}\n\`;
-          formatted += \`├─ Issuer: \${cert.issuer.CN || cert.issuer.O || 'Unknown'}\n\`;
-          formatted += \`├─ Valid From: \${new Date(cert.valid_from).toISOString().split('T')[0]}\n\`;
-          formatted += \`├─ Valid To: \${new Date(cert.valid_to).toISOString().split('T')[0]}\n\`;
+          formatted += `├─ Certificate Found: ✅\n`;
+          formatted += `├─ Subject: ${cert.subject.CN || 'N/A'}\n`;
+          formatted += `├─ Issuer: ${cert.issuer.CN || cert.issuer.O || 'Unknown'}\n`;
+          formatted += `├─ Valid From: ${new Date(cert.valid_from).toISOString().split('T')[0]}\n`;
+          formatted += `├─ Valid To: ${new Date(cert.valid_to).toISOString().split('T')[0]}\n`;
 
           // Check if certificate is expired
           const now = new Date();
@@ -4153,11 +4153,11 @@ except:
           const daysUntilExpiry = Math.floor((validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
           if (daysUntilExpiry < 0) {
-            formatted += \`├─ Status: ❌ EXPIRED (\${Math.abs(daysUntilExpiry)} days ago)\n\`;
+            formatted += `├─ Status: ❌ EXPIRED (${Math.abs(daysUntilExpiry)} days ago)\n`;
           } else if (daysUntilExpiry < 30) {
-            formatted += \`├─ Status: ⚠️ EXPIRING SOON (\${daysUntilExpiry} days)\n\`;
+            formatted += `├─ Status: ⚠️ EXPIRING SOON (${daysUntilExpiry} days)\n`;
           } else {
-            formatted += \`├─ Status: ✅ VALID (\${daysUntilExpiry} days remaining)\n\`;
+            formatted += `├─ Status: ✅ VALID (${daysUntilExpiry} days remaining)\n`;
           }
 
           // Alternative names (SAN)
@@ -4166,34 +4166,34 @@ except:
               .split(', ')
               .map((name: string) => name.replace('DNS:', ''))
               .slice(0, 5); // Limit to first 5 for readability
-            formatted += \`├─ Alt Names: \${altNames.join(', ')}\n\`;
+            formatted += `├─ Alt Names: ${altNames.join(', ')}\n`;
             if (cert.subjectaltname.split(', ').length > 5) {
-              formatted += \`├─ ... and \${cert.subjectaltname.split(', ').length - 5} more\n\`;
+              formatted += `├─ ... and ${cert.subjectaltname.split(', ').length - 5} more\n`;
             }
           }
 
           // Serial number and fingerprint
           if (cert.serialNumber) {
-            formatted += \`├─ Serial: \${cert.serialNumber.substring(0, 20)}...\n\`;
+            formatted += `├─ Serial: ${cert.serialNumber.substring(0, 20)}...\n`;
           }
 
         } else {
-          formatted += \`├─ Certificate: ❌ Not found or invalid\n\`;
+          formatted += `├─ Certificate: ❌ Not found or invalid\n`;
         }
 
       } catch (sslError: any) {
-        formatted += \`├─ Certificate: ❌ Unable to retrieve\n\`;
-        formatted += \`├─ Error: \${sslError.message}\n\`;
+        formatted += `├─ Certificate: ❌ Unable to retrieve\n`;
+        formatted += `├─ Error: ${sslError.message}\n`;
 
         // Try to determine if SSL is available at all
         try {
-          const response = await fetch(\`https://$\{domain}\`, {
+          const response = await fetch(`https://$\{domain}`, {
             method: 'HEAD',
             signal: AbortSignal.timeout(5000)
           });
-          formatted += \`├─ HTTPS Available: ✅ (Status: \${response.status})\n\`;
+          formatted += `├─ HTTPS Available: ✅ (Status: ${response.status})\n`;
         } catch (httpsError) {
-          formatted += \`├─ HTTPS Available: ❌\n\`;
+          formatted += `├─ HTTPS Available: ❌\n`;
         }
       }
 
@@ -4217,19 +4217,19 @@ except:
         return res.status(400).json({ error: 'Invalid IP address format' });
       }
 
-      let formatted = \`╭─ Reverse IP Lookup for \${ip}\n\`;
+      let formatted = `╭─ Reverse IP Lookup for ${ip}\n`;
 
       try {
         // Perform reverse DNS lookup to get hostnames
         const hostnames = await dns.reverse(ip);
 
         if (hostnames && hostnames.length > 0) {
-          formatted += \`├─ Found \${hostnames.length} hostname(s):\n\`;
+          formatted += `├─ Found ${hostnames.length} hostname(s):\n`;
 
           const uniqueHostnames = Array.from(new Set(hostnames));
           uniqueHostnames.forEach((hostname, index) => {
             const prefix = index === uniqueHostnames.length - 1 ? '╰─' : '├─';
-            formatted += \`\${prefix} \${hostname}\n\`;
+            formatted += `${prefix} ${hostname}\n`;
           });
 
           // Try to extract domain patterns to find related domains
@@ -4244,20 +4244,20 @@ except:
             .filter((domain, index, arr) => arr.indexOf(domain) === index);
 
           if (domains.length > 1) {
-            formatted += \`├─ Related domains detected: \${domains.slice(0, 5).join(', ')}\`;
+            formatted += `├─ Related domains detected: ${domains.slice(0, 5).join(', ')}`;
             if (domains.length > 5) {
-              formatted += \` and \${domains.length - 5} more\`;
+              formatted += ` and ${domains.length - 5} more`;
             }
             formatted += '\n';
           }
 
         } else {
-          formatted += \`├─ No hostnames found for this IP\n\`;
-          formatted += \`├─ IP may not have reverse DNS configured\n\`;
+          formatted += `├─ No hostnames found for this IP\n`;
+          formatted += `├─ IP may not have reverse DNS configured\n`;
         }
       } catch (reverseError) {
-        formatted += \`├─ Reverse DNS lookup failed\n\`;
-        formatted += \`├─ IP may not have PTR records configured\n\`;
+        formatted += `├─ Reverse DNS lookup failed\n`;
+        formatted += `├─ IP may not have PTR records configured\n`;
       }
 
       formatted += `╰─ Reverse IP analysis complete`;
@@ -4281,14 +4281,14 @@ except:
         return res.status(400).json({ error: 'Invalid IP address or domain format' });
       }
 
-      let formatted = \`╭─ Port Scan for \${target}\n\`;
+      let formatted = `╭─ Port Scan for ${target}\n`;
 
       // Common ports to scan
       const commonPorts = [21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 993, 995, 1723, 3389, 5432, 3306];
       const net = require('net');
       const openPorts: number[] = [];
 
-      formatted += \`├─ Scanning \${commonPorts.length} common ports...\n\`;
+      formatted += `├─ Scanning ${commonPorts.length} common ports...\n`;
 
       // Scan ports concurrently but with limited concurrency
       const maxConcurrent = 10;
@@ -4337,7 +4337,7 @@ except:
       }
 
       if (openPorts.length > 0) {
-        formatted += \`├─ Found \${openPorts.length} open ports:\n\`;
+        formatted += `├─ Found ${openPorts.length} open ports:\n`;
 
         const portServices: { [key: number]: string } = {
           21: 'FTP',
@@ -4362,11 +4362,11 @@ except:
         openPorts.forEach((port, index) => {
           const service = portServices[port] || 'Unknown';
           const prefix = index === openPorts.length - 1 ? '╰─' : '├─';
-          formatted += \`\${prefix} Port \${port}/tcp (\${service})\n\`;
+          formatted += `${prefix} Port ${port}/tcp (${service})\n`;
         });
       } else {
-        formatted += \`├─ No open ports found in common port range\n\`;
-        formatted += \`├─ Target may have firewall protection or be offline\n\`;
+        formatted += `├─ No open ports found in common port range\n`;
+        formatted += `├─ Target may have firewall protection or be offline\n`;
       }
 
       formatted += `╰─ Port scan complete`;
@@ -4389,10 +4389,10 @@ except:
         return res.status(400).json({ error: 'Invalid domain format' });
       }
 
-      let formatted = \`╭─ Technology Stack Analysis for \${domain}\n\`;
+      let formatted = `╭─ Technology Stack Analysis for ${domain}\n`;
 
       try {
-        const url = \`https://$\{domain}\`;
+        const url = `https://$\{domain}`;
         const response = await fetch(url, {
           method: 'GET',
           signal: AbortSignal.timeout(10000),
@@ -4409,12 +4409,12 @@ except:
         // Analyze HTTP headers
         const server = headers.get('server');
         if (server) {
-          technologies.push(\`Server: \${server}\`);
+          technologies.push(`Server: ${server}`);
         }
 
         const poweredBy = headers.get('x-powered-by');
         if (poweredBy) {
-          technologies.push(\`Powered By: \${poweredBy}\`);
+          technologies.push(`Powered By: ${poweredBy}`);
         }
 
         // Analyze HTML content for common technologies
@@ -4475,16 +4475,16 @@ except:
           technologies.push('CDN: AWS CloudFront');
         }
 
-        formatted += \`├─ Response Status: \${response.status} \${response.statusText}\n\`;
+        formatted += `├─ Response Status: ${response.status} ${response.statusText}\n`;
 
         if (technologies.length > 0) {
-          formatted += \`├─ Detected Technologies:\n\`;
+          formatted += `├─ Detected Technologies:\n`;
           technologies.forEach((tech, index) => {
             const prefix = index === technologies.length - 1 ? '│  ╰─' : '│  ├─';
-            formatted += \`\${prefix} \${tech}\n\`;
+            formatted += `${prefix} ${tech}\n`;
           });
         } else {
-          formatted += \`├─ No obvious technologies detected\n\`;
+          formatted += `├─ No obvious technologies detected\n`;
         }
 
         // Check for common security headers
@@ -4497,11 +4497,11 @@ except:
 
         const presentHeaders = securityHeaders.filter(header => headers.get(header));
         if (presentHeaders.length > 0) {
-          formatted += \`├─ Security Headers: \${presentHeaders.length}/\${securityHeaders.length} present\n\`;
+          formatted += `├─ Security Headers: ${presentHeaders.length}/${securityHeaders.length} present\n`;
         }
 
       } catch (techError: any) {
-        formatted += \`├─ Unable to analyze: \${techError.message}\n\`;
+        formatted += `├─ Unable to analyze: ${techError.message}\n`;
       }
 
       formatted += `╰─ Technology analysis complete`;
@@ -4522,11 +4522,11 @@ except:
       const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
       const isIP = ipRegex.test(target);
 
-      let formatted = \`╭─ Comprehensive OSINT Report for \${target}\n\`;
-      formatted += \`├─ Target Type: \${isIP ? 'IP Address' : 'Domain'}\n\`;
-      formatted += \`├─ Report Generated: \${new Date().toISOString()}\n\`;
-      formatted += \`├─ Gathering intelligence from multiple sources...\n\`;
-      formatted += \`│\n\`;
+      let formatted = `╭─ Comprehensive OSINT Report for ${target}\n`;
+      formatted += `├─ Target Type: ${isIP ? 'IP Address' : 'Domain'}\n`;
+      formatted += `├─ Report Generated: ${new Date().toISOString()}\n`;
+      formatted += `├─ Gathering intelligence from multiple sources...\n`;
+      formatted += `│\n`;
 
       const results: { [key: string]: any } = {};
 
@@ -4534,7 +4534,7 @@ except:
       if (!isIP) {
         // WHOIS Lookup
         try {
-          const whoisRes = await fetch(\`http://localhost:5000/api/osint/whois/\${target}\`);
+          const whoisRes = await fetch(`http://localhost:5000/api/osint/whois/${target}`);
           const whoisData = await whoisRes.json();
           results.whois = whoisData;
         } catch (e) {
@@ -4543,7 +4543,7 @@ except:
 
         // DNS Records
         try {
-          const dnsRes = await fetch(\`http://localhost:5000/api/osint/dns/\${target}\`);
+          const dnsRes = await fetch(`http://localhost:5000/api/osint/dns/${target}`);
           const dnsData = await dnsRes.json();
           results.dns = dnsData;
         } catch (e) {
@@ -4552,7 +4552,7 @@ except:
 
         // SSL Certificate
         try {
-          const sslRes = await fetch(\`http://localhost:5000/api/osint/ssl/\${target}\`);
+          const sslRes = await fetch(`http://localhost:5000/api/osint/ssl/${target}`);
           const sslData = await sslRes.json();
           results.ssl = sslData;
         } catch (e) {
@@ -4561,7 +4561,7 @@ except:
 
         // Technology Stack
         try {
-          const techRes = await fetch(\`http://localhost:5000/api/osint/tech/\${target}\`);
+          const techRes = await fetch(`http://localhost:5000/api/osint/tech/${target}`);
           const techData = await techRes.json();
           results.tech = techData;
         } catch (e) {
@@ -4570,7 +4570,7 @@ except:
 
         // Subdomain Enumeration (limited for report)
         try {
-          const subdomainsRes = await fetch(\`http://localhost:5000/api/osint/subdomains/\${target}\`);
+          const subdomainsRes = await fetch(`http://localhost:5000/api/osint/subdomains/${target}`);
           const subdomainsData = await subdomainsRes.json();
           results.subdomains = subdomainsData;
         } catch (e) {
@@ -4593,7 +4593,7 @@ except:
       // GeoIP for the resolved IP
       if (resolvedIP) {
         try {
-          const geoipRes = await fetch(\`http://localhost:5000/api/osint/geoip/\${resolvedIP}\`);
+          const geoipRes = await fetch(`http://localhost:5000/api/osint/geoip/${resolvedIP}`);
           const geoipData = await geoipRes.json();
           results.geoip = geoipData;
         } catch (e) {
@@ -4602,7 +4602,7 @@ except:
 
         // Reverse IP if we have an IP
         try {
-          const reverseRes = await fetch(\`http://localhost:5000/api/osint/reverse-ip/\${resolvedIP}\`);
+          const reverseRes = await fetch(`http://localhost:5000/api/osint/reverse-ip/${resolvedIP}`);
           const reverseData = await reverseRes.json();
           results.reverse = reverseData;
         } catch (e) {
@@ -4615,7 +4615,7 @@ except:
       if (results.whois && !results.whois.error) {
         const whoisLines = results.whois.formatted.split('\n').slice(1, 4);
         whoisLines.forEach((line: string) => {
-          if (line.trim()) formatted += `│  \${line}\n`;
+          if (line.trim()) formatted += `│  ${line}\n`;
         });
       }
 
@@ -4626,7 +4626,7 @@ except:
       if (results.ssl && !results.ssl.error) {
         const sslLines = results.ssl.formatted.split('\n').slice(1, 3);
         sslLines.forEach((line: string) => {
-          if (line.trim()) formatted += `│  \${line}\n`;
+          if (line.trim()) formatted += `│  ${line}\n`;
         });
       }
 
@@ -4636,7 +4636,7 @@ except:
       if (results.geoip && !results.geoip.error) {
         const geoLines = results.geoip.formatted.split('\n').slice(1, 4);
         geoLines.forEach((line: string) => {
-          if (line.trim()) formatted += `│  \${line}\n`;
+          if (line.trim()) formatted += `│  ${line}\n`;
         });
       }
 
@@ -4649,7 +4649,7 @@ except:
       if (results.tech && !results.tech.error) {
         const techLines = results.tech.formatted.split('\n').slice(2, 6);
         techLines.forEach((line: string) => {
-          if (line.trim()) formatted += `│  \${line}\n`;
+          if (line.trim()) formatted += `│  ${line}\n`;
         });
       } else {
         formatted += `│  Technology analysis unavailable\n`;
@@ -4659,16 +4659,16 @@ except:
       formatted += `├─ ATTACK SURFACE:\n`;
       if (results.subdomains && !results.subdomains.error) {
         const subdomainCount = (results.subdomains.formatted.match(/Found (\d+) active/)?.[1]) || 'Unknown';
-        formatted += `│  Subdomains discovered: \${subdomainCount}\n`;
+        formatted += `│  Subdomains discovered: ${subdomainCount}\n`;
       }
       formatted += `│  Recommend: Port scan, directory enumeration\n`;
 
       formatted += `│\n`;
       formatted += `├─ RECOMMENDATIONS:\n`;
-      formatted += \`│  • Run detailed port scan: portscan \${resolvedIP || target}\n\`;
-      formatted += \`│  • Check HTTP headers: headers https://$\{target}\n\`;
-      formatted += \`│  • Search historical data: wayback https://$\{target}\n\`;
-      formatted += \`│  • Verify username patterns: username \${target.split('.')[0]}\n\`;
+      formatted += `│  • Run detailed port scan: portscan ${resolvedIP || target}\n`;
+      formatted += `│  • Check HTTP headers: headers https://$\{target}\n`;
+      formatted += `│  • Search historical data: wayback https://$\{target}\n`;
+      formatted += `│  • Verify username patterns: username ${target.split('.')[0]}\n`;
       formatted += `│\n`;
       formatted += `╰─ Comprehensive OSINT report complete`;
 
@@ -4690,7 +4690,7 @@ except:
       });
 
       if (!response.ok) {
-        throw new Error(\`GitHub fetch failed: \${response.status}\`);
+        throw new Error(`GitHub fetch failed: ${response.status}`);
       }
 
       const data = await response.json();
@@ -4700,11 +4700,11 @@ except:
       }
 
       // Format the threat actor data for terminal display
-      let formatted = \`╭─ MISP Galaxy Threat Actors Intelligence\n\`;
-      formatted += \`├─ Source: \${data.source || 'MISP Project'}\n\`;
-      formatted += \`├─ Type: \${data.type}\n\`;
-      formatted += \`├─ Total Actors: \${data.values.length}\n\`;
-      formatted += \`├─ Last Updated: \${new Date().toISOString().split('T')[0]}\n\`;
+      let formatted = `╭─ MISP Galaxy Threat Actors Intelligence\n`;
+      formatted += `├─ Source: ${data.source || 'MISP Project'}\n`;
+      formatted += `├─ Type: ${data.type}\n`;
+      formatted += `├─ Total Actors: ${data.values.length}\n`;
+      formatted += `├─ Last Updated: ${new Date().toISOString().split('T')[0]}\n`;
       formatted += `├─\n`;
       formatted += `├─ Top 20 Current Threat Actors:\n`;
       formatted += `├─\n`;
@@ -4727,13 +4727,13 @@ except:
           ? actor.description.substring(0, 97) + '...'
           : actor.description;
 
-        formatted += \`├─ \${index + 1}. \${actor.value}\n\`;
-        formatted += \`│  ├─ Country: \${country}\n\`;
-        formatted += \`│  ├─ Confidence: \${confidence}%\n\`;
-        formatted += \`│  ├─ Aliases: \${synonyms}\n\`;
-        formatted += \`│  ├─ Description: \${description}\n\`;
+        formatted += `├─ ${index + 1}. ${actor.value}\n`;
+        formatted += `│  ├─ Country: ${country}\n`;
+        formatted += `│  ├─ Confidence: ${confidence}%\n`;
+        formatted += `│  ├─ Aliases: ${synonyms}\n`;
+        formatted += `│  ├─ Description: ${description}\n`;
         if (actor.meta?.refs && actor.meta.refs.length > 0) {
-          formatted += \`│  └─ References: \${actor.meta.refs.slice(0, 2).join(', ')}\n\`;
+          formatted += `│  └─ References: ${actor.meta.refs.slice(0, 2).join(', ')}\n`;
         }
         formatted += `├─\n`;
       });
@@ -4760,7 +4760,7 @@ except:
   app.get('/api/osint/threat-actors/:name', async (req, res) => {
     try {
       const { name } = req.params;
-      console.log(\`🎯 Looking up threat actor: \${name}\`);
+      console.log(`🎯 Looking up threat actor: ${name}`);
 
       const response = await fetch('https://raw.githubusercontent.com/MISP/misp-galaxy/main/clusters/threat-actor.json', {
         signal: AbortSignal.timeout(10000),
@@ -4768,7 +4768,7 @@ except:
       });
 
       if (!response.ok) {
-        throw new Error(\`GitHub fetch failed: \${response.status}\`);
+        throw new Error(`GitHub fetch failed: ${response.status}`);
       }
 
       const data = await response.json();
@@ -4783,43 +4783,43 @@ except:
 
       if (!actor) {
         return res.status(404).json({
-          error: \`Threat actor '\${name}' not found in MISP Galaxy database\`,
+          error: `Threat actor '${name}' not found in MISP Galaxy database`,
           suggestion: 'Try using partial names or known aliases'
         });
       }
 
       // Format detailed actor information
-      let formatted = \`╭─ Threat Actor: \${actor.value}\n\`;
-      formatted += \`├─ UUID: \${actor.uuid}\n\`;
+      let formatted = `╭─ Threat Actor: ${actor.value}\n`;
+      formatted += `├─ UUID: ${actor.uuid}\n`;
       formatted += `├─\n`;
       formatted += `├─ Description:\n`;
-      formatted += `├─ \${actor.description}\n`;
+      formatted += `├─ ${actor.description}\n`;
       formatted += `├─\n`;
 
       if (actor.meta) {
         const meta = actor.meta;
 
         if (meta.country) {
-          formatted += \`├─ Country/Origin: \${meta.country}\n\`;
+          formatted += `├─ Country/Origin: ${meta.country}\n`;
         }
 
         if (meta['attribution-confidence']) {
-          formatted += \`├─ Attribution Confidence: \${meta['attribution-confidence']}\%\n\`;
+          formatted += `├─ Attribution Confidence: ${meta['attribution-confidence']}\%\n`;
         }
 
         if (meta['cfr-suspected-state-sponsor']) {
-          formatted += \`├─ Suspected State Sponsor: \${meta['cfr-suspected-state-sponsor']}\n\`;
+          formatted += `├─ Suspected State Sponsor: ${meta['cfr-suspected-state-sponsor']}\n`;
         }
 
         if (meta['cfr-suspected-victims']) {
-          formatted += \`├─ Known Victims: \${meta['cfr-suspected-victims'].slice(0, 5).join(', ')}\n\`;
+          formatted += `├─ Known Victims: ${meta['cfr-suspected-victims'].slice(0, 5).join(', ')}\n`;
           if (meta['cfr-suspected-victims'].length > 5) {
-            formatted += \`├─   (and \${meta['cfr-suspected-victims'].length - 5} more)\n\`;
+            formatted += `├─   (and ${meta['cfr-suspected-victims'].length - 5} more)\n`;
           }
         }
 
         if (meta['cfr-target-category']) {
-          formatted += \`├─ Target Categories: \${meta['cfr-target-category'].join(', ')}\n\`;
+          formatted += `├─ Target Categories: ${meta['cfr-target-category'].join(', ')}\n`;
         }
 
         if (meta['cfr-type-of-incident']) {
@@ -4827,16 +4827,16 @@ except:
         }
 
         if (meta.synonyms) {
-          formatted += `├─\n├─ Known Aliases: \${meta.synonyms.join(', ')}\n`;
+          formatted += `├─\n├─ Known Aliases: ${meta.synonyms.join(', ')}\n`;
         }
 
         if (meta.refs) {
           formatted += `├─\n├─ References:\n`;
           meta.refs.slice(0, 8).forEach((ref: string, index: number) => {
-            formatted += `├─ \${index + 1}. \${ref}\n`;
+            formatted += `├─ ${index + 1}. ${ref}\n`;
           });
           if (meta.refs.length > 8) {
-            formatted += `├─   (and \${meta.refs.length - 8} more references)\n`;
+            formatted += `├─   (and ${meta.refs.length - 8} more references)\n`;
           }
         }
       }
@@ -4886,8 +4886,8 @@ except:
         for (let i = 0; i < count; i++) {
           findings.push({
             type: type,
-            data: \`\${type}_data_\${i}_for_\${cleanTarget}\`,
-            source: \`Module_\${type.replace(/\s/g, '_')}\`,
+            data: `${type}_data_${i}_for_${cleanTarget}`,
+            source: `Module_${type.replace(/\s/g, '_')}`,
             confidence: confidenceLevels[Math.floor(Math.random() * confidenceLevels.length)]
           });
         }
