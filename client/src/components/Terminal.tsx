@@ -186,7 +186,9 @@ export function Terminal() {
     'nord-light', 'gruvbox-light', 'tokyo-night-light', 'catppuccin-latte', 'everforest-light',
     'midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient',
     'executive-dark', 'corporate-blue', 'finance-green', 'professional-grey', 'banking-teal',
-    'consulting-navy', 'accounting-beige', 'law-burgundy', 'tech-startup', 'healthcare-white'
+    'consulting-navy', 'accounting-beige', 'law-burgundy', 'tech-startup', 'healthcare-white',
+    'investment-banking', 'corporate-slate', 'silicon-valley', 'premium-charcoal', 'pharmaceutical-white',
+    'real-estate', 'auditing-cream', 'venture-capital', 'insurance-navy', 'logistics-orange'
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>(() => {
     // Load theme from user preferences, localStorage, or default to forest-gradient

@@ -553,6 +553,166 @@
   --voice-controls-gradient: linear-gradient(135deg, hsl(292 42% 8%) 0%, hsl(338 35% 6%) 50%, hsl(288 25% 5%) 100%);
 }
 
+/* Investment Banking - Premium dark gold */
+.theme-investment-banking {
+  --terminal-bg: radial-gradient(ellipse at bottom, hsl(45 35% 8%) 0%, hsl(40 30% 6%) 50%, hsl(35 25% 4%) 100%);
+  --terminal-bg-solid: hsl(40 12% 6%);
+  --terminal-text: hsl(45 40% 92%);
+  --terminal-highlight: hsl(45 100% 65%);
+  --terminal-subtle: hsl(40 35% 18%);
+  --terminal-subtle-rgb: 55, 48, 30;
+  --terminal-logo-green: hsl(45 100% 65%);
+  --terminal-bright-green: hsl(50 95% 70%);
+  --terminal-orange: hsl(35 100% 68%);
+  --terminal-no-bg: 1;
+  --terminal-use-gradient: 1;
+  --voice-controls-gradient: linear-gradient(135deg, hsl(45 38% 10%) 0%, hsl(40 32% 7%) 50%, hsl(35 28% 5%) 100%);
+}
+
+/* Corporate Slate - Modern neutral professional */
+.theme-corporate-slate {
+  --terminal-bg: linear-gradient(135deg, hsl(210 25% 15%) 0%, hsl(205 20% 12%) 30%, hsl(210 18% 9%) 70%, hsl(205 15% 6%) 100%);
+  --terminal-bg-solid: hsl(208 18% 10%);
+  --terminal-text: hsl(210 20% 95%);
+  --terminal-highlight: hsl(200 95% 60%);
+  --terminal-subtle: hsl(208 22% 22%);
+  --terminal-subtle-rgb: 48, 52, 60;
+  --terminal-logo-green: hsl(200 95% 60%);
+  --terminal-bright-green: hsl(195 90% 65%);
+  --terminal-orange: hsl(40 100% 70%);
+  --terminal-no-bg: 1;
+  --terminal-use-gradient: 1;
+  --voice-controls-gradient: linear-gradient(135deg, hsl(208 28% 16%) 0%, hsl(205 22% 11%) 50%, hsl(210 18% 8%) 100%);
+}
+
+/* Silicon Valley - Tech startup energy */
+.theme-silicon-valley {
+  --terminal-bg: conic-gradient(from 135deg at 40% 60%, hsl(220 70% 12%) 0%, hsl(195 60% 10%) 30%, hsl(280 55% 11%) 60%, hsl(220 65% 9%) 100%);
+  --terminal-bg-solid: hsl(220 35% 10%);
+  --terminal-text: hsl(220 30% 96%);
+  --terminal-highlight: hsl(195 100% 55%);
+  --terminal-subtle: hsl(220 50% 20%);
+  --terminal-subtle-rgb: 25, 40, 76;
+  --terminal-logo-green: hsl(195 100% 55%);
+  --terminal-bright-green: hsl(180 95% 60%);
+  --terminal-orange: hsl(280 85% 65%);
+  --terminal-no-bg: 1;
+  --terminal-use-gradient: 1;
+  --voice-controls-gradient: radial-gradient(circle, hsl(220 68% 14%) 0%, hsl(195 58% 11%) 50%, hsl(220 60% 10%) 100%);
+}
+
+/* Premium Charcoal - Luxury dark professional */
+.theme-premium-charcoal {
+  --terminal-bg: radial-gradient(ellipse at top left, hsl(210 15% 14%) 0%, hsl(205 12% 10%) 40%, hsl(210 10% 7%) 75%, hsl(205 8% 4%) 100%);
+  --terminal-bg-solid: hsl(208 10% 8%);
+  --terminal-text: hsl(210 18% 94%);
+  --terminal-highlight: hsl(195 100% 65%);
+  --terminal-subtle: hsl(208 18% 20%);
+  --terminal-subtle-rgb: 42, 48, 56;
+  --terminal-logo-green: hsl(195 100% 65%);
+  --terminal-bright-green: hsl(190 95% 70%);
+  --terminal-orange: hsl(45 100% 72%);
+  --terminal-no-bg: 1;
+  --terminal-use-gradient: 1;
+  --voice-controls-gradient: linear-gradient(135deg, hsl(208 20% 15%) 0%, hsl(205 15% 10%) 50%, hsl(210 12% 6%) 100%);
+}
+
+/* Pharmaceutical White - Clean medical professional */
+.theme-pharmaceutical-white {
+  --terminal-bg: linear-gradient(to bottom, hsl(200 45% 98%) 0%, hsl(190 40% 96%) 30%, hsl(195 38% 94%) 70%, hsl(200 35% 91%) 100%);
+  --terminal-bg-solid: hsl(195 40% 95%);
+  --terminal-text: hsl(200 50% 18%);
+  --terminal-highlight: hsl(195 95% 45%);
+  --terminal-subtle: hsl(195 30% 87%);
+  --terminal-subtle-rgb: 225, 235, 240;
+  --terminal-logo-green: hsl(195 95% 45%);
+  --terminal-bright-green: hsl(170 85% 42%);
+  --terminal-orange: hsl(25 100% 60%);
+  --terminal-no-bg: 1;
+  --terminal-use-gradient: 1;
+  --voice-controls-gradient: linear-gradient(135deg, hsl(195 48% 96%) 0%, hsl(190 42% 94%) 50%, hsl(200 38% 92%) 100%);
+}
+
+/* Real Estate - Warm professional brown */
+.theme-real-estate {
+  --terminal-bg: linear-gradient(160deg, hsl(30 40% 15%) 0%, hsl(28 35% 12%) 30%, hsl(25 30% 9%) 70%, hsl(22 25% 6%) 100%);
+  --terminal-bg-solid: hsl(28 32% 10%);
+  --terminal-text: hsl(30 35% 94%);
+  --terminal-highlight: hsl(35 90% 60%);
+  --terminal-subtle: hsl(28 38% 22%);
+  --terminal-subtle-rgb: 60, 48, 35;
+  --terminal-logo-green: hsl(35 90% 60%);
+  --terminal-bright-green: hsl(40 85% 65%);
+  --terminal-orange: hsl(15 100% 65%);
+  --terminal-no-bg: 1;
+  --terminal-use-gradient: 1;
+  --voice-controls-gradient: linear-gradient(135deg, hsl(28 45% 16%) 0%, hsl(25 38% 11%) 50%, hsl(22 32% 8%) 100%);
+}
+
+/* Auditing Cream - Professional warm neutral */
+.theme-auditing-cream {
+  --terminal-bg: radial-gradient(circle at center, hsl(42 50% 96%) 0%, hsl(38 45% 93%) 40%, hsl(40 42% 90%) 75%, hsl(42 38% 87%) 100%);
+  --terminal-bg-solid: hsl(40 45% 92%);
+  --terminal-text: hsl(40 60% 22%);
+  --terminal-highlight: hsl(200 85% 45%);
+  --terminal-subtle: hsl(40 40% 82%);
+  --terminal-subtle-rgb: 218, 210, 195;
+  --terminal-logo-green: hsl(200 85% 45%);
+  --terminal-bright-green: hsl(195 80% 50%);
+  --terminal-orange: hsl(25 95% 55%);
+  --terminal-no-bg: 1;
+  --terminal-use-gradient: 1;
+  --voice-controls-gradient: radial-gradient(circle, hsl(40 52% 94%) 0%, hsl(38 48% 91%) 50%, hsl(42 42% 88%) 100%);
+}
+
+/* Venture Capital - Bold modern purple */
+.theme-venture-capital {
+  --terminal-bg: linear-gradient(45deg, hsl(265 65% 14%) 0%, hsl(270 58% 11%) 25%, hsl(265 52% 8%) 60%, hsl(270 48% 6%) 100%);
+  --terminal-bg-solid: hsl(268 55% 9%);
+  --terminal-text: hsl(265 35% 96%);
+  --terminal-highlight: hsl(270 100% 70%);
+  --terminal-subtle: hsl(268 52% 20%);
+  --terminal-subtle-rgb: 42, 25, 62;
+  --terminal-logo-green: hsl(270 100% 70%);
+  --terminal-bright-green: hsl(265 95% 75%);
+  --terminal-orange: hsl(45 100% 72%);
+  --terminal-no-bg: 1;
+  --terminal-use-gradient: 1;
+  --voice-controls-gradient: linear-gradient(135deg, hsl(265 68% 15%) 0%, hsl(270 60% 10%) 50%, hsl(265 55% 7%) 100%);
+}
+
+/* Insurance Navy - Deep trust blue */
+.theme-insurance-navy {
+  --terminal-bg: radial-gradient(ellipse at top, hsl(220 75% 16%) 0%, hsl(215 68% 12%) 35%, hsl(220 62% 9%) 70%, hsl(215 55% 6%) 100%);
+  --terminal-bg-solid: hsl(218 65% 10%);
+  --terminal-text: hsl(220 35% 96%);
+  --terminal-highlight: hsl(200 100% 60%);
+  --terminal-subtle: hsl(218 65% 20%);
+  --terminal-subtle-rgb: 18, 28, 64;
+  --terminal-logo-green: hsl(200 100% 60%);
+  --terminal-bright-green: hsl(195 95% 65%);
+  --terminal-orange: hsl(40 100% 70%);
+  --terminal-no-bg: 1;
+  --terminal-use-gradient: 1;
+  --voice-controls-gradient: linear-gradient(135deg, hsl(218 78% 17%) 0%, hsl(215 70% 13%) 50%, hsl(220 65% 8%) 100%);
+}
+
+/* Logistics Orange - Energy and movement */
+.theme-logistics-orange {
+  --terminal-bg: conic-gradient(from 90deg at 50% 50%, hsl(25 55% 14%) 0%, hsl(20 48% 11%) 30%, hsl(15 42% 9%) 60%, hsl(20 38% 7%) 100%);
+  --terminal-bg-solid: hsl(20 48% 10%);
+  --terminal-text: hsl(25 40% 95%);
+  --terminal-highlight: hsl(25 100% 62%);
+  --terminal-subtle: hsl(20 50% 22%);
+  --terminal-subtle-rgb: 62, 42, 28;
+  --terminal-logo-green: hsl(25 100% 62%);
+  --terminal-bright-green: hsl(30 95% 65%);
+  --terminal-orange: hsl(15 100% 60%);
+  --terminal-no-bg: 1;
+  --terminal-use-gradient: 1;
+  --voice-controls-gradient: radial-gradient(circle, hsl(20 58% 15%) 0%, hsl(15 50% 10%) 50%, hsl(20 45% 8%) 100%);
+}
+
 /* Atari - Retro professional warmth */
 .theme-atari {
   --terminal-bg: hsl(32 38% 12%);
