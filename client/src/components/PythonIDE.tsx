@@ -2045,9 +2045,14 @@ calculator()
 
       speakReview();
     },
-    onError: () => {
-      speak("Collaborative code review failed. Please check your code and try again.");
-      toast({ title: "Review Failed", description: "Could not complete collaborative review.", variant: "destructive" });
+    onError: (error: Error) => {
+      const errorMsg = error?.message || "Please check your code and try again.";
+      speak(`Collaborative code review failed. ${errorMsg}`);
+      toast({ 
+        title: "Review Failed", 
+        description: errorMsg, 
+        variant: "destructive" 
+      });
     },
   });
 
@@ -2059,10 +2064,20 @@ calculator()
 
     if (currentCode.trim()) {
       speak("Initiating collaborative code review with satellite AI systems.");
+      
+      // Gather related files for context (exclude current file)
+      const relatedFiles = showMultiFileMode 
+        ? files
+            .filter(f => f.id !== activeFileId)
+            .map(f => ({ path: f.name, content: f.content }))
+        : undefined;
+      
       collaborativeReviewMutation.mutate({ 
         codeToReview: currentCode, 
         language: currentLang,
-        projectName: showMultiFileMode && currentActiveFile ? currentActiveFile.name : undefined
+        projectName: showMultiFileMode && currentActiveFile ? currentActiveFile.name : undefined,
+        filePath: showMultiFileMode && currentActiveFile ? currentActiveFile.name : undefined,
+        relatedFiles: relatedFiles
       });
     } else {
       toast({ title: "No code to review", description: "Please write some code first." });
