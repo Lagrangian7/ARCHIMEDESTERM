@@ -1191,9 +1191,9 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
     const recentHistory = this.buildConversationHistory(conversationHistory, 10);
 
-    // Use Gemini 1.5 Flash for fast, efficient responses
+    // Use Gemini 2.0 Flash for fast, efficient responses
     const model = gemini.getGenerativeModel({ 
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       systemInstruction: systemPrompt + greetingInstruction,
       generationConfig: {
         maxOutputTokens: mode === 'technical' ? 4000 : mode === 'health' ? 3000 : mode === 'freestyle' ? 4000 : 1500,
@@ -1709,7 +1709,7 @@ ${code}
         (async () => {
           try {
             const model = gemini.getGenerativeModel({
-              model: 'gemini-1.5-flash',
+              model: 'gemini-2.0-flash',
               generationConfig: { maxOutputTokens: 2000, temperature: 0.4 }
             });
             const result = await model.generateContent([
@@ -1719,7 +1719,7 @@ ${code}
             const feedback = result.response.text();
             reviews.push({
               provider: 'Google Gemini',
-              model: 'Gemini 1.5 Flash',
+              model: 'Gemini 2.0 Flash',
               feedback,
               rating: extractRating(feedback),
               status: 'success'
@@ -1729,7 +1729,7 @@ ${code}
             console.error('Gemini review error:', errorMsg);
             reviews.push({
               provider: 'Google Gemini',
-              model: 'Gemini 1.5 Flash',
+              model: 'Gemini 2.0 Flash',
               feedback: `Review unavailable - ${errorMsg.slice(0, 100)}`,
               rating: 0,
               status: 'error'
