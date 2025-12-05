@@ -6,7 +6,7 @@ import https from "https";
 import { promisify } from "util";
 import { exec } from "child_process";
 import { storage } from "./storage";
-import { messageSchema, type Message, insertUserPreferencesSchema, insertDocumentSchema } from "@shared/schema";
+import { messageSchema, type Message, insertUserPreferencesSchema, insertDocumentSchema, type Document } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { llmService } from "./llm-service";
 import { setupAuth, isAuthenticated } from "./replitAuth";
@@ -2511,7 +2511,7 @@ if _virtual_display_started:
 
       // Group by userId with details and show actual userId values
       const byUserId: Record<string, { count: number, documents: string[], actualUserId: string | null }> = {};
-      allDocs.forEach(doc => {
+      allDocs.forEach((doc: Document) => {
         const uid = doc.userId || 'null';
         if (!byUserId[uid]) {
           byUserId[uid] = { count: 0, documents: [], actualUserId: doc.userId };
@@ -2526,8 +2526,8 @@ if _virtual_display_started:
         Object.entries(byUserId).map(([uid, data]) => [uid, data.count])
       ));
 
-      const yourCount = allDocs.filter(d => d.userId === userId).length;
-      const nullCount = allDocs.filter(d => !d.userId || d.userId === '').length;
+      const yourCount = allDocs.filter((d: Document) => d.userId === userId).length;
+      const nullCount = allDocs.filter((d: Document) => !d.userId || d.userId === '').length;
 
       res.json({
         environment: process.env.NODE_ENV || 'development',
@@ -2540,7 +2540,7 @@ if _virtual_display_started:
         ),
         needsMigration: nullCount > 0,
         migrationAdvice: nullCount > 0 ? `Click "Migrate Docs" button to assign ${nullCount} orphaned documents to your account` : 'No migration needed',
-        sampleOrphanedDocs: allDocs.filter(d => !d.userId || d.userId === '').slice(0, 5).map(d => ({
+        sampleOrphanedDocs: allDocs.filter((d: Document) => !d.userId || d.userId === '').slice(0, 5).map((d: Document) => ({
           id: d.id,
           name: d.originalName,
           userId: d.userId
