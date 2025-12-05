@@ -711,7 +711,7 @@ export function PythonLessons({ onClose }: PythonLessonsProps) {
 
   const markComplete = () => {
     if (selectedLesson) {
-      setCompletedLessons(prev => new Set([...prev, selectedLesson.id]));
+      setCompletedLessons(prev => new Set([...Array.from(prev), selectedLesson.id]));
     }
   };
 

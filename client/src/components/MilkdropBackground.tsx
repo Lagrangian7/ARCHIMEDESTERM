@@ -94,7 +94,7 @@ export function MilkdropBackground({ isActive }: MilkdropBackgroundProps) {
       
       const audioElements = document.querySelectorAll('audio');
       
-      for (const element of audioElements) {
+      for (const element of Array.from(audioElements)) {
         const mediaElement = element as HTMLMediaElement;
         
         if (mediaElement.paused || (mediaElement as any)._spectrumConnected) continue;

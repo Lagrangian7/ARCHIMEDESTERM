@@ -304,11 +304,6 @@ export function useSpeechSynthesis() {
           console.warn(`Invalid voice selection: ${currentVoice}, falling back to default`);
         }
 
-        // Format Japanese text if present
-        if (hasJapanese && utterance.lang === 'ja-JP') {
-          cleanText = formatJapaneseForSpeech(cleanText);
-        }
-
         utterance.text = cleanText;
 
         // Apply volume as the final property to ensure it's not overridden

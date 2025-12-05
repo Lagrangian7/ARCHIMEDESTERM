@@ -347,7 +347,7 @@ export function Terminal() {
         (window as any).qwertyBuffer = ''; // Reset buffer
         
         // Visual feedback
-        addEntry('system', '🔇 Speech stopped (qwerty shortcut)');
+        console.log('🔇 Speech stopped (qwerty shortcut)');
       }
     };
 

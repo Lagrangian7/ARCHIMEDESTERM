@@ -182,7 +182,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
         while (attempts < maxAttempts) {
           let hasOverlap = false;
 
-          for (const bubble of existingBubbles) {
+          for (const bubble of Array.from(existingBubbles)) {
             const bubbleRect = bubble.getBoundingClientRect();
             // Check if positions overlap (with margin)
             if (
@@ -249,7 +249,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
 
       rafId = requestAnimationFrame(() => {
         const currentScrollTop = viewport.scrollTop;
-        const scrollDelta = currentScrollTop - initialScrollOffsetRef.current;
+        const scrollDelta = currentScrollTop - (initialScrollOffsetRef.current ?? 0);
         setScrollOffset(scrollDelta);
       });
     };

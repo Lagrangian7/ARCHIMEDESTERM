@@ -34,6 +34,10 @@ export function MatrixRain() {
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    
+    // Store references for use in animate function (TypeScript non-null assertion safe due to checks above)
+    const canvasRef2d = canvas;
+    const ctx2d = ctx;
 
     // Respect user's motion preferences
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -93,10 +97,10 @@ export function MatrixRain() {
       lastFrameTime = currentTime;
 
       // Clear canvas with more transparency to show wallpaper
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.02)'; // Lighter fading effect for wallpaper visibility
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx2d.fillStyle = 'rgba(0, 0, 0, 0.02)'; // Lighter fading effect for wallpaper visibility
+      ctx2d.fillRect(0, 0, canvasRef2d.width, canvasRef2d.height);
 
-      ctx.font = `${fontSize}px 'Invaders from Space', monospace`; // Set font
+      ctx2d.font = `${fontSize}px 'Invaders from Space', monospace`; // Set font
 
       drops.forEach(drop => {
         if (!drop.active) {
@@ -112,9 +116,9 @@ export function MatrixRain() {
         }
 
         // Draw character
-        ctx.fillStyle = drop.color;
+        ctx2d.fillStyle = drop.color;
         const char = drop.chars[drop.charIndex];
-        ctx.fillText(char, drop.col * fontSize, drop.row * fontSize);
+        ctx2d.fillText(char, drop.col * fontSize, drop.row * fontSize);
 
         // Move drop down
         drop.row += drop.speed;
@@ -125,7 +129,7 @@ export function MatrixRain() {
         }
 
         // Reset drop if it goes off screen
-        if (drop.row * fontSize > canvas.height) {
+        if (drop.row * fontSize > canvasRef2d.height) {
           drop.active = false;
           drop.row = Math.floor(Math.random() * -200); // Reset to above screen
         }
@@ -139,8 +143,8 @@ export function MatrixRain() {
 
     // Handle window resize
     const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      canvasRef2d.width = window.innerWidth;
+      canvasRef2d.height = window.innerHeight;
       // Recalculate columns based on new width
       const newColumns = Math.floor(canvas.width / fontSize);
       // Adjust drops array if necessary

@@ -24,9 +24,25 @@ function useDebounce<T>(value: T, delay: number): T {
 
 interface KnowledgeBaseModalProps {
   onClose: () => void;
+  initialPosition?: { x: number; y: number };
+  initialSize?: { width: number; height: number };
+  isMaximized?: boolean;
+  onStateChange?: (state: any) => void;
+  uploadTab?: string;
+  setUploadTab?: React.Dispatch<React.SetStateAction<"list" | "upload" | "music">>;
+  children?: React.ReactNode;
 }
 
-export function KnowledgeBaseModal({ onClose }: KnowledgeBaseModalProps) {
+export function KnowledgeBaseModal({ 
+  onClose, 
+  initialPosition,
+  initialSize,
+  isMaximized: initialMaximized,
+  onStateChange,
+  uploadTab,
+  setUploadTab,
+  children 
+}: KnowledgeBaseModalProps) {
   // Resizable window state - start with default size
   const [isMaximized, setIsMaximized] = useState(false);
   const [isResizing, setIsResizing] = useState(false);

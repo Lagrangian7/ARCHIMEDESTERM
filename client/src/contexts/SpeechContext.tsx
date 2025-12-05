@@ -28,8 +28,8 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
     if (!text || text.trim() === '') return;
 
     // Cancel any ongoing speech before starting new speech
-    if (speechSynthesis.speaking) {
-      speechSynthesis.cancel();
+    if (speechSynthesis.isSpeaking) {
+      speechSynthesis.stop();
     }
 
     // Prevent duplicate speech within 500ms
@@ -43,7 +43,7 @@ export function SpeechProvider({ children }: { children: ReactNode }) {
       lastSpokenRef.current = '';
     }, 500);
 
-    speechSynthesis.speak(text, options);
+    speechSynthesis.speak(text);
   }, [speechSynthesis]); // Removed interruptCurrent from dependencies
 
   useEffect(() => {

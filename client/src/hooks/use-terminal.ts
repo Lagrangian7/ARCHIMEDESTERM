@@ -78,6 +78,7 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [showPythonIDE, setShowPythonIDE] = useState(false);
   const [showPythonLessons, setShowPythonLessons] = useState(false);
   const [showWebSynth, setShowWebSynth] = useState(false);
+  const [showCodePlayground, setShowCodePlayground] = useState(false);
 
   const chatMutation = useMutation({
     mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' | 'freestyle' | 'health' }) => {
@@ -2890,5 +2891,7 @@ Powered by Wolfram Alpha Full Results API`);
     setShowPythonLessons,
     showWebSynth,
     setShowWebSynth,
+    showCodePlayground,
+    setShowCodePlayground,
   };
 }

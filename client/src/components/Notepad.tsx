@@ -94,7 +94,7 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
   // Trigger MathJax rendering when preview mode changes or content updates
   useEffect(() => {
     if (isPreviewMode && previewRef.current && window.MathJax) {
-      window.MathJax.typesetPromise([previewRef.current]).catch((err: any) => {
+      (window.MathJax.typesetPromise as (elements?: Element[]) => Promise<void>)([previewRef.current]).catch((err: any) => {
         console.error('MathJax typesetting error in notepad:', err);
       });
     }

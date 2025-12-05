@@ -13,8 +13,8 @@ import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
-  currentMode: 'natural' | 'technical' | 'freestyle';
-  switchMode: (mode: 'natural' | 'technical' | 'freestyle') => void;
+  currentMode: 'natural' | 'technical' | 'freestyle' | 'health';
+  switchMode: (mode: 'natural' | 'technical' | 'freestyle' | 'health') => void;
   switchTheme: () => void;
   setShowWebamp: (show: boolean) => void;
   setIsWebampOpen?: (show: boolean) => void;

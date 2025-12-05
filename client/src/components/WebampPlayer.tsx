@@ -96,7 +96,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
         const screenWidth = window.innerWidth;
         const centerX = Math.round((screenWidth / 2) - (webampWidth / 2));
 
-        const webamp = new Webamp({
+        const webampOptions: any = {
           enableHotkeys: true,
 
           // Initial window layout with shade mode enabled, centered horizontally at top
@@ -123,10 +123,10 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
             importButterchurn: () => import('butterchurn'),
             getPresets: async () => {
               const presets = await import('butterchurn-presets');
-              const presetPack = presets.default || presets;
+              const presetPack = (presets as any).default || presets;
               return Object.keys(presetPack).map(name => ({
                 name,
-                butterchurnPresetObject: presetPack[name]
+                butterchurnPresetObject: (presetPack as any)[name]
               }));
             },
             butterchurnOpen: false // User can open Milkdrop manually if desired
@@ -604,7 +604,9 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
               name: "Classic Winamp"
             }
           ]
-        });
+        };
+
+        const webamp = new Webamp(webampOptions);
 
         // Handle close event
         webamp.onClose(() => {
