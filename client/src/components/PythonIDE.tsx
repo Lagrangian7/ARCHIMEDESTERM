@@ -1757,7 +1757,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     const saved = localStorage.getItem(MULTI_FILE_SESSION_KEY);
     if (saved) {
       try {
-        const parsed = JSON.JSON.parse(saved);
+        const parsed = JSON.parse(saved);
         if (parsed.files && Array.isArray(parsed.files) && parsed.files.length > 0) {
           return parsed;
         }
@@ -2015,6 +2015,7 @@ calculator()
       const response = await fetch('/api/code/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ 
           code: codeToReview, 
           language, 
@@ -2023,7 +2024,10 @@ calculator()
           relatedFiles 
         }),
       });
-      if (!response.ok) throw new Error('Failed to get collaborative review');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.error || 'Failed to get collaborative review');
+      }
       return response.json();
     },
     onSuccess: (data) => {
@@ -2041,7 +2045,7 @@ calculator()
         if (data.reviews && data.reviews.length > 0) {
           let delay = 3000; // Start after summary completes (estimate)
           
-          data.reviews.forEach((review, index) => {
+          data.reviews.forEach((review: { provider: string; model: string; feedback: string; rating: number; status: 'success' | 'error' }, index: number) => {
             if (review.status === 'success') {
               setTimeout(() => {
                 const reviewText = `Review ${index + 1}: ${review.provider} using ${review.model}. Rating: ${review.rating} out of 10. ${review.feedback}`;
