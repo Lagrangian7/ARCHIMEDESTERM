@@ -2019,58 +2019,34 @@ calculator()
       setShowCollaborativeReview(true);
       toast({ title: "Collaborative Review Complete", description: "Multiple AI models have reviewed your code." });
 
-      // Speak the summary and each review using text-to-speech
-      if (window.speechSynthesis && data) {
-        // Stop any ongoing speech
-        window.speechSynthesis.cancel();
-
+      // Use the speak function from SpeechContext for consistent voice
+      const speakReview = () => {
         // Speak the overall summary first
-        const summaryUtterance = new SpeechSynthesisUtterance(
-          `Collaborative AI Review Summary. Overall rating: ${data.overallRating} out of 10. ${data.summary}`
-        );
-        summaryUtterance.rate = 1.1;
-        summaryUtterance.pitch = 0.6;
-        summaryUtterance.volume = 0.63;
+        const summaryText = `Collaborative AI Review Complete. Overall rating: ${data.overallRating} out of 10. ${data.summary}`;
+        speak(summaryText);
 
-        window.speechSynthesis.speak(summaryUtterance);
+        // Speak each individual review after a delay
+        if (data.reviews && data.reviews.length > 0) {
+          let delay = 3000; // Start after summary completes (estimate)
+          
+          data.reviews.forEach((review, index) => {
+            if (review.status === 'success') {
+              setTimeout(() => {
+                const reviewText = `Review ${index + 1}: ${review.provider} using ${review.model}. Rating: ${review.rating} out of 10. ${review.feedback}`;
+                speak(reviewText);
+              }, delay);
+              // Estimate delay based on text length (rough: 150ms per word)
+              const wordCount = review.feedback.split(' ').length;
+              delay += (wordCount * 150) + 1000; // Add buffer between reviews
+            }
+          });
+        }
+      };
 
-        // Speak each individual review after the summary
-        summaryUtterance.onend = () => {
-          if (data.reviews && data.reviews.length > 0) {
-            let reviewIndex = 0;
-
-            const speakNextReview = () => {
-              if (reviewIndex < data.reviews.length) {
-                const review = data.reviews[reviewIndex];
-
-                if (review.status === 'success') {
-                  const reviewText = `${review.provider} using ${review.model}. Rating: ${review.rating} out of 10. ${review.feedback}`;
-                  const reviewUtterance = new SpeechSynthesisUtterance(reviewText);
-                  reviewUtterance.rate = 1.1;
-                  reviewUtterance.pitch = 0.6;
-                  reviewUtterance.volume = 0.63;
-
-                  reviewUtterance.onend = () => {
-                    reviewIndex++;
-                    // Small delay between reviews
-                    setTimeout(speakNextReview, 500);
-                  };
-
-                  window.speechSynthesis.speak(reviewUtterance);
-                } else {
-                  // Skip failed reviews and move to next
-                  reviewIndex++;
-                  setTimeout(speakNextReview, 100);
-                }
-              }
-            };
-
-            speakNextReview();
-          }
-        };
-      }
+      speakReview();
     },
     onError: () => {
+      speak("Collaborative code review failed. Please check your code and try again.");
       toast({ title: "Review Failed", description: "Could not complete collaborative review.", variant: "destructive" });
     },
   });
