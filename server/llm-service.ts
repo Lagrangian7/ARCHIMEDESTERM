@@ -1724,12 +1724,13 @@ ${code}
               rating: extractRating(feedback),
               status: 'success'
             });
-          } catch (error) {
-            console.error('Gemini review error:', error);
+          } catch (error: any) {
+            const errorMsg = error?.message || error?.toString() || 'Unknown error';
+            console.error('Gemini review error:', errorMsg);
             reviews.push({
               provider: 'Google Gemini',
               model: 'Gemini 1.5 Flash',
-              feedback: 'Review unavailable - service error',
+              feedback: `Review unavailable - ${errorMsg.slice(0, 100)}`,
               rating: 0,
               status: 'error'
             });
