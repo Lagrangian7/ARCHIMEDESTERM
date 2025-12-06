@@ -924,7 +924,7 @@ export function Terminal() {
 
       {/* Talking Archimedes Character */}
       <MemoizedTalkingArchimedes
-        isTyping={isTyping && bubbleRendered}
+        isTyping={isTyping || isSpeaking}
         isSpeaking={isSpeaking}
         currentMessage={entries.length > 0 ? entries[entries.length - 1]?.content : undefined}
       />

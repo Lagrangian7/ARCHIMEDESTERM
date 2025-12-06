@@ -1024,8 +1024,9 @@ Make it feel like meeting an old friend who happens to know the date and has odd
         }
       }
 
-      // Append document references at the end if relevant documents were found
-      if (relevantDocuments.length > 0) {
+      // Only append document references if they're semantically relevant to the conversation
+      // Check if the AI response actually used the knowledge base context
+      if (relevantDocuments.length > 0 && contextualMessage.includes('Based on your uploaded documents:')) {
         const documentRefs = relevantDocuments
           .filter(doc => doc.fileName) // Only include docs with filenames
           .map((doc, index) => {

@@ -199,6 +199,7 @@ export class KnowledgeService {
 
   /**
    * Get contextual knowledge for AI responses
+   * Only returns context if there's strong semantic relevance
    */
   async getContextualKnowledge(userId: string, query: string, limit: number = 3): Promise<string> {
     const searchResults = await this.searchKnowledge(userId, query);
@@ -207,7 +208,19 @@ export class KnowledgeService {
       return '';
     }
 
-    const context = searchResults.relevantContent
+    // Filter for strong matches - content should contain key terms from query
+    const queryTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 3);
+    const relevantContent = searchResults.relevantContent.filter(content => {
+      const contentLower = content.toLowerCase();
+      const matchCount = queryTerms.filter(term => contentLower.includes(term)).length;
+      return matchCount >= Math.min(2, queryTerms.length); // At least 2 query terms match
+    });
+
+    if (relevantContent.length === 0) {
+      return ''; // No strong matches, don't include knowledge base
+    }
+
+    const context = relevantContent
       .slice(0, limit)
       .map((content, index) => `[Reference ${index + 1}]: ${content}`)
       .join('\n\n');
