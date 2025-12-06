@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Globe } from 'lucide-react';
 import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -347,7 +347,7 @@ def calculate_statistics(numbers: List[float]) -> Dict[str, float]:
 
     return {
         'mean': sum(numbers) / n,
-        'median': sorted_nums[n // 2] if n % 2 else 
+        'median': sorted_nums[n // 2] if n % 2 else
                   (sorted_nums[n // 2 - 1] + sorted_nums[n // 2]) / 2,
         'min': min(numbers),
         'max': max(numbers),
@@ -1942,7 +1942,7 @@ calculator()
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ title: notepadTitle, content: notepadContent }),
+        body: JSON.JSON.stringify({ title: notepadTitle, content: notepadContent }),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -2032,23 +2032,23 @@ calculator()
 
   // Mutation for Collaborative AI Code Review
   const collaborativeReviewMutation = useMutation({
-    mutationFn: async ({ codeToReview, language, projectName, filePath, relatedFiles }: { 
-      codeToReview: string; 
-      language: string; 
-      projectName?: string; 
-      filePath?: string; 
+    mutationFn: async ({ codeToReview, language, projectName, filePath, relatedFiles }: {
+      codeToReview: string;
+      language: string;
+      projectName?: string;
+      filePath?: string;
       relatedFiles?: Array<{ path: string; content: string }>;
     }) => {
       const response = await fetch('/api/code/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.JSON.stringify({ 
-          code: codeToReview, 
-          language, 
-          projectName, 
-          filePath, 
-          relatedFiles 
+        body: JSON.JSON.stringify({
+          code: codeToReview,
+          language,
+          projectName,
+          filePath,
+          relatedFiles
         }),
       });
       if (!response.ok) {
@@ -2091,10 +2091,10 @@ calculator()
     onError: (error: Error) => {
       const errorMsg = error?.message || "Please check your code and try again.";
       speak(`Collaborative code review failed. ${errorMsg}`);
-      toast({ 
-        title: "Review Failed", 
-        description: errorMsg, 
-        variant: "destructive" 
+      toast({
+        title: "Review Failed",
+        description: errorMsg,
+        variant: "destructive"
       });
     },
   });
@@ -2109,14 +2109,14 @@ calculator()
       speak("Initiating collaborative code review with satellite AI systems.");
 
       // Gather related files for context (exclude current file)
-      const relatedFiles = showMultiFileMode 
+      const relatedFiles = showMultiFileMode
         ? files
             .filter(f => f.id !== activeFileId)
             .map(f => ({ path: f.name, content: f.content }))
         : undefined;
 
-      collaborativeReviewMutation.mutate({ 
-        codeToReview: currentCode, 
+      collaborativeReviewMutation.mutate({
+        codeToReview: currentCode,
         language: currentLang,
         projectName: showMultiFileMode && currentActiveFile ? currentActiveFile.name : undefined,
         filePath: showMultiFileMode && currentActiveFile ? currentActiveFile.name : undefined,
@@ -2205,9 +2205,9 @@ calculator()
 
           const introMessage = "Greetings! Archimedes version 7 AI assistant now online with Codeium-powered code completions. I'm your friendly programming mentor and cyberpunk coding companion. Whether you need help with basics or advanced techniques, I'm here to guide you through any programming language. Let's create something amazing together!";
 
-          setChatHistory(prev => [...prev, { 
-            role: 'assistant', 
-            content: introMessage 
+          setChatHistory(prev => [...prev, {
+            role: 'assistant',
+            content: introMessage
           }]);
 
           // Speak the introduction
@@ -2294,9 +2294,9 @@ calculator()
 
     // Auto-speak new assistant messages
     const lastMessage = chatHistory[chatHistory.length - 1];
-    if (lastMessage && 
-        lastMessage.role === 'assistant' && 
-        lastMessage.content && 
+    if (lastMessage &&
+        lastMessage.role === 'assistant' &&
+        lastMessage.content &&
         typeof lastMessage.content === 'string' &&
         lastMessage.content.trim().length > 0) {
       const messageId = `${chatHistory.length}-${lastMessage.content.substring(0, Math.min(20, lastMessage.content.length))}`;
@@ -2890,9 +2890,9 @@ calculator()
       setAiProcessingLines([]);
 
       console.error('Chat error:', error);
-      setChatHistory(prev => [...prev, { 
-        role: 'assistant', 
-        content: `Error: ${error instanceof Error ? error.message : 'Failed to get response. Please try again.'}` 
+      setChatHistory(prev => [...prev, {
+        role: 'assistant',
+        content: `Error: ${error instanceof Error ? error.message : 'Failed to get response. Please try again.'}`
       }]);
     },
   });
@@ -3064,7 +3064,7 @@ Generated by Archimedes Workshop IDE
         fontFamily: 'Menlo, Monaco, "Courier New", monospace',
         theme: {
           background: currentPythonTheme.bg,
-          foreground: currentPythonTheme.text,
+          foreground: currentPythonTheme.foreground,
           cursor: currentPythonTheme.highlight,
         }
       });
@@ -3155,7 +3155,7 @@ Generated by Archimedes Workshop IDE
         />
       )}
 
-      <div 
+      <div
         className="fixed z-50 overflow-hidden shadow-2xl flex flex-col rounded-lg"
         style={{
           width: isMaximized ? '100vw' : `${dimensions.width}px`,
@@ -3170,10 +3170,10 @@ Generated by Archimedes Workshop IDE
         data-no-terminal-autofocus
       >
         {/* Header */}
-        <div 
+        <div
           className="flex items-center justify-between px-3 py-2 rounded-t-lg cursor-move flex-shrink-0"
           style={{
-            background: currentPythonTheme.gradient 
+            background: currentPythonTheme.gradient
               ? `linear-gradient(to right, ${currentPythonTheme.subtle}dd, ${currentPythonTheme.subtle}90)`
               : `${currentPythonTheme.subtle}90`,
             borderBottom: `1px solid ${currentPythonTheme.border}`,
@@ -3266,8 +3266,8 @@ Generated by Archimedes Workshop IDE
                   const currentName = activeFile.name;
                   const baseName = currentName.replace(/\.[^.]+$/, '');
                   const newName = baseName + langConfig.extension;
-                  setFiles(prev => prev.map(f => 
-                    f.id === activeFile.id 
+                  setFiles(prev => prev.map(f =>
+                    f.id === activeFile.id
                       ? { ...f, language: newLang, name: newName }
                       : f
                   ));
@@ -3510,11 +3510,11 @@ Generated by Archimedes Workshop IDE
 
         {/* Multi-File Tabs Bar */}
         {showMultiFileMode && (
-          <div 
+          <div
             className="flex items-center gap-1 px-2 py-1 overflow-x-auto"
-            style={{ 
+            style={{
               backgroundColor: currentPythonTheme.subtle,
-              borderBottom: `1px solid ${currentPythonTheme.border}` 
+              borderBottom: `1px solid ${currentPythonTheme.border}`
             }}
           >
             {/* File Tabs */}
@@ -3582,7 +3582,7 @@ Generated by Archimedes Workshop IDE
             <button
               onClick={downloadAllFiles}
               className="flex items-center gap-1 px-2 py-1 rounded text-xs font-mono hover:opacity-70 ml-auto"
-              style={{ 
+              style={{
                 color: currentPythonTheme.highlight,
                 border: `1px solid ${currentPythonTheme.border}`,
               }}
@@ -3596,7 +3596,7 @@ Generated by Archimedes Workshop IDE
             <button
               onClick={() => setShowLocalInstructions(!showLocalInstructions)}
               className="flex items-center gap-1 px-2 py-1 rounded text-xs font-mono hover:opacity-70"
-              style={{ 
+              style={{
                 color: showLocalInstructions ? currentPythonTheme.bg : currentPythonTheme.highlight,
                 backgroundColor: showLocalInstructions ? currentPythonTheme.highlight : 'transparent',
                 border: `1px solid ${currentPythonTheme.border}`,
@@ -3611,9 +3611,9 @@ Generated by Archimedes Workshop IDE
 
         {/* Local Instructions Panel */}
         {showMultiFileMode && showLocalInstructions && activeFile && (
-          <div 
+          <div
             className="px-4 py-2 text-xs font-mono overflow-x-auto"
-            style={{ 
+            style={{
               backgroundColor: `${currentPythonTheme.highlight}15`,
               borderBottom: `1px solid ${currentPythonTheme.border}`,
               color: currentPythonTheme.text,
@@ -3634,141 +3634,141 @@ Generated by Archimedes Workshop IDE
                 <Panel defaultSize={30} minSize={20} maxSize={50}>
                   <div className="h-full flex flex-col" style={{ borderRight: `1px solid ${currentPythonTheme.border}`, backgroundColor: currentPythonTheme.subtle }}>
                     <div className="p-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
-                <div className="flex items-center gap-2 font-mono text-xs" style={{ color: currentPythonTheme.highlight }}>
-                  <MessageSquare className="w-4 h-4" />
-                  <span>
-                    {isFreestyleMode 
-                      ? '🎨 FREESTYLE CODE VIBE' 
-                      : `${LANGUAGE_CONFIG[activeFile?.language || currentLanguage]?.icon || '💻'} ${LANGUAGE_CONFIG[activeFile?.language || currentLanguage]?.displayName.toUpperCase() || 'CODE'} ASSISTANT`
-                    }
-                  </span>
-                </div>
-                <Button
-                  onClick={() => setChatHistory([])}
-                  variant="ghost"
-                  size="sm"
-                  className="font-mono text-xs h-7 px-2"
-                  style={{
-                    color: currentPythonTheme.text,
-                    opacity: chatHistory.length > 0 ? 1 : 0.5,
-                  }}
-                  disabled={chatHistory.length === 0}
-                  title="Clear chat history"
-                >
-                  Clear
-                </Button>
-              </div>
-
-              {/* Chat History */}
-              <ScrollArea className="flex-1">
-                <div ref={chatScrollRef} className="p-3 space-y-3">
-                  {chatHistory.length === 0 && (
-                    <div className="font-mono text-xs" style={{ color: currentPythonTheme.text, opacity: 0.7 }}>
-                      <p className="mb-2">💡 Ask me about {LANGUAGE_CONFIG[activeFile?.language || currentLanguage]?.displayName || 'code'}:</p>
-                      <ul className="list-disc list-inside text-[10px]">
-                        <li>Syntax and best practices</li>
-                        <li>Code improvements and optimization</li>
-                        <li>Debugging current errors</li>
-                        <li>Language-specific features</li>
-                        <li>Project structure analysis</li>
-                      </ul>
+                      <div className="flex items-center gap-2 font-mono text-xs" style={{ color: currentPythonTheme.highlight }}>
+                        <MessageSquare className="w-4 h-4" />
+                        <span>
+                          {isFreestyleMode
+                            ? '🎨 FREESTYLE CODE VIBE'
+                            : `${LANGUAGE_CONFIG[activeFile?.language || currentLanguage]?.icon || '💻'} ${LANGUAGE_CONFIG[activeFile?.language || currentLanguage]?.displayName.toUpperCase() || 'CODE'} ASSISTANT`
+                          }
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => setChatHistory([])}
+                        variant="ghost"
+                        size="sm"
+                        className="font-mono text-xs h-7 px-2"
+                        style={{
+                          color: currentPythonTheme.text,
+                          opacity: chatHistory.length > 0 ? 1 : 0.5,
+                        }}
+                        disabled={chatHistory.length === 0}
+                        title="Clear chat history"
+                      >
+                        Clear
+                      </Button>
                     </div>
-                  )}
-                  {chatHistory.map((msg, idx) => {
-                    const hasCode = msg.role === 'assistant' && extractCodeFromResponse(msg.content);
-                    return (
-                      <div key={idx} className={`${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                        <div 
-                          className="inline-block max-w-[90%] p-2 rounded font-mono text-xs"
+
+                    {/* Chat History */}
+                    <ScrollArea className="flex-1">
+                      <div ref={chatScrollRef} className="p-3 space-y-3">
+                        {chatHistory.length === 0 && (
+                          <div className="font-mono text-xs" style={{ color: currentPythonTheme.text, opacity: 0.7 }}>
+                            <p className="mb-2">💡 Ask me about {LANGUAGE_CONFIG[activeFile?.language || currentLanguage]?.displayName || 'code'}:</p>
+                            <ul className="list-disc list-inside text-[10px]">
+                              <li>Syntax and best practices</li>
+                              <li>Code improvements and optimization</li>
+                              <li>Debugging current errors</li>
+                              <li>Language-specific features</li>
+                              <li>Project structure analysis</li>
+                            </ul>
+                          </div>
+                        )}
+                        {chatHistory.map((msg, idx) => {
+                          const hasCode = msg.role === 'assistant' && extractCodeFromResponse(msg.content);
+                          return (
+                            <div key={idx} className={`${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                              <div
+                                className="inline-block max-w-[90%] p-2 rounded font-mono text-xs"
+                                style={{
+                                  backgroundColor: msg.role === 'user' ? currentPythonTheme.bg : currentPythonTheme.subtle,
+                                  color: msg.role === 'user' ? currentPythonTheme.highlight : currentPythonTheme.text,
+                                  border: `1px solid ${currentPythonTheme.border}`,
+                                }}
+                              >
+                                <div className="font-bold text-[10px] mb-1 opacity-70 flex items-center justify-between gap-2">
+                                  <span>{msg.role === 'user' ? 'YOU' : 'ARCHIMEDES'}</span>
+                                  {msg.role === 'assistant' && (
+                                    <div className="flex gap-1">
+                                      {hasCode && (
+                                        <button
+                                          onClick={() => insertCodeIntoEditor(hasCode)}
+                                          className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] transition-colors"
+                                          title="Insert code into editor"
+                                        >
+                                          ⬇️
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(msg.content).then(() => {
+                                            speak('Code copied to clipboard');
+                                          }).catch(err => {
+                                            console.error('Failed to copy:', err);
+                                          });
+                                        }}
+                                        className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] transition-colors"
+                                        title="Copy code to clipboard"
+                                      >
+                                        📋
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="whitespace-pre-wrap">{msg.content}</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {chatMutation.isPending && (
+                          <div className="text-left">
+                            <div className="inline-block p-2 rounded bg-black/50 text-[var(--terminal-text)]/70 font-mono text-xs">
+                              <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                              Analyzing {aiProcessingLines.length > 0 ? `${aiProcessingLines.length} lines` : 'code'}...
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+
+                    {/* Chat Input */}
+                    <form onSubmit={handleChatSubmit} className="p-3" style={{ borderTop: `1px solid ${currentPythonTheme.border}` }}>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          placeholder="Describe what you want to build..."
+                          className="flex-1 rounded px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2"
                           style={{
-                            backgroundColor: msg.role === 'user' ? currentPythonTheme.bg : currentPythonTheme.subtle,
-                            color: msg.role === 'user' ? currentPythonTheme.highlight : currentPythonTheme.text,
+                            backgroundColor: currentPythonTheme.bg,
                             border: `1px solid ${currentPythonTheme.border}`,
+                            color: currentPythonTheme.text,
+                          }}
+                          disabled={chatMutation.isPending}
+                        />
+                        <Button
+                          type="submit"
+                          size="sm"
+                          disabled={!chatInput.trim() || chatMutation.isPending}
+                          style={{
+                            backgroundColor: currentPythonTheme.highlight,
+                            color: currentPythonTheme.bg,
                           }}
                         >
-                          <div className="font-bold text-[10px] mb-1 opacity-70 flex items-center justify-between gap-2">
-                            <span>{msg.role === 'user' ? 'YOU' : 'ARCHIMEDES'}</span>
-                            {msg.role === 'assistant' && (
-                              <div className="flex gap-1">
-                                {hasCode && (
-                                  <button
-                                    onClick={() => insertCodeIntoEditor(hasCode)}
-                                    className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] transition-colors"
-                                    title="Insert code into editor"
-                                  >
-                                    ⬇️
-                                  </button>
-                                )}
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(msg.content).then(() => {
-                                      speak('Code copied to clipboard');
-                                    }).catch(err => {
-                                      console.error('Failed to copy:', err);
-                                    });
-                                  }}
-                                  className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] transition-colors"
-                                  title="Copy code to clipboard"
-                                >
-                                  📋
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                          <div className="whitespace-pre-wrap">{msg.content}</div>
-                        </div>
+                          <Send className="w-4 h-4" />
+                        </Button>
                       </div>
-                    );
-                  })}
-                  {chatMutation.isPending && (
-                    <div className="text-left">
-                      <div className="inline-block p-2 rounded bg-black/50 text-[var(--terminal-text)]/70 font-mono text-xs">
-                        <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
-                        Analyzing {aiProcessingLines.length > 0 ? `${aiProcessingLines.length} lines` : 'code'}...
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-
-              {/* Chat Input */}
-              <form onSubmit={handleChatSubmit} className="p-3" style={{ borderTop: `1px solid ${currentPythonTheme.border}` }}>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Describe what you want to build..."
-                    className="flex-1 rounded px-3 py-2 font-mono text-xs focus:outline-none focus:ring-2"
-                    style={{
-                      backgroundColor: currentPythonTheme.bg,
-                      border: `1px solid ${currentPythonTheme.border}`,
-                      color: currentPythonTheme.text,
-                    }}
-                    disabled={chatMutation.isPending}
-                  />
-                  <Button
-                    type="submit"
-                    size="sm"
-                    disabled={!chatInput.trim() || chatMutation.isPending}
-                    style={{
-                      backgroundColor: currentPythonTheme.highlight,
-                      color: currentPythonTheme.bg,
-                    }}
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
-              </form>
+                    </form>
                   </div>
                 </Panel>
 
-                <PanelResizeHandle 
-                  style={{ 
-                    width: '3px', 
+                <PanelResizeHandle
+                  style={{
+                    width: '3px',
                     backgroundColor: currentPythonTheme.border,
                     cursor: 'col-resize'
-                  }} 
+                  }}
                 />
               </>
             )}
@@ -3776,906 +3776,1100 @@ Generated by Archimedes Workshop IDE
             {/* Editor/Output Section */}
             <Panel defaultSize={showChat ? 70 : 100} minSize={50}>
               <div className="h-full flex flex-col min-w-0">
-          {/* FREESTYLE Mode Banner */}
-          {isFreestyleMode && (
-            <div className="p-4" style={{ backgroundColor: `${currentPythonTheme.highlight}10`, borderBottom: `1px solid ${currentPythonTheme.border}` }}>
-              <div className="flex items-start gap-3">
-                <MessageSquare className="w-5 h-5 mt-1 flex-shrink-0" style={{ color: currentPythonTheme.highlight }} />
-                <div className="flex-1">
-                  <div className="font-mono text-xs font-bold mb-2" style={{ color: currentPythonTheme.highlight }}>
-                    🎨 FREESTYLE MODE - VIBE CODE WITH ARCHIMEDES
-                  </div>
-                  <p className="font-mono text-xs leading-relaxed" style={{ color: currentPythonTheme.text }}>
-                    Chat freely with ARCHIMEDES in the AI panel to create any code you can imagine. 
-                    Describe what you want to build, ask for examples, or request code snippets. 
-                    ARCHIMEDES will generate fully functional code based on your vibe!
-                  </p>
-                </div>
-                <button
-                  onClick={() => setIsFreestyleMode(false)}
-                  className="hover:opacity-70"
-                  style={{ color: currentPythonTheme.text }}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Archimedes Guidance Panel */}
-          {showGuidance && !isFreestyleMode && (
-            <div className="p-4" style={{ backgroundColor: `${currentPythonTheme.highlight}08`, borderBottom: `1px solid ${currentPythonTheme.border}` }}>
-              <div className="flex items-start gap-3">
-                <Lightbulb className="w-5 h-5 mt-1 flex-shrink-0" style={{ color: currentPythonTheme.highlight }} />
-                <div className="flex-1">
-                  <div className="font-mono text-xs font-bold mb-2" style={{ color: currentPythonTheme.highlight }}>
-                    {currentLesson.title} - ARCHIMEDES GUIDANCE:
-                  </div>
-                  <p className="font-mono text-xs leading-relaxed" style={{ color: currentPythonTheme.text }}>
-                    {currentLesson.guidance}
-                  </p>
-                  <div className="mt-3">
-                    <div className="font-mono text-xs font-bold mb-2" style={{ color: currentPythonTheme.highlight }}>
-                      LEARNING OBJECTIVES:
-                    </div>
-                    <div className="space-y-1">
-                      {currentLesson.tasks.map((task, idx) => (
-                        <div key={idx} className="flex items-start gap-2">
-                          <button
-                            onClick={() => toggleTask(task)}
-                            className="flex-shrink-0 mt-0.5"
-                          >
-                            <CheckCircle2
-                              className="w-4 h-4"
-                              style={{
-                                color: completedTasks.has(task) ? currentPythonTheme.highlight : `${currentPythonTheme.highlight}50`
-                              }}
-                            />
-                          </button>
-                          <span 
-                            className={`font-mono text-xs ${completedTasks.has(task) ? 'line-through' : ''}`}
-                            style={{ 
-                              color: completedTasks.has(task) ? currentPythonTheme.highlight : `${currentPythonTheme.text}B0`
-                            }}
-                          >
-                            {task}
-                          </span>
+                {/* FREESTYLE Mode Banner */}
+                {isFreestyleMode && (
+                  <div className="p-4" style={{ backgroundColor: `${currentPythonTheme.highlight}10`, borderBottom: `1px solid ${currentPythonTheme.border}` }}>
+                    <div className="flex items-start gap-3">
+                      <MessageSquare className="w-5 h-5 mt-1 flex-shrink-0" style={{ color: currentPythonTheme.highlight }} />
+                      <div className="flex-1">
+                        <div className="font-mono text-xs font-bold mb-2" style={{ color: currentPythonTheme.highlight }}>
+                          🎨 FREESTYLE MODE - VIBE CODE WITH ARCHIMEDES
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowGuidance(false)}
-                  className="hover:opacity-70"
-                  style={{ color: currentPythonTheme.text }}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Collapsible Notepad Section */}
-          {showNotepad && (
-            <div className="border-b p-4 space-y-3" style={{ 
-              backgroundColor: `${currentPythonTheme.bg}dd`,
-              borderColor: `${currentPythonTheme.highlight}30`
-            }}>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" style={{ color: currentPythonTheme.highlight }} />
-                  <h3 className="font-mono font-bold text-sm" style={{ color: currentPythonTheme.text }}>
-                    NOTEPAD
-                  </h3>
-                </div>
-                <button
-                  onClick={() => setShowNotepad(false)}
-                  className="hover:opacity-70"
-                  style={{ color: currentPythonTheme.text }}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <input
-                type="text"
-                value={notepadTitle}
-                onChange={(e) => setNotepadTitle(e.target.value)}
-                placeholder="Note title..."
-                className="w-full px-3 py-2 rounded font-mono text-sm border focus:outline-none focus:ring-2"
-                style={{
-                  backgroundColor: currentPythonTheme.bg,
-                  color: currentPythonTheme.text,
-                  borderColor: currentPythonTheme.border,
-                }}
-                data-testid="notepad-title-input"
-              />
-
-              <textarea
-                value={notepadContent}
-                onChange={(e) => setNotepadContent(e.target.value)}
-                placeholder="Type your notes here... (supports plain text and HTML for preview)"
-                className="w-full h-32 px-3 py-2 rounded font-mono text-sm border focus:outline-none focus:ring-2"
-                style={{
-                  backgroundColor: currentPythonTheme.bg,
-                  color: currentPythonTheme.text,
-                  borderColor: currentPythonTheme.border,
-                }}
-                data-testid="notepad-content-textarea"
-              />
-
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => saveNotepadMutation.mutate()}
-                  disabled={saveNotepadMutation.isPending || !notepadContent.trim()}
-                  size="sm"
-                  className="font-mono text-xs"
-                  style={{ 
-                    backgroundColor: currentPythonTheme.highlight,
-                    color: currentPythonTheme.bg,
-                  }}
-                  data-testid="button-save-notepad"
-                >
-                  {saveNotepadMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-3 h-3 mr-1" />
-                      Save to Knowledge Base
-                    </>
-                  )}
-                </Button>
-
-                <Button
-                  onClick={() => {
-                    setNotepadContent('');
-                    setNotepadTitle('Untitled Note');
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="font-mono text-xs"
-                  style={{
-                    borderColor: currentPythonTheme.border,
-                    color: currentPythonTheme.text,
-                  }}
-                  data-testid="button-clear-notepad"
-                >
-                  <Trash2 className="w-3 h-3 mr-1" />
-                  Clear
-                </Button>
-
-                <span className="ml-auto font-mono text-xs" style={{ color: currentPythonTheme.text, opacity: 0.7 }}>
-                  {notepadContent.length} characters
-                </span>
-              </div>
-
-              <div className="text-xs font-mono p-2 rounded" style={{ 
-                backgroundColor: `${currentPythonTheme.highlight}10`,
-                color: currentPythonTheme.text,
-                opacity: 0.8
-              }}>
-                💡 Notes are saved to your knowledge base and can be retrieved using 'docs' or 'read {notepadTitle}' commands.
-              </div>
-            </div>
-          )}
-
-          {/* Editor with Optional Preview Panel */}
-          <div className="flex-1 flex border-b border-[var(--terminal-highlight)]/30 min-h-0">
-            {(showPreview && ((showMultiFileMode && activeFile && activeFile.language === 'html') || (!showMultiFileMode && detectLanguageFromCode(code) === 'html'))) ? (
-              <PanelGroup direction="horizontal" autoSaveId="python-ide-html-preview">
-                {/* Editor Panel */}
-                <Panel defaultSize={50} minSize={30}>
-                  <div className="h-full w-full relative">
-                    <Editor
-                      height="100%"
-                      width="100%"
-                      language={showMultiFileMode && activeFile ? getMonacoLanguage(activeFile.language) : 'python'}
-                      value={showMultiFileMode && activeFile ? activeFile.content : code}
-                      onChange={(value) => {
-                        if (showMultiFileMode && activeFile) {
-                          updateFileContent(activeFile.id, value || '');
-                        } else {
-                          setCode(value || '');
-                        }
-                      }}
-                      onMount={(editor, monaco) => {
-                        try {
-                          handleEditorDidMount(editor, monaco);
-                        } catch (error) {
-                          console.error('Editor mount failed:', error);
-                          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                          setOutput(`Editor initialization error: ${errorMessage}`);
-                        }
-                      }}
-                      theme="vs-dark"
-                      loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
-                      options={{
-                  minimap: { enabled: showMinimap },
-                  fontSize: fontSize,
-                  lineNumbers: 'on',
-                  scrollBeyondLastLine: false,
-                  automaticLayout: true,
-                  padding: { top: 10, bottom: 10 },
-                  wordWrap: 'on',
-                  renderWhitespace: 'selection',
-                  renderLineHighlight: 'all',
-                  tabSize: 4,
-                  insertSpaces: true,
-                  autoIndent: 'full',
-                  formatOnPaste: true,
-                  formatOnType: true,
-                  trimAutoWhitespace: true,
-                  quickSuggestions: { other: true, comments: false, strings: true },
-                  acceptSuggestionOnEnter: 'on',
-                  parameterHints: { enabled: true, cycle: true },
-                  suggest: {
-                    showKeywords: true,
-                    showSnippets: true,
-                    showFunctions: true,
-                    showVariables: true,
-                    showClasses: true,
-                    showConstants: true,
-                    showModules: true,
-                    showProperties: true,
-                    snippetsPreventQuickSuggestions: false
-                  },
-                  hover: { enabled: true, delay: 300, sticky: true },
-                  find: { seedSearchStringFromSelection: 'selection', autoFindInSelection: 'never' },
-                  contextmenu: true,
-                  mouseWheelZoom: true,
-                  smoothScrolling: true,
-                  cursorBlinking: 'smooth',
-                  cursorSmoothCaretAnimation: 'on',
-                  lightbulb: {
-                    enabled: 'on' as any
-                  },
-                  matchBrackets: 'always',
-                  bracketPairColorization: { enabled: true },
-                  guides: { bracketPairs: true, indentation: true },
-                  selectOnLineNumbers: true,
-                  multiCursorModifier: 'ctrlCmd',
-                  scrollbar: {
-                    vertical: 'auto',
-                    horizontal: 'auto',
-                    useShadows: true,
-                    verticalScrollbarSize: 10,
-                    horizontalScrollbarSize: 10
-                  },
-                  folding: true,
-                  foldingStrategy: 'indentation',
-                  showFoldingControls: 'mouseover'
-                }}
-                      key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
-                    />
-                  </div>
-                </Panel>
-
-                <PanelResizeHandle 
-                  style={{ 
-                    width: '3px', 
-                    backgroundColor: currentPythonTheme.border,
-                    cursor: 'col-resize'
-                  }} 
-                />
-
-                {/* Live HTML Preview Panel */}
-                <Panel defaultSize={50} minSize={30}>
-                  <div className="h-full bg-white overflow-auto">
-                    <div className="sticky top-0 px-2 py-1 bg-gray-100 border-b text-xs font-mono text-gray-600 flex items-center justify-between">
-                      <span>🎨 Live Preview</span>
+                        <p className="font-mono text-xs leading-relaxed" style={{ color: currentPythonTheme.text }}>
+                          Chat freely with ARCHIMEDES in the AI panel to create any code you can imagine.
+                          Describe what you want to build, ask for examples, or request code snippets.
+                          ARCHIMEDES will generate fully functional code based on your vibe!
+                        </p>
+                      </div>
                       <button
-                        onClick={() => {
-                          const blob = new Blob([htmlPreviewState], { type: 'text/html' });
-                          const url = URL.createObjectURL(blob);
-                          window.open(url, '_blank');
-                        }}
-                        className="text-blue-600 hover:underline"
+                        onClick={() => setIsFreestyleMode(false)}
+                        className="hover:opacity-70"
+                        style={{ color: currentPythonTheme.text }}
                       >
-                        Open in New Tab
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
-                    <iframe
-                      srcDoc={htmlPreviewState}
-                      sandbox="allow-scripts allow-same-origin"
-                      className="w-full h-full border-none"
-                      title="HTML Preview"
-                    />
                   </div>
-                </Panel>
-              </PanelGroup>
-            ) : showPreview ? (
-              <PanelGroup direction="horizontal" autoSaveId="python-ide-preview">
-                {/* Editor Panel */}
-                <Panel defaultSize={60} minSize={30}>
-                  <div className="h-full w-full relative">
-                    <Editor
-                      height="100%"
-                      width="100%"
-                      language={showMultiFileMode && activeFile ? getMonacoLanguage(activeFile.language) : 'python'}
-                      value={showMultiFileMode && activeFile ? activeFile.content : code}
-                      onChange={(value) => {
-                        if (showMultiFileMode && activeFile) {
-                          updateFileContent(activeFile.id, value || '');
-                        } else {
-                          setCode(value || '');
-                        }
-                      }}
-                      onMount={(editor, monaco) => {
-                        try {
-                          handleEditorDidMount(editor, monaco);
-                        } catch (error) {
-                          console.error('Editor mount failed:', error);
-                          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                          setOutput(`Editor initialization error: ${errorMessage}`);
-                        }
-                      }}
-                      theme="vs-dark"
-                      loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
-                      options={{
-                  // Display
-                  minimap: { enabled: showMinimap },
-                  fontSize: fontSize,
-                  lineNumbers: 'on',
-                  scrollBeyondLastLine: false,
-                  automaticLayout: true,
-                  padding: { top: 10, bottom: 10 },
-                  wordWrap: 'on',
-                  renderWhitespace: 'selection',
-                  renderLineHighlight: 'all',
+                )}
 
-                  // Editing
-                  tabSize: 4,
-                  insertSpaces: true,
-                  autoIndent: 'full',
-                  formatOnPaste: true,
-                  formatOnType: true,
-                  trimAutoWhitespace: true,
-
-                  // IntelliSense
-                  quickSuggestions: {
-                    other: true,
-                    comments: false,
-                    strings: true
-                  },
-                  acceptSuggestionOnEnter: 'on',
-                  parameterHints: {
-                    enabled: true,
-                    cycle: true
-                  },
-                  suggest: {
-                    showKeywords: true,
-                    showSnippets: true,
-                    showFunctions: true,
-                    showVariables: true,
-                    showClasses: true,
-                    showConstants: true,
-                    showModules: true,
-                    showProperties: true,
-                    snippetsPreventQuickSuggestions: false
-                  },
-                  hover: {
-                    enabled: true,
-                    delay: 300,
-                    sticky: true
-                  },
-
-                  // Find/Replace
-                  find: {
-                    seedSearchStringFromSelection: 'selection',
-                    autoFindInSelection: 'never'
-                  },
-
-                  // UI Features
-                  contextmenu: true,
-                  mouseWheelZoom: true,
-                  smoothScrolling: true,
-                  cursorBlinking: 'smooth',
-                  cursorSmoothCaretAnimation: 'on',
-
-                  // Code Actions
-                  lightbulb: {
-                    enabled: 'on' as any
-                  },
-
-                  // Brackets
-                  matchBrackets: 'always',
-                  bracketPairColorization: {
-                    enabled: true
-                  },
-                  guides: {
-                    bracketPairs: true,
-                    indentation: true
-                  },
-
-                  // Selection
-                  selectOnLineNumbers: true,
-                  multiCursorModifier: 'ctrlCmd',
-
-                  // Scrollbar
-                  scrollbar: {
-                    vertical: 'auto',
-                    horizontal: 'auto',
-                    useShadows: true,
-                    verticalScrollbarSize: 10,
-                    horizontalScrollbarSize: 10
-                  },
-
-                  // Folding
-                  folding: true,
-                  foldingStrategy: 'indentation',
-                  showFoldingControls: 'mouseover'
-                }}
-                      key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
-                    />
-                  </div>
-                </Panel>
-
-                <PanelResizeHandle 
-                  style={{ 
-                    width: '3px', 
-                    backgroundColor: currentPythonTheme.border,
-                    cursor: 'col-resize'
-                  }} 
-                />
-
-                {/* Preview Panel */}
-                <Panel defaultSize={40} minSize={25}>
-                  <div className="h-full overflow-auto p-4" 
-                       style={{ 
-                         backgroundColor: currentPythonTheme.bg,
-                         borderLeft: `1px solid ${currentPythonTheme.border}`
-                       }}
-                  >
-                    <div className="font-mono text-xs mb-3 pb-2" style={{ 
-                      color: currentPythonTheme.highlight,
-                      borderBottom: `1px solid ${currentPythonTheme.border}`
-                    }}>
-                      {needsInput ? '⌨️ INTERACTIVE INPUT REQUIRED' : hasGuiElements ? '🎨 GUI APPLICATION PREVIEW' : '📺 LIVE OUTPUT PREVIEW'}
-                    </div>
-
-                    {hasGuiElements && guiOutput ? (
-                      <div className="space-y-4">
-                        <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
-                          ✨ GUI application rendered successfully:
+                {/* Archimedes Guidance Panel */}
+                {showGuidance && !isFreestyleMode && (
+                  <div className="p-4" style={{ backgroundColor: `${currentPythonTheme.highlight}08`, borderBottom: `1px solid ${currentPythonTheme.border}` }}>
+                    <div className="flex items-start gap-3">
+                      <Lightbulb className="w-5 h-5 mt-1 flex-shrink-0" style={{ color: currentPythonTheme.highlight }} />
+                      <div className="flex-1">
+                        <div className="font-mono text-xs font-bold mb-2" style={{ color: currentPythonTheme.highlight }}>
+                          {currentLesson.title} - ARCHIMEDES GUIDANCE:
                         </div>
-                        <div 
-                          className="rounded p-4"
-                          style={{ 
-                            backgroundColor: 'white',
-                            border: `2px solid ${currentPythonTheme.border}`
-                          }}
-                          dangerouslySetInnerHTML={{ __html: guiOutput }}
-                        />
-                        <div className="mt-4 p-3 rounded" style={{ 
-                          backgroundColor: `${currentPythonTheme.highlight}10`,
-                          border: `1px solid ${currentPythonTheme.border}`
-                        }}>
-                          <div className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
-                            💡 <strong>Support:</strong> Your Python code generated visual output! The preview shows tkinter windows, matplotlib plots, or other GUI elements.
+                        <p className="font-mono text-xs leading-relaxed" style={{ color: currentPythonTheme.text }}>
+                          {currentLesson.guidance}
+                        </p>
+                        <div className="mt-3">
+                          <div className="font-mono text-xs font-bold mb-2" style={{ color: currentPythonTheme.highlight }}>
+                            LEARNING OBJECTIVES:
+                          </div>
+                          <div className="space-y-1">
+                            {currentLesson.tasks.map((task, idx) => (
+                              <div key={idx} className="flex items-start gap-2">
+                                <button
+                                  onClick={() => toggleTask(task)}
+                                  className="flex-shrink-0 mt-0.5"
+                                >
+                                  <CheckCircle2
+                                    className="w-4 h-4"
+                                    style={{
+                                      color: completedTasks.has(task) ? currentPythonTheme.highlight : `${currentPythonTheme.highlight}50`
+                                    }}
+                                  />
+                                </button>
+                                <span
+                                  className={`font-mono text-xs ${completedTasks.has(task) ? 'line-through' : ''}`}
+                                  style={{
+                                    color: completedTasks.has(task) ? currentPythonTheme.highlight : `${currentPythonTheme.text}B0`
+                                  }}
+                                >
+                                  {task}
+                                </span>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
-                    ) : needsInput ? (
-                      <div className="space-y-4">
-                        <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
-                          Your code requires user input. Fill in the values below:
-                        </div>
-
-                        {inputPrompts.map((prompt, index) => (
-                          <div key={index} className="space-y-2">
-                            <label 
-                              className="font-mono text-xs font-bold block"
-                              style={{ color: currentPythonTheme.highlight }}
-                            >
-                              {prompt}
-                            </label>
-                            <input
-                              type="text"
-                              value={inputValues[index] || ''}
-                              onChange={(e) => {
-                                const newValues = [...inputValues];
-                                newValues[index] = e.target.value;
-                                setInputValues(newValues);
-                              }}
-                              placeholder={`Enter ${prompt.toLowerCase()}`}
-                              className="w-full px-3 py-2 font-mono text-xs rounded focus:outline-none focus:ring-2"
-                              style={{
-                                backgroundColor: currentPythonTheme.subtle,
-                                color: currentPythonTheme.text,
-                                border: `1px solid ${currentPythonTheme.border}`,
-                              }}
-                              data-testid={`input-field-${index}`}
-                            />
-                          </div>
-                        ))}
-
-                        <Button
-                          onClick={runWithInputs}
-                          disabled={isRunning}
-                          className="w-full font-mono text-sm mt-4"
-                          style={{
-                            backgroundColor: currentPythonTheme.highlight,
-                            color: currentPythonTheme.bg,
-                          }}
-                          data-testid="button-run-with-inputs"
-                        >
-                          {isRunning ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Running...
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4 mr-2" />
-                              Run with Inputs
-                            </>
-                          )}
-                        </Button>
-
-                        <div className="mt-4 p-3 rounded" style={{ 
-                          backgroundColor: `${currentPythonTheme.highlight}10`,
-                          border: `1px solid ${currentPythonTheme.border}`
-                        }}>
-                          <div className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
-                            💡 <strong>How it works:</strong> Your input values will be automatically injected into the code before execution, replacing each input() call.
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <pre 
-                        className="font-mono text-xs whitespace-pre-wrap"
+                      <button
+                        onClick={() => setShowGuidance(false)}
+                        className="hover:opacity-70"
                         style={{ color: currentPythonTheme.text }}
-                        data-testid="preview-output"
                       >
-                        {output || '// Run code to see output here...'}
-                      </pre>
-                    )}
-                  </div>
-                </Panel>
-              </PanelGroup>
-            ) : (
-              <div className="h-full w-full relative">
-                <Editor
-                  height="100%"
-                  width="100%"
-                  language={showMultiFileMode && activeFile ? getMonacoLanguage(activeFile.language) : 'python'}
-                  value={showMultiFileMode && activeFile ? activeFile.content : code}
-                  onChange={(value) => {
-                    if (showMultiFileMode && activeFile) {
-                      updateFileContent(activeFile.id, value || '');
-                    } else {
-                      setCode(value || '');
-                    }
-                  }}
-                  onMount={(editor, monaco) => {
-                    try {
-                      handleEditorDidMount(editor, monaco);
-                    } catch (error) {
-                      console.error('Editor mount failed:', error);
-                      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                      setOutput(`Editor initialization error: ${errorMessage}`);
-                    }
-                  }}
-                  theme="vs-dark"
-                  loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
-                  options={{
-              // Display
-              minimap: { enabled: showMinimap },
-              fontSize: fontSize,
-              lineNumbers: 'on',
-              scrollBeyondLastLine: false,
-              automaticLayout: true,
-              padding: { top: 10, bottom: 10 },
-              wordWrap: 'on',
-              renderWhitespace: 'selection',
-              renderLineHighlight: 'all',
-
-              // Editing
-              tabSize: 4,
-              insertSpaces: true,
-              autoIndent: 'full',
-              formatOnPaste: true,
-              formatOnType: true,
-              trimAutoWhitespace: true,
-
-              // IntelliSense
-              quickSuggestions: {
-                other: true,
-                comments: false,
-                strings: true
-              },
-              acceptSuggestionOnEnter: 'on',
-              parameterHints: {
-                enabled: true,
-                cycle: true
-              },
-              suggest: {
-                showKeywords: true,
-                showSnippets: true,
-                showFunctions: true,
-                showVariables: true,
-                showClasses: true,
-                showConstants: true,
-                showModules: true,
-                showProperties: true,
-                snippetsPreventQuickSuggestions: false
-              },
-              hover: {
-                enabled: true,
-                delay: 300,
-                sticky: true
-              },
-
-              // Find/Replace
-              find: {
-                seedSearchStringFromSelection: 'selection',
-                autoFindInSelection: 'never'
-              },
-
-              // UI Features
-              contextmenu: true,
-              mouseWheelZoom: true,
-              smoothScrolling: true,
-              cursorBlinking: 'smooth',
-              cursorSmoothCaretAnimation: 'on',
-
-              // Code Actions
-              lightbulb: {
-                enabled: 'on' as any
-              },
-
-              // Brackets
-              matchBrackets: 'always',
-              bracketPairColorization: {
-                enabled: true
-              },
-              guides: {
-                bracketPairs: true,
-                indentation: true
-              },
-
-              // Selection
-              selectOnLineNumbers: true,
-              multiCursorModifier: 'ctrlCmd',
-
-              // Scrollbar
-              scrollbar: {
-                vertical: 'auto',
-                horizontal: 'auto',
-                useShadows: true,
-                verticalScrollbarSize: 10,
-                horizontalScrollbarSize: 10
-              },
-
-              // Folding
-              folding: true,
-              foldingStrategy: 'indentation',
-              showFoldingControls: 'mouseover'
-            }}
-                  key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Run Button */}
-          <div className="px-4 py-2 flex items-center justify-between" style={{ backgroundColor: currentPythonTheme.subtle, borderBottom: `1px solid ${currentPythonTheme.border}` }}>
-            <div className="flex gap-2">
-              <Button
-                onClick={runCode}
-                disabled={isRunning}
-                className="font-mono text-sm"
-                style={{
-                  backgroundColor: currentPythonTheme.bg,
-                  color: currentPythonTheme.highlight,
-                  border: `1px solid ${currentPythonTheme.border}`,
-                }}
-              >
-                {isRunning ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Running...
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4 mr-2" />
-                    {showMultiFileMode ? 'Run Active File' : 'Run Code'}
-                  </>
-                )}
-              </Button>
-              {showMultiFileMode && files.length > 1 && (
-                <Button
-                  onClick={() => {
-                    // Run main file or first Python file
-                    const mainFile = files.find(f => f.name === 'main.py') || files.find(f => f.language === 'python');
-                    if (mainFile) {
-                      setActiveFileId(mainFile.id);
-                      setTimeout(() => runCode(), 100);
-                    } else {
-                      toast({
-                        title: "No main file",
-                        description: "Create a main.py file or select a Python file to run",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
-                  disabled={isRunning}
-                  variant="outline"
-                  className="font-mono text-sm"
-                  style={{
-                    backgroundColor: currentPythonTheme.bg,
-                    color: currentPythonTheme.text,
-                    border: `1px solid ${currentPythonTheme.border}`,
-                  }}
-                  title="Run main.py or first Python file"
-                >
-                  <Play className="w-4 h-4 mr-2" />
-                  Run Main
-                </Button>
-              )}
-              <Button
-                onClick={() => {
-                  if (showMultiFileMode && activeFile) {
-                    updateFileContent(activeFile.id, ''); // Clear active file content
-                  } else {
-                    setCode(''); // Clear main code state
-                  }
-                }}
-                variant="outline"
-                className="font-mono text-sm"
-                style={{
-                  backgroundColor: currentPythonTheme.bg,
-                  color: currentPythonTheme.text,
-                  border: `1px solid ${currentPythonTheme.border}`,
-                }}
-              >
-                Clear Editor
-              </Button>
-              {!showGuidance && (
-                <Button
-                  onClick={() => setShowGuidance(true)}
-                  variant="outline"
-                  className="font-mono text-sm"
-                  style={{
-                    backgroundColor: currentPythonTheme.bg,
-                    color: currentPythonTheme.highlight,
-                    border: `1px solid ${currentPythonTheme.border}`,
-                  }}
-                >
-                  <Lightbulb className="w-4 h-4 mr-2" />
-                  Show Guidance
-                </Button>
-              )}
-              <Button
-                onClick={startCollaborativeReview}
-                disabled={collaborativeReviewMutation.isPending}
-                variant="outline"
-                className="font-mono text-sm"
-                data-testid="button-collaborative-review"
-                style={{
-                  backgroundColor: currentPythonTheme.bg,
-                  color: '#ff6b6b',
-                  border: `1px solid ${currentPythonTheme.border}`,
-                }}
-                title="Get collaborative feedback from multiple AI systems"
-              >
-                {collaborativeReviewMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Reviewing...
-                  </>
-                ) : (
-                  <>
-                    <Users className="w-4 h-4 mr-2" />
-                    AI Review
-                  </>
-                )}
-              </Button>
-            </div>
-            <div className="font-mono text-xs" style={{ color: `${currentPythonTheme.text}B0` }}>
-              {currentLesson.tasks.length > 0 && (
-                <span>Progress: {completedTasks.size}/{currentLesson.tasks.length} objectives</span>
-              )}
-            </div>
-          </div>
-
-          {/* Output / Preview / Terminal Section */}
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: `1px solid ${currentPythonTheme.subtle}` }}>
-              <div className="flex items-center gap-2">
-                <span style={{ color: currentPythonTheme.text }} className="font-semibold text-sm">
-                  {showTerminal ? 'Terminal' : 'Output'}
-                </span>
-                {!showTerminal && elapsedTime > 0 && (
-                  <span style={{ color: currentPythonTheme.subtle }} className="text-xs">
-                    ({elapsedTime}s)
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                {/* Terminal Toggle Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowTerminal(!showTerminal)}
-                  className="hover:bg-white/10"
-                  style={{ color: showTerminal ? currentPythonTheme.highlight : currentPythonTheme.text }}
-                  title="Toggle terminal"
-                >
-                  <Terminal size={16} className="mr-1" />
-                  <span className="hidden md:inline">Terminal</span>
-                </Button>
-                {!showTerminal && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      // Download project logic
-                      const handleDownloadProject = () => {
-                        // This function is defined inside the component scope
-                        // It should be accessible here.
-                        downloadAllFiles();
-                      };
-                      handleDownloadProject();
-                    }}
-                    className="hover:bg-white/10"
-                    style={{ color: currentPythonTheme.text }}
-                    title="Download project files"
-                  >
-                    <Download size={16} className="mr-1" />
-                    <span className="hidden md:inline">Download</span>
-                  </Button>
-                )}
-              </div>
-            </div>
-            {showTerminal ? (
-              <div 
-                ref={terminalRef} 
-                className="flex-1 p-2"
-                style={{ 
-                  background: currentPythonTheme.bg,
-                  minHeight: '300px'
-                }}
-              />
-            ) : (
-              <ScrollArea className="flex-1">
-                <div className="p-4 font-mono text-sm whitespace-pre-wrap" style={{ color: currentPythonTheme.text }}>
-                  {isRunning ? (
-                    <div className="flex items-center gap-2" style={{ color: currentPythonTheme.highlight }}>
-                      <Loader2 className="animate-spin" size={16} />
-                      Executing...
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
-                  ) : output || guiOutput ? (
-                    <>
-                      {guiOutput && (
-                        <div className="mb-4 p-4 rounded" style={{ background: currentPythonTheme.gradient ? `${currentPythonTheme.subtle}20` : currentPythonTheme.bg }}>
-                          <div dangerouslySetInnerHTML={{ __html: guiOutput }} />
+                  </div>
+                )}
+
+                {/* Collapsible Notepad Section */}
+                {showNotepad && (
+                  <div className="border-b p-4 space-y-3" style={{
+                    backgroundColor: `${currentPythonTheme.bg}dd`,
+                    borderColor: `${currentPythonTheme.highlight}30`
+                  }}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-5 h-5" style={{ color: currentPythonTheme.highlight }} />
+                        <h3 className="font-mono font-bold text-sm" style={{ color: currentPythonTheme.text }}>
+                          NOTEPAD
+                        </h3>
+                      </div>
+                      <button
+                        onClick={() => setShowNotepad(false)}
+                        className="hover:opacity-70"
+                        style={{ color: currentPythonTheme.text }}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <input
+                      type="text"
+                      value={notepadTitle}
+                      onChange={(e) => setNotepadTitle(e.target.value)}
+                      placeholder="Note title..."
+                      className="w-full px-3 py-2 rounded font-mono text-sm border focus:outline-none focus:ring-2"
+                      style={{
+                        backgroundColor: currentPythonTheme.bg,
+                        color: currentPythonTheme.text,
+                        borderColor: currentPythonTheme.border,
+                      }}
+                      data-testid="notepad-title-input"
+                    />
+
+                    <textarea
+                      value={notepadContent}
+                      onChange={(e) => setNotepadContent(e.target.value)}
+                      placeholder="Type your notes here... (supports plain text and HTML for preview)"
+                      className="w-full h-32 px-3 py-2 rounded font-mono text-sm border focus:outline-none focus:ring-2"
+                      style={{
+                        backgroundColor: currentPythonTheme.bg,
+                        color: currentPythonTheme.text,
+                        borderColor: currentPythonTheme.border,
+                      }}
+                      data-testid="notepad-content-textarea"
+                    />
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={() => saveNotepadMutation.mutate()}
+                        disabled={saveNotepadMutation.isPending || !notepadContent.trim()}
+                        size="sm"
+                        className="font-mono text-xs"
+                        style={{
+                          backgroundColor: currentPythonTheme.highlight,
+                          color: currentPythonTheme.bg,
+                        }}
+                        data-testid="button-save-notepad"
+                      >
+                        {saveNotepadMutation.isPending ? (
+                          <>
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="w-3 h-3 mr-1" />
+                            Save to Knowledge Base
+                          </>
+                        )}
+                      </Button>
+
+                      <Button
+                        onClick={() => {
+                          setNotepadContent('');
+                          setNotepadTitle('Untitled Note');
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="font-mono text-xs"
+                        style={{
+                          borderColor: currentPythonTheme.border,
+                          color: currentPythonTheme.text,
+                        }}
+                        data-testid="button-clear-notepad"
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        Clear
+                      </Button>
+
+                      <span className="ml-auto font-mono text-xs" style={{ color: currentPythonTheme.text, opacity: 0.7 }}>
+                        {notepadContent.length} characters
+                      </span>
+                    </div>
+
+                    <div className="text-xs font-mono p-2 rounded" style={{
+                      backgroundColor: `${currentPythonTheme.highlight}10`,
+                      color: currentPythonTheme.text,
+                      opacity: 0.8
+                    }}>
+                      💡 Notes are saved to your knowledge base and can be retrieved using 'docs' or 'read {notepadTitle}' commands.
+                    </div>
+                  </div>
+                )}
+
+                {/* Editor with Optional Preview Panel */}
+                <div className="flex-1 flex border-b border-[var(--terminal-highlight)]/30 min-h-0">
+                  {(showPreview && ((showMultiFileMode && activeFile && activeFile.language === 'html') || (!showMultiFileMode && detectLanguageFromCode(code) === 'html'))) ? (
+                    <PanelGroup direction="horizontal" autoSaveId="python-ide-html-preview">
+                      {/* Editor Panel */}
+                      <Panel defaultSize={50} minSize={30}>
+                        <div className="h-full w-full relative">
+                          <Editor
+                            height="100%"
+                            width="100%"
+                            language={showMultiFileMode && activeFile ? getMonacoLanguage(activeFile.language) : 'python'}
+                            value={showMultiFileMode && activeFile ? activeFile.content : code}
+                            onChange={(value) => {
+                              if (showMultiFileMode && activeFile) {
+                                updateFileContent(activeFile.id, value || '');
+                              } else {
+                                setCode(value || '');
+                              }
+                            }}
+                            onMount={(editor, monaco) => {
+                              try {
+                                handleEditorDidMount(editor, monaco);
+                              } catch (error) {
+                                console.error('Editor mount failed:', error);
+                                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                                setOutput(`Editor initialization error: ${errorMessage}`);
+                              }
+                            }}
+                            theme="vs-dark"
+                            loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
+                            options={{
+                              minimap: { enabled: showMinimap },
+                              fontSize: fontSize,
+                              lineNumbers: 'on',
+                              scrollBeyondLastLine: false,
+                              automaticLayout: true,
+                              padding: { top: 10, bottom: 10 },
+                              wordWrap: 'on',
+                              renderWhitespace: 'selection',
+                              renderLineHighlight: 'all',
+                              tabSize: 4,
+                              insertSpaces: true,
+                              autoIndent: 'full',
+                              formatOnPaste: true,
+                              formatOnType: true,
+                              trimAutoWhitespace: true,
+                              quickSuggestions: { other: true, comments: false, strings: true },
+                              acceptSuggestionOnEnter: 'on',
+                              parameterHints: { enabled: true, cycle: true },
+                              suggest: {
+                                showKeywords: true,
+                                showSnippets: true,
+                                showFunctions: true,
+                                showVariables: true,
+                                showClasses: true,
+                                showConstants: true,
+                                showModules: true,
+                                showProperties: true,
+                                snippetsPreventQuickSuggestions: false
+                              },
+                              hover: { enabled: true, delay: 300, sticky: true },
+                              find: { seedSearchStringFromSelection: 'selection', autoFindInSelection: 'never' },
+                              contextmenu: true,
+                              mouseWheelZoom: true,
+                              smoothScrolling: true,
+                              cursorBlinking: 'smooth',
+                              cursorSmoothCaretAnimation: 'on',
+                              lightbulb: {
+                                enabled: 'on' as any
+                              },
+                              matchBrackets: 'always',
+                              bracketPairColorization: { enabled: true },
+                              guides: { bracketPairs: true, indentation: true },
+                              selectOnLineNumbers: true,
+                              multiCursorModifier: 'ctrlCmd',
+                              scrollbar: {
+                                vertical: 'auto',
+                                horizontal: 'auto',
+                                useShadows: true,
+                                verticalScrollbarSize: 10,
+                                horizontalScrollbarSize: 10
+                              },
+                              folding: true,
+                              foldingStrategy: 'indentation',
+                              showFoldingControls: 'mouseover'
+                            }}
+                            key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
+                          />
                         </div>
-                      )}
-                      {output && (
-                        <div dangerouslySetInnerHTML={{ __html: output }} />
-                      )}
-                    </>
+                      </Panel>
+
+                      <PanelResizeHandle
+                        style={{
+                          width: '3px',
+                          backgroundColor: currentPythonTheme.border,
+                          cursor: 'col-resize'
+                        }}
+                      />
+
+                      {/* Live HTML Preview Panel */}
+                      <Panel defaultSize={50} minSize={30}>
+                        <div className="h-full bg-white overflow-auto">
+                          <div className="sticky top-0 px-2 py-1 bg-gray-100 border-b text-xs font-mono text-gray-600 flex items-center justify-between">
+                            <span>🎨 Live Preview</span>
+                            <button
+                              onClick={() => {
+                                const blob = new Blob([htmlPreviewState], { type: 'text/html' });
+                                const url = URL.createObjectURL(blob);
+                                window.open(url, '_blank');
+                              }}
+                              className="text-blue-600 hover:underline"
+                            >
+                              Open in New Tab
+                            </button>
+                          </div>
+                          <iframe
+                            srcDoc={htmlPreviewState}
+                            sandbox="allow-scripts allow-same-origin"
+                            className="w-full h-full border-none"
+                            title="HTML Preview"
+                          />
+                        </div>
+                      </Panel>
+                    </PanelGroup>
+                  ) : showPreview ? (
+                    <PanelGroup direction="horizontal" autoSaveId="python-ide-preview">
+                      {/* Editor Panel */}
+                      <Panel defaultSize={60} minSize={30}>
+                        <div className="h-full w-full relative">
+                          <Editor
+                            height="100%"
+                            width="100%"
+                            language={showMultiFileMode && activeFile ? getMonacoLanguage(activeFile.language) : 'python'}
+                            value={showMultiFileMode && activeFile ? activeFile.content : code}
+                            onChange={(value) => {
+                              if (showMultiFileMode && activeFile) {
+                                updateFileContent(activeFile.id, value || '');
+                              } else {
+                                setCode(value || '');
+                              }
+                            }}
+                            onMount={(editor, monaco) => {
+                              try {
+                                handleEditorDidMount(editor, monaco);
+                              } catch (error) {
+                                console.error('Editor mount failed:', error);
+                                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                                setOutput(`Editor initialization error: ${errorMessage}`);
+                              }
+                            }}
+                            theme="vs-dark"
+                            loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
+                            options={{
+                              // Display
+                              minimap: { enabled: showMinimap },
+                              fontSize: fontSize,
+                              lineNumbers: 'on',
+                              scrollBeyondLastLine: false,
+                              automaticLayout: true,
+                              padding: { top: 10, bottom: 10 },
+                              wordWrap: 'on',
+                              renderWhitespace: 'selection',
+                              renderLineHighlight: 'all',
+
+                              // Editing
+                              tabSize: 4,
+                              insertSpaces: true,
+                              autoIndent: 'full',
+                              formatOnPaste: true,
+                              formatOnType: true,
+                              trimAutoWhitespace: true,
+
+                              // IntelliSense
+                              quickSuggestions: {
+                                other: true,
+                                comments: false,
+                                strings: true
+                              },
+                              acceptSuggestionOnEnter: 'on',
+                              parameterHints: {
+                                enabled: true,
+                                cycle: true
+                              },
+                              suggest: {
+                                showKeywords: true,
+                                showSnippets: true,
+                                showFunctions: true,
+                                showVariables: true,
+                                showClasses: true,
+                                showConstants: true,
+                                showModules: true,
+                                showProperties: true,
+                                snippetsPreventQuickSuggestions: false
+                              },
+                              hover: {
+                                enabled: true,
+                                delay: 300,
+                                sticky: true
+                              },
+
+                              // Find/Replace
+                              find: {
+                                seedSearchStringFromSelection: 'selection',
+                                autoFindInSelection: 'never'
+                              },
+
+                              // UI Features
+                              contextmenu: true,
+                              mouseWheelZoom: true,
+                              smoothScrolling: true,
+                              cursorBlinking: 'smooth',
+                              cursorSmoothCaretAnimation: 'on',
+
+                              // Code Actions
+                              lightbulb: {
+                                enabled: 'on' as any
+                              },
+
+                              // Brackets
+                              matchBrackets: 'always',
+                              bracketPairColorization: {
+                                enabled: true
+                              },
+                              guides: {
+                                bracketPairs: true,
+                                indentation: true
+                              },
+
+                              // Selection
+                              selectOnLineNumbers: true,
+                              multiCursorModifier: 'ctrlCmd',
+
+                              // Scrollbar
+                              scrollbar: {
+                                vertical: 'auto',
+                                horizontal: 'auto',
+                                useShadows: true,
+                                verticalScrollbarSize: 10,
+                                horizontalScrollbarSize: 10
+                              },
+
+                              // Folding
+                              folding: true,
+                              foldingStrategy: 'indentation',
+                              showFoldingControls: 'mouseover'
+                            }}
+                            key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
+                          />
+                        </div>
+                      </Panel>
+
+                      <PanelResizeHandle
+                        style={{
+                          width: '3px',
+                          backgroundColor: currentPythonTheme.border,
+                          cursor: 'col-resize'
+                        }}
+                      />
+
+                      {/* Preview Panel */}
+                      <Panel defaultSize={40} minSize={25}>
+                        <div className="h-full overflow-auto p-4"
+                          style={{
+                            backgroundColor: currentPythonTheme.bg,
+                            borderLeft: `1px solid ${currentPythonTheme.border}`
+                          }}
+                        >
+                          <div className="font-mono text-xs mb-4 pb-2" style={{
+                            color: currentPythonTheme.highlight,
+                            borderBottom: `1px solid ${currentPythonTheme.border}`
+                          }}>
+                            {needsInput ? '⌨️ INTERACTIVE INPUT REQUIRED' : hasGuiElements ? '🎨 GUI APPLICATION PREVIEW' : '📺 LIVE OUTPUT PREVIEW'}
+                          </div>
+
+                          {hasGuiElements && guiOutput ? (
+                            <div className="space-y-4">
+                              <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
+                                ✨ GUI application rendered successfully:
+                              </div>
+                              <div
+                                className="rounded p-4"
+                                style={{
+                                  backgroundColor: 'white',
+                                  border: `2px solid ${currentPythonTheme.border}`
+                                }}
+                                dangerouslySetInnerHTML={{ __html: guiOutput }}
+                              />
+                              <div className="mt-4 p-3 rounded" style={{
+                                backgroundColor: `${currentPythonTheme.highlight}10`,
+                                border: `1px solid ${currentPythonTheme.border}`
+                              }}>
+                                <div className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
+                                  💡 <strong>Support:</strong> Your Python code generated visual output! The preview shows tkinter windows, matplotlib plots, or other GUI elements.
+                                </div>
+                              </div>
+                            </div>
+                          ) : needsInput ? (
+                            <div className="space-y-4">
+                              <div className="font-mono text-xs mb-4" style={{ color: currentPythonTheme.text }}>
+                                Your code requires user input. Fill in the values below:
+                              </div>
+
+                              {inputPrompts.map((prompt, index) => (
+                                <div key={index} className="space-y-2">
+                                  <label
+                                    className="font-mono text-xs font-bold block"
+                                    style={{ color: currentPythonTheme.highlight }}
+                                  >
+                                    {prompt}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={inputValues[index] || ''}
+                                    onChange={(e) => {
+                                      const newValues = [...inputValues];
+                                      newValues[index] = e.target.value;
+                                      setInputValues(newValues);
+                                    }}
+                                    placeholder={`Enter ${prompt.toLowerCase()}`}
+                                    className="w-full px-3 py-2 font-mono text-xs rounded focus:outline-none focus:ring-2"
+                                    style={{
+                                      backgroundColor: currentPythonTheme.subtle,
+                                      color: currentPythonTheme.text,
+                                      border: `1px solid ${currentPythonTheme.border}`,
+                                    }}
+                                    data-testid={`input-field-${index}`}
+                                  />
+                                </div>
+                                ))}
+
+                              <Button
+                                onClick={runWithInputs}
+                                disabled={isRunning}
+                                className="w-full font-mono text-sm mt-4"
+                                style={{
+                                  backgroundColor: currentPythonTheme.highlight,
+                                  color: currentPythonTheme.bg,
+                                }}
+                                data-testid="button-run-with-inputs"
+                              >
+                                {isRunning ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Running...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play className="w-4 h-4 mr-2" />
+                                    Run with Inputs
+                                  </>
+                                )}
+                              </Button>
+
+                              <div className="mt-4 p-3 rounded" style={{
+                                backgroundColor: `${currentPythonTheme.highlight}10`,
+                                border: `1px solid ${currentPythonTheme.border}`
+                              }}>
+                                <div className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
+                                  💡 <strong>How it works:</strong> Your input values will be automatically injected into the code before execution, replacing each input() call.
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <pre
+                              className="font-mono text-xs whitespace-pre-wrap"
+                              style={{ color: currentPythonTheme.text }}
+                              data-testid="preview-output"
+                            >
+                              {output || '// Run code to see output here...'}
+                            </pre>
+                          )}
+                        </div>
+                      </Panel>
+                    </PanelGroup>
                   ) : (
-                    <div style={{ color: currentPythonTheme.subtle }}>
-                      No output yet. Run your code to see results.
+                    <div className="h-full w-full relative">
+                      <Editor
+                        height="100%"
+                        width="100%"
+                        language={showMultiFileMode && activeFile ? getMonacoLanguage(activeFile.language) : 'python'}
+                        value={showMultiFileMode && activeFile ? activeFile.content : code}
+                        onChange={(value) => {
+                          if (showMultiFileMode && activeFile) {
+                            updateFileContent(activeFile.id, value || '');
+                          } else {
+                            setCode(value || '');
+                          }
+                        }}
+                        onMount={(editor, monaco) => {
+                          try {
+                            handleEditorDidMount(editor, monaco);
+                          } catch (error) {
+                            console.error('Editor mount failed:', error);
+                            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                            setOutput(`Editor initialization error: ${errorMessage}`);
+                          }
+                        }}
+                        theme="vs-dark"
+                        loading={<div className="flex items-center justify-center h-full" style={{ color: currentPythonTheme.text }}>Loading editor...</div>}
+                        options={{
+                          // Display
+                          minimap: { enabled: showMinimap },
+                          fontSize: fontSize,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          padding: { top: 10, bottom: 10 },
+                          wordWrap: 'on',
+                          renderWhitespace: 'selection',
+                          renderLineHighlight: 'all',
+
+                          // Editing
+                          tabSize: 4,
+                          insertSpaces: true,
+                          autoIndent: 'full',
+                          formatOnPaste: true,
+                          formatOnType: true,
+                          trimAutoWhitespace: true,
+
+                          // IntelliSense
+                          quickSuggestions: {
+                            other: true,
+                            comments: false,
+                            strings: true
+                          },
+                          acceptSuggestionOnEnter: 'on',
+                          parameterHints: {
+                            enabled: true,
+                            cycle: true
+                          },
+                          suggest: {
+                            showKeywords: true,
+                            showSnippets: true,
+                            showFunctions: true,
+                            showVariables: true,
+                            showClasses: true,
+                            showConstants: true,
+                            showModules: true,
+                            showProperties: true,
+                            snippetsPreventQuickSuggestions: false
+                          },
+                          hover: {
+                            enabled: true,
+                            delay: 300,
+                            sticky: true
+                          },
+
+                          // Find/Replace
+                          find: {
+                            seedSearchStringFromSelection: 'selection',
+                            autoFindInSelection: 'never'
+                          },
+
+                          // UI Features
+                          contextmenu: true,
+                          mouseWheelZoom: true,
+                          smoothScrolling: true,
+                          cursorBlinking: 'smooth',
+                          cursorSmoothCaretAnimation: 'on',
+
+                          // Code Actions
+                          lightbulb: {
+                            enabled: 'on' as any
+                          },
+
+                          // Brackets
+                          matchBrackets: 'always',
+                          bracketPairColorization: {
+                            enabled: true
+                          },
+                          guides: {
+                            bracketPairs: true,
+                            indentation: true
+                          },
+
+                          // Selection
+                          selectOnLineNumbers: true,
+                          multiCursorModifier: 'ctrlCmd',
+
+                          // Scrollbar
+                          scrollbar: {
+                            vertical: 'auto',
+                            horizontal: 'auto',
+                            useShadows: true,
+                            verticalScrollbarSize: 10,
+                            horizontalScrollbarSize: 10
+                          },
+
+                          // Folding
+                          folding: true,
+                          foldingStrategy: 'indentation',
+                          showFoldingControls: 'mouseover'
+                        }}
+                        key={`editor-${dimensions.width}-${dimensions.height}-${isMaximized}`}
+                      />
                     </div>
                   )}
                 </div>
-              </ScrollArea>
-            )}
-          </div>
+
+                {/* Run Button */}
+                <div className="px-4 py-2 flex items-center justify-between" style={{ backgroundColor: currentPythonTheme.subtle, borderBottom: `1px solid ${currentPythonTheme.border}` }}>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={runCode}
+                      disabled={isRunning}
+                      className="font-mono text-sm"
+                      style={{
+                        backgroundColor: currentPythonTheme.bg,
+                        color: currentPythonTheme.highlight,
+                        border: `1px solid ${currentPythonTheme.border}`,
+                      }}
+                    >
+                      {isRunning ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Running...
+                        </>
+                      ) : (
+                        <>
+                          <Play className="w-4 h-4 mr-2" />
+                          {showMultiFileMode ? 'Run Active File' : 'Run Code'}
+                        </>
+                      )}
+                    </Button>
+                    {showMultiFileMode && files.length > 1 && (
+                      <Button
+                        onClick={() => {
+                          // Run main file or first Python file
+                          const mainFile = files.find(f => f.name === 'main.py') || files.find(f => f.language === 'python');
+                          if (mainFile) {
+                            setActiveFileId(mainFile.id);
+                            setTimeout(() => runCode(), 100);
+                          } else {
+                            toast({
+                              title: "No main file",
+                              description: "Create a main.py file or select a Python file to run",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                        disabled={isRunning}
+                        variant="outline"
+                        className="font-mono text-sm"
+                        style={{
+                          backgroundColor: currentPythonTheme.bg,
+                          color: currentPythonTheme.text,
+                          border: `1px solid ${currentPythonTheme.border}`,
+                        }}
+                        title="Run main.py or first Python file"
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        Run Main
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => {
+                        if (showMultiFileMode && activeFile) {
+                          updateFileContent(activeFile.id, ''); // Clear active file content
+                        } else {
+                          setCode(''); // Clear main code state
+                        }
+                      }}
+                      variant="outline"
+                      className="font-mono text-sm"
+                      style={{
+                        backgroundColor: currentPythonTheme.bg,
+                        color: currentPythonTheme.text,
+                        border: `1px solid ${currentPythonTheme.border}`,
+                      }}
+                    >
+                      Clear Editor
+                    </Button>
+                    {!showGuidance && (
+                      <Button
+                        onClick={() => setShowGuidance(true)}
+                        variant="outline"
+                        className="font-mono text-sm"
+                        style={{
+                          backgroundColor: currentPythonTheme.bg,
+                          color: currentPythonTheme.highlight,
+                          border: `1px solid ${currentPythonTheme.border}`,
+                        }}
+                      >
+                        <Lightbulb className="w-4 h-4 mr-2" />
+                        Show Guidance
+                      </Button>
+                    )}
+                    <Button
+                      onClick={startCollaborativeReview}
+                      disabled={collaborativeReviewMutation.isPending}
+                      variant="outline"
+                      className="font-mono text-sm"
+                      data-testid="button-collaborative-review"
+                      style={{
+                        backgroundColor: currentPythonTheme.bg,
+                        color: '#ff6b6b',
+                        border: `1px solid ${currentPythonTheme.border}`,
+                      }}
+                      title="Get collaborative feedback from multiple AI systems"
+                    >
+                      {collaborativeReviewMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Reviewing...
+                        </>
+                      ) : (
+                        <>
+                          <Users className="w-4 h-4 mr-2" />
+                          AI Review
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <div className="font-mono text-xs" style={{ color: `${currentPythonTheme.text}B0` }}>
+                    {currentLesson.tasks.length > 0 && (
+                      <span>Progress: {completedTasks.size}/{currentLesson.tasks.length} objectives</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Output / Preview / Terminal Section */}
+                <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                  <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: `1px solid ${currentPythonTheme.subtle}` }}>
+                    <div className="flex items-center gap-2">
+                      <span style={{ color: currentPythonTheme.text }} className="font-semibold text-sm">
+                        {showTerminal ? 'Terminal' : 'Output'}
+                      </span>
+                      {!showTerminal && elapsedTime > 0 && (
+                        <span style={{ color: currentPythonTheme.subtle }} className="text-xs">
+                          ({elapsedTime}s)
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {/* Terminal Toggle Button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowTerminal(!showTerminal)}
+                        className="hover:bg-white/10"
+                        style={{ color: showTerminal ? currentPythonTheme.highlight : currentPythonTheme.text }}
+                        title="Toggle terminal"
+                      >
+                        <Terminal size={16} className="mr-1" />
+                        <span className="hidden md:inline">Terminal</span>
+                      </Button>
+                      {!showTerminal && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            // Download project logic
+                            const handleDownloadProject = () => {
+                              // This function is defined inside the component scope
+                              // It should be accessible here.
+                              downloadAllFiles();
+                            };
+                            handleDownloadProject();
+                          }}
+                          className="hover:bg-white/10"
+                          style={{ color: currentPythonTheme.text }}
+                          title="Download project files"
+                        >
+                          <Download size={16} className="mr-1" />
+                          <span className="hidden md:inline">Download</span>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  {showTerminal ? (
+                    <div
+                      ref={terminalRef}
+                      className="flex-1 p-2"
+                      style={{
+                        background: currentPythonTheme.bg,
+                        minHeight: '300px'
+                      }}
+                    />
+                  ) : (
+                    <ScrollArea className="flex-1">
+                      <div className="p-4 font-mono text-sm whitespace-pre-wrap" style={{ color: currentPythonTheme.text }}>
+                        {isRunning ? (
+                          <div className="flex items-center gap-2" style={{ color: currentPythonTheme.highlight }}>
+                            <Loader2 className="animate-spin" size={16} />
+                            Executing...
+                          </div>
+                        ) : output || guiOutput ? (
+                          <>
+                            {guiOutput && (
+                              <div className="mb-4 p-4 rounded" style={{ background: currentPythonTheme.gradient ? `${currentPythonTheme.subtle}20` : currentPythonTheme.bg }}>
+                                <div dangerouslySetInnerHTML={{ __html: guiOutput }} />
+                              </div>
+                            )}
+                            {output && (
+                              <div dangerouslySetInnerHTML={{ __html: output }} />
+                            )}
+                          </>
+                        ) : (
+                          <div style={{ color: currentPythonTheme.subtle }}>
+                            No output yet. Run your code to see results.
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </div>
+              </div>
+            </Panel>
+          </PanelGroup>
         </div>
-      </Panel>
-    </PanelGroup>
+      </div>
+
+      {/* Resize handle */}
+      {!isMaximized && (
+        <div
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
+          style={{
+            borderRight: `2px solid ${currentPythonTheme.border}`,
+            borderBottom: `2px solid ${currentPythonTheme.border}`,
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            setIsResizing(true);
+            resizeStartRef.current = {
+              width: dimensions.width,
+              height: dimensions.height,
+              mouseX: e.clientX,
+              mouseY: e.clientY
+            };
+          }}
+        />
+      )}
     </div>
 
-        {/* Resize handle */}
-        {!isMaximized && (
+    {/* Collaborative AI Review Panel */}
+    {showCollaborativeReview && collaborativeReviewResult && (
+      <div
+        className="fixed z-50 overflow-hidden shadow-2xl flex flex-col rounded-lg"
+        style={{
+          width: `${reviewDimensions.width}px`,
+          height: `${reviewDimensions.height}px`,
+          left: `${reviewPosition.x}px`,
+          top: `${reviewPosition.y}px`,
+          backgroundColor: currentPythonTheme.bg,
+          border: `2px solid ${currentPythonTheme.border}`,
+          boxShadow: `0 0 20px ${currentPythonTheme.highlight}40`,
+        }}
+        data-testid="panel-collaborative-review"
+      >
+        <div
+          className="flex-1 overflow-hidden flex flex-col"
+          style={{
+            backgroundColor: currentPythonTheme.bg,
+          }}
+        >
+          {/* Header */}
+          <div
+            className="px-6 py-4 flex items-center justify-between cursor-move"
+            style={{
+              backgroundColor: currentPythonTheme.subtle,
+              borderBottom: `1px solid ${currentPythonTheme.border}`,
+            }}
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget || (e.target as HTMLElement).closest('.drag-handle')) {
+                setIsReviewDragging(true);
+                reviewDragStartRef.current = { x: e.clientX, y: e.clientY };
+              }
+            }}
+          >
+            <div className="flex items-center gap-3 drag-handle">
+              <Users className="w-6 h-6" style={{ color: '#ff6b6b' }} />
+              <div>
+                <h2 className="font-mono text-lg font-bold" style={{ color: currentPythonTheme.highlight }}>
+                  Collaborative AI Code Review
+                </h2>
+                <p className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
+                  {collaborativeReviewResult.summary}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-4 py-2 rounded" style={{ backgroundColor: currentPythonTheme.bg }}>
+                <Star className="w-5 h-5" style={{ color: '#ffd700' }} />
+                <span className="font-mono text-xl font-bold" style={{ color: currentPythonTheme.highlight }}>
+                  {collaborativeReviewResult.overallRating}/10
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  const allReviews = collaborativeReviewResult.reviews
+                    .map(r => `${r.provider} (${r.model}) - Rating: ${r.rating}/10\n\n${r.feedback}`)
+                    .join('\n\n' + '='.repeat(80) + '\n\n');
+                  const fullText = `Collaborative AI Code Review\n\nOverall Rating: ${collaborativeReviewResult.overallRating}/10\n\nSummary: ${collaborativeReviewResult.summary}\n\n${'='.repeat(80)}\n\n${allReviews}`;
+                  navigator.clipboard.writeText(fullText).then(() => {
+                    toast({ title: "Copied!", description: "All reviews copied to clipboard" });
+                    speak("Review feedback copied to clipboard");
+                  });
+                }}
+                style={{ color: currentPythonTheme.highlight }}
+                title="Copy all reviews"
+              >
+                <Download className="w-5 h-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCollaborativeReview(false)}
+                style={{ color: currentPythonTheme.text }}
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Review Cards */}
+          <ScrollArea className="h-[calc(90vh-120px)]">
+            <div className="p-6 space-y-6">
+              {collaborativeReviewResult.reviews.map((review, index) => (
+                <div
+                  key={index}
+                  className="rounded-lg overflow-hidden"
+                  style={{
+                    backgroundColor: currentPythonTheme.subtle,
+                    border: `1px solid ${currentPythonTheme.border}`,
+                  }}
+                  data-testid={`review-card-${review.provider.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  {/* Provider Header */}
+                  <div
+                    className="px-4 py-3 flex items-center justify-between"
+                    style={{
+                      backgroundColor: review.status === 'success' ? currentPythonTheme.bg : '#ff6b6b20',
+                      borderBottom: `1px solid ${currentPythonTheme.border}`,
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      {review.status === 'success' ? (
+                        <CheckCircle2 className="w-5 h-5" style={{ color: '#4ade80' }} />
+                      ) : (
+                        <AlertCircle className="w-5 h-5" style={{ color: '#ff6b6b' }} />
+                      )}
+                      <div>
+                        <span className="font-mono text-sm font-bold" style={{ color: currentPythonTheme.highlight }}>
+                          {review.provider}
+                        </span>
+                        <span className="font-mono text-xs ml-2" style={{ color: currentPythonTheme.text }}>
+                          ({review.model})
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {review.status === 'success' && (
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4" style={{ color: '#ffd700' }} />
+                          <span className="font-mono text-sm font-bold" style={{ color: currentPythonTheme.text }}>
+                            {review.rating}/10
+                          </span>
+                        </div>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const reviewText = `${review.provider} (${review.model})\nRating: ${review.rating}/10\n\n${review.feedback}`;
+                          navigator.clipboard.writeText(reviewText).then(() => {
+                            toast({ title: "Copied!", description: `${review.provider} review copied` });
+                            speak("Review feedback copied to clipboard");
+                          });
+                        }}
+                        className="h-7 w-7 p-0"
+                        style={{ color: currentPythonTheme.highlight }}
+                        title="Copy this review"
+                      >
+                        <Download className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Feedback Content */}
+                  <div className="p-4">
+                    <pre
+                      className="font-mono text-xs whitespace-pre-wrap leading-relaxed"
+                      style={{ color: currentPythonTheme.text }}
+                    >
+                      {review.feedback}
+                    </pre>
+                  </div>
+                </div>
+              ))}
+
+              {collaborativeReviewResult.reviews.length === 0 && (
+                <div className="text-center py-12">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: '#ff6b6b' }} />
+                  <p className="font-mono text-sm" style={{ color: currentPythonTheme.text }}>
+                    No AI reviewers were able to analyze the code.
+                  </p>
+                  <p className="font-mono text-xs mt-2" style={{ color: `${currentPythonTheme.text}80` }}>
+                    Please check API configurations for Groq, Gemini, or Mistral.
+                  </p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          {/* Resize handle */}
           <div
             className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
             style={{
@@ -4684,210 +4878,17 @@ Generated by Archimedes Workshop IDE
             }}
             onMouseDown={(e) => {
               e.preventDefault();
-              setIsResizing(true);
-              resizeStartRef.current = {
-                width: dimensions.width,
-                height: dimensions.height,
+              setIsReviewResizing(true);
+              reviewResizeStartRef.current = {
+                width: reviewDimensions.width,
+                height: reviewDimensions.height,
                 mouseX: e.clientX,
                 mouseY: e.clientY
               };
             }}
           />
-        )}
-      </div>
-
-      {/* Collaborative AI Review Panel */}
-      {showCollaborativeReview && collaborativeReviewResult && (
-        <div 
-          className="fixed z-50 overflow-hidden shadow-2xl flex flex-col rounded-lg"
-          style={{
-            width: `${reviewDimensions.width}px`,
-            height: `${reviewDimensions.height}px`,
-            left: `${reviewPosition.x}px`,
-            top: `${reviewPosition.y}px`,
-            backgroundColor: currentPythonTheme.bg,
-            border: `2px solid ${currentPythonTheme.border}`,
-            boxShadow: `0 0 20px ${currentPythonTheme.highlight}40`,
-          }}
-          data-testid="panel-collaborative-review"
-        >
-          <div 
-            className="flex-1 overflow-hidden flex flex-col"
-            style={{ 
-              backgroundColor: currentPythonTheme.bg,
-            }}
-          >
-            {/* Header */}
-            <div 
-              className="px-6 py-4 flex items-center justify-between cursor-move"
-              style={{ 
-                backgroundColor: currentPythonTheme.subtle,
-                borderBottom: `1px solid ${currentPythonTheme.border}`,
-              }}
-              onMouseDown={(e) => {
-                if (e.target === e.currentTarget || (e.target as HTMLElement).closest('.drag-handle')) {
-                  setIsReviewDragging(true);
-                  reviewDragStartRef.current = { x: e.clientX, y: e.clientY };
-                }
-              }}
-            >
-              <div className="flex items-center gap-3 drag-handle">
-                <Users className="w-6 h-6" style={{ color: '#ff6b6b' }} />
-                <div>
-                  <h2 className="font-mono text-lg font-bold" style={{ color: currentPythonTheme.highlight }}>
-                    Collaborative AI Code Review
-                  </h2>
-                  <p className="font-mono text-xs" style={{ color: currentPythonTheme.text }}>
-                    {collaborativeReviewResult.summary}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 px-4 py-2 rounded" style={{ backgroundColor: currentPythonTheme.bg }}>
-                  <Star className="w-5 h-5" style={{ color: '#ffd700' }} />
-                  <span className="font-mono text-xl font-bold" style={{ color: currentPythonTheme.highlight }}>
-                    {collaborativeReviewResult.overallRating}/10
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    const allReviews = collaborativeReviewResult.reviews
-                      .map(r => `${r.provider} (${r.model}) - Rating: ${r.rating}/10\n\n${r.feedback}`)
-                      .join('\n\n' + '='.repeat(80) + '\n\n');
-                    const fullText = `Collaborative AI Code Review\n\nOverall Rating: ${collaborativeReviewResult.overallRating}/10\n\nSummary: ${collaborativeReviewResult.summary}\n\n${'='.repeat(80)}\n\n${allReviews}`;
-                    navigator.clipboard.writeText(fullText).then(() => {
-                      toast({ title: "Copied!", description: "All reviews copied to clipboard" });
-                      speak("Review feedback copied to clipboard");
-                    });
-                  }}
-                  style={{ color: currentPythonTheme.highlight }}
-                  title="Copy all reviews"
-                >
-                  <Download className="w-5 h-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowCollaborativeReview(false)}
-                  style={{ color: currentPythonTheme.text }}
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Review Cards */}
-            <ScrollArea className="h-[calc(90vh-120px)]">
-              <div className="p-6 space-y-6">
-                {collaborativeReviewResult.reviews.map((review, index) => (
-                  <div 
-                    key={index}
-                    className="rounded-lg overflow-hidden"
-                    style={{ 
-                      backgroundColor: currentPythonTheme.subtle,
-                      border: `1px solid ${currentPythonTheme.border}`,
-                    }}
-                    data-testid={`review-card-${review.provider.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    {/* Provider Header */}
-                    <div 
-                      className="px-4 py-3 flex items-center justify-between"
-                      style={{ 
-                        backgroundColor: review.status === 'success' ? currentPythonTheme.bg : '#ff6b6b20',
-                        borderBottom: `1px solid ${currentPythonTheme.border}`,
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        {review.status === 'success' ? (
-                          <CheckCircle2 className="w-5 h-5" style={{ color: '#4ade80' }} />
-                        ) : (
-                          <AlertCircle className="w-5 h-5" style={{ color: '#ff6b6b' }} />
-                        )}
-                        <div>
-                          <span className="font-mono text-sm font-bold" style={{ color: currentPythonTheme.highlight }}>
-                            {review.provider}
-                          </span>
-                          <span className="font-mono text-xs ml-2" style={{ color: currentPythonTheme.text }}>
-                            ({review.model})
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {review.status === 'success' && (
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4" style={{ color: '#ffd700' }} />
-                            <span className="font-mono text-sm font-bold" style={{ color: currentPythonTheme.text }}>
-                              {review.rating}/10
-                            </span>
-                          </div>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const reviewText = `${review.provider} (${review.model})\nRating: ${review.rating}/10\n\n${review.feedback}`;
-                            navigator.clipboard.writeText(reviewText).then(() => {
-                              toast({ title: "Copied!", description: `${review.provider} review copied` });
-                            });
-                          }}
-                          className="h-7 w-7 p-0"
-                          style={{ color: currentPythonTheme.highlight }}
-                          title="Copy this review"
-                        >
-                          <Download className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Feedback Content */}
-                    <div className="p-4">
-                      <pre 
-                        className="font-mono text-xs whitespace-pre-wrap leading-relaxed"
-                        style={{ color: currentPythonTheme.text }}
-                      >
-                        {review.feedback}
-                      </pre>
-                    </div>
-                  </div>
-                ))}
-
-                {collaborativeReviewResult.reviews.length === 0 && (
-                  <div className="text-center py-12">
-                    <AlertCircle className="w-12 h-12 mx-auto mb-4" style={{ color: '#ff6b6b' }} />
-                    <p className="font-mono text-sm" style={{ color: currentPythonTheme.text }}>
-                      No AI reviewers were able to analyze the code.
-                    </p>
-                    <p className="font-mono text-xs mt-2" style={{ color: `${currentPythonTheme.text}80` }}>
-                      Please check API configurations for Groq, Gemini, or Mistral.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-
-            {/* Resize handle */}
-            <div
-              className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
-              style={{
-                borderRight: `2px solid ${currentPythonTheme.border}`,
-                borderBottom: `2px solid ${currentPythonTheme.border}`,
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                setIsReviewResizing(true);
-                reviewResizeStartRef.current = {
-                  width: reviewDimensions.width,
-                  height: reviewDimensions.height,
-                  mouseX: e.clientX,
-                  mouseY: e.clientY
-                };
-              }}
-            />
-          </div>
         </div>
-      )}
+      </div>
     </>
   );
 }
@@ -4897,7 +4898,7 @@ type ThemeColors = { bg: string; text: string; highlight: string; border: string
 
 function getTheme(themeName: string): ThemeColors {
   const themes: Record<string, ThemeColors> = {
-    'solarized-light': { bg: '#fdf6e3', text: '#657b83', highlight: '#2aa198', border: '#eee8d5', subtle: '#eee8d5' },
+    'solarized-light': { bg: '#fdf6e3',text: '#657b83', highlight: '#2aa198', border: '#eee8d5', subtle: '#eee8d5' },
     'github-light': { bg: '#ffffff', text: '#24292e', highlight: '#0366d6', border: '#d1d5db', subtle: '#f6f8fa' },
     'sepia': { bg: '#f4ecd8', text: '#5b4636', highlight: '#8b4513', border: '#dcd0c0', subtle: '#e1d7c0' },
     'nord-light': { bg: '#eceff4', text: '#4c566a', highlight: '#81a1c1', border: '#d8dee9', subtle: '#e5e9f0' },
