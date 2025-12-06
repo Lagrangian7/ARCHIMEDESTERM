@@ -1,3 +1,8 @@
+
+import * as pty from 'node-pty';
+import { IncomingMessage } from 'http';
+import { Server as WebSocketServer } from 'ws';
+
 import type { Express } from "express";
 import express from "express";
 import path from "path";
@@ -36,6 +41,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       status: 'ok',
       timestamp: new Date().toISOString(),
       uptime: process.uptime()
+    });
+  });
+
+  // Terminal PTY WebSocket endpoint
+  const httpServer = createServer(app);
+  const wss = new WebSocketServer({ noServer: true });
+
+  httpServer.on('upgrade', (request: IncomingMessage, socket, head) => {
+    const pathname = new URL(request.url || '', `http://${request.headers.host}`).pathname;
+    
+    if (pathname === '/terminal') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    }
+  });
+
+  wss.on('connection', (ws) => {
+    const shell = process.env.SHELL || '/bin/bash';
+    const ptyProcess = pty.spawn(shell, [], {
+      name: 'xterm-color',
+      cols: 80,
+      rows: 30,
+      cwd: process.cwd(),
+      env: process.env as { [key: string]: string }
+    });
+
+    ptyProcess.onData((data) => {
+      ws.send(data);
+    });
+
+    ws.on('message', (msg) => {
+      ptyProcess.write(msg.toString());
+    });
+
+    ws.on('close', () => {
+      ptyProcess.kill();
+    });
+
+    ptyProcess.onExit(() => {
+      ws.close();
     });
   });
 
@@ -2001,8 +2047,7 @@ if _virtual_display_started:
     }
   });
 
-  // Create HTTP server first
-  const httpServer = createServer(app);
+  // HTTP server already created above for WebSocket support
 
   // Setup authentication BEFORE returning (must complete before Vite middleware)
   // This ensures auth routes are registered before the Vite catch-all route
