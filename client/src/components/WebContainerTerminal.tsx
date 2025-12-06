@@ -36,9 +36,24 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
       return webcontainerInstance.current;
     }
 
+    // Check if cross-origin isolation is enabled
+    if (!window.crossOriginIsolated) {
+      setStatus('error');
+      const errorMsg = 'Cross-Origin Isolation not enabled. SharedArrayBuffer is required for WebContainer. Please refresh the page and try again.';
+      setError(errorMsg);
+      writeToTerminal('\x1b[31m❌ ' + errorMsg + '\x1b[0m\r\n');
+      writeToTerminal('\x1b[33m💡 Tip: Try a hard refresh (Ctrl+Shift+R or Cmd+Shift+R)\x1b[0m\r\n');
+      console.error('WebContainer requires crossOriginIsolated:', {
+        crossOriginIsolated: window.crossOriginIsolated,
+        SharedArrayBuffer: typeof SharedArrayBuffer
+      });
+      return null;
+    }
+
     setStatus('booting');
     setError(null);
     writeToTerminal('\x1b[33m⏳ Booting WebContainer...\x1b[0m\r\n');
+    writeToTerminal('\x1b[36mℹ️ Cross-Origin Isolation: ' + (window.crossOriginIsolated ? 'Enabled ✓' : 'Disabled ✗') + '\x1b[0m\r\n');
 
     try {
       const instance = await WebContainer.boot();
@@ -202,7 +217,25 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     terminal.writeln('\x1b[32m║   WebContainer Terminal (Node.js)    ║\x1b[0m');
     terminal.writeln('\x1b[32m╚══════════════════════════════════════╝\x1b[0m');
     terminal.writeln('');
-    terminal.writeln('Click "Boot" to start the in-browser Node.js environment.');
+    
+    // Check cross-origin isolation status
+    if (window.crossOriginIsolated) {
+      terminal.writeln('\x1b[32m✓ Cross-Origin Isolation: ENABLED\x1b[0m');
+      terminal.writeln('Click "Boot" to start the in-browser Node.js environment.');
+    } else {
+      terminal.writeln('\x1b[33m⚠ Cross-Origin Isolation: DISABLED\x1b[0m');
+      terminal.writeln('');
+      terminal.writeln('\x1b[36mWebContainer requires SharedArrayBuffer which needs');
+      terminal.writeln('Cross-Origin Isolation headers (COOP/COEP).\x1b[0m');
+      terminal.writeln('');
+      terminal.writeln('\x1b[33mTo enable, try:\x1b[0m');
+      terminal.writeln('  1. Hard refresh: Ctrl+Shift+R (Win) or Cmd+Shift+R (Mac)');
+      terminal.writeln('  2. Open the app in a new browser tab directly');
+      terminal.writeln('  3. Use Chrome/Edge for best compatibility');
+      terminal.writeln('');
+      terminal.writeln('\x1b[90mNote: Some hosting environments may not support');
+      terminal.writeln('the required security headers for WebContainer.\x1b[0m');
+    }
     terminal.writeln('');
 
     const handleResize = () => {
@@ -252,16 +285,21 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
         <div className="flex-1" />
         
         <div className="flex items-center gap-1">
-          {status === 'idle' && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleBoot}
-              className="h-7 text-xs border-[#00ff41] text-[#00ff41] hover:bg-[#00ff41]/10"
-            >
-              <Play className="w-3 h-3 mr-1" />
-              Boot
-            </Button>
+          {(status === 'idle' || status === 'error') && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBoot}
+                className="h-7 text-xs border-[#00ff41] text-[#00ff41] hover:bg-[#00ff41]/10"
+              >
+                <Play className="w-3 h-3 mr-1" />
+                Boot
+              </Button>
+              <span className={`text-xs font-mono ${window.crossOriginIsolated ? 'text-green-400' : 'text-yellow-400'}`}>
+                {window.crossOriginIsolated ? '✓ Isolated' : '⚠ Not Isolated'}
+              </span>
+            </>
           )}
           
           {status === 'booting' && (
