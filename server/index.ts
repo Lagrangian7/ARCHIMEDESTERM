@@ -6,8 +6,9 @@ import { setupVite, serveStatic, log } from "./vite";
 const app = express();
 
 // Cross-Origin Isolation headers required for WebContainer (SharedArrayBuffer)
+// Using 'credentialless' instead of 'require-corp' for better compatibility with external resources
 app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   next();
 });
