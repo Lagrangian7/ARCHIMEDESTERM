@@ -45,6 +45,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve attached assets (for soundtrack and other user files)
   app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets')));
 
+  // Serve coi-serviceworker.js for cross-origin isolation (WebContainer support)
+  app.get('/coi-serviceworker.js', (req, res) => {
+    const coiPath = path.join(process.cwd(), 'client', 'public', 'coi-serviceworker.js');
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Service-Worker-Allowed', '/');
+    res.sendFile(coiPath);
+  });
+
   // SPACEWAR game endpoint (must be BEFORE Vite middleware to avoid processing)
   app.get('/spacewar.html', (req, res) => {
     // Add cache-busting headers to force reload
