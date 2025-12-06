@@ -35,7 +35,7 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
   // Only update position when dragging stops, not during drag
   const [isVisible, setIsVisible] = useState(false);
 
-  // Show animation immediately when typing or speaking starts
+  // Show animation immediately when typing or speaking starts, keep looping until both end
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -48,8 +48,11 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
         const { x, y } = positionRef.current;
         containerRef.current.style.transform = `translate(${x}px, ${y}px)`;
       }
+      // Ensure video is looping and playing
+      video.loop = true;
       video.play().catch(() => {});
     } else {
+      // Only hide after both typing AND speaking are done
       video.pause();
       video.currentTime = 0;
       setIsVisible(false);
@@ -160,7 +163,7 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
           loop
           muted
           playsInline
-          preload="none"
+          preload="auto"
           className="w-full h-full object-cover pointer-events-none archimedes-video-glitch"
           style={{
             filter: 'contrast(1.15) brightness(0.9) saturate(1.2)',
