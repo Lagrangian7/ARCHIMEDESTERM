@@ -1903,6 +1903,10 @@ calculator()
   const [showCodePlayground, setShowCodePlayground] = useState(false);
   const [showSnippets, setShowSnippets] = useState(false);
   const [showProjectBuilder, setShowProjectBuilder] = useState(false); // State for Project Builder toggle
+  
+  // AI processing visual feedback
+  const [aiProcessingLines, setAiProcessingLines] = useState<number[]>([]);
+  const decorationsCollectionRef = useRef<any>(null);
 
   // Dragging and resizing state
   const [isDragging, setIsDragging] = useState(false);
@@ -2150,6 +2154,9 @@ calculator()
 
     try {
       editorRef.current = editor;
+      
+      // Create decorations collection for AI processing feedback
+      decorationsCollectionRef.current = editor.createDecorationsCollection();
 
       // Focus editor after a short delay
       setTimeout(() => {
@@ -2799,6 +2806,31 @@ calculator()
       // Get current programming language from active file or selected language
       const progLang = showMultiFileMode && activeFile ? activeFile.language : currentLanguage;
 
+      // Visual feedback: highlight code being analyzed
+      if (editorRef.current && decorationsCollectionRef.current) {
+        const currentCode = showMultiFileMode && activeFile ? activeFile.content : code;
+        const lineCount = currentCode.split('\n').length;
+        const lines: number[] = [];
+        
+        // Animate through lines to show AI is reading
+        for (let i = 1; i <= Math.min(lineCount, 50); i++) {
+          lines.push(i);
+        }
+        setAiProcessingLines(lines);
+        
+        // Apply decorations with pulsing effect
+        const decorations = lines.map(line => ({
+          range: new monaco.Range(line, 1, line, 1),
+          options: {
+            isWholeLine: true,
+            className: 'ai-processing-line',
+            glyphMarginClassName: 'ai-processing-glyph'
+          }
+        }));
+        
+        decorationsCollectionRef.current.set(decorations);
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2817,6 +2849,12 @@ calculator()
       return response.json();
     },
     onSuccess: (data) => {
+      // Clear AI processing decorations
+      if (decorationsCollectionRef.current) {
+        decorationsCollectionRef.current.clear();
+      }
+      setAiProcessingLines([]);
+      
       setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
 
       // Auto-insert code if detected in response (works in all modes now)
@@ -2830,6 +2868,12 @@ calculator()
       }
     },
     onError: (error) => {
+      // Clear AI processing decorations on error
+      if (decorationsCollectionRef.current) {
+        decorationsCollectionRef.current.clear();
+      }
+      setAiProcessingLines([]);
+      
       console.error('Chat error:', error);
       setChatHistory(prev => [...prev, { 
         role: 'assistant', 
@@ -3501,7 +3545,7 @@ calculator()
                     <div className="text-left">
                       <div className="inline-block p-2 rounded bg-black/50 text-[var(--terminal-text)]/70 font-mono text-xs">
                         <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
-                        Analyzing...
+                        Analyzing {aiProcessingLines.length > 0 ? `${aiProcessingLines.length} lines` : 'code'}...
                       </div>
                     </div>
                   )}
