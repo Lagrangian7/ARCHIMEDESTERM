@@ -1757,7 +1757,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     const saved = localStorage.getItem(MULTI_FILE_SESSION_KEY);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed = JSON.JSON.parse(saved);
         if (parsed.files && Array.isArray(parsed.files) && parsed.files.length > 0) {
           return parsed;
         }
@@ -2084,7 +2084,7 @@ calculator()
   const startCollaborativeReview = useCallback(() => {
     const currentActiveFile = files.find(f => f.id === activeFileId);
     const currentCode = showMultiFileMode && currentActiveFile ? currentActiveFile.content : code;
-    const currentLang = showMultiFileMode && currentActiveFile ? currentActiveFile.language : currentLanguage;
+    const currentLang = showMultiFileMode && currentActiveFile ? activeFile.language : currentLanguage;
 
     if (currentCode.trim()) {
       speak("Initiating collaborative code review with satellite AI systems.");
@@ -2648,7 +2648,7 @@ calculator()
       const width = Math.min(1400, window.innerWidth - 40);
       const height = Math.min(800, window.innerHeight - terminalAreaTop - terminalAreaBottom - 40);
       setDimensions({ width, height });
-      
+
       // Center the window
       const centerX = (window.innerWidth - width) / 2;
       const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - height) / 2);
@@ -2667,14 +2667,14 @@ calculator()
     const terminalAreaBottom = 60;
     const defaultWidth = Math.min(1400, window.innerWidth - 40);
     const defaultHeight = Math.min(800, window.innerHeight - terminalAreaTop - terminalAreaBottom - 40);
-    
+
     setDimensions({ width: defaultWidth, height: defaultHeight });
-    
+
     // Center the window
     const centerX = (window.innerWidth - defaultWidth) / 2;
     const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - defaultHeight) / 2);
     setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
-    
+
     setIsMaximized(false);
 
     // Listen for global stop speech events
@@ -2907,9 +2907,30 @@ calculator()
     window.dispatchEvent(event);
   }, [pythonTheme]);
 
+  // Handler to insert tests into the editor
+  const handleInsertTests = useCallback((testCode: string) => {
+    if (showMultiFileMode && activeFile) {
+      updateFileContent(activeFile.id, activeFile.content + '\n\n' + testCode);
+    } else {
+      setCode(prevCode => prevCode + '\n\n' + testCode);
+    }
+    toast({
+      title: "Tests Inserted",
+      description: "Unit tests have been added to your code.",
+    });
+    speak("Unit tests have been added to your code.");
+  }, [activeFile, code, showMultiFileMode, speak, toast]);
+
   return (
     <>
-      {showAITests && <MonacoAITests />}
+      {showAITests && (
+        <MonacoAITests
+          code={showMultiFileMode && activeFile ? activeFile.content : code}
+          language={showMultiFileMode && activeFile ? activeFile.language : currentLanguage}
+          onClose={() => setShowAITests(false)}
+          onInsertTests={handleInsertTests}
+        />
+      )}
 
       <div 
         className="fixed z-50 overflow-hidden shadow-2xl flex flex-col rounded-lg"
@@ -4084,7 +4105,7 @@ calculator()
                       </div>
                     ) : (
                       <pre 
-                        className="font-mono text-xs leading-relaxed whitespace-pre-wrap"
+                        className="font-mono text-xs whitespace-pre-wrap"
                         style={{ color: currentPythonTheme.text }}
                         data-testid="preview-output"
                       >
