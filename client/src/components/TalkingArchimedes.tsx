@@ -95,16 +95,17 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
         if (speechEndTimeoutRef.current) {
           clearTimeout(speechEndTimeoutRef.current);
         }
-      } else if (shouldKeepVisible) {
+      } else if (shouldKeepVisible && !isSpeaking) {
+        // Only hide if both props are false AND synthesis is done
         // Add a small delay before hiding to ensure speech has truly ended
         speechEndTimeoutRef.current = setTimeout(() => {
           setShouldKeepVisible(false);
-        }, 500);
+        }, 800); // Slightly longer delay for clean transition
       }
     };
 
     // Check speech status frequently while potentially speaking
-    const intervalId = setInterval(checkSpeechStatus, 250);
+    const intervalId = setInterval(checkSpeechStatus, 200); // Check more frequently
 
     return () => {
       clearInterval(intervalId);
