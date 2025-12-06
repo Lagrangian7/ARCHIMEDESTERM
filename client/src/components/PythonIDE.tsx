@@ -1909,7 +1909,6 @@ calculator()
   const [isResizing, setIsResizing] = useState(false);
   const [isMaximized, setIsMaximized] = useState(true); // Start maximized by default
   const [position, setPosition] = useState({ x: 0, y: 60 });
-  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight - 120 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
   const editorRef = useRef<any>(null);
@@ -2044,7 +2043,7 @@ calculator()
         // Speak each individual review after a delay
         if (data.reviews && data.reviews.length > 0) {
           let delay = 3000; // Start after summary completes (estimate)
-          
+
           data.reviews.forEach((review: { provider: string; model: string; feedback: string; rating: number; status: 'success' | 'error' }, index: number) => {
             if (review.status === 'success') {
               setTimeout(() => {
@@ -2080,14 +2079,14 @@ calculator()
 
     if (currentCode.trim()) {
       speak("Initiating collaborative code review with satellite AI systems.");
-      
+
       // Gather related files for context (exclude current file)
       const relatedFiles = showMultiFileMode 
         ? files
             .filter(f => f.id !== activeFileId)
             .map(f => ({ path: f.name, content: f.content }))
         : undefined;
-      
+
       collaborativeReviewMutation.mutate({ 
         codeToReview: currentCode, 
         language: currentLang,
@@ -3066,49 +3065,45 @@ calculator()
                 onClick={() => setShowNotepad(!showNotepad)}
                 variant="outline"
                 size="sm"
-                className="font-mono text-xs h-8 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
+                className="h-8 w-8 p-0 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
                 style={{
                   backgroundColor: showNotepad ? `${currentPythonTheme.highlight}20` : 'transparent',
-                  color: currentPythonTheme.text,
-                  borderColor: showNotepad ? currentPythonTheme.highlight : `${currentPythonTheme.border}60`
+                  color: currentPythonTheme.highlight,
                 }}
-                data-testid="button-toggle-notepad"
+                data-testid="button-notepad"
+                title="Show Notepad"
               >
-                <FileText className="w-4 h-4 mr-2" />
-                {showNotepad ? 'Hide' : 'Show'} Notepad
+                <FileText className="w-4 h-4" />
               </Button>
 
               <Button
                 onClick={() => setShowSnippets(!showSnippets)}
                 variant="outline"
                 size="sm"
-                className="font-mono text-xs h-8 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
+                className="h-8 w-8 p-0 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
                 style={{
                   backgroundColor: showSnippets ? `${currentPythonTheme.highlight}20` : 'transparent',
-                  color: currentPythonTheme.text,
-                  borderColor: showSnippets ? currentPythonTheme.highlight : `${currentPythonTheme.border}60`
+                  color: currentPythonTheme.highlight,
                 }}
-                data-testid="button-toggle-snippets"
+                data-testid="button-snippets"
+                title="Show Snippets"
               >
-                <Code className="w-4 h-4 mr-2" />
-                {showSnippets ? 'Hide' : 'Show'} Snippets
+                <Code className="w-4 h-4" />
               </Button>
 
               <Button
                 onClick={() => setShowProjectBuilder(!showProjectBuilder)}
                 variant="outline"
                 size="sm"
-                className="font-mono text-xs h-8 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
+                className="h-8 w-8 p-0 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
                 style={{
                   backgroundColor: showProjectBuilder ? `${currentPythonTheme.highlight}20` : 'transparent',
-                  color: currentPythonTheme.text,
-                  borderColor: showProjectBuilder ? currentPythonTheme.highlight : `${currentPythonTheme.border}60`
+                  color: currentPythonTheme.highlight,
                 }}
-                data-testid="button-toggle-project-builder"
-                title="AI Project Builder - Agent & Architect collaboration"
+                data-testid="button-project-builder"
+                title="Project Builder"
               >
-                <Bot className="w-4 h-4 mr-2" />
-                Project Builder
+                <Bot className="w-4 h-4" />
               </Button>
 
               <Button
@@ -3153,7 +3148,7 @@ calculator()
             </div>
 
             {/* Close/Quit Buttons */}
-            <div className="flex items-center gap-1 ml-2 flex-shrink-0" style={{ borderLeft: `1px solid ${currentPythonTheme.border}`, paddingLeft: '8px' }}>
+            <div className="flex items-center gap-1 ml-2" style={{ borderLeft: `1px solid ${currentPythonTheme.border}`, paddingLeft: '8px' }}>
               <Button
                 onClick={() => {
                   // Save current state before closing
@@ -4479,7 +4474,7 @@ function getTheme(themeName: string): ThemeColors {
     'cool-mist': { bg: 'linear-gradient(to bottom, #edf5f7 0%, #e8f1f2 50%, #e3ebee 100%)', text: '#576066', highlight: '#7fa99b', border: '#d6e4e7', subtle: '#dfeaec', gradient: true },
     'lavender-dream': { bg: 'radial-gradient(circle at top, #f5f0fa 0%, #f0ecf5 50%, #ebe7f0 100%)', text: '#5d596d', highlight: '#9d8cc7', border: '#e0d9ea', subtle: '#e8e3ef', gradient: true },
     'sage-comfort': { bg: 'linear-gradient(135deg, #f2f7ed 0%, #edf2e8 50%, #e8ede3 100%)', text: '#556652', highlight: '#86a67c', border: '#dde5d6', subtle: '#e5ebe0', gradient: true },
-    'sky-blue-soft': { bg: 'radial-gradient(ellipse at top, #edf6fd 0%, #e8f1f8 50%, #e3ecf3 100%)', text: '#546478', highlight: '#6b9ac4', border: '#d6e5f0', subtle: '#dfeaf4', gradient: true },
+    'sky-blue-soft': { bg: 'radial-gradient(ellipse at top, #edf6fd 0%, #e8f1f8 50%, #e3ecf3 1000%)', text: '#546478', highlight: '#6b9ac4', border: '#d6e5f0', subtle: '#dfeaf4', gradient: true },
     'peachy-calm': { bg: 'linear-gradient(to right, #fdf2ed 0%, #f8ede8 50%, #f3e8e3 100%)', text: '#6b5d58', highlight: '#d4a59a', border: '#ecddd6', subtle: '#f2e5df', gradient: true },
 
     // Business Professional Themes with gradients
