@@ -16,6 +16,14 @@ Preferred communication style: Simple, everyday language.
 - **State Management**: React Query (TanStack Query) for server state, React hooks for local state
 - **Terminal Interface**: Custom terminal component with phosphor display aesthetic, scanlines, and authentic terminal features
 - **Music Player**: Webamp integration with butterchurn Milkdrop visualizer, launchable via "webamp" command, "play our song" command, or cassette tape icon in header
+- **WebContainer Terminal**: In-browser Node.js runtime powered by @webcontainer/api and xterm.js
+  - Runs Node.js entirely in the browser with a virtual file system
+  - Full terminal emulation with xterm.js and fit addon
+  - Supports npm package installation and script execution
+  - Preview URL generation for web servers started in the container
+  - Requires Cross-Origin Isolation headers (COEP: require-corp, COOP: same-origin) for SharedArrayBuffer
+  - Toggle via Terminal icon button in Workshop IDE toolbar
+  - Helper functions: createNodeProjectFiles() and createViteProjectFiles() for common project setups
 - **Code Playground**: Multi-language code editor with Monaco supporting 15+ languages (Python, JavaScript, TypeScript, Java, C++, Rust, Go, Ruby, PHP, C#, Swift, Kotlin, Bash, SQL, HTML/CSS). Features include:
   - Automatic language detection from code content and fenced blocks
   - Multi-file extraction from AI responses (separates HTML, JS, Python, etc. into individual files)

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal } from 'lucide-react';
 import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -13,6 +13,7 @@ import { CodePreview } from './CodePreview';
 import { CodePlayground } from './CodePlayground';
 import { CodeSnippets } from './CodeSnippets';
 import { Notepad } from './Notepad';
+import { WebContainerTerminal, createNodeProjectFiles } from './WebContainerTerminal';
 
 interface PythonIDEProps {
   onClose: () => void;
@@ -1757,7 +1758,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     const saved = localStorage.getItem(MULTI_FILE_SESSION_KEY);
     if (saved) {
       try {
-        const parsed = JSON.JSON.parse(saved);
+        const parsed = JSON.parse(saved);
         if (parsed.files && Array.isArray(parsed.files) && parsed.files.length > 0) {
           return parsed;
         }
@@ -1901,6 +1902,9 @@ calculator()
   const htmlPreview = ''; // Dummy variable, actual preview logic handled elsewhere
   const [htmlPreviewState, setHtmlPreview] = useState(''); // State to hold HTML preview content
   const [showCodePlayground, setShowCodePlayground] = useState(false);
+  const [showWebContainer, setShowWebContainer] = useState(false);
+  const [webContainerFiles, setWebContainerFiles] = useState<Record<string, any>>({});
+  const [webContainerPreviewUrl, setWebContainerPreviewUrl] = useState<string | null>(null);
   const [showSnippets, setShowSnippets] = useState(false);
   const [showProjectBuilder, setShowProjectBuilder] = useState(false); // State for Project Builder toggle
   
@@ -1917,6 +1921,7 @@ calculator()
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
   const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
   const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasGreetedRef = useRef(false); // Track if Archimedes has greeted
 
@@ -2088,7 +2093,7 @@ calculator()
   const startCollaborativeReview = useCallback(() => {
     const currentActiveFile = files.find(f => f.id === activeFileId);
     const currentCode = showMultiFileMode && currentActiveFile ? currentActiveFile.content : code;
-    const currentLang = showMultiFileMode && currentActiveFile ? activeFile.language : currentLanguage;
+    const currentLang = showMultiFileMode && currentActiveFile ? currentActiveFile.language : currentLanguage;
 
     if (currentCode.trim()) {
       speak("Initiating collaborative code review with satellite AI systems.");
@@ -2154,6 +2159,7 @@ calculator()
 
     try {
       editorRef.current = editor;
+      monacoRef.current = monaco;
       
       // Create decorations collection for AI processing feedback
       decorationsCollectionRef.current = editor.createDecorationsCollection();
@@ -2807,7 +2813,7 @@ calculator()
       const progLang = showMultiFileMode && activeFile ? activeFile.language : currentLanguage;
 
       // Visual feedback: highlight code being analyzed
-      if (editorRef.current && decorationsCollectionRef.current) {
+      if (editorRef.current && decorationsCollectionRef.current && monacoRef.current) {
         const currentCode = showMultiFileMode && activeFile ? activeFile.content : code;
         const lineCount = currentCode.split('\n').length;
         const lines: number[] = [];
@@ -2820,7 +2826,7 @@ calculator()
         
         // Apply decorations with pulsing effect
         const decorations = lines.map(line => ({
-          range: new monaco.Range(line, 1, line, 1),
+          range: new monacoRef.current.Range(line, 1, line, 1),
           options: {
             isWholeLine: true,
             className: 'ai-processing-line',
@@ -3239,6 +3245,21 @@ calculator()
                 title="Project Builder"
               >
                 <Bot className="w-4 h-4" />
+              </Button>
+
+              <Button
+                onClick={() => setShowWebContainer(!showWebContainer)}
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
+                style={{
+                  backgroundColor: showWebContainer ? `${currentPythonTheme.highlight}20` : 'transparent',
+                  color: currentPythonTheme.highlight,
+                }}
+                data-testid="button-webcontainer"
+                title="WebContainer Terminal (Node.js in browser)"
+              >
+                <Terminal className="w-4 h-4" />
               </Button>
 
               <Button
@@ -3780,6 +3801,85 @@ calculator()
                 opacity: 0.8
               }}>
                 💡 Notes are saved to your knowledge base and can be retrieved using 'docs' or 'read {notepadTitle}' commands.
+              </div>
+            </div>
+          )}
+
+          {/* WebContainer Terminal Section */}
+          {showWebContainer && (
+            <div className="border-b" style={{ 
+              backgroundColor: `${currentPythonTheme.bg}dd`,
+              borderColor: `${currentPythonTheme.highlight}30`,
+              height: '400px'
+            }}>
+              <div className="flex items-start justify-between p-3" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
+                <div className="flex items-center gap-2">
+                  <Terminal className="w-5 h-5" style={{ color: currentPythonTheme.highlight }} />
+                  <h3 className="font-mono font-bold text-sm" style={{ color: currentPythonTheme.text }}>
+                    WEBCONTAINER TERMINAL
+                  </h3>
+                  <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ 
+                    backgroundColor: `${currentPythonTheme.highlight}20`,
+                    color: currentPythonTheme.highlight,
+                  }}>
+                    Node.js in Browser
+                  </span>
+                  {webContainerPreviewUrl && (
+                    <a
+                      href={webContainerPreviewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-xs px-2 py-0.5 rounded flex items-center gap-1 hover:opacity-80"
+                      style={{ 
+                        backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                        color: 'rgb(34, 197, 94)',
+                      }}
+                    >
+                      🌐 Preview Available
+                    </a>
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowWebContainer(false)}
+                  className="hover:opacity-70"
+                  style={{ color: currentPythonTheme.text }}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="h-[calc(100%-48px)]">
+                <WebContainerTerminal 
+                  files={(() => {
+                    const currentCode = showMultiFileMode && activeFile ? activeFile.content : code;
+                    const currentLang = showMultiFileMode && activeFile ? activeFile.language : detectLanguageFromCode(currentCode);
+                    
+                    if (currentLang === 'javascript' || currentLang === 'typescript') {
+                      return createNodeProjectFiles(currentCode);
+                    }
+                    
+                    return createNodeProjectFiles(`// Welcome to WebContainer Terminal!
+// This runs Node.js entirely in your browser.
+// 
+// Try running: node index.js
+
+console.log('Hello from WebContainer!');
+console.log('Node.js version:', process.version);
+
+// Create a simple HTTP server
+const http = require('http');
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.end('<h1>🚀 Hello from WebContainer!</h1><p>This server runs entirely in your browser.</p>');
+});
+
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(\`Server running at http://localhost:\${PORT}\`);
+});
+`);
+                  })()}
+                  onPreviewUrl={setWebContainerPreviewUrl}
+                />
               </div>
             </div>
           )}
