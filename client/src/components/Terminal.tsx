@@ -734,7 +734,7 @@ export function Terminal() {
                       >
                         <div
                           className={`ml-4 mt-1 ${
-                            typingEntriesSet.has(entry.id) ? 'typing' : 'whitespace-pre-wrap'
+                            typingEntriesSet.has(entry.id) ? 'typing ai-processing-line' : 'whitespace-pre-wrap'
                           }`}
                           style={typingEntriesSet.has(entry.id) ? {
                             '--steps': entry.content.length,
