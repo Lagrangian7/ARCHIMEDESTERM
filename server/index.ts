@@ -5,6 +5,13 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
+// Cross-Origin Isolation headers required for WebContainer (SharedArrayBuffer)
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  next();
+});
+
 // Enable gzip compression for all responses
 app.use(compression());
 
