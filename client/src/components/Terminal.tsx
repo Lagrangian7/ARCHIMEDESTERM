@@ -37,7 +37,7 @@ import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
 // import { useChat } from '@/hooks/useChat'; // Commented out - hook not found
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
-import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape } from 'lucide-react';
+import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape, FileText, Globe } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
@@ -46,6 +46,7 @@ import archyLogo from '@assets/archy111_1760233943010.jpeg';
 // Import LogoIcon from its own file to break circular dependency
 import { LogoIcon } from './LogoIcon';
 import { WebSynth } from './WebSynth'; // Import the WebSynth component
+import { WebContainerIDE } from './WebContainerIDE'; // Import the WebContainerIDE component
 
 export function Terminal() {
   const {
@@ -166,6 +167,7 @@ export function Terminal() {
   });
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
+  const [showWebContainerIDE, setShowWebContainerIDE] = useState(false); // Added WebContainer IDE state
 
   // State for the Knowledge Base modal
   const [kbModalState, setKbModalState] = useState({
@@ -208,7 +210,7 @@ export function Terminal() {
     const handleOpenCodePlayground = () => {
       setShowCodePlayground(true);
     };
-    
+
     window.addEventListener('open-code-playground', handleOpenCodePlayground);
     return () => {
       window.removeEventListener('open-code-playground', handleOpenCodePlayground);
@@ -347,7 +349,7 @@ export function Terminal() {
         }
         window.dispatchEvent(new CustomEvent('stop-all-speech'));
         (window as any).qwertyBuffer = ''; // Reset buffer
-        
+
         // Visual feedback
         console.log('🔇 Speech stopped (qwerty shortcut)');
       }
@@ -808,10 +810,10 @@ export function Terminal() {
 
           {/* Notepad Panels - multiple instances */}
           {notepads.map((notepad) => (
-            <Notepad 
+            <Notepad
               key={notepad.id}
               notepadId={notepad.id}
-              onClose={() => setNotepads(prev => prev.filter(n => n.id !== notepad.id))} 
+              onClose={() => setNotepads(prev => prev.filter(n => n.id !== notepad.id))}
             />
           ))}
         </div>
@@ -849,6 +851,28 @@ export function Terminal() {
             >
               <History className="w-4 h-4" />
               <span className="hidden md:inline">HISTORY</span>
+            </Button>
+
+            <Button
+              onClick={() => setShowNotepad(!showNotepad)}
+              variant="ghost"
+              size="sm"
+              title="Notepad"
+              className="hover:bg-terminal-subtle/20"
+              style={{ color: 'var(--terminal-text)' }}
+            >
+              <FileText size={20} />
+            </Button>
+
+            <Button
+              onClick={() => setShowWebContainerIDE(true)}
+              variant="ghost"
+              size="sm"
+              title="WebContainer IDE - Browser-Based Dev Environment"
+              className="hover:bg-terminal-subtle/20"
+              style={{ color: 'var(--terminal-highlight)' }}
+            >
+              <Globe size={20} />
             </Button>
           </div>
         </div>
@@ -1044,6 +1068,19 @@ export function Terminal() {
       {/* WebSynth Overlay */}
       {showWebSynth && (
         <WebSynth onClose={() => setShowWebSynth(false)} />
+      )}
+
+      {/* WebContainer IDE - Rendered when showWebContainerIDE is true */}
+      {showWebContainerIDE && (
+        <WebContainerIDE onClose={() => setShowWebContainerIDE(false)} />
+      )}
+
+      {showNotepad && (
+        <Notepad onClose={() => setShowNotepad(false)} />
+      )}
+
+      {showProfile && (
+        <UserProfile onClose={() => setShowProfile(false)} />
       )}
     </div>
   );
