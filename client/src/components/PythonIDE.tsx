@@ -1907,9 +1907,9 @@ calculator()
   // Dragging and resizing state
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(true); // Start maximized by default
+  const [isMaximized, setIsMaximized] = useState(false); // Start centered, not maximized
   const [position, setPosition] = useState({ x: 0, y: 60 });
-  const [dimensions, setDimensions] = useState({ width: 900, height: 700 });
+  const [dimensions, setDimensions] = useState({ width: 1400, height: 800 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
   const editorRef = useRef<any>(null);
@@ -2637,12 +2637,14 @@ calculator()
     const terminalAreaBottom = 60;
 
     if (isMaximized) {
-      const width = 900;
-      const height = 700;
+      const width = Math.min(1400, window.innerWidth - 40);
+      const height = Math.min(800, window.innerHeight - terminalAreaTop - terminalAreaBottom - 40);
       setDimensions({ width, height });
-      const rightX = window.innerWidth - width - 20;
-      const topY = 50;
-      setPosition({ x: Math.max(0, rightX), y: Math.max(terminalAreaTop, topY) });
+      
+      // Center the window
+      const centerX = (window.innerWidth - width) / 2;
+      const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - height) / 2);
+      setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
       setIsMaximized(false);
     } else {
       setIsMaximized(true);
@@ -2651,12 +2653,21 @@ calculator()
     }
   }, [isMaximized]);
 
-  // Initialize to full-screen on mount
+  // Initialize centered in terminal area on mount
   useEffect(() => {
     const terminalAreaTop = 60;
     const terminalAreaBottom = 60;
-    setDimensions({ width: window.innerWidth, height: window.innerHeight - terminalAreaTop - terminalAreaBottom });
-    setPosition({ x: 0, y: terminalAreaTop });
+    const defaultWidth = Math.min(1400, window.innerWidth - 40);
+    const defaultHeight = Math.min(800, window.innerHeight - terminalAreaTop - terminalAreaBottom - 40);
+    
+    setDimensions({ width: defaultWidth, height: defaultHeight });
+    
+    // Center the window
+    const centerX = (window.innerWidth - defaultWidth) / 2;
+    const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - defaultHeight) / 2);
+    setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
+    
+    setIsMaximized(false);
 
     // Listen for global stop speech events
     const handleStopSpeech = () => {
@@ -4311,18 +4322,24 @@ calculator()
       {/* Collaborative AI Review Panel */}
       {showCollaborativeReview && collaborativeReviewResult && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
-          onClick={() => setShowCollaborativeReview(false)}
+          className="fixed z-50 overflow-hidden shadow-2xl flex flex-col rounded-lg"
+          style={{
+            width: '900px',
+            height: '700px',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: currentPythonTheme.bg,
+            border: `2px solid ${currentPythonTheme.border}`,
+            boxShadow: `0 0 20px ${currentPythonTheme.highlight}40`,
+          }}
           data-testid="panel-collaborative-review"
         >
           <div 
-            className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-lg shadow-2xl"
+            className="flex-1 overflow-hidden flex flex-col"
             style={{ 
               backgroundColor: currentPythonTheme.bg,
-              border: `2px solid ${currentPythonTheme.border}`,
             }}
-            onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div 
