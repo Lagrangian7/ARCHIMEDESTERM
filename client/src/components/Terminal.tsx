@@ -719,8 +719,11 @@ export function Terminal() {
                   )}
                   {entry.type === 'response' && (
                     <div className="mt-2">
-                      <div className="text-terminal-highlight">
-                        ARCHIMEDES v7 {currentMode === 'technical' ? 'PROTOCOL' : currentMode === 'health' ? 'HEALTH' : 'TERMINAL'}
+                      <div className="text-terminal-highlight flex items-center gap-2">
+                        <span>ARCHIMEDES v7 {currentMode === 'technical' ? 'PROTOCOL' : currentMode === 'health' ? 'HEALTH' : 'TERMINAL'}</span>
+                        {typingEntriesSet.has(entry.id) && (
+                          <span className="ai-processing-glyph text-xs">ANALYZING</span>
+                        )}
                       </div>
                       <MemoizedDraggableResponse
                         isTyping={typingEntriesSet.has(entry.id)}
@@ -733,7 +736,7 @@ export function Terminal() {
                         }}
                       >
                         <div
-                          className={`ml-4 mt-1 ${
+                          className={`ml-4 mt-1 transition-all duration-300 ${
                             typingEntriesSet.has(entry.id) ? 'typing ai-processing-line' : 'whitespace-pre-wrap'
                           }`}
                           style={typingEntriesSet.has(entry.id) ? {
