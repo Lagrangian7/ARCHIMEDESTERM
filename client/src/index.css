@@ -1697,16 +1697,6 @@
     background: #0080FF;
     text-shadow: none;
   }
-
-  /* XTerm terminal styles */
-  .xterm {
-    height: 100%;
-    padding: 8px;
-  }
-  
-  .xterm-viewport {
-    overflow-y: auto;
-  }
 }
 
 @layer components {
