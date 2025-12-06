@@ -194,6 +194,28 @@ function generateLocalInstructions(files: CodeFile[]): string {
 
   instructions += '### Step 1: Save the Files\n';
   instructions += 'Create a new folder and save each file with the exact filename shown.\n\n';
+  
+  // Add directory structure recommendation
+  const hasHTML = files.some(f => f.language === 'html');
+  const hasCSS = files.some(f => f.language === 'css');
+  const hasJS = files.some(f => f.language === 'javascript' || f.language === 'typescript');
+  
+  if (hasHTML) {
+    instructions += `**Recommended Directory Structure for Web Project:**\n\`\`\`
+project/
+├── index.html
+${hasCSS ? '├── css/\n│   └── styles.css\n' : ''}${hasJS ? '├── js/\n│   └── script.js\n' : ''}└── assets/
+    └── images/
+\`\`\`\n\n`;
+  } else {
+    instructions += `**Recommended Directory Structure:**\n\`\`\`
+project/
+├── src/
+│   └── (your code files)
+├── tests/
+└── README.md
+\`\`\`\n\n`;
+  }
 
   instructions += '### Step 2: Install Dependencies\n\n';
 
@@ -203,31 +225,43 @@ function generateLocalInstructions(files: CodeFile[]): string {
 
     switch (lang) {
       case 'python':
-        instructions += `**Python:**\n- Install Python 3.x from python.org\n- Run: \`pip install -r requirements.txt\` (if needed)\n\n`;
+        instructions += `**Python:**\n- Install Python 3.x from python.org\n- Run: \`pip install -r requirements.txt\` (if needed)\n- Comments: Use # for single-line, """triple quotes""" for multi-line\n\n`;
         break;
       case 'javascript':
-        instructions += `**JavaScript (Node.js):**\n- Install Node.js from nodejs.org\n- Run: \`npm init -y && npm install\` (if needed)\n\n`;
+        instructions += `**JavaScript (Node.js):**\n- Install Node.js from nodejs.org\n- Run: \`npm init -y && npm install\` (if needed)\n- Comments: Use // for single-line, /* */ for multi-line\n\n`;
         break;
       case 'typescript':
-        instructions += `**TypeScript:**\n- Install Node.js from nodejs.org\n- Run: \`npm install -g typescript ts-node\`\n- Or: \`npx ts-node yourfile.ts\`\n\n`;
+        instructions += `**TypeScript:**\n- Install Node.js from nodejs.org\n- Run: \`npm install -g typescript ts-node\`\n- Or: \`npx ts-node yourfile.ts\`\n- Comments: Same as JavaScript: // and /* */\n\n`;
         break;
       case 'java':
-        instructions += `**Java:**\n- Install JDK from adoptium.net\n- Compile: \`javac FileName.java\`\n- Run: \`java FileName\`\n\n`;
+        instructions += `**Java:**\n- Install JDK from adoptium.net\n- Compile: \`javac FileName.java\`\n- Run: \`java FileName\`\n- File must match class name!\n- Comments: Use // for single-line, /* */ for multi-line, /** */ for JavaDoc\n\n`;
         break;
       case 'cpp':
-        instructions += `**C++:**\n- Install g++ (MinGW on Windows, Xcode on Mac, build-essential on Linux)\n- Compile: \`g++ -o program main.cpp\`\n- Run: \`./program\`\n\n`;
+        instructions += `**C++:**\n- Install g++ (MinGW on Windows, Xcode on Mac, build-essential on Linux)\n- Compile: \`g++ -std=c++17 -o program main.cpp\`\n- Run: \`./program\` (Linux/Mac) or \`program.exe\` (Windows)\n- Comments: Use // for single-line, /* */ for multi-line\n\n`;
+        break;
+      case 'c':
+        instructions += `**C:**\n- Install gcc (MinGW on Windows, build-essential on Linux)\n- Compile: \`gcc -o program main.c\`\n- Run: \`./program\` (Linux/Mac) or \`program.exe\` (Windows)\n- Comments: Use /* */ for multi-line, // for single-line (C99+)\n\n`;
         break;
       case 'html':
-        instructions += `**HTML/CSS:**\n- Simply open the .html file in any web browser\n- Or use VS Code Live Server extension\n\n`;
+        instructions += `**HTML/CSS:**\n- Simply open the .html file in any web browser\n- Or use VS Code Live Server extension\n- Comments (HTML): <!-- comment -->\n- Comments (CSS): /* comment */\n\n`;
         break;
       case 'bash':
-        instructions += `**Bash:**\n- Make executable: \`chmod +x script.sh\`\n- Run: \`./script.sh\` or \`bash script.sh\`\n\n`;
+        instructions += `**Bash:**\n- Add shebang: #!/bin/bash as first line\n- Make executable: \`chmod +x script.sh\`\n- Run: \`./script.sh\` or \`bash script.sh\`\n- Comments: Use # for comments\n\n`;
         break;
       case 'rust':
-        instructions += `**Rust:**\n- Install Rust from rustup.rs\n- Run: \`cargo run\` (in cargo project) or \`rustc main.rs && ./main\`\n\n`;
+        instructions += `**Rust:**\n- Install Rust from rustup.rs\n- Run: \`cargo run\` (in cargo project) or \`rustc main.rs && ./main\`\n- Comments: Use // for single-line, /* */ for multi-line, /// for docs\n\n`;
         break;
       case 'go':
-        instructions += `**Go:**\n- Install Go from go.dev\n- Run: \`go run main.go\`\n\n`;
+        instructions += `**Go:**\n- Install Go from go.dev\n- Initialize: \`go mod init projectname\`\n- Run: \`go run main.go\`\n- Comments: Use // for single-line, /* */ for multi-line\n\n`;
+        break;
+      case 'php':
+        instructions += `**PHP:**\n- Install PHP from php.net\n- Run: \`php filename.php\`\n- Web server: \`php -S localhost:8000\`\n- Comments: Use // or # for single-line, /* */ for multi-line\n\n`;
+        break;
+      case 'ruby':
+        instructions += `**Ruby:**\n- Install Ruby from ruby-lang.org\n- Run: \`ruby filename.rb\`\n- Comments: Use # for single-line, =begin/=end for multi-line\n\n`;
+        break;
+      case 'sql':
+        instructions += `**SQL:**\n- Install PostgreSQL, MySQL, or SQLite\n- Run: \`psql -f filename.sql\` (PostgreSQL)\n- Or: \`mysql < filename.sql\` (MySQL)\n- Comments: Use -- for single-line, /* */ for multi-line\n\n`;
         break;
     }
   }
@@ -239,6 +273,10 @@ function generateLocalInstructions(files: CodeFile[]): string {
       instructions += `- \`${file.name}\`: ${config.runCommand} ${file.name}\n`;
     }
   }
+  
+  instructions += '\n### Step 4: Code Cleanup\n';
+  instructions += 'All downloaded files include proper language-specific comments.\n';
+  instructions += 'Review the code and adjust comments as needed for your specific use case.\n';
 
   return instructions;
 }
