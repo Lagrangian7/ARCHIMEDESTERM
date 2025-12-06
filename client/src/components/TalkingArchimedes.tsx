@@ -48,16 +48,37 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
         const { x, y } = positionRef.current;
         containerRef.current.style.transform = `translate(${x}px, ${y}px)`;
       }
-      // Ensure video is looping and playing
+      // Ensure video is looping and playing continuously
       video.loop = true;
-      video.play().catch(() => {});
+      video.muted = true; // Ensure video sound doesn't interfere with TTS
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Auto-play was prevented, try again
+          setTimeout(() => video.play().catch(() => {}), 100);
+        });
+      }
     } else {
-      // Only hide after both typing AND speaking are done
+      // Only hide after both typing AND speaking are completely done
       video.pause();
       video.currentTime = 0;
       setIsVisible(false);
     }
   }, [shouldShow]);
+
+  // Additional effect to ensure video keeps playing during speech
+  useEffect(() => {
+    if (!isSpeaking || !videoRef.current) return;
+
+    const video = videoRef.current;
+    const ensureVideoPlaying = setInterval(() => {
+      if (video.paused && isSpeaking) {
+        video.play().catch(() => {});
+      }
+    }, 500); // Check every 500ms to ensure video is playing
+
+    return () => clearInterval(ensureVideoPlaying);
+  }, [isSpeaking]);
 
   // Optimized drag handlers using direct DOM manipulation
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
