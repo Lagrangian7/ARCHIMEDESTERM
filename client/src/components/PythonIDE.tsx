@@ -2003,6 +2003,14 @@ calculator()
     overallRating: number;
   } | null>(null);
 
+  // Review panel drag/resize state
+  const [isReviewDragging, setIsReviewDragging] = useState(false);
+  const [isReviewResizing, setIsReviewResizing] = useState(false);
+  const [reviewPosition, setReviewPosition] = useState({ x: 0, y: 0 });
+  const [reviewDimensions, setReviewDimensions] = useState({ width: 900, height: 700 });
+  const reviewDragStartRef = useRef({ x: 0, y: 0 });
+  const reviewResizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
+
   // Mutation for Collaborative AI Code Review
   const collaborativeReviewMutation = useMutation({
     mutationFn: async ({ codeToReview, language, projectName, filePath, relatedFiles }: { 
@@ -2715,6 +2723,35 @@ calculator()
     }
   }, [isDragging, isResizing]);
 
+  // Mouse handlers for review panel
+  const handleReviewMouseMove = useCallback((e: MouseEvent) => {
+    if (isReviewDragging) {
+      const deltaX = e.clientX - reviewDragStartRef.current.x;
+      const deltaY = e.clientY - reviewDragStartRef.current.y;
+      setReviewPosition(prev => ({
+        x: Math.max(0, Math.min(window.innerWidth - 300, prev.x + deltaX)),
+        y: Math.max(0, Math.min(window.innerHeight - 200, prev.y + deltaY))
+      }));
+      reviewDragStartRef.current = { x: e.clientX, y: e.clientY };
+    } else if (isReviewResizing) {
+      const deltaWidth = e.clientX - reviewResizeStartRef.current.mouseX;
+      const deltaHeight = e.clientY - reviewResizeStartRef.current.mouseY;
+      setReviewDimensions(prev => ({
+        width: Math.max(400, Math.min(window.innerWidth - reviewPosition.x, prev.width + deltaWidth)),
+        height: Math.max(400, Math.min(window.innerHeight - reviewPosition.y, prev.height + deltaHeight))
+      }));
+      reviewResizeStartRef.current.mouseX = e.clientX;
+      reviewResizeStartRef.current.mouseY = e.clientY;
+    }
+  }, [isReviewDragging, isReviewResizing, reviewPosition.x, reviewPosition.y]);
+
+  const handleReviewMouseUp = useCallback(() => {
+    if (isReviewDragging || isReviewResizing) {
+      setIsReviewDragging(false);
+      setIsReviewResizing(false);
+    }
+  }, [isReviewDragging, isReviewResizing]);
+
   // Effect for mouse move and up listeners
   useEffect(() => {
     if (isDragging || isResizing) {
@@ -2726,6 +2763,27 @@ calculator()
       };
     }
   }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
+
+  // Effect for review panel mouse listeners
+  useEffect(() => {
+    if (isReviewDragging || isReviewResizing) {
+      document.addEventListener('mousemove', handleReviewMouseMove);
+      document.addEventListener('mouseup', handleReviewMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleReviewMouseMove);
+        document.removeEventListener('mouseup', handleReviewMouseUp);
+      };
+    }
+  }, [isReviewDragging, isReviewResizing, handleReviewMouseMove, handleReviewMouseUp]);
+
+  // Center review panel when it opens
+  useEffect(() => {
+    if (showCollaborativeReview && collaborativeReviewResult) {
+      const centerX = (window.innerWidth - reviewDimensions.width) / 2;
+      const centerY = (window.innerHeight - reviewDimensions.height) / 2;
+      setReviewPosition({ x: Math.max(0, centerX), y: Math.max(0, centerY) });
+    }
+  }, [showCollaborativeReview, collaborativeReviewResult]);
 
   // Calculate terminal area boundaries
   const terminalAreaTop = 60; // Voice controls height
@@ -4324,11 +4382,10 @@ calculator()
         <div 
           className="fixed z-50 overflow-hidden shadow-2xl flex flex-col rounded-lg"
           style={{
-            width: '900px',
-            height: '700px',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
+            width: `${reviewDimensions.width}px`,
+            height: `${reviewDimensions.height}px`,
+            left: `${reviewPosition.x}px`,
+            top: `${reviewPosition.y}px`,
             backgroundColor: currentPythonTheme.bg,
             border: `2px solid ${currentPythonTheme.border}`,
             boxShadow: `0 0 20px ${currentPythonTheme.highlight}40`,
@@ -4343,13 +4400,19 @@ calculator()
           >
             {/* Header */}
             <div 
-              className="px-6 py-4 flex items-center justify-between"
+              className="px-6 py-4 flex items-center justify-between cursor-move"
               style={{ 
                 backgroundColor: currentPythonTheme.subtle,
                 borderBottom: `1px solid ${currentPythonTheme.border}`,
               }}
+              onMouseDown={(e) => {
+                if (e.target === e.currentTarget || (e.target as HTMLElement).closest('.drag-handle')) {
+                  setIsReviewDragging(true);
+                  reviewDragStartRef.current = { x: e.clientX, y: e.clientY };
+                }
+              }}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 drag-handle">
                 <Users className="w-6 h-6" style={{ color: '#ff6b6b' }} />
                 <div>
                   <h2 className="font-mono text-lg font-bold" style={{ color: currentPythonTheme.highlight }}>
@@ -4360,13 +4423,31 @@ calculator()
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 px-4 py-2 rounded" style={{ backgroundColor: currentPythonTheme.bg }}>
                   <Star className="w-5 h-5" style={{ color: '#ffd700' }} />
                   <span className="font-mono text-xl font-bold" style={{ color: currentPythonTheme.highlight }}>
                     {collaborativeReviewResult.overallRating}/10
                   </span>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const allReviews = collaborativeReviewResult.reviews
+                      .map(r => `${r.provider} (${r.model}) - Rating: ${r.rating}/10\n\n${r.feedback}`)
+                      .join('\n\n' + '='.repeat(80) + '\n\n');
+                    const fullText = `Collaborative AI Code Review\n\nOverall Rating: ${collaborativeReviewResult.overallRating}/10\n\nSummary: ${collaborativeReviewResult.summary}\n\n${'='.repeat(80)}\n\n${allReviews}`;
+                    navigator.clipboard.writeText(fullText).then(() => {
+                      toast({ title: "Copied!", description: "All reviews copied to clipboard" });
+                      speak("Review feedback copied to clipboard");
+                    });
+                  }}
+                  style={{ color: currentPythonTheme.highlight }}
+                  title="Copy all reviews"
+                >
+                  <Download className="w-5 h-5" />
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -4414,14 +4495,31 @@ calculator()
                           </span>
                         </div>
                       </div>
-                      {review.status === 'success' && (
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4" style={{ color: '#ffd700' }} />
-                          <span className="font-mono text-sm font-bold" style={{ color: currentPythonTheme.text }}>
-                            {review.rating}/10
-                          </span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {review.status === 'success' && (
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4" style={{ color: '#ffd700' }} />
+                            <span className="font-mono text-sm font-bold" style={{ color: currentPythonTheme.text }}>
+                              {review.rating}/10
+                            </span>
+                          </div>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const reviewText = `${review.provider} (${review.model})\nRating: ${review.rating}/10\n\n${review.feedback}`;
+                            navigator.clipboard.writeText(reviewText).then(() => {
+                              toast({ title: "Copied!", description: `${review.provider} review copied` });
+                            });
+                          }}
+                          className="h-7 w-7 p-0"
+                          style={{ color: currentPythonTheme.highlight }}
+                          title="Copy this review"
+                        >
+                          <Download className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Feedback Content */}
@@ -4449,6 +4547,25 @@ calculator()
                 )}
               </div>
             </ScrollArea>
+
+            {/* Resize handle */}
+            <div
+              className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
+              style={{
+                borderRight: `2px solid ${currentPythonTheme.border}`,
+                borderBottom: `2px solid ${currentPythonTheme.border}`,
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsReviewResizing(true);
+                reviewResizeStartRef.current = {
+                  width: reviewDimensions.width,
+                  height: reviewDimensions.height,
+                  mouseX: e.clientX,
+                  mouseY: e.clientY
+                };
+              }}
+            />
           </div>
         </div>
       )}
