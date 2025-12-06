@@ -10,9 +10,11 @@ interface TalkingArchimedesProps {
 }
 
 export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isSpeaking }: TalkingArchimedesProps) {
-  const shouldShow = isTyping || isSpeaking;
+  const [shouldKeepVisible, setShouldKeepVisible] = useState(false);
+  const shouldShow = isTyping || isSpeaking || shouldKeepVisible;
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const speechEndTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Calculate initial position in visible terminal area
   const getInitialPosition = () => {
@@ -79,6 +81,67 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
 
     return () => clearInterval(ensureVideoPlaying);
   }, [isSpeaking]);
+
+  // Monitor speech synthesis to keep animation visible until TTS truly ends
+  useEffect(() => {
+    if (!window.speechSynthesis) return;
+
+    const checkSpeechStatus = () => {
+      const stillSpeaking = window.speechSynthesis.speaking || window.speechSynthesis.pending;
+      
+      if (stillSpeaking) {
+        setShouldKeepVisible(true);
+        // Clear any pending timeout
+        if (speechEndTimeoutRef.current) {
+          clearTimeout(speechEndTimeoutRef.current);
+        }
+      } else if (shouldKeepVisible) {
+        // Add a small delay before hiding to ensure speech has truly ended
+        speechEndTimeoutRef.current = setTimeout(() => {
+          setShouldKeepVisible(false);
+        }, 500);
+      }
+    };
+
+    // Check speech status frequently while potentially speaking
+    const intervalId = setInterval(checkSpeechStatus, 250);
+
+    return () => {
+      clearInterval(intervalId);
+      if (speechEndTimeoutRef.current) {
+        clearTimeout(speechEndTimeoutRef.current);
+      }
+    };
+  }, [shouldKeepVisible, isSpeaking]);
+
+  // Listen for speech end events
+  useEffect(() => {
+    const handleSpeechEnd = () => {
+      // Wait a bit before hiding to ensure clean transition
+      speechEndTimeoutRef.current = setTimeout(() => {
+        setShouldKeepVisible(false);
+      }, 300);
+    };
+
+    const handleSpeechStart = () => {
+      setShouldKeepVisible(true);
+      if (speechEndTimeoutRef.current) {
+        clearTimeout(speechEndTimeoutRef.current);
+      }
+    };
+
+    // Listen for custom events or speech synthesis events
+    window.addEventListener('speechend', handleSpeechEnd);
+    window.addEventListener('speechstart', handleSpeechStart);
+
+    return () => {
+      window.removeEventListener('speechend', handleSpeechEnd);
+      window.removeEventListener('speechstart', handleSpeechStart);
+      if (speechEndTimeoutRef.current) {
+        clearTimeout(speechEndTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Optimized drag handlers using direct DOM manipulation
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
