@@ -31,29 +31,75 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     }
   }, []);
 
+  const waitForCrossOriginIsolation = useCallback(async (maxWaitMs: number = 5000): Promise<boolean> => {
+    if (window.crossOriginIsolated) {
+      return true;
+    }
+
+    writeToTerminal('\x1b[33m⏳ Waiting for Cross-Origin Isolation...\x1b[0m\r\n');
+
+    const startTime = Date.now();
+    const pollInterval = 200;
+    const swTimeout = 1500; // Max time to wait for service worker
+
+    // Wait for service worker with timeout
+    if ('serviceWorker' in navigator) {
+      try {
+        const swReady = navigator.serviceWorker.ready;
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Service worker timeout')), swTimeout)
+        );
+        await Promise.race([swReady, timeoutPromise]);
+        writeToTerminal('\x1b[36mℹ️ Service worker ready\x1b[0m\r\n');
+      } catch (e) {
+        writeToTerminal('\x1b[33m⚠ Service worker not available (continuing)\x1b[0m\r\n');
+      }
+    }
+
+    // Poll for crossOriginIsolated to become true
+    return new Promise((resolve) => {
+      const poll = () => {
+        if (window.crossOriginIsolated) {
+          writeToTerminal('\x1b[32m✓ Cross-Origin Isolation enabled!\x1b[0m\r\n');
+          resolve(true);
+          return;
+        }
+        
+        if (Date.now() - startTime >= maxWaitMs) {
+          writeToTerminal('\x1b[33m⚠ Cross-Origin Isolation timeout - proceeding anyway\x1b[0m\r\n');
+          resolve(false);
+          return;
+        }
+        
+        setTimeout(poll, pollInterval);
+      };
+      poll();
+    });
+  }, [writeToTerminal]);
+
   const bootWebContainer = useCallback(async () => {
     if (webcontainerInstance.current) {
       return webcontainerInstance.current;
     }
 
-    // Check if cross-origin isolation is enabled
-    if (!window.crossOriginIsolated) {
-      setStatus('error');
-      const errorMsg = 'Cross-Origin Isolation not enabled. SharedArrayBuffer is required for WebContainer. Please refresh the page and try again.';
-      setError(errorMsg);
-      writeToTerminal('\x1b[31m❌ ' + errorMsg + '\x1b[0m\r\n');
-      writeToTerminal('\x1b[33m💡 Tip: Try a hard refresh (Ctrl+Shift+R or Cmd+Shift+R)\x1b[0m\r\n');
-      console.error('WebContainer requires crossOriginIsolated:', {
-        crossOriginIsolated: window.crossOriginIsolated,
-        SharedArrayBuffer: typeof SharedArrayBuffer
-      });
-      return null;
-    }
-
     setStatus('booting');
     setError(null);
     writeToTerminal('\x1b[33m⏳ Booting WebContainer...\x1b[0m\r\n');
+    
+    // Wait for COI to be established (via service worker or headers)
+    const isIsolated = await waitForCrossOriginIsolation(3000);
+    
     writeToTerminal('\x1b[36mℹ️ Cross-Origin Isolation: ' + (window.crossOriginIsolated ? 'Enabled ✓' : 'Disabled ✗') + '\x1b[0m\r\n');
+
+    if (!isIsolated && !window.crossOriginIsolated) {
+      writeToTerminal('\x1b[33m⚠ Warning: Cross-Origin Isolation not available.\x1b[0m\r\n');
+      writeToTerminal('\x1b[33m  WebContainer requires SharedArrayBuffer which needs COI.\x1b[0m\r\n');
+      writeToTerminal('\x1b[33m💡 Tip: Try opening the app in a new browser tab and hard refresh\x1b[0m\r\n');
+      console.warn('WebContainer may not work without crossOriginIsolated:', {
+        crossOriginIsolated: window.crossOriginIsolated,
+        SharedArrayBuffer: typeof SharedArrayBuffer
+      });
+    }
 
     try {
       const instance = await WebContainer.boot();
@@ -76,11 +122,18 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     } catch (err: any) {
       const errorMsg = err?.message || 'Failed to boot WebContainer';
       writeToTerminal(`\x1b[31m❌ ${errorMsg}\x1b[0m\r\n`);
+      
+      // Check if this is likely a COI issue
+      if (!window.crossOriginIsolated && (errorMsg.includes('SharedArrayBuffer') || errorMsg.includes('cross-origin'))) {
+        writeToTerminal('\x1b[33m\r\n💡 This error is likely due to missing Cross-Origin Isolation.\x1b[0m\r\n');
+        writeToTerminal('\x1b[33m   Try opening the app in a new browser tab and hard refreshing.\x1b[0m\r\n');
+      }
+      
       setError(errorMsg);
       setStatus('error');
-      throw err;
+      return null;
     }
-  }, [writeToTerminal, onPreviewUrl]);
+  }, [writeToTerminal, onPreviewUrl, waitForCrossOriginIsolation]);
 
   const mountFiles = useCallback(async () => {
     const instance = webcontainerInstance.current;
@@ -247,6 +300,30 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
       window.removeEventListener('resize', handleResize);
       terminal.dispose();
       terminalInstance.current = null;
+      
+      // Cleanup WebContainer resources (fire and forget with error handling)
+      const cleanup = async () => {
+        try {
+          if (shellProcess.current?.kill) {
+            await shellProcess.current.kill();
+          }
+        } catch (e) {
+          console.warn('Error killing shell process:', e);
+        } finally {
+          shellProcess.current = null;
+        }
+        
+        try {
+          if (webcontainerInstance.current?.teardown) {
+            await webcontainerInstance.current.teardown();
+          }
+        } catch (e) {
+          console.warn('Error tearing down WebContainer:', e);
+        } finally {
+          webcontainerInstance.current = null;
+        }
+      };
+      cleanup().catch(console.warn);
     };
   }, []);
 
@@ -260,9 +337,14 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     await initialize();
   };
 
-  const handleStop = () => {
-    if (shellProcess.current) {
-      shellProcess.current.kill();
+  const handleStop = async () => {
+    try {
+      if (shellProcess.current?.kill) {
+        await shellProcess.current.kill();
+      }
+    } catch (e) {
+      console.warn('Error stopping process:', e);
+    } finally {
       shellProcess.current = null;
     }
     setStatus('ready');
@@ -270,7 +352,7 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
   };
 
   const handleRestart = async () => {
-    handleStop();
+    await handleStop();
     await mountFiles();
     await installDependencies();
     await runDevServer();

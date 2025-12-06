@@ -21,9 +21,11 @@ Preferred communication style: Simple, everyday language.
   - Full terminal emulation with xterm.js and fit addon
   - Supports npm package installation and script execution
   - Preview URL generation for web servers started in the container
-  - Requires Cross-Origin Isolation headers (COEP: require-corp, COOP: same-origin) for SharedArrayBuffer
+  - Requires Cross-Origin Isolation headers (COEP/COOP) for SharedArrayBuffer
+  - **Note**: May require opening app in a direct browser tab (not Replit preview) with hard refresh for headers to take effect
   - Toggle via Terminal icon button in Workshop IDE toolbar
   - Helper functions: createNodeProjectFiles() and createViteProjectFiles() for common project setups
+  - coi-serviceworker polyfill installed to enable cross-origin isolation where possible
 - **Code Playground**: Multi-language code editor with Monaco supporting 15+ languages (Python, JavaScript, TypeScript, Java, C++, Rust, Go, Ruby, PHP, C#, Swift, Kotlin, Bash, SQL, HTML/CSS). Features include:
   - Automatic language detection from code content and fenced blocks
   - Multi-file extraction from AI responses (separates HTML, JS, Python, etc. into individual files)
