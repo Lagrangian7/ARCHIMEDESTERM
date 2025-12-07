@@ -1758,7 +1758,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     const saved = localStorage.getItem(MULTI_FILE_SESSION_KEY);
     if (saved) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed = JSON.JSON.parse(saved);
         if (parsed.files && Array.isArray(parsed.files) && parsed.files.length > 0) {
           return parsed;
         }
@@ -1901,13 +1901,13 @@ calculator()
   const [showMinimap, setShowMinimap] = useState(true); // Default to showing minimap
   const htmlPreview = ''; // Dummy variable, actual preview logic handled elsewhere
   const [htmlPreviewState, setHtmlPreview] = useState(''); // State to hold HTML preview content
-  const [showCodePlayground, setShowCodePlayground] = useState(false);
+  const [showCodePlayground, setShowCodePlayground] = useState(false); // State for Code Playground toggle
   const [showWebContainer, setShowWebContainer] = useState(false);
   const [webContainerFiles, setWebContainerFiles] = useState<Record<string, any>>({});
   const [webContainerPreviewUrl, setWebContainerPreviewUrl] = useState<string | null>(null);
   const [showSnippets, setShowSnippets] = useState(false);
   const [showProjectBuilder, setShowProjectBuilder] = useState(false); // State for Project Builder toggle
-  
+
   // AI processing visual feedback
   const [aiProcessingLines, setAiProcessingLines] = useState<number[]>([]);
   const decorationsCollectionRef = useRef<any>(null);
@@ -2160,7 +2160,7 @@ calculator()
     try {
       editorRef.current = editor;
       monacoRef.current = monaco;
-      
+
       // Create decorations collection for AI processing feedback
       decorationsCollectionRef.current = editor.createDecorationsCollection();
 
@@ -2817,13 +2817,13 @@ calculator()
         const currentCode = showMultiFileMode && activeFile ? activeFile.content : code;
         const lineCount = currentCode.split('\n').length;
         const lines: number[] = [];
-        
+
         // Animate through lines to show AI is reading
         for (let i = 1; i <= Math.min(lineCount, 50); i++) {
           lines.push(i);
         }
         setAiProcessingLines(lines);
-        
+
         // Apply decorations with pulsing effect
         const decorations = lines.map(line => ({
           range: new monacoRef.current.Range(line, 1, line, 1),
@@ -2833,7 +2833,7 @@ calculator()
             glyphMarginClassName: 'ai-processing-glyph'
           }
         }));
-        
+
         decorationsCollectionRef.current.set(decorations);
       }
 
@@ -2860,7 +2860,7 @@ calculator()
         decorationsCollectionRef.current.clear();
       }
       setAiProcessingLines([]);
-      
+
       setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
 
       // Auto-insert code if detected in response (works in all modes now)
@@ -2879,7 +2879,7 @@ calculator()
         decorationsCollectionRef.current.clear();
       }
       setAiProcessingLines([]);
-      
+
       console.error('Chat error:', error);
       setChatHistory(prev => [...prev, { 
         role: 'assistant', 
@@ -3535,7 +3535,7 @@ calculator()
                                 {hasCode && (
                                   <button
                                     onClick={() => insertCodeIntoEditor(hasCode)}
-                                    className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] transition-colors"
+                                    className="text-[var(--workshop-highlight)]/70 hover:text-[var(--workshop-highlight)] transition-colors"
                                     title="Insert code into editor"
                                   >
                                     ⬇️
@@ -3549,7 +3549,7 @@ calculator()
                                       console.error('Failed to copy:', err);
                                     });
                                   }}
-                                  className="text-[var(--terminal-highlight)]/70 hover:text-[var(--terminal-highlight)] transition-colors"
+                                  className="text-[var(--workshop-highlight)]/70 hover:text-[var(--workshop-highlight)] transition-colors"
                                   title="Copy code to clipboard"
                                 >
                                   📋
@@ -3564,7 +3564,7 @@ calculator()
                   })}
                   {chatMutation.isPending && (
                     <div className="text-left">
-                      <div className="inline-block p-2 rounded bg-black/50 text-[var(--terminal-text)]/70 font-mono text-xs">
+                      <div className="inline-block p-2 rounded bg-black/50 text-[var(--workshop-text)]/70 font-mono text-xs">
                         <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
                         Analyzing {aiProcessingLines.length > 0 ? `${aiProcessingLines.length} lines` : 'code'}...
                       </div>
@@ -3852,11 +3852,11 @@ calculator()
                   files={(() => {
                     const currentCode = showMultiFileMode && activeFile ? activeFile.content : code;
                     const currentLang = showMultiFileMode && activeFile ? activeFile.language : detectLanguageFromCode(currentCode);
-                    
+
                     if (currentLang === 'javascript' || currentLang === 'typescript') {
                       return createNodeProjectFiles(currentCode);
                     }
-                    
+
                     return createNodeProjectFiles(`// Welcome to WebContainer Terminal!
 // This runs Node.js entirely in your browser.
 // 
@@ -3885,7 +3885,7 @@ server.listen(PORT, () => {
           )}
 
           {/* Editor with Optional Preview Panel */}
-          <div className="flex-1 flex border-b border-[var(--terminal-highlight)]/30 min-h-0">
+          <div className="flex-1 flex border-b border-[var(--workshop-highlight)]/30 min-h-0">
             {showPreview && (showMultiFileMode && activeFile && activeFile.language === 'html') || (!showMultiFileMode && detectLanguageFromCode(code) === 'html') ? (
               <PanelGroup direction="horizontal" autoSaveId="python-ide-html-preview">
                 {/* Editor Panel */}
