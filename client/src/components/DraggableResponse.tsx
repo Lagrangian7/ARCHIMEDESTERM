@@ -265,7 +265,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     };
   }, []);
 
-  // Auto-detect and execute matplotlib code
+  // Auto-detect and execute matplotlib code (including animations)
   useEffect(() => {
     const extractPythonCode = (content: string): string | null => {
       const codeMatch = content.match(/```python\n([\s\S]*?)\n```/);
@@ -277,7 +277,11 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     
     const pythonCode = extractPythonCode(childContent);
     
-    if (pythonCode && pythonCode.includes('matplotlib') && !isExecuting && !matplotOutput) {
+    // Check for matplotlib or animation
+    const hasMatplotlib = pythonCode && /matplotlib|pyplot/.test(pythonCode);
+    const hasAnimation = pythonCode && /FuncAnimation|matplotlib\.animation/.test(pythonCode);
+    
+    if ((hasMatplotlib || hasAnimation) && !isExecuting && !matplotOutput) {
       setIsExecuting(true);
       
       fetch('/api/execute', {
@@ -293,7 +297,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
           setIsExecuting(false);
         })
         .catch(err => {
-          console.error('Auto-execute matplotlib failed:', err);
+          console.error('Auto-execute matplotlib/animation failed:', err);
           setIsExecuting(false);
         });
     }
@@ -511,7 +515,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                 {children}
               </div>
 
-              {/* Matplotlib Auto-Render */}
+              {/* Matplotlib Auto-Render (including animations) */}
               {isExecuting && (
                 <div className="mt-3 p-2 bg-terminal-highlight/10 rounded text-terminal-highlight text-xs">
                   🎨 Rendering matplotlib visualization...
@@ -519,8 +523,15 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
               )}
               {matplotOutput && (
                 <div className="mt-3 border-t border-terminal-highlight/20 pt-3">
-                  <div className="text-terminal-highlight text-xs mb-2">📊 Auto-generated visualization:</div>
-                  <div dangerouslySetInnerHTML={{ __html: matplotOutput }} />
+                  <div className="text-terminal-highlight text-xs mb-2">
+                    {matplotOutput.includes('iframe') || matplotOutput.includes('image/gif') 
+                      ? '🎬 Auto-generated animation:' 
+                      : '📊 Auto-generated visualization:'}
+                  </div>
+                  <div 
+                    dangerouslySetInnerHTML={{ __html: matplotOutput }} 
+                    className="matplotlib-output"
+                  />
                 </div>
               )}
 
