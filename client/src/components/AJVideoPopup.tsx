@@ -152,7 +152,7 @@ export default function AJVideoPopup({ isOpen, onClose }: AJVideoPopupProps) {
       {/* Video iframe */}
       <div className="relative w-full" style={{ height: 'calc(100% - 40px)' }}>
         <iframe
-          src="https://rumble.com/embed/v6zf6js/"
+          src="https://rumble.com/embed/v6zf6js/?pub=460dk2"
           className="w-full h-full"
           frameBorder="0"
           allowFullScreen
