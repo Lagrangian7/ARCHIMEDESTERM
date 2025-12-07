@@ -16,6 +16,10 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
 
   // State to track if the response has been saved
   const [isSaved, setIsSaved] = useState(false);
+  
+  // State for matplotlib rendering
+  const [matplotOutput, setMatplotOutput] = useState<string | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
 
   // Drag state management
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null); // Null until calculated
@@ -261,6 +265,40 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     };
   }, []);
 
+  // Auto-detect and execute matplotlib code
+  useEffect(() => {
+    const extractPythonCode = (content: string): string | null => {
+      const codeMatch = content.match(/```python\n([\s\S]*?)\n```/);
+      return codeMatch ? codeMatch[1] : null;
+    };
+
+    const childContent = typeof children === 'string' ? children : 
+      (children as any)?.props?.dangerouslySetInnerHTML?.__html || '';
+    
+    const pythonCode = extractPythonCode(childContent);
+    
+    if (pythonCode && pythonCode.includes('matplotlib') && !isExecuting && !matplotOutput) {
+      setIsExecuting(true);
+      
+      fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: pythonCode, language: 'python' })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.guiOutput) {
+            setMatplotOutput(data.guiOutput);
+          }
+          setIsExecuting(false);
+        })
+        .catch(err => {
+          console.error('Auto-execute matplotlib failed:', err);
+          setIsExecuting(false);
+        });
+    }
+  }, [children, isExecuting, matplotOutput]);
+
   // Always show floating version for responses, keep visible until saved
   useEffect(() => {
     setShowFloating(true);
@@ -472,6 +510,19 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
               <div className="text-terminal-text font-mono text-sm leading-relaxed">
                 {children}
               </div>
+
+              {/* Matplotlib Auto-Render */}
+              {isExecuting && (
+                <div className="mt-3 p-2 bg-terminal-highlight/10 rounded text-terminal-highlight text-xs">
+                  🎨 Rendering matplotlib visualization...
+                </div>
+              )}
+              {matplotOutput && (
+                <div className="mt-3 border-t border-terminal-highlight/20 pt-3">
+                  <div className="text-terminal-highlight text-xs mb-2">📊 Auto-generated visualization:</div>
+                  <div dangerouslySetInnerHTML={{ __html: matplotOutput }} />
+                </div>
+              )}
 
               {/* Action buttons - z-10 to be above the glow effect */}
               <div className="absolute top-2 right-2 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity z-10" data-no-drag="true">
