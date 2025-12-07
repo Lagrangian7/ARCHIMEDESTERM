@@ -6,17 +6,15 @@ import { setupVite, serveStatic, log } from "./vite";
 const app = express();
 
 // Cross-Origin Isolation headers required for WebContainer (SharedArrayBuffer)
-// Using 'credentialless' instead of 'require-corp' for better compatibility with external resources
-// Skip COEP for the main page to allow third-party iframes (like Rumble video embeds)
+// Only apply to WebContainer-related paths to avoid breaking third-party iframes (like Rumble video embeds)
 app.use((req, res, next) => {
-  // Only apply strict COEP to WebContainer-related routes
+  // Only apply strict COEP/COOP headers to WebContainer-related routes
+  // Other routes need relaxed policy for external embeds (Rumble, YouTube, etc.)
   if (req.path.startsWith('/api/webcontainer') || req.path.includes('webcontainer')) {
     res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
     res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-  } else {
-    // Use relaxed policy for main app to allow external embeds
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   }
+  // No COOP/COEP headers for main app routes - let third-party iframes work normally
   next();
 });
 
