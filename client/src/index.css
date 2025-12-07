@@ -1,3 +1,5 @@
+/* VT323 Pixel Font for CRT themes - must be first */
+@import url('https://fonts.googleapis.com/css?family=VT323');
 
 /* AI Processing Visual Feedback - Enhanced for visibility */
 @keyframes ai-pulse {
@@ -101,10 +103,6 @@
     rgba(0, 255, 65, 0.2) 50%, 
     transparent 100%);
 }
-
-
-/* VT323 Pixel Font for CRT themes */
-@import url('https://fonts.googleapis.com/css?family=VT323');
 
 @tailwind base;
 @tailwind components;
