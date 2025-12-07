@@ -7,9 +7,16 @@ const app = express();
 
 // Cross-Origin Isolation headers required for WebContainer (SharedArrayBuffer)
 // Using 'credentialless' instead of 'require-corp' for better compatibility with external resources
+// Skip COEP for the main page to allow third-party iframes (like Rumble video embeds)
 app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  // Only apply strict COEP to WebContainer-related routes
+  if (req.path.startsWith('/api/webcontainer') || req.path.includes('webcontainer')) {
+    res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  } else {
+    // Use relaxed policy for main app to allow external embeds
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  }
   next();
 });
 
