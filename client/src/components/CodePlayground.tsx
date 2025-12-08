@@ -360,7 +360,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const lastInitialCodeRef = useRef<string | null>(null);
 
   // Window management state
-  const [isMaximized, setIsMaximized] = useState(true); // Start maximized by default like Workshop
+  const [isMaximized, setIsMaximized] = useState(false); // Start in regular size by default
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -380,12 +380,16 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
   }, [monacoAIMode]);
 
-  // Initialize to full-screen on mount (matching Workshop behavior)
+  // Initialize with regular size positioned at top-right
   useEffect(() => {
     const terminalAreaTop = 60;
-    const terminalAreaBottom = 60;
-    setDimensions({ width: window.innerWidth, height: window.innerHeight - terminalAreaTop - terminalAreaBottom });
-    setPosition({ x: 0, y: terminalAreaTop });
+    const width = 1200;
+    const height = 700;
+    const rightX = Math.max(0, window.innerWidth - width - 20);
+    const topY = terminalAreaTop + 20;
+    
+    setDimensions({ width, height });
+    setPosition({ x: rightX, y: topY });
   }, []);
 
   // Handle maximize toggle (matching Workshop behavior)
