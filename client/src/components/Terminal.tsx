@@ -37,7 +37,7 @@ import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
 // import { useChat } from '@/hooks/useChat'; // Commented out - hook not found
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
-import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape } from 'lucide-react';
+import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape, Clock } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
@@ -46,6 +46,34 @@ import archyLogo from '@assets/archy111_1760233943010.jpeg';
 // Import LogoIcon from its own file to break circular dependency
 import { LogoIcon } from './LogoIcon';
 import { WebSynth } from './WebSynth'; // Import the WebSynth component
+
+// CST Clock Component
+const CSTClock = memo(() => {
+  const [time, setTime] = useState('');
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const cstTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Chicago' }));
+      const hours = cstTime.getHours().toString().padStart(2, '0');
+      const minutes = cstTime.getMinutes().toString().padStart(2, '0');
+      const seconds = cstTime.getSeconds().toString().padStart(2, '0');
+      setTime(`${hours}:${minutes}:${seconds}`);
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex items-center gap-1 px-2 text-terminal-highlight text-xs font-mono border border-terminal-subtle rounded bg-terminal-bg/50 min-h-[44px]">
+      <Clock className="w-3 h-3" />
+      <span className="hidden sm:inline">CST</span>
+      <span>{time}</span>
+    </div>
+  );
+});
 
 export function Terminal() {
   const {
@@ -840,6 +868,8 @@ export function Terminal() {
                 ▋
               </span>
             </div>
+
+            <CSTClock />
 
             <Button
               onClick={() => setShowHistory(!showHistory)}
