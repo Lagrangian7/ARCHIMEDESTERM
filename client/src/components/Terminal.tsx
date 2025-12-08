@@ -208,7 +208,7 @@ export function Terminal() {
     const handleOpenCodePlayground = () => {
       setShowCodePlayground(true);
     };
-    
+
     window.addEventListener('open-code-playground', handleOpenCodePlayground);
     return () => {
       window.removeEventListener('open-code-playground', handleOpenCodePlayground);
@@ -347,7 +347,7 @@ export function Terminal() {
         }
         window.dispatchEvent(new CustomEvent('stop-all-speech'));
         (window as any).qwertyBuffer = ''; // Reset buffer
-        
+
         // Visual feedback
         console.log('🔇 Speech stopped (qwerty shortcut)');
       }
@@ -691,6 +691,7 @@ export function Terminal() {
             notepads={notepads}
             setNotepads={setNotepads}
             setShowPythonIDE={setShowPythonIDE}
+            setShowCodePlayground={setShowCodePlayground}
           />
         </div>
 
@@ -808,10 +809,10 @@ export function Terminal() {
 
           {/* Notepad Panels - multiple instances */}
           {notepads.map((notepad) => (
-            <Notepad 
+            <Notepad
               key={notepad.id}
               notepadId={notepad.id}
-              onClose={() => setNotepads(prev => prev.filter(n => n.id !== notepad.id))} 
+              onClose={() => setNotepads(prev => prev.filter(n => n.id !== notepad.id))}
             />
           ))}
         </div>
