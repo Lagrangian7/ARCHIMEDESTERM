@@ -912,6 +912,26 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
+                    onClick={() => copyToClipboard(activeFile)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-[#00FF41] hover:bg-[#00FF41]/20 text-xs"
+                    data-testid="button-copy-editor-code"
+                    title="Copy code to clipboard"
+                  >
+                    {copiedId === activeFile.id ? (
+                      <>
+                        <Check className="w-4 h-4 mr-1" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-1" />
+                        Copy Code
+                      </>
+                    )}
+                  </Button>
+                  <Button
                     onClick={runCode}
                     disabled={isRunning || !EXECUTABLE_LANGUAGES.includes(activeFile.language)}
                     size="sm"
