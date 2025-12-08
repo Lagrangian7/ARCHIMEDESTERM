@@ -364,7 +364,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [dimensions, setDimensions] = useState({ width: 1200, height: 700 });
+  const [dimensions, setDimensions] = useState({ width: 900, height: 600 });
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
 
@@ -383,8 +383,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   // Initialize with regular size positioned at top-right
   useEffect(() => {
     const terminalAreaTop = 60;
-    const width = 1200;
-    const height = 700;
+    const width = 900;
+    const height = 600;
     const rightX = Math.max(0, window.innerWidth - width - 20);
     const topY = terminalAreaTop + 20;
     
