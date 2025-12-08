@@ -64,15 +64,6 @@ export default function TerminalPage() {
   // The changes introduce state management and conditional rendering within `TerminalPage`.
   // I will apply these changes directly to `TerminalPage`.
 
-  // The provided changes are to be applied to the `TerminalPage` component.
-  // This involves adding imports, state variables, and conditional rendering logic.
-
-  // The changes provided are instructions to modify the `TerminalPage`.
-  // I will apply these changes to update the `TerminalPage` component.
-
-  // The following code integrates the `WebSynth` component by applying the provided changes.
-  // This involves updating imports, state management, and conditional rendering logic within `TerminalPage`.
-
   // The changes provided will be applied to the `TerminalPage` component, adding the `WebSynth` functionality.
 
   return <Terminal />;

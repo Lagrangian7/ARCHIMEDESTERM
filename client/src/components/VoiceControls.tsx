@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code, Terminal as TerminalIcon } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ interface VoiceControlsProps {
   notepads: Array<{ id: string }>;
   setNotepads: React.Dispatch<React.SetStateAction<Array<{ id: string }>>>;
   setShowPythonIDE: (show: boolean) => void;
+  setShowCodePlayground: (show: boolean) => void;
 }
 
 export function VoiceControls({
@@ -45,6 +46,7 @@ export function VoiceControls({
   notepads,
   setNotepads,
   setShowPythonIDE,
+  setShowCodePlayground,
 }: VoiceControlsProps) {
   const { toast } = useToast();
   const {
@@ -278,6 +280,25 @@ export function VoiceControls({
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                   <p>Workshop</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Code Playground Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowCodePlayground(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[32px] min-w-[32px] p-1.5"
+                    data-testid="button-code-playground"
+                    aria-label="Code Playground"
+                  >
+                    <TerminalIcon size={14} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <p>Code Playground</p>
                 </TooltipContent>
               </Tooltip>
 
