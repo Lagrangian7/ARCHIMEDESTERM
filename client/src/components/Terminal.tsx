@@ -215,22 +215,22 @@ export function Terminal() {
     'real-estate', 'auditing-cream', 'venture-capital', 'insurance-navy', 'logistics-orange'
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>(() => {
-    // Initialize theme from preferences or localStorage, default to 'hacker'
-    const savedTheme = preferences?.terminalTheme || localStorage.getItem('terminal-theme');
-    if (savedTheme) {
-      return savedTheme;
-    }
-    localStorage.setItem('terminal-theme', 'hacker');
-    return 'hacker';
+    // Initialize theme from localStorage first (will be updated by preferences when loaded)
+    const savedTheme = localStorage.getItem('terminal-theme');
+    return savedTheme || 'hacker';
   });
 
-  // Update theme when preferences change
+  // Update theme when preferences change (this runs after auth loads)
   useEffect(() => {
-    if (preferences?.terminalTheme && preferences.terminalTheme !== currentTheme) {
+    if (preferences?.terminalTheme) {
       setCurrentTheme(preferences.terminalTheme);
       localStorage.setItem('terminal-theme', preferences.terminalTheme);
+    } else if (!localStorage.getItem('terminal-theme')) {
+      // Set default only if neither preferences nor localStorage have a value
+      localStorage.setItem('terminal-theme', 'hacker');
+      setCurrentTheme('hacker');
     }
-  }, [preferences?.terminalTheme, currentTheme]);
+  }, [preferences?.terminalTheme]);
 
   // Listen for Code Playground open event from voice controls
   useEffect(() => {
