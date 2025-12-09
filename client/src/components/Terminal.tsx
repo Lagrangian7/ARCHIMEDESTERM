@@ -218,11 +218,15 @@ export function Terminal() {
 
   // Update theme when preferences change or on mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem('terminal-theme');
-    const themeToUse = preferences?.terminalTheme || savedTheme || 'hacker';
-    
-    setCurrentTheme(themeToUse);
-    localStorage.setItem('terminal-theme', themeToUse);
+    // Only update if preferences are loaded and have a theme
+    if (preferences?.terminalTheme) {
+      setCurrentTheme(preferences.terminalTheme);
+      localStorage.setItem('terminal-theme', preferences.terminalTheme);
+    } else {
+      // If no preferences yet, use hacker as default and set it
+      setCurrentTheme('hacker');
+      localStorage.setItem('terminal-theme', 'hacker');
+    }
   }, [preferences?.terminalTheme]);
 
   // Listen for Code Playground open event from voice controls
