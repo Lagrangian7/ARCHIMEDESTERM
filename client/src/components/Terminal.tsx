@@ -224,7 +224,13 @@ export function Terminal() {
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>(() => {
     // Load theme from user preferences, localStorage, or default to hacker
-    return preferences?.terminalTheme || localStorage.getItem('terminal-theme') || 'hacker';
+    const savedTheme = preferences?.terminalTheme || localStorage.getItem('terminal-theme');
+    if (!savedTheme) {
+      // Set default theme to hacker and save it
+      localStorage.setItem('terminal-theme', 'hacker');
+      return 'hacker';
+    }
+    return savedTheme;
   });
 
   // Update theme when user preferences change
@@ -670,14 +676,17 @@ export function Terminal() {
   // Initialize background from localStorage on mount
   useEffect(() => {
     const savedBg = localStorage.getItem('terminal-background-url');
-    if (savedBg) {
+    if (savedBg && savedBg !== 'null' && savedBg !== '') {
+      console.log('Loading saved background:', savedBg);
       setCustomBackgroundUrl(savedBg);
       setHasCustomBackground(true);
     } else {
       // Set default wallpaper on first load
-      setCustomBackgroundUrl('/default-wallpaper.png');
+      console.log('Setting default wallpaper');
+      const defaultWallpaper = '/default-wallpaper.png';
+      setCustomBackgroundUrl(defaultWallpaper);
       setHasCustomBackground(true);
-      localStorage.setItem('terminal-background-url', '/default-wallpaper.png');
+      localStorage.setItem('terminal-background-url', defaultWallpaper);
     }
   }, []);
 
