@@ -186,16 +186,8 @@ export function Terminal() {
   const [showPythonIDE, setShowPythonIDE] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [showBackgroundManager, setShowBackgroundManager] = useState(false);
-  const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>(() => {
-    // Load saved background on mount
-    const saved = localStorage.getItem('terminal-background-url');
-    console.log('Initial background URL loaded:', saved);
-    return saved || '/default-wallpaper.png';
-  });
-  const [hasCustomBackground, setHasCustomBackground] = useState<boolean>(() => {
-    // Check if a background is already set in localStorage
-    return localStorage.getItem('terminal-background-url') !== null;
-  });
+  const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>('/default-wallpaper.png');
+  const [hasCustomBackground, setHasCustomBackground] = useState<boolean>(true);
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
 
@@ -222,22 +214,17 @@ export function Terminal() {
     'investment-banking', 'corporate-slate', 'silicon-valley', 'premium-charcoal', 'pharmaceutical-white',
     'real-estate', 'auditing-cream', 'venture-capital', 'insurance-navy', 'logistics-orange'
   ], []);
-  const [currentTheme, setCurrentTheme] = useState<string>(() => {
-    // Load theme from user preferences, localStorage, or default to hacker
-    const savedTheme = preferences?.terminalTheme || localStorage.getItem('terminal-theme');
-    if (!savedTheme) {
-      // Set default theme to hacker and save it
-      localStorage.setItem('terminal-theme', 'hacker');
-      return 'hacker';
-    }
-    return savedTheme;
-  });
+  const [currentTheme, setCurrentTheme] = useState<string>('hacker');
 
-  // Update theme when user preferences change
+  // Initialize and update theme from preferences or localStorage
   useEffect(() => {
-    if (preferences?.terminalTheme && preferences.terminalTheme !== currentTheme) {
-      setCurrentTheme(preferences.terminalTheme);
-      localStorage.setItem('terminal-theme', preferences.terminalTheme);
+    const savedTheme = preferences?.terminalTheme || localStorage.getItem('terminal-theme');
+    if (savedTheme) {
+      setCurrentTheme(savedTheme);
+    } else {
+      // Set default theme to hacker
+      localStorage.setItem('terminal-theme', 'hacker');
+      setCurrentTheme('hacker');
     }
   }, [preferences?.terminalTheme]);
 
@@ -676,13 +663,11 @@ export function Terminal() {
   // Initialize background from localStorage on mount
   useEffect(() => {
     const savedBg = localStorage.getItem('terminal-background-url');
-    if (savedBg && savedBg !== 'null' && savedBg !== '') {
-      console.log('Loading saved background:', savedBg);
+    if (savedBg && savedBg !== 'null' && savedBg !== '' && savedBg !== 'none') {
       setCustomBackgroundUrl(savedBg);
       setHasCustomBackground(true);
     } else {
-      // Set default wallpaper on first load
-      console.log('Setting default wallpaper');
+      // Set default wallpaper
       const defaultWallpaper = '/default-wallpaper.png';
       setCustomBackgroundUrl(defaultWallpaper);
       setHasCustomBackground(true);
