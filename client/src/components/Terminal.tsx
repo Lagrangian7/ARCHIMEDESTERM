@@ -214,22 +214,15 @@ export function Terminal() {
     'investment-banking', 'corporate-slate', 'silicon-valley', 'premium-charcoal', 'pharmaceutical-white',
     'real-estate', 'auditing-cream', 'venture-capital', 'insurance-navy', 'logistics-orange'
   ], []);
-  const [currentTheme, setCurrentTheme] = useState<string>(() => {
-    // Initialize theme from localStorage first (will be updated by preferences when loaded)
-    const savedTheme = localStorage.getItem('terminal-theme');
-    return savedTheme || 'hacker';
-  });
+  const [currentTheme, setCurrentTheme] = useState<string>('hacker');
 
-  // Update theme when preferences change (this runs after auth loads)
+  // Update theme when preferences change or on mount
   useEffect(() => {
-    if (preferences?.terminalTheme) {
-      setCurrentTheme(preferences.terminalTheme);
-      localStorage.setItem('terminal-theme', preferences.terminalTheme);
-    } else if (!localStorage.getItem('terminal-theme')) {
-      // Set default only if neither preferences nor localStorage have a value
-      localStorage.setItem('terminal-theme', 'hacker');
-      setCurrentTheme('hacker');
-    }
+    const savedTheme = localStorage.getItem('terminal-theme');
+    const themeToUse = preferences?.terminalTheme || savedTheme || 'hacker';
+    
+    setCurrentTheme(themeToUse);
+    localStorage.setItem('terminal-theme', themeToUse);
   }, [preferences?.terminalTheme]);
 
   // Listen for Code Playground open event from voice controls
