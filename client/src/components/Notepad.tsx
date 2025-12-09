@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FileText, Save, Trash2, X, Eye } from 'lucide-react';
+import { FileText, Save, Trash2, X, Eye, Minus, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -15,6 +15,7 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('Untitled Note');
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const previewRef = useRef<HTMLDivElement>(null);
@@ -24,8 +25,12 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
   const offsetX = (notepadIndex % 3) * 30;
   const offsetY = (notepadIndex % 3) * 30;
   const [position, setPosition] = useState({ x: window.innerWidth - 370 - offsetX, y: 20 + offsetY });
+  const [size, setSize] = useState({ width: 350, height: 600 });
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeDirection, setResizeDirection] = useState<string>('');
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Load saved content and title from localStorage on mount
@@ -69,7 +74,58 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
     setIsDragging(false);
   }, []);
 
-  // Setup drag event listeners
+  // Resize handlers
+  const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeDirection(direction);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: size.width,
+      height: size.height
+    });
+  }, [size]);
+
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    if (!isResizing) return;
+
+    const deltaX = e.clientX - resizeStart.x;
+    const deltaY = e.clientY - resizeStart.y;
+
+    let newWidth = size.width;
+    let newHeight = size.height;
+    let newX = position.x;
+    let newY = position.y;
+
+    if (resizeDirection.includes('e')) {
+      newWidth = Math.max(300, resizeStart.width + deltaX);
+    }
+    if (resizeDirection.includes('w')) {
+      newWidth = Math.max(300, resizeStart.width - deltaX);
+      newX = position.x + (resizeStart.width - newWidth);
+    }
+    if (resizeDirection.includes('s')) {
+      newHeight = Math.max(200, resizeStart.height + deltaY);
+    }
+    if (resizeDirection.includes('n')) {
+      newHeight = Math.max(200, resizeStart.height - deltaY);
+      newY = position.y + (resizeStart.height - newHeight);
+    }
+
+    setSize({ width: newWidth, height: newHeight });
+    if (newX !== position.x || newY !== position.y) {
+      setPosition({ x: newX, y: newY });
+    }
+  }, [isResizing, resizeDirection, resizeStart, size, position]);
+
+  const handleResizeEnd = useCallback(() => {
+    setIsResizing(false);
+    setResizeDirection('');
+  }, []);
+
+  // Setup drag and resize event listeners
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -80,6 +136,17 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
       };
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResizeMove);
+      document.addEventListener('mouseup', handleResizeEnd);
+      return () => {
+        document.removeEventListener('mousemove', handleResizeMove);
+        document.removeEventListener('mouseup', handleResizeEnd);
+      };
+    }
+  }, [isResizing, handleResizeMove, handleResizeEnd]);
 
   // Auto-save content to localStorage whenever it changes
   useEffect(() => {
@@ -155,13 +222,30 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
     }
   };
 
+  const handleCopyText = () => {
+    navigator.clipboard.writeText(content).then(() => {
+      toast({
+        title: "Copied!",
+        description: "Text copied to clipboard",
+      });
+    }).catch(() => {
+      toast({
+        title: "Copy Failed",
+        description: "Could not copy text to clipboard",
+        variant: "destructive",
+      });
+    });
+  };
+
   return (
     <div 
       ref={containerRef}
-      className="fixed z-50 w-[350px] h-[600px] flex flex-col border-2 rounded-lg shadow-2xl"
+      className="fixed z-50 flex flex-col border-2 rounded-lg shadow-2xl"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
+        width: `${size.width}px`,
+        height: isMinimized ? 'auto' : `${size.height}px`,
         backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.85)',
         backdropFilter: 'blur(12px) saturate(180%)',
         WebkitBackdropFilter: 'blur(12px) saturate(180%)',
@@ -174,7 +258,20 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
       }}
       data-testid="notepad-panel"
     >
-      {/* Header with Close Button */}
+      {/* Resize Handles */}
+      {!isMinimized && (
+        <>
+          <div onMouseDown={(e) => handleResizeStart(e, 'n')} className="absolute top-0 left-0 right-0 h-1 cursor-n-resize" />
+          <div onMouseDown={(e) => handleResizeStart(e, 's')} className="absolute bottom-0 left-0 right-0 h-1 cursor-s-resize" />
+          <div onMouseDown={(e) => handleResizeStart(e, 'w')} className="absolute top-0 bottom-0 left-0 w-1 cursor-w-resize" />
+          <div onMouseDown={(e) => handleResizeStart(e, 'e')} className="absolute top-0 bottom-0 right-0 w-1 cursor-e-resize" />
+          <div onMouseDown={(e) => handleResizeStart(e, 'nw')} className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize" />
+          <div onMouseDown={(e) => handleResizeStart(e, 'ne')} className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize" />
+          <div onMouseDown={(e) => handleResizeStart(e, 'sw')} className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize" />
+          <div onMouseDown={(e) => handleResizeStart(e, 'se')} className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" />
+        </>
+      )}
+      {/* Header with Minimize and Close Buttons */}
       <div 
         className="flex items-center justify-between p-2 border-b cursor-move select-none"
         style={{ borderColor: 'var(--terminal-subtle)' }}
@@ -194,74 +291,104 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
             ⋮⋮
           </div>
         </div>
-        <Button
-          onClick={onClose}
-          onMouseDown={(e) => e.stopPropagation()}
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 flex-shrink-0"
-          style={{ color: 'var(--terminal-text)' }}
-          data-testid="button-close-notepad"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-      </div>
-
-      {/* Toolbar */}
-      <div 
-        className="flex items-center gap-1.5 p-2 border-b flex-wrap"
-        style={{ borderColor: 'var(--terminal-subtle)' }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <Button
-          onClick={handleSave}
-          size="sm"
-          className="font-mono text-xs h-7 px-2.5"
-          style={{ 
-            backgroundColor: 'var(--terminal-highlight)', 
-            color: 'var(--terminal-bg)',
-            fontWeight: 500
-          }}
-          disabled={saveMutation.isPending}
-        >
-          <Save className="w-3 h-3 mr-1" />
-          {saveMutation.isPending ? 'Saving...' : 'Save'}
-        </Button>
-        <Button
-          onClick={handleClear}
-          size="sm"
-          variant="outline"
-          className="font-mono text-xs h-7 px-2.5 hover:opacity-80"
-          style={{ 
-            backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
-            borderColor: 'rgba(var(--terminal-subtle-rgb), 0.4)', 
-            color: 'var(--terminal-text)' 
-          }}
-        >
-          <Trash2 className="w-3 h-3 mr-1" />
-          Clear
-        </Button>
-        <Button
-          onClick={() => setIsPreviewMode(!isPreviewMode)}
-          size="sm"
-          variant="outline"
-          className="font-mono text-xs h-7 px-2.5 hover:opacity-80"
-          style={{ 
-            backgroundColor: isPreviewMode ? 'rgba(var(--terminal-highlight-rgb), 0.2)' : 'rgba(var(--terminal-subtle-rgb), 0.15)',
-            borderColor: isPreviewMode ? 'var(--terminal-highlight)' : 'rgba(var(--terminal-subtle-rgb), 0.4)', 
-            color: 'var(--terminal-text)' 
-          }}
-        >
-          <Eye className="w-3 h-3 mr-1" />
-          Preview
-        </Button>
-        <div className="ml-auto text-xs font-mono" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
-          {content.length}
+        <div className="flex gap-1">
+          <Button
+            onClick={() => setIsMinimized(!isMinimized)}
+            onMouseDown={(e) => e.stopPropagation()}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 flex-shrink-0"
+            style={{ color: 'var(--terminal-text)' }}
+            title={isMinimized ? "Restore" : "Minimize"}
+          >
+            <Minus className="w-4 h-4" />
+          </Button>
+          <Button
+            onClick={onClose}
+            onMouseDown={(e) => e.stopPropagation()}
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 flex-shrink-0"
+            style={{ color: 'var(--terminal-text)' }}
+            data-testid="button-close-notepad"
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
+      {/* Toolbar */}
+      {!isMinimized && (
+        <div 
+          className="flex items-center gap-1.5 p-2 border-b flex-wrap"
+          style={{ borderColor: 'var(--terminal-subtle)' }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <Button
+            onClick={handleSave}
+            size="sm"
+            className="font-mono text-xs h-7 px-2.5"
+            style={{ 
+              backgroundColor: 'var(--terminal-highlight)', 
+              color: 'var(--terminal-bg)',
+              fontWeight: 500
+            }}
+            disabled={saveMutation.isPending}
+          >
+            <Save className="w-3 h-3 mr-1" />
+            {saveMutation.isPending ? 'Saving...' : 'Save'}
+          </Button>
+          <Button
+            onClick={handleCopyText}
+            size="sm"
+            variant="outline"
+            className="font-mono text-xs h-7 px-2.5 hover:opacity-80"
+            style={{ 
+              backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
+              borderColor: 'rgba(var(--terminal-subtle-rgb), 0.4)', 
+              color: 'var(--terminal-text)' 
+            }}
+            disabled={!content.trim()}
+          >
+            <Copy className="w-3 h-3 mr-1" />
+            Copy
+          </Button>
+          <Button
+            onClick={handleClear}
+            size="sm"
+            variant="outline"
+            className="font-mono text-xs h-7 px-2.5 hover:opacity-80"
+            style={{ 
+              backgroundColor: 'rgba(var(--terminal-subtle-rgb), 0.15)',
+              borderColor: 'rgba(var(--terminal-subtle-rgb), 0.4)', 
+              color: 'var(--terminal-text)' 
+            }}
+          >
+            <Trash2 className="w-3 h-3 mr-1" />
+            Clear
+          </Button>
+          <Button
+            onClick={() => setIsPreviewMode(!isPreviewMode)}
+            size="sm"
+            variant="outline"
+            className="font-mono text-xs h-7 px-2.5 hover:opacity-80"
+            style={{ 
+              backgroundColor: isPreviewMode ? 'rgba(var(--terminal-highlight-rgb), 0.2)' : 'rgba(var(--terminal-subtle-rgb), 0.15)',
+              borderColor: isPreviewMode ? 'var(--terminal-highlight)' : 'rgba(var(--terminal-subtle-rgb), 0.4)', 
+              color: 'var(--terminal-text)' 
+            }}
+          >
+            <Eye className="w-3 h-3 mr-1" />
+            Preview
+          </Button>
+          <div className="ml-auto text-xs font-mono" style={{ color: 'var(--terminal-text)', opacity: 0.7 }}>
+            {content.length}
+          </div>
+        </div>
+      )}
+
       {/* Text Area / Preview */}
-      {isPreviewMode ? (
+      {!isMinimized && (isPreviewMode ? (
         <div
           ref={previewRef}
           className="flex-1 p-3 overflow-auto"
@@ -296,7 +423,7 @@ export function Notepad({ notepadId, onClose }: NotepadProps) {
           data-no-terminal-autofocus
           data-testid="notepad-textarea"
         />
-      )}
+      ))}
     </div>
   );
 }
