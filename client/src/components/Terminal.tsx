@@ -190,7 +190,11 @@ export function Terminal() {
     // Load saved background on mount
     const saved = localStorage.getItem('terminal-background-url');
     console.log('Initial background URL loaded:', saved);
-    return saved || '';
+    return saved || '/default-wallpaper.png';
+  });
+  const [hasCustomBackground, setHasCustomBackground] = useState<boolean>(() => {
+    // Check if a background is already set in localStorage
+    return localStorage.getItem('terminal-background-url') !== null;
   });
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
@@ -652,7 +656,7 @@ export function Terminal() {
   const isGradientTheme = gradientThemes.includes(currentTheme);
 
   // Check if user has set a custom background (from Background Manager)
-  const hasCustomBackground = customBackgroundUrl && customBackgroundUrl.length > 0;
+  // const hasCustomBackground = customBackgroundUrl && customBackgroundUrl.length > 0; // This line seems redundant with the state variable
 
   // Debug logging
   useEffect(() => {
@@ -662,6 +666,20 @@ export function Terminal() {
       currentTheme
     });
   }, [customBackgroundUrl, hasCustomBackground, currentTheme]);
+
+  // Initialize background from localStorage on mount
+  useEffect(() => {
+    const savedBg = localStorage.getItem('terminal-background-url');
+    if (savedBg) {
+      setCustomBackgroundUrl(savedBg);
+      setHasCustomBackground(true);
+    } else {
+      // Set default wallpaper on first load
+      setCustomBackgroundUrl('/default-wallpaper.png');
+      setHasCustomBackground(true);
+      localStorage.setItem('terminal-background-url', '/default-wallpaper.png');
+    }
+  }, []);
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>

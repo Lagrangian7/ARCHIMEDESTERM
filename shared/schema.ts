@@ -34,7 +34,7 @@ export const userPreferences = pgTable("user_preferences", {
   voiceEnabled: boolean("voice_enabled").notNull().default(false),
   selectedVoice: text("selected_voice").default("default"),
   voiceRate: text("voice_rate").default("1"),
-  terminalTheme: text("terminal_theme").default("classic"), // "classic" | "neon" | "minimal"
+  terminalTheme: text("terminal_theme").default("hacker"), // "classic" | "neon" | "minimal" | "hacker"
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
