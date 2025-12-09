@@ -214,19 +214,23 @@ export function Terminal() {
     'investment-banking', 'corporate-slate', 'silicon-valley', 'premium-charcoal', 'pharmaceutical-white',
     'real-estate', 'auditing-cream', 'venture-capital', 'insurance-navy', 'logistics-orange'
   ], []);
-  const [currentTheme, setCurrentTheme] = useState<string>('hacker');
-
-  // Initialize and update theme from preferences or localStorage
-  useEffect(() => {
+  const [currentTheme, setCurrentTheme] = useState<string>(() => {
+    // Initialize theme from preferences or localStorage, default to 'hacker'
     const savedTheme = preferences?.terminalTheme || localStorage.getItem('terminal-theme');
     if (savedTheme) {
-      setCurrentTheme(savedTheme);
-    } else {
-      // Set default theme to hacker
-      localStorage.setItem('terminal-theme', 'hacker');
-      setCurrentTheme('hacker');
+      return savedTheme;
     }
-  }, [preferences?.terminalTheme]);
+    localStorage.setItem('terminal-theme', 'hacker');
+    return 'hacker';
+  });
+
+  // Update theme when preferences change
+  useEffect(() => {
+    if (preferences?.terminalTheme && preferences.terminalTheme !== currentTheme) {
+      setCurrentTheme(preferences.terminalTheme);
+      localStorage.setItem('terminal-theme', preferences.terminalTheme);
+    }
+  }, [preferences?.terminalTheme, currentTheme]);
 
   // Listen for Code Playground open event from voice controls
   useEffect(() => {
@@ -663,16 +667,17 @@ export function Terminal() {
   // Initialize background from localStorage on mount
   useEffect(() => {
     const savedBg = localStorage.getItem('terminal-background-url');
+    const defaultWallpaper = '/default-wallpaper.png';
+    
     if (savedBg && savedBg !== 'null' && savedBg !== '' && savedBg !== 'none') {
+      console.log('Loading saved background:', savedBg);
       setCustomBackgroundUrl(savedBg);
-      setHasCustomBackground(true);
     } else {
-      // Set default wallpaper
-      const defaultWallpaper = '/default-wallpaper.png';
+      console.log('Setting default wallpaper');
       setCustomBackgroundUrl(defaultWallpaper);
-      setHasCustomBackground(true);
       localStorage.setItem('terminal-background-url', defaultWallpaper);
     }
+    setHasCustomBackground(true);
   }, []);
 
   return (
