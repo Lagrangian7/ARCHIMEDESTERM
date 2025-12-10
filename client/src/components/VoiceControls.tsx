@@ -283,33 +283,6 @@ export function VoiceControls({
                 </TooltipContent>
               </Tooltip>
 
-            {/* WebContainer Terminal Button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => {
-                      // Open Python IDE first, then trigger WebContainer
-                      setShowPythonIDE(true);
-                      setTimeout(() => {
-                        const event = new CustomEvent('open-webcontainer');
-                        window.dispatchEvent(event);
-                      }, 100);
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[32px] min-w-[32px] p-1.5"
-                    data-testid="button-webcontainer-terminal"
-                    aria-label="Terminal (Node.js)"
-                  >
-                    <TerminalIcon size={14} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>Terminal (Node.js)</p>
-                </TooltipContent>
-              </Tooltip>
-              </Tooltip>
-
               {/* Code Playground Button */}
               <Tooltip>
                 <TooltipTrigger asChild>

@@ -31,7 +31,51 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     }
   }, []);
 
-  
+  const waitForCrossOriginIsolation = useCallback(async (maxWaitMs: number = 5000): Promise<boolean> => {
+    if (window.crossOriginIsolated) {
+      return true;
+    }
+
+    writeToTerminal('\x1b[33m⏳ Waiting for Cross-Origin Isolation...\x1b[0m\r\n');
+
+    const startTime = Date.now();
+    const pollInterval = 200;
+    const swTimeout = 1500; // Max time to wait for service worker
+
+    // Wait for service worker with timeout
+    if ('serviceWorker' in navigator) {
+      try {
+        const swReady = navigator.serviceWorker.ready;
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Service worker timeout')), swTimeout)
+        );
+        await Promise.race([swReady, timeoutPromise]);
+        writeToTerminal('\x1b[36mℹ️ Service worker ready\x1b[0m\r\n');
+      } catch (e) {
+        writeToTerminal('\x1b[33m⚠ Service worker not available (continuing)\x1b[0m\r\n');
+      }
+    }
+
+    // Poll for crossOriginIsolated to become true
+    return new Promise((resolve) => {
+      const poll = () => {
+        if (window.crossOriginIsolated) {
+          writeToTerminal('\x1b[32m✓ Cross-Origin Isolation enabled!\x1b[0m\r\n');
+          resolve(true);
+          return;
+        }
+        
+        if (Date.now() - startTime >= maxWaitMs) {
+          writeToTerminal('\x1b[33m⚠ Cross-Origin Isolation timeout - proceeding anyway\x1b[0m\r\n');
+          resolve(false);
+          return;
+        }
+        
+        setTimeout(poll, pollInterval);
+      };
+      poll();
+    });
+  }, [writeToTerminal]);
 
   const bootWebContainer = useCallback(async () => {
     if (webcontainerInstance.current) {
@@ -42,29 +86,20 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     setError(null);
     writeToTerminal('\x1b[33m⏳ Booting WebContainer...\x1b[0m\r\n');
     
-    // Check COI status immediately
-    const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined';
-    const isCrossOriginIsolated = window.crossOriginIsolated === true;
+    // Wait for COI to be established (via service worker or headers)
+    const isIsolated = await waitForCrossOriginIsolation(3000);
     
-    writeToTerminal('\x1b[36mℹ️ Cross-Origin Isolation: ' + (isCrossOriginIsolated ? 'Enabled ✓' : 'Disabled ✗') + '\x1b[0m\r\n');
-    writeToTerminal('\x1b[36mℹ️ SharedArrayBuffer: ' + (hasSharedArrayBuffer ? 'Available ✓' : 'Unavailable ✗') + '\x1b[0m\r\n');
+    writeToTerminal('\x1b[36mℹ️ Cross-Origin Isolation: ' + (window.crossOriginIsolated ? 'Enabled ✓' : 'Disabled ✗') + '\x1b[0m\r\n');
 
-    if (!isCrossOriginIsolated || !hasSharedArrayBuffer) {
-      writeToTerminal('\x1b[31m\r\n❌ WebContainer cannot start without Cross-Origin Isolation.\x1b[0m\r\n');
-      writeToTerminal('\x1b[33m\r\n📋 How to enable COI on Replit:\x1b[0m\r\n');
-      writeToTerminal('\x1b[36m   1. The app needs proper COOP/COEP headers set by the server\x1b[0m\r\n');
-      writeToTerminal('\x1b[36m   2. Current workaround: Use Code Playground instead\x1b[0m\r\n');
-      writeToTerminal('\x1b[36m   3. Alternative: Run Node.js code in Python IDE (uses server-side execution)\x1b[0m\r\n');
-      writeToTerminal('\x1b[33m\r\n💡 Note: WebContainer needs browser-level security features that\x1b[0m\r\n');
-      writeToTerminal('\x1b[33m   may not work in all Replit deployment configurations.\x1b[0m\r\n');
-      
-      setError('Cross-Origin Isolation not available - WebContainer requires COOP/COEP headers');
-      setStatus('error');
-      return null;
+    if (!isIsolated && !window.crossOriginIsolated) {
+      writeToTerminal('\x1b[33m⚠ Warning: Cross-Origin Isolation not available.\x1b[0m\r\n');
+      writeToTerminal('\x1b[33m  WebContainer requires SharedArrayBuffer which needs COI.\x1b[0m\r\n');
+      writeToTerminal('\x1b[33m💡 Tip: Try opening the app in a new browser tab and hard refresh\x1b[0m\r\n');
+      console.warn('WebContainer may not work without crossOriginIsolated:', {
+        crossOriginIsolated: window.crossOriginIsolated,
+        SharedArrayBuffer: typeof SharedArrayBuffer
+      });
     }
-
-    // Wait a bit for service worker to activate
-    await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
       const instance = await WebContainer.boot();
@@ -87,13 +122,18 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     } catch (err: any) {
       const errorMsg = err?.message || 'Failed to boot WebContainer';
       writeToTerminal(`\x1b[31m❌ ${errorMsg}\x1b[0m\r\n`);
-      writeToTerminal('\x1b[33m\r\n💡 Try using Code Playground for JavaScript/TypeScript instead.\x1b[0m\r\n');
+      
+      // Check if this is likely a COI issue
+      if (!window.crossOriginIsolated && (errorMsg.includes('SharedArrayBuffer') || errorMsg.includes('cross-origin'))) {
+        writeToTerminal('\x1b[33m\r\n💡 This error is likely due to missing Cross-Origin Isolation.\x1b[0m\r\n');
+        writeToTerminal('\x1b[33m   Try opening the app in a new browser tab and hard refreshing.\x1b[0m\r\n');
+      }
       
       setError(errorMsg);
       setStatus('error');
       return null;
     }
-  }, [writeToTerminal, onPreviewUrl]);
+  }, [writeToTerminal, onPreviewUrl, waitForCrossOriginIsolation]);
 
   const mountFiles = useCallback(async () => {
     const instance = webcontainerInstance.current;
@@ -232,27 +272,22 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     terminal.writeln('');
     
     // Check cross-origin isolation status
-    const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined';
-    const isCrossOriginIsolated = window.crossOriginIsolated === true;
-    
-    if (isCrossOriginIsolated && hasSharedArrayBuffer) {
+    if (window.crossOriginIsolated) {
       terminal.writeln('\x1b[32m✓ Cross-Origin Isolation: ENABLED\x1b[0m');
-      terminal.writeln('\x1b[32m✓ SharedArrayBuffer: AVAILABLE\x1b[0m');
-      terminal.writeln('');
       terminal.writeln('Click "Boot" to start the in-browser Node.js environment.');
     } else {
-      terminal.writeln('\x1b[33m⚠ Cross-Origin Isolation: ' + (isCrossOriginIsolated ? 'ENABLED' : 'DISABLED') + '\x1b[0m');
-      terminal.writeln('\x1b[33m⚠ SharedArrayBuffer: ' + (hasSharedArrayBuffer ? 'AVAILABLE' : 'UNAVAILABLE') + '\x1b[0m');
+      terminal.writeln('\x1b[33m⚠ Cross-Origin Isolation: DISABLED\x1b[0m');
       terminal.writeln('');
-      terminal.writeln('\x1b[36mWebContainer requires both COI and SharedArrayBuffer.\x1b[0m');
+      terminal.writeln('\x1b[36mWebContainer requires SharedArrayBuffer which needs');
+      terminal.writeln('Cross-Origin Isolation headers (COOP/COEP).\x1b[0m');
       terminal.writeln('');
-      terminal.writeln('\x1b[33m💡 Alternative options on Replit:\x1b[0m');
-      terminal.writeln('  • Use Code Playground (supports 15+ languages)');
-      terminal.writeln('  • Use Workshop IDE for Python/JavaScript execution');
-      terminal.writeln('  • Both support real-time execution without COI');
+      terminal.writeln('\x1b[33mTo enable, try:\x1b[0m');
+      terminal.writeln('  1. Hard refresh: Ctrl+Shift+R (Win) or Cmd+Shift+R (Mac)');
+      terminal.writeln('  2. Open the app in a new browser tab directly');
+      terminal.writeln('  3. Use Chrome/Edge for best compatibility');
       terminal.writeln('');
-      terminal.writeln('\x1b[90mNote: WebContainer may not work on all Replit deployments');
-      terminal.writeln('due to required COOP/COEP security headers.\x1b[0m');
+      terminal.writeln('\x1b[90mNote: Some hosting environments may not support');
+      terminal.writeln('the required security headers for WebContainer.\x1b[0m');
     }
     terminal.writeln('');
 
