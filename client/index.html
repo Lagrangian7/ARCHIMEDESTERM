@@ -41,6 +41,24 @@
           event.preventDefault();
         }
       });
+
+      // Prevent service worker errors from breaking the app
+      window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('ServiceWorker')) {
+          console.warn('Service Worker error caught and suppressed:', e.message);
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // Handle unhandled promise rejections from service worker
+      window.addEventListener('unhandledrejection', function(e) {
+        if (e.reason && e.reason.message && e.reason.message.includes('ServiceWorker')) {
+          console.warn('Service Worker promise rejection caught:', e.reason.message);
+          e.preventDefault();
+          return false;
+        }
+      });
     </script>
   </head>
   <body>

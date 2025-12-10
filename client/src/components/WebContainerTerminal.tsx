@@ -227,6 +227,31 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     }
   }, [bootWebContainer, mountFiles, startShell]);
 
+  // Register COOP/COEP service worker for WebContainer
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      // Check if already registered to avoid multiple registrations
+      navigator.serviceWorker.getRegistration('/coi-serviceworker.js').then((existing) => {
+        if (existing) {
+          console.log('COOP/COEP Service Worker already registered');
+          return;
+        }
+
+        navigator.serviceWorker
+          .register('/coi-serviceworker.js')
+          .then(() => {
+            console.log('COOP/COEP Service Worker registered', window.location.href);
+          })
+          .catch((err) => {
+            // Suppress error if service worker is already registered
+            if (!err.message.includes('already exists')) {
+              console.error('Service Worker registration failed:', err);
+            }
+          });
+      });
+    }
+  }, []);
+
   useEffect(() => {
     if (!terminalRef.current || terminalInstance.current) return;
 
@@ -484,7 +509,7 @@ export function createNodeProjectFiles(indexContent: string): Record<string, any
   if (isReactProject) {
     const fileExt = isTypeScript ? 'tsx' : 'jsx';
     const mainExt = isTypeScript ? 'tsx' : 'jsx';
-    
+
     // Create a complete Vite + React setup with proper structure
     return {
       'package.json': {
