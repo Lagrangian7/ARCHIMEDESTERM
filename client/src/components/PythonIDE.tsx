@@ -47,7 +47,7 @@ const LANGUAGE_CONFIG: Record<string, {
   yaml: { extension: '.yaml', monacoLang: 'yaml', displayName: 'YAML', runCommand: 'N/A', icon: '📝' },
   markdown: { extension: '.md', monacoLang: 'markdown', displayName: 'Markdown', runCommand: 'preview', icon: '📄' },
   rust: { extension: '.rs', monacoLang: 'rust', displayName: 'Rust', runCommand: 'cargo run', icon: '🦀' },
-  go: { extension: '.go', monacoLang: 'go', displayName: 'Go', runCommand: 'go run', icon: '🐹' },
+  go: { extension: '.go', monacoLang: 'go', runCommand: 'go run', icon: '🐹' },
   php: { extension: '.php', monacoLang: 'php', displayName: 'PHP', runCommand: 'php', icon: '🐘' },
   ruby: { extension: '.rb', monacoLang: 'ruby', displayName: 'Ruby', runCommand: 'ruby', icon: '💎' },
   swift: { extension: '.swift', monacoLang: 'swift', displayName: 'Swift', runCommand: 'swift', icon: '🍎' },
@@ -2761,7 +2761,7 @@ calculator()
   const handleReviewMouseUp = useCallback(() => {
     if (isReviewDragging || isReviewResizing) {
       setIsReviewDragging(false);
-      setIsReviewResizing(false);
+      setIsResizing(false);
     }
   }, [isReviewDragging, isReviewResizing]);
 
@@ -2970,6 +2970,24 @@ calculator()
     });
     speak("Unit tests have been added to your code.");
   }, [activeFile, code, showMultiFileMode, speak, toast]);
+
+  // Listen for Code Playground open event from voice controls
+  useEffect(() => {
+    const handleOpenCodePlayground = () => {
+      setShowCodePlayground(true);
+    };
+
+    const handleOpenWebContainer = () => {
+      setShowWebContainer(true);
+    };
+
+    window.addEventListener('open-code-playground', handleOpenCodePlayground);
+    window.addEventListener('open-webcontainer', handleOpenWebContainer);
+    return () => {
+      window.removeEventListener('open-code-playground', handleOpenCodePlayground);
+      window.removeEventListener('open-webcontainer', handleOpenWebContainer);
+    };
+  }, []);
 
   return (
     <>
@@ -4676,6 +4694,7 @@ server.listen(PORT, () => {
                             const reviewText = `${review.provider} (${review.model})\nRating: ${review.rating}/10\n\n${review.feedback}`;
                             navigator.clipboard.writeText(reviewText).then(() => {
                               toast({ title: "Copied!", description: `${review.provider} review copied` });
+                              speak("Review feedback copied to clipboard");
                             });
                           }}
                           className="h-7 w-7 p-0"
