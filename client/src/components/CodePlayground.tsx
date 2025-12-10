@@ -454,6 +454,19 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     }
   }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
 
+  // Prevent Terminal component from stealing focus
+  useEffect(() => {
+    const playground = document.querySelector('[data-testid="code-playground"]');
+    if (playground) {
+      playground.setAttribute('data-no-terminal-autofocus', 'true');
+    }
+    return () => {
+      if (playground) {
+        playground.removeAttribute('data-no-terminal-autofocus');
+      }
+    };
+  }, []);
+
   useEffect(() => {
     // ALWAYS clear old saved session on mount to prevent stale code
     localStorage.removeItem(STORAGE_KEY);
@@ -621,8 +634,16 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       });
     }
 
-    // Ensure editor gets focus immediately
-    setTimeout(() => editor.focus(), 100);
+    // Ensure editor gets and maintains focus
+    setTimeout(() => {
+      editor.focus();
+      // Prevent focus loss by stopping event propagation on editor interactions
+      const domNode = editor.getDomNode();
+      if (domNode) {
+        domNode.addEventListener('mousedown', (e) => e.stopPropagation());
+        domNode.addEventListener('click', (e) => e.stopPropagation());
+      }
+    }, 100);
 
     // Get theme colors from CSS variables and convert HSL to hex
     const computedStyle = getComputedStyle(document.documentElement);
