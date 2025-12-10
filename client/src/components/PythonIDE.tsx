@@ -2150,24 +2150,50 @@ calculator()
     }
   }, [code, files, activeFileId, showMultiFileMode]);
 
-  // Auto-open WebContainer for React/TypeScript projects
+  // Auto-detect and auto-open WebContainer for React/TypeScript projects
   useEffect(() => {
     const activeFile = files.find(f => f.id === activeFileId);
     const isReactProject = showMultiFileMode && activeFile && 
       (activeFile.language === 'javascript' || activeFile.language === 'typescript') &&
       (activeFile.content.includes('import React') || 
        activeFile.content.includes('from "react"') || 
-       activeFile.content.includes("from 'react'"));
+       activeFile.content.includes("from 'react'") ||
+       activeFile.content.includes('useState') ||
+       activeFile.content.includes('useEffect') ||
+       activeFile.name.endsWith('.jsx') ||
+       activeFile.name.endsWith('.tsx'));
     
-    if (isReactProject && !showWebContainer) {
-      // Auto-suggest WebContainer for React projects
+    const isNodeProject = showMultiFileMode && activeFile && 
+      (activeFile.language === 'javascript' || activeFile.language === 'typescript') &&
+      (activeFile.content.includes('express') ||
+       activeFile.content.includes('require(') ||
+       activeFile.content.includes('import ') ||
+       activeFile.name === 'index.js' ||
+       activeFile.name === 'server.js' ||
+       activeFile.name === 'app.js');
+
+    const hasPackageJson = files.some(f => f.name === 'package.json');
+    
+    if ((isReactProject || isNodeProject || hasPackageJson) && !showWebContainer && showMultiFileMode) {
+      // Auto-open WebContainer for detected projects
+      setShowWebContainer(true);
+      
+      // Prepare WebContainer files automatically
+      const currentCode = activeFile.content;
+      const projectFiles = createNodeProjectFiles(currentCode);
+      setWebContainerFiles(projectFiles);
+      
+      // Show notification with helpful instructions
+      const projectType = isReactProject ? 'React' : isNodeProject ? 'Node.js' : 'JavaScript';
       toast({
-        title: "React Project Detected",
-        description: "Click the Terminal icon to preview your React app in WebContainer",
-        duration: 5000,
+        title: `${projectType} Project Detected`,
+        description: "WebContainer Terminal is now open. Click 'Boot' to start the in-browser Node.js environment.",
+        duration: 7000,
       });
+      
+      speak(`${projectType} project detected. Web Container terminal is ready for preview.`);
     }
-  }, [files, activeFileId, showMultiFileMode, showWebContainer]);
+  }, [files, activeFileId, showMultiFileMode, showWebContainer, speak, toast]);
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     // Validate editor and monaco are properly initialized
@@ -3832,7 +3858,7 @@ calculator()
               height: '400px'
             }}>
               <div className="flex items-start justify-between p-3" style={{ borderBottom: `1px solid ${currentPythonTheme.border}` }}>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Terminal className="w-5 h-5" style={{ color: currentPythonTheme.highlight }} />
                   <h3 className="font-mono font-bold text-sm" style={{ color: currentPythonTheme.text }}>
                     WEBCONTAINER TERMINAL
@@ -3848,20 +3874,31 @@ calculator()
                       href={webContainerPreviewUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="font-mono text-xs px-2 py-0.5 rounded flex items-center gap-1 hover:opacity-80"
+                      className="font-mono text-xs px-2 py-0.5 rounded flex items-center gap-1 hover:opacity-80 transition-all"
                       style={{ 
                         backgroundColor: 'rgba(34, 197, 94, 0.2)',
                         color: 'rgb(34, 197, 94)',
+                        border: '1px solid rgba(34, 197, 94, 0.4)',
                       }}
                     >
-                      🌐 Preview Available
+                      🌐 Live Preview
                     </a>
+                  )}
+                  {!window.crossOriginIsolated && (
+                    <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ 
+                      backgroundColor: 'rgba(251, 191, 36, 0.2)',
+                      color: 'rgb(251, 191, 36)',
+                      border: '1px solid rgba(251, 191, 36, 0.4)',
+                    }}>
+                      ⚠ COI Required
+                    </span>
                   )}
                 </div>
                 <button
                   onClick={() => setShowWebContainer(false)}
-                  className="hover:opacity-70"
+                  className="hover:opacity-70 transition-opacity"
                   style={{ color: currentPythonTheme.text }}
+                  title="Close WebContainer Terminal"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -3869,35 +3906,114 @@ calculator()
               <div className="h-[calc(100%-48px)]">
                 <WebContainerTerminal 
                   files={(() => {
+                    // Use cached files if available, otherwise prepare new ones
+                    if (Object.keys(webContainerFiles).length > 0) {
+                      return webContainerFiles;
+                    }
+
                     const currentCode = showMultiFileMode && activeFile ? activeFile.content : code;
                     const currentLang = showMultiFileMode && activeFile ? activeFile.language : detectLanguageFromCode(currentCode);
+                    const fileName = showMultiFileMode && activeFile ? activeFile.name : 'main.py';
 
-                    if (currentLang === 'javascript' || currentLang === 'typescript') {
+                    // Detect React project
+                    const isReact = currentCode.includes('import React') || 
+                                   currentCode.includes('from "react"') || 
+                                   currentCode.includes("from 'react'") ||
+                                   currentCode.includes('useState') ||
+                                   currentCode.includes('useEffect') ||
+                                   fileName.endsWith('.jsx') ||
+                                   fileName.endsWith('.tsx');
+
+                    // Detect Express/Node server
+                    const isExpress = currentCode.includes('express') ||
+                                     currentCode.includes('http.createServer') ||
+                                     (currentCode.includes('require(') && currentCode.includes('listen'));
+
+                    if ((currentLang === 'javascript' || currentLang === 'typescript') && (isReact || isExpress)) {
                       return createNodeProjectFiles(currentCode);
                     }
 
+                    // Default example server
                     return createNodeProjectFiles(`// Welcome to WebContainer Terminal!
-// This runs Node.js entirely in your browser.
+// This runs Node.js entirely in your browser with full npm support.
 // 
-// Try running: node index.js
+// Quick start:
+// 1. Click 'Boot' to initialize the Node.js environment
+// 2. Run 'npm install' to install dependencies
+// 3. Run 'npm run dev' or 'npm start' to start the server
+// 4. Click the preview URL to see your app
 
-console.log('Hello from WebContainer!');
-console.log('Node.js version:', process.version);
-
-// Create a simple HTTP server
 const http = require('http');
+
 const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end('<h1>🚀 Hello from WebContainer!</h1><p>This server runs entirely in your browser.</p>');
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(\`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>WebContainer Demo</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+        }
+        .container {
+          text-align: center;
+          padding: 2rem;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 20px;
+          backdrop-filter: blur(10px);
+        }
+        h1 { font-size: 3rem; margin-bottom: 1rem; }
+        p { font-size: 1.2rem; opacity: 0.9; }
+        .badge {
+          background: #00ff41;
+          color: #000;
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          display: inline-block;
+          margin-top: 1rem;
+          font-weight: bold;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>🚀 WebContainer Running!</h1>
+        <p>This Node.js server is running entirely in your browser.</p>
+        <p>No backend required. Full npm support included.</p>
+        <div class="badge">Powered by WebContainer API</div>
+      </div>
+    </body>
+    </html>
+  \`);
 });
 
 const PORT = 3000;
-server.listen(PORT, () => {
-  console.log(\`Server running at http://localhost:\${PORT}\`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(\`✓ Server running at http://localhost:\${PORT}\`);
+  console.log(\`✓ Node.js version: \${process.version}\`);
+  console.log(\`✓ Click the preview URL above to view your app\`);
 });
 `);
                   })()}
-                  onPreviewUrl={setWebContainerPreviewUrl}
+                  onPreviewUrl={(url) => {
+                    setWebContainerPreviewUrl(url);
+                    if (url) {
+                      toast({
+                        title: "Preview Ready",
+                        description: "Your app is now accessible via the preview link",
+                      });
+                    }
+                  }}
                 />
               </div>
             </div>

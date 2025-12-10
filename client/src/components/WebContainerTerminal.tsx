@@ -465,31 +465,49 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
 }
 
 export function createNodeProjectFiles(indexContent: string): Record<string, any> {
-  // Detect if this is a React project
+  // Enhanced React project detection
   const isReactProject = indexContent.includes('import React') || 
                          indexContent.includes('from "react"') || 
-                         indexContent.includes("from 'react'");
+                         indexContent.includes("from 'react'") ||
+                         indexContent.includes('useState') ||
+                         indexContent.includes('useEffect') ||
+                         indexContent.includes('ReactDOM') ||
+                         indexContent.includes('JSX') ||
+                         /<[A-Z][a-zA-Z]*/.test(indexContent); // Detect JSX components
+
+  // Detect TypeScript usage
+  const isTypeScript = indexContent.includes(': React.') ||
+                       indexContent.includes('interface ') ||
+                       indexContent.includes('type ') ||
+                       /\w+:\s*(string|number|boolean|any)/.test(indexContent);
 
   if (isReactProject) {
-    // Create a Vite + React setup
+    const fileExt = isTypeScript ? 'tsx' : 'jsx';
+    const mainExt = isTypeScript ? 'tsx' : 'jsx';
+    
+    // Create a complete Vite + React setup with proper structure
     return {
       'package.json': {
         file: {
           contents: `{
-  "name": "react-webcontainer",
+  "name": "react-webcontainer-app",
+  "private": true,
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview --host 0.0.0.0 --port 3000"
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.0.0"
+    "vite": "^5.0.8"${isTypeScript ? ',\n    "typescript": "^5.2.2"' : ''}
   }
 }`
         }
@@ -502,7 +520,14 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3000
+    host: '0.0.0.0',
+    port: 3000,
+    strictPort: true
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 3000,
+    strictPort: true
   }
 });`
         }
@@ -514,33 +539,120 @@ export default defineConfig({
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>React App</title>
+    <title>React App - WebContainer</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      #root {
+        min-height: 100vh;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module" src="/src/main.${mainExt}"></script>
   </body>
 </html>`
         }
       },
       'src': {
         directory: {
-          'main.jsx': {
+          [`main.${mainExt}`]: {
             file: {
               contents: `import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './index.css';
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById('root')${isTypeScript ? '!' : ''}).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
 );`
             }
           },
-          'App.jsx': {
+          [`App.${fileExt}`]: {
             file: {
-              contents: indexContent
+              contents: indexContent.trim() || `import React, { useState } from 'react';
+
+function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      color: 'white',
+      fontFamily: 'sans-serif'
+    }}>
+      <h1 style={{ fontSize: '3rem', marginBottom: '2rem' }}>
+        🚀 React in WebContainer
+      </h1>
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.1)',
+        padding: '2rem',
+        borderRadius: '20px',
+        backdropFilter: 'blur(10px)',
+        textAlign: 'center'
+      }}>
+        <p style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
+          Count: {count}
+        </p>
+        <button
+          onClick={() => setCount(count + 1)}
+          style={{
+            padding: '1rem 2rem',
+            fontSize: '1rem',
+            background: '#00ff41',
+            color: '#000',
+            border: 'none',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          Increment
+        </button>
+      </div>
+      <p style={{ marginTop: '2rem', opacity: 0.8 }}>
+        Running React ${isTypeScript ? '+ TypeScript ' : ''}in your browser with WebContainer
+      </p>
+    </div>
+  );
+}
+
+export default App;`
+            }
+          },
+          'index.css': {
+            file: {
+              contents: `* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}`
             }
           }
         }
@@ -548,25 +660,71 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     };
   }
 
-  // Default Node.js project
+  // Enhanced Node.js/Express detection
+  const isExpressProject = indexContent.includes('express') ||
+                          indexContent.includes('app.listen') ||
+                          indexContent.includes('http.createServer');
+
+  if (isExpressProject) {
+    return {
+      'package.json': {
+        file: {
+          contents: `{
+  "name": "express-webcontainer-app",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}`
+        }
+      },
+      'index.js': {
+        file: {
+          contents: indexContent
+        }
+      }
+    };
+  }
+
+  // Default Node.js project with better starter template
   return {
     'package.json': {
       file: {
         contents: `{
-  "name": "webcontainer-project",
+  "name": "node-webcontainer-app",
+  "version": "1.0.0",
   "type": "module",
-  "dependencies": {
-    "express": "latest"
-  },
   "scripts": {
-    "start": "node index.js"
-  }
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {}
 }`
       }
     },
     'index.js': {
       file: {
-        contents: indexContent
+        contents: indexContent || `// Node.js application running in WebContainer
+console.log('✓ Node.js application started');
+console.log('✓ Version:', process.version);
+console.log('✓ Platform:', process.platform);
+
+// Example: Create a simple HTTP server
+import http from 'http';
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.end('<h1>Hello from WebContainer!</h1>');
+});
+
+server.listen(3000, '0.0.0.0', () => {
+  console.log('✓ Server listening on http://localhost:3000');
+});`
       }
     }
   };
