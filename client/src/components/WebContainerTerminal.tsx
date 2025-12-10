@@ -333,6 +333,20 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     }
   }, [files, mountFiles]);
 
+  // Listen for auto-boot event
+  useEffect(() => {
+    const handleAutoBoot = () => {
+      if (status === 'idle') {
+        handleBoot();
+      }
+    };
+
+    window.addEventListener('webcontainer-auto-boot', handleAutoBoot);
+    return () => {
+      window.removeEventListener('webcontainer-auto-boot', handleAutoBoot);
+    };
+  }, [status]);
+
   const handleBoot = async () => {
     await initialize();
   };

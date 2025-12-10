@@ -117,6 +117,140 @@ function generateLocalInstructions(language: string): string {
     cpp: `**C++ Setup:**
 1. Save file as \`filename.cpp\`
 2. Install g++ (MinGW on Windows, build-essential on Linux)
+
+const PROJECT_TEMPLATES = {
+  'react-vite': {
+    name: 'React + Vite',
+    description: 'Modern React app with Vite',
+    files: [
+      { name: 'package.json', language: 'json', content: `{
+  "name": "react-vite-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8"
+  }
+}` },
+      { name: 'src/App.jsx', language: 'javascript', content: `import { useState } from 'react';
+
+export default function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      <div style={{ textAlign: 'center', color: 'white' }}>
+        <h1>React + Vite</h1>
+        <button onClick={() => setCount(count + 1)} style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}>
+          Count: {count}
+        </button>
+      </div>
+    </div>
+  );
+}` },
+      { name: 'src/main.jsx', language: 'javascript', content: `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);` },
+      { name: 'index.html', language: 'html', content: `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>` }
+    ]
+  },
+  'express-api': {
+    name: 'Express REST API',
+    description: 'Node.js REST API server',
+    files: [
+      { name: 'package.json', language: 'json', content: `{
+  "name": "express-api",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}` },
+      { name: 'index.js', language: 'javascript', content: `import express from 'express';
+
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/api/users', (req, res) => {
+  res.json([
+    { id: 1, name: 'Alice' },
+    { id: 2, name: 'Bob' }
+  ]);
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(\`✓ Server running on http://localhost:\${PORT}\`);
+});` }
+    ]
+  },
+  'python-flask': {
+    name: 'Flask Web App',
+    description: 'Python Flask web server',
+    files: [
+      { name: 'main.py', language: 'python', content: `from flask import Flask, jsonify
+import os
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return '''
+    <html>
+        <body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-family: sans-serif; text-align: center; padding: 50px;">
+            <h1>Flask App Running!</h1>
+            <p>Visit <a href="/api/data" style="color: #00ff41;">/api/data</a> for JSON</p>
+        </body>
+    </html>
+    '''
+
+@app.route('/api/data')
+def get_data():
+    return jsonify({
+        'message': 'Hello from Flask!',
+        'status': 'success'
+    })
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)` }
+    ]
+  }
+};
+
 3. Compile: \`g++ -o program filename.cpp\`
 4. Run: \`./program\``,
     html: `**HTML Setup:**
@@ -149,6 +283,9 @@ const LESSONS = {
     code: `#!/usr/bin/env python3
 """
 Python Basics and Best Practices
+
+  const [splitViewFileId, setSplitViewFileId] = useState<string | null>(null);
+
 Author: Your Name
 Date: ${new Date().toLocaleDateString()}
 """
@@ -2150,7 +2287,7 @@ calculator()
     }
   }, [code, files, activeFileId, showMultiFileMode]);
 
-  // Auto-detect and auto-open WebContainer for React/TypeScript projects
+  // Auto-detect and auto-open/boot WebContainer for React/TypeScript projects
   useEffect(() => {
     const activeFile = files.find(f => f.id === activeFileId);
     const isReactProject = showMultiFileMode && activeFile && 
@@ -2183,15 +2320,21 @@ calculator()
       const projectFiles = createNodeProjectFiles(currentCode);
       setWebContainerFiles(projectFiles);
       
-      // Show notification with helpful instructions
+      // Show notification
       const projectType = isReactProject ? 'React' : isNodeProject ? 'Node.js' : 'JavaScript';
       toast({
         title: `${projectType} Project Detected`,
-        description: "WebContainer Terminal is now open. Click 'Boot' to start the in-browser Node.js environment.",
-        duration: 7000,
+        description: "WebContainer booting automatically...",
+        duration: 5000,
       });
       
-      speak(`${projectType} project detected. Web Container terminal is ready for preview.`);
+      speak(`${projectType} project detected. Booting Web Container.`);
+      
+      // Auto-trigger boot after a short delay
+      setTimeout(() => {
+        const bootEvent = new CustomEvent('webcontainer-auto-boot');
+        window.dispatchEvent(bootEvent);
+      }, 500);
     }
   }, [files, activeFileId, showMultiFileMode, showWebContainer, speak, toast]);
 
@@ -3395,7 +3538,43 @@ calculator()
           </div>
         </div>
 
-        {/* Multi-File Tabs Bar */}
+        {/* Template Selector */}
+        {showMultiFileMode && files.length === 1 && files[0].content.trim().length === 0 && (
+          <div className="p-3 border-b" style={{ backgroundColor: `${currentPythonTheme.highlight}10`, borderColor: currentPythonTheme.border }}>
+            <div className="flex items-center gap-2 mb-2">
+              <FileCode className="w-4 h-4" style={{ color: currentPythonTheme.highlight }} />
+              <span className="text-xs font-mono font-bold" style={{ color: currentPythonTheme.text }}>Quick Start Templates:</span>
+            </div>
+            <div className="flex gap-2">
+              {Object.entries(PROJECT_TEMPLATES).map(([key, template]) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    const newFiles = template.files.map((f, i) => ({
+                      id: `file-${Date.now()}-${i}`,
+                      name: f.name,
+                      language: f.language,
+                      content: f.content
+                    }));
+                    setFiles(newFiles);
+                    setActiveFileId(newFiles[0].id);
+                    toast({ title: template.name, description: template.description });
+                  }}
+                  className="px-3 py-2 rounded text-xs font-mono hover:opacity-80 transition-opacity"
+                  style={{
+                    backgroundColor: `${currentPythonTheme.highlight}20`,
+                    border: `1px solid ${currentPythonTheme.border}`,
+                    color: currentPythonTheme.text
+                  }}
+                >
+                  {template.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+          {/* Multi-File Tabs Bar */}
         {showMultiFileMode && (
           <div 
             className="flex items-center gap-1 px-2 py-1 overflow-x-auto"
