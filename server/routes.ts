@@ -1147,6 +1147,47 @@ ONLY output the code, no explanations.`;
     }
   });
 
+  // Code Quality Analysis endpoint
+  app.post('/api/analyze/quality', async (req, res) => {
+    try {
+      const { code } = req.body;
+
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ error: 'Code is required' });
+      }
+
+      // Use LLM to analyze code quality
+      const analysisPrompt = `Analyze this code for quality, best practices, and potential improvements. Be specific and constructive:
+
+\`\`\`
+${code}
+\`\`\`
+
+Provide a concise analysis covering:
+1. Code quality issues
+2. Best practices violations
+3. Suggested improvements
+4. Security concerns (if any)`;
+
+      const analysis = await llmService.generateResponse(
+        analysisPrompt,
+        'technical',
+        [],
+        undefined,
+        'english',
+        false
+      );
+
+      res.json({ analysis });
+    } catch (error) {
+      console.error('Code quality analysis error:', error);
+      res.status(500).json({
+        error: 'Code analysis failed',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Collaborative AI Code Review - Uses Groq (free Llama AI)
   app.post('/api/code/review', async (req, res) => {
     try {
