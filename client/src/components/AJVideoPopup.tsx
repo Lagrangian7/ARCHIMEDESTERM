@@ -114,7 +114,7 @@ export default function AJVideoPopup({ isOpen, onClose }: AJVideoPopupProps) {
     >
       {/* Title bar */}
       <div
-        className="flex items-center justify-between px-3 py-2 cursor-move select-none"
+        className="flex items-center justify-between px-3 py-2 cursor-move select-none text-[12px]"
         style={{
           backgroundColor: 'var(--terminal-bg)',
           borderBottom: `1px solid var(--terminal-text)`,
