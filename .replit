@@ -14,3 +14,14 @@ run = ["npm", "run", "start"]
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[workflows]
+
+[[workflows.workflow]]
+name = "npm run dev"
+mode = "sequential"
+author = 47036850
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
