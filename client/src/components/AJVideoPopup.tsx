@@ -122,8 +122,8 @@ export default function AJVideoPopup({ isOpen, onClose }: AJVideoPopupProps) {
         onMouseDown={handleMouseDown}
         data-testid="aj-video-titlebar"
       >
-        <span className="font-mono text-sm" style={{ color: 'var(--terminal-text)' }}>
-          AJ VIDEO PLAYER
+        <span className="font-mono text-[12px]" style={{ color: 'var(--terminal-text)' }}>
+          AJN
         </span>
         <div className="flex items-center gap-1">
           <Button
