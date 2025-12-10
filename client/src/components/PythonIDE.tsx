@@ -130,24 +130,7 @@ const PROJECT_TEMPLATES: Record<string, {
       { 
         name: 'package.json', 
         language: 'json', 
-        content: JSON.stringify({
-          name: "react-vite-app",
-          private: true,
-          version: "1.0.0",
-          type: "module",
-          scripts: {
-            dev: "vite --host 0.0.0.0 --port 3000",
-            build: "vite build"
-          },
-          dependencies: {
-            react: "^18.2.0",
-            "react-dom": "^18.2.0"
-          },
-          devDependencies: {
-            "@vitejs/plugin-react": "^4.2.1",
-            vite: "^5.0.8"
-          }
-        }, null, 2)
+        content: '{\n  "name": "react-vite-app",\n  "private": true,\n  "version": "1.0.0",\n  "type": "module",\n  "scripts": {\n    "dev": "vite --host 0.0.0.0 --port 3000",\n    "build": "vite build"\n  },\n  "dependencies": {\n    "react": "^18.2.0",\n    "react-dom": "^18.2.0"\n  },\n  "devDependencies": {\n    "@vitejs/plugin-react": "^4.2.1",\n    "vite": "^5.0.8"\n  }\n}'
       },
       { 
         name: 'src/App.jsx', 
@@ -173,22 +156,12 @@ const PROJECT_TEMPLATES: Record<string, {
       { 
         name: 'package.json', 
         language: 'json', 
-        content: JSON.stringify({
-          name: "express-api",
-          version: "1.0.0",
-          type: "module",
-          scripts: {
-            dev: "node index.js"
-          },
-          dependencies: {
-            express: "^4.18.2"
-          }
-        }, null, 2)
+        content: '{\n  "name": "express-api",\n  "version": "1.0.0",\n  "type": "module",\n  "scripts": {\n    "dev": "node index.js"\n  },\n  "dependencies": {\n    "express": "^4.18.2"\n  }\n}'
       },
       { 
         name: 'index.js', 
         language: 'javascript', 
-        content: 'import express from \'express\';\n\nconst app = express();\nconst PORT = 3000;\n\napp.use(express.json());\n\napp.get(\'/api/health\', (req, res) => {\n  res.json({ status: \'ok\', timestamp: new Date().toISOString() });\n});\n\napp.get(\'/api/users\', (req, res) => {\n  res.json([\n    { id: 1, name: \'Alice\' },\n    { id: 2, name: \'Bob\' }\n  ]);\n});\n\napp.listen(PORT, \'0.0.0.0\', () => {\n  console.log(`✓ Server running on http://localhost:${PORT}`);\n});'
+        content: 'import express from \'express\';\n\nconst app = express();\nconst PORT = 3000;\n\napp.use(express.json());\n\napp.get(\'/api/health\', (req, res) => {\n  res.json({ status: \'ok\', timestamp: new Date().toISOString() });\n});\n\napp.get(\'/api/users\', (req, res) => {\n  res.json([\n    { id: 1, name: \'Alice\' },\n    { id: 2, name: \'Bob\' }\n  ]);\n});\n\napp.listen(PORT, \'0.0.0.0\', () => {\n  console.log(`Server running on http://localhost:${PORT}`);\n});'
       }
     ]
   },
@@ -199,7 +172,7 @@ const PROJECT_TEMPLATES: Record<string, {
       { 
         name: 'main.py', 
         language: 'python', 
-        content: 'from flask import Flask, jsonify\nimport os\n\napp = Flask(__name__)\n\n@app.route(\'/\')\ndef home():\n    return \'\'\'\n    <html>\n        <body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-family: sans-serif; text-align: center; padding: 50px;">\n            <h1>Flask App Running!</h1>\n            <p>Visit <a href="/api/data" style="color: #00ff41;">/api/data</a> for JSON</p>\n        </body>\n    </html>\n    \'\'\'\n\n@app.route(\'/api/data\')\ndef get_data():\n    return jsonify({\n        \'message\': \'Hello from Flask!\',\n        \'status\': \'success\'\n    })\n\nif __name__ == \'__main__\':\n    app.run(host=\'0.0.0.0\', port=5000, debug=True)'
+        content: 'from flask import Flask, jsonify\nimport os\n\napp = Flask(__name__)\n\n@app.route(\'/\')\ndef home():\n    return \'\'\'<html><body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-family: sans-serif; text-align: center; padding: 50px;"><h1>Flask App Running!</h1><p>Visit <a href="/api/data" style="color: #00ff41;">/api/data</a> for JSON</p></body></html>\'\'\'\n\n@app.route(\'/api/data\')\ndef get_data():\n    return jsonify({\'message\': \'Hello from Flask!\', \'status\': \'success\'})\n\nif __name__ == \'__main__\':\n    app.run(host=\'0.0.0.0\', port=5000, debug=True)'
       }
     ]
   }
