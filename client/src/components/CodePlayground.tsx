@@ -518,28 +518,15 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   }, [files]);
 
   const addNewFile = useCallback(() => {
-    // Smart file naming based on existing files
-    const hasReactFiles = files.some(f => f.content.includes('import React') || f.name.endsWith('.jsx') || f.name.endsWith('.tsx'));
-    const hasSrcFolder = files.some(f => f.name.startsWith('src/'));
-    
-    let suggestedName = `file${files.length + 1}.js`;
-    let suggestedContent = '// New file\n';
-    
-    if (hasReactFiles) {
-      const componentCount = files.filter(f => f.name.match(/Component\d*\.(jsx|tsx)/)).length;
-      suggestedName = hasSrcFolder ? `src/Component${componentCount + 1}.jsx` : `Component${componentCount + 1}.jsx`;
-      suggestedContent = `import React from 'react';\n\nexport default function Component${componentCount + 1}() {\n  return (\n    <div>\n      <h2>Component ${componentCount + 1}</h2>\n    </div>\n  );\n}\n`;
-    }
-    
     const newFile: CodeFile = {
       id: `file-${Date.now()}`,
-      name: suggestedName,
-      language: hasReactFiles ? 'javascript' : 'javascript',
-      content: suggestedContent
+      name: `file${files.length + 1}.js`,
+      language: 'javascript',
+      content: '// New file\n'
     };
     setFiles(prev => [...prev, newFile]);
     setActiveFileId(newFile.id);
-  }, [files]);
+  }, [files.length]);
 
   const deleteFile = useCallback((id: string) => {
     if (files.length <= 1) {
