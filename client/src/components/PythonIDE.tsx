@@ -2150,6 +2150,25 @@ calculator()
     }
   }, [code, files, activeFileId, showMultiFileMode]);
 
+  // Auto-open WebContainer for React/TypeScript projects
+  useEffect(() => {
+    const activeFile = files.find(f => f.id === activeFileId);
+    const isReactProject = showMultiFileMode && activeFile && 
+      (activeFile.language === 'javascript' || activeFile.language === 'typescript') &&
+      (activeFile.content.includes('import React') || 
+       activeFile.content.includes('from "react"') || 
+       activeFile.content.includes("from 'react'"));
+    
+    if (isReactProject && !showWebContainer) {
+      // Auto-suggest WebContainer for React projects
+      toast({
+        title: "React Project Detected",
+        description: "Click the Terminal icon to preview your React app in WebContainer",
+        duration: 5000,
+      });
+    }
+  }, [files, activeFileId, showMultiFileMode, showWebContainer]);
+
   const handleEditorDidMount = (editor: any, monaco: any) => {
     // Validate editor and monaco are properly initialized
     if (!editor || !monaco) {

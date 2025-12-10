@@ -20,7 +20,7 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
   const fitAddon = useRef<FitAddon | null>(null);
   const webcontainerInstance = useRef<WebContainer | null>(null);
   const shellProcess = useRef<any>(null);
-  
+
   const [status, setStatus] = useState<ContainerStatus>('idle');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -64,13 +64,13 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
           resolve(true);
           return;
         }
-        
+
         if (Date.now() - startTime >= maxWaitMs) {
           writeToTerminal('\x1b[33m⚠ Cross-Origin Isolation timeout - proceeding anyway\x1b[0m\r\n');
           resolve(false);
           return;
         }
-        
+
         setTimeout(poll, pollInterval);
       };
       poll();
@@ -85,10 +85,10 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     setStatus('booting');
     setError(null);
     writeToTerminal('\x1b[33m⏳ Booting WebContainer...\x1b[0m\r\n');
-    
+
     // Wait for COI to be established (via service worker or headers)
     const isIsolated = await waitForCrossOriginIsolation(3000);
-    
+
     writeToTerminal('\x1b[36mℹ️ Cross-Origin Isolation: ' + (window.crossOriginIsolated ? 'Enabled ✓' : 'Disabled ✗') + '\x1b[0m\r\n');
 
     if (!isIsolated && !window.crossOriginIsolated) {
@@ -122,13 +122,13 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     } catch (err: any) {
       const errorMsg = err?.message || 'Failed to boot WebContainer';
       writeToTerminal(`\x1b[31m❌ ${errorMsg}\x1b[0m\r\n`);
-      
+
       // Check if this is likely a COI issue
       if (!window.crossOriginIsolated && (errorMsg.includes('SharedArrayBuffer') || errorMsg.includes('cross-origin'))) {
         writeToTerminal('\x1b[33m\r\n💡 This error is likely due to missing Cross-Origin Isolation.\x1b[0m\r\n');
         writeToTerminal('\x1b[33m   Try opening the app in a new browser tab and hard refreshing.\x1b[0m\r\n');
       }
-      
+
       setError(errorMsg);
       setStatus('error');
       return null;
@@ -185,7 +185,7 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
 
     try {
       const process = await instance.spawn(command, args);
-      
+
       process.output.pipeTo(
         new WritableStream({
           write(data) {
@@ -195,11 +195,11 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
       );
 
       const exitCode = await process.exit;
-      
+
       if (exitCode !== 0) {
         writeToTerminal(`\x1b[31mProcess exited with code ${exitCode}\x1b[0m\r\n`);
       }
-      
+
       setStatus('ready');
       return exitCode;
     } catch (err: any) {
@@ -270,7 +270,7 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
     terminal.writeln('\x1b[32m║   WebContainer Terminal (Node.js)    ║\x1b[0m');
     terminal.writeln('\x1b[32m╚══════════════════════════════════════╝\x1b[0m');
     terminal.writeln('');
-    
+
     // Check cross-origin isolation status
     if (window.crossOriginIsolated) {
       terminal.writeln('\x1b[32m✓ Cross-Origin Isolation: ENABLED\x1b[0m');
@@ -300,7 +300,7 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
       window.removeEventListener('resize', handleResize);
       terminal.dispose();
       terminalInstance.current = null;
-      
+
       // Cleanup WebContainer resources (fire and forget with error handling)
       const cleanup = async () => {
         try {
@@ -312,7 +312,7 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
         } finally {
           shellProcess.current = null;
         }
-        
+
         try {
           if (webcontainerInstance.current?.teardown) {
             await webcontainerInstance.current.teardown();
@@ -363,9 +363,9 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
       <div className="flex items-center gap-2 p-2 bg-[#161b22] border-b border-[#30363d]">
         <TerminalIcon className="w-4 h-4 text-[#00ff41]" />
         <span className="text-sm text-[#00ff41] font-mono">WebContainer</span>
-        
+
         <div className="flex-1" />
-        
+
         <div className="flex items-center gap-1">
           {(status === 'idle' || status === 'error') && (
             <>
@@ -383,14 +383,14 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
               </span>
             </>
           )}
-          
+
           {status === 'booting' && (
             <Button size="sm" variant="outline" disabled className="h-7 text-xs">
               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
               Booting...
             </Button>
           )}
-          
+
           {(status === 'ready' || status === 'running') && (
             <>
               <Button
@@ -434,7 +434,7 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
               </Button>
             </>
           )}
-          
+
           {previewUrl && (
             <Button
               size="sm"
@@ -448,13 +448,13 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
           )}
         </div>
       </div>
-      
+
       <div 
         ref={terminalRef} 
         className="flex-1 bg-[#0d1117] p-2 overflow-hidden"
         style={{ minHeight: '200px' }}
       />
-      
+
       {error && (
         <div className="p-2 bg-red-900/20 border-t border-red-500/50 text-red-400 text-sm">
           {error}
@@ -464,27 +464,111 @@ export function WebContainerTerminal({ files, onPreviewUrl, className = '' }: We
   );
 }
 
-export function createNodeProjectFiles(code: string, packageJson?: object): Record<string, any> {
-  const defaultPackageJson = {
-    name: 'webcontainer-project',
-    type: 'module',
-    scripts: {
-      dev: 'node index.js',
-    },
-    dependencies: {},
-  };
+export function createNodeProjectFiles(indexContent: string): Record<string, any> {
+  // Detect if this is a React project
+  const isReactProject = indexContent.includes('import React') || 
+                         indexContent.includes('from "react"') || 
+                         indexContent.includes("from 'react'");
 
-  return {
-    'index.js': {
-      file: {
-        contents: code,
+  if (isReactProject) {
+    // Create a Vite + React setup
+    return {
+      'package.json': {
+        file: {
+          contents: `{
+  "name": "react-webcontainer",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.0"
+  }
+}`
+        }
       },
-    },
+      'vite.config.js': {
+        file: {
+          contents: `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000
+  }
+});`
+        }
+      },
+      'index.html': {
+        file: {
+          contents: `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>React App</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>`
+        }
+      },
+      'src': {
+        directory: {
+          'main.jsx': {
+            file: {
+              contents: `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);`
+            }
+          },
+          'App.jsx': {
+            file: {
+              contents: indexContent
+            }
+          }
+        }
+      }
+    };
+  }
+
+  // Default Node.js project
+  return {
     'package.json': {
       file: {
-        contents: JSON.stringify(packageJson || defaultPackageJson, null, 2),
-      },
+        contents: `{
+  "name": "webcontainer-project",
+  "type": "module",
+  "dependencies": {
+    "express": "latest"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}`
+      }
     },
+    'index.js': {
+      file: {
+        contents: indexContent
+      }
+    }
   };
 }
 
