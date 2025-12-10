@@ -1734,8 +1734,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const { toast } = useToast();
   const { speak } = useSpeech();
 
-  // Load session from localStorage or use defaults
+  // Load session from sessionStorage or use defaults
   const loadSession = (): PythonSession | null => {
+    const greeted = sessionStorage.getItem('workshop-greeted');
     const saved = localStorage.getItem(PYTHON_SESSION_KEY);
     if (saved) {
       try {
@@ -1746,6 +1747,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
           showNotepad: parsed.showNotepad ?? false,
           notepadContent: parsed.notepadContent ?? '',
           notepadTitle: parsed.notepadTitle ?? 'Untitled Note',
+          // Override greeted status if it's not set in session storage
+          // This ensures the greeting is shown on first load if not already greeted
+          ...(greeted !== 'true' && { greeted: false }),
         };
       } catch {
         return null;
@@ -1758,7 +1762,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     const saved = localStorage.getItem(MULTI_FILE_SESSION_KEY);
     if (saved) {
       try {
-        const parsed = JSON.JSON.parse(saved);
+        const parsed = JSON.parse(saved);
         if (parsed.files && Array.isArray(parsed.files) && parsed.files.length > 0) {
           return parsed;
         }
@@ -1779,7 +1783,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 def calculator():
     """
     Interactive Calculator with Visual Output
-    Uses input() for interactive GUI in preview panel
+    Uses input() to create an interactive GUI in preview panel
     """
 
     # Welcome message
@@ -2162,7 +2166,7 @@ calculator()
        activeFile.content.includes('useEffect') ||
        activeFile.name.endsWith('.jsx') ||
        activeFile.name.endsWith('.tsx'));
-    
+
     const isNodeProject = showMultiFileMode && activeFile && 
       (activeFile.language === 'javascript' || activeFile.language === 'typescript') &&
       (activeFile.content.includes('express') ||
@@ -2173,16 +2177,16 @@ calculator()
        activeFile.name === 'app.js');
 
     const hasPackageJson = files.some(f => f.name === 'package.json');
-    
+
     if ((isReactProject || isNodeProject || hasPackageJson) && !showWebContainer && showMultiFileMode) {
       // Auto-open WebContainer for detected projects
       setShowWebContainer(true);
-      
+
       // Prepare WebContainer files automatically
       const currentCode = activeFile.content;
       const projectFiles = createNodeProjectFiles(currentCode);
       setWebContainerFiles(projectFiles);
-      
+
       // Show notification with helpful instructions
       const projectType = isReactProject ? 'React' : isNodeProject ? 'Node.js' : 'JavaScript';
       toast({
@@ -2190,7 +2194,7 @@ calculator()
         description: "WebContainer Terminal is now open. Click 'Boot' to start the in-browser Node.js environment.",
         duration: 7000,
       });
-      
+
       speak(`${projectType} project detected. Web Container terminal is ready for preview.`);
     }
   }, [files, activeFileId, showMultiFileMode, showWebContainer, speak, toast]);
@@ -2235,9 +2239,10 @@ calculator()
           console.warn('Codeium registration failed:', codeiumError);
         }
 
-        // Archimedes v7 Introduction - Add to chat history ONCE per session
-        if (!hasGreetedRef.current) {
+        // Archimedes v7 Introduction - Add to chat history ONCE per browser session
+        if (!hasGreetedRef.current && sessionStorage.getItem('workshop-greeted') !== 'true') {
           hasGreetedRef.current = true;
+          sessionStorage.setItem('workshop-greeted', 'true');
 
           const introMessage = "Greetings! Archimedes version 7 AI assistant now online with Codeium-powered code completions. I'm your friendly programming mentor and cyberpunk coding companion. Whether you need help with basics or advanced techniques, I'm here to guide you through any programming language. Let's create something amazing together!";
 
@@ -2694,6 +2699,7 @@ calculator()
     if (window.confirm('Are you sure you want to quit? This will clear your current session.')) {
       localStorage.removeItem(PYTHON_SESSION_KEY);
       localStorage.removeItem(MULTI_FILE_SESSION_KEY); // Clear multi-file session too
+      sessionStorage.removeItem('workshop-greeted'); // Clear greeting session state
       onClose();
     }
   };
@@ -3925,8 +3931,7 @@ calculator()
                                    fileName.endsWith('.tsx');
 
                     // Detect Express/Node server
-                    const isExpress = currentCode.includes('express') ||
-                                     currentCode.includes('http.createServer') ||
+                    const isExpress = currentCode.includes('express') ||                                     currentCode.includes('http.createServer') ||
                                      (currentCode.includes('require(') && currentCode.includes('listen'));
 
                     if ((currentLang === 'javascript' || currentLang === 'typescript') && (isReact || isExpress)) {
@@ -4287,7 +4292,7 @@ server.listen(PORT, '0.0.0.0', () => {
                       borderLeft: `1px solid ${currentPythonTheme.border}`
                     }}
                   >
-                    <div className="font-mono text-xs mb-3 pb-2" style={{ 
+                    <div className="font-mono text-xs mb-4 pb-2" style={{ 
                       color: currentPythonTheme.highlight,
                       borderBottom: `1px solid ${currentPythonTheme.border}`
                     }}>
@@ -4901,7 +4906,7 @@ function getTheme(themeName: string): ThemeColors {
     'royal-dark': { bg: 'linear-gradient(135deg, hsl(280 40% 14%) 0%, hsl(262 35% 11%) 40%, hsl(48 30% 10%) 70%, hsl(262 30% 9%) 100%)', text: '#e6e4ed', highlight: '#c77dff', border: '#291452', subtle: '#1f0c38', gradient: true },
     'material-dark': { bg: '#263238', text: '#cfd8dc', highlight: '#00bcd4', border: '#37474f', subtle: '#37474f' },
     'oceanic-next': { bg: '#2b3e50', text: '#d8dee9', highlight: '#528bff', border: '#34495e', subtle: '#34495e' },
-    'palenight': { bg: '#292d3e', text: '#6a737d', highlight: '#82aaff', border: '#353b50', subtle: '#353b50' },
+    'palenight': { bg: '#292d3e', text: '#6a737d', highlight: '#82aaff', border: '#35350', subtle: '#353b50' },
 
     // New mid-level eye-friendly themes with gradients
     'soft-morning': { bg: 'linear-gradient(135deg, #f5f2ea 0%, #f0ece2 50%, #ebe5d8 100%)', text: '#5a5a5a', highlight: '#6b9080', border: '#dfd3c3', subtle: '#e8dfd0', gradient: true },
