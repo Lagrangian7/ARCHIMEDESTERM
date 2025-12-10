@@ -621,26 +621,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       });
     }
 
-    // Ensure editor gets focus immediately and keeps it
-    editor.focus();
-    
-    // Re-focus editor when clicking in the playground but outside the editor
-    const handleRefocus = () => {
-      if (editor && !editor.hasTextFocus()) {
-        editor.focus();
-      }
-    };
-
-    // Add click listener to refocus editor
-    editor.onDidBlurEditorText(() => {
-      // Small delay to allow other interactions to complete
-      setTimeout(() => {
-        if (editor && document.activeElement?.tagName !== 'INPUT' && 
-            document.activeElement?.tagName !== 'TEXTAREA') {
-          editor.focus();
-        }
-      }, 50);
-    });
+    // Ensure editor gets focus immediately
+    setTimeout(() => editor.focus(), 100);
 
     // Get theme colors from CSS variables and convert HSL to hex
     const computedStyle = getComputedStyle(document.documentElement);
@@ -945,15 +927,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
               </div>
 
               {/* Monaco Editor */}
-              <div 
-                className="flex-1"
-                onClick={() => {
-                  // Focus editor when clicking in the editor area
-                  if (editorRef.current) {
-                    editorRef.current.focus();
-                  }
-                }}
-              >
+              <div className="flex-1">
                 <Editor
                   height="100%"
                   language={LANGUAGE_CONFIG[activeFile.language]?.monacoLang || 'plaintext'}
