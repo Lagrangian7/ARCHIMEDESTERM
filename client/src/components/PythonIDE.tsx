@@ -118,135 +118,89 @@ function generateLocalInstructions(language: string): string {
 1. Save file as \`filename.cpp\`
 2. Install g++ (MinGW on Windows, build-essential on Linux)
 
-const PROJECT_TEMPLATES = {
+const PROJECT_TEMPLATES: Record<string, {
+  name: string;
+  description: string;
+  files: Array<{ name: string; language: string; content: string }>;
+}> = {
   'react-vite': {
     name: 'React + Vite',
     description: 'Modern React app with Vite',
     files: [
-      { name: 'package.json', language: 'json', content: `{
-  "name": "react-vite-app",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite --host 0.0.0.0 --port 3000",
-    "build": "vite build"
-  },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.0.8"
-  }
-}` },
-      { name: 'src/App.jsx', language: 'javascript', content: `import { useState } from 'react';
-
-export default function App() {
-  const [count, setCount] = useState(0);
-
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-      <div style={{ textAlign: 'center', color: 'white' }}>
-        <h1>React + Vite</h1>
-        <button onClick={() => setCount(count + 1)} style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}>
-          Count: {count}
-        </button>
-      </div>
-    </div>
-  );
-}` },
-      { name: 'src/main.jsx', language: 'javascript', content: `import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);` },
-      { name: 'index.html', language: 'html', content: `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>React App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>` }
+      { 
+        name: 'package.json', 
+        language: 'json', 
+        content: JSON.stringify({
+          name: "react-vite-app",
+          private: true,
+          version: "1.0.0",
+          type: "module",
+          scripts: {
+            dev: "vite --host 0.0.0.0 --port 3000",
+            build: "vite build"
+          },
+          dependencies: {
+            react: "^18.2.0",
+            "react-dom": "^18.2.0"
+          },
+          devDependencies: {
+            "@vitejs/plugin-react": "^4.2.1",
+            vite: "^5.0.8"
+          }
+        }, null, 2)
+      },
+      { 
+        name: 'src/App.jsx', 
+        language: 'javascript', 
+        content: 'import { useState } from \'react\';\n\nexport default function App() {\n  const [count, setCount] = useState(0);\n\n  return (\n    <div style={{ minHeight: \'100vh\', display: \'flex\', alignItems: \'center\', justifyContent: \'center\', background: \'linear-gradient(135deg, #667eea 0%, #764ba2 100%)\' }}>\n      <div style={{ textAlign: \'center\', color: \'white\' }}>\n        <h1>React + Vite</h1>\n        <button onClick={() => setCount(count + 1)} style={{ padding: \'10px 20px\', fontSize: \'16px\', cursor: \'pointer\' }}>\n          Count: {count}\n        </button>\n      </div>\n    </div>\n  );\n}'
+      },
+      { 
+        name: 'src/main.jsx', 
+        language: 'javascript', 
+        content: 'import React from \'react\';\nimport ReactDOM from \'react-dom/client\';\nimport App from \'./App\';\n\nReactDOM.createRoot(document.getElementById(\'root\')).render(\n  <React.StrictMode>\n    <App />\n  </React.StrictMode>\n);'
+      },
+      { 
+        name: 'index.html', 
+        language: 'html', 
+        content: '<!DOCTYPE html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>React App</title>\n  </head>\n  <body>\n    <div id="root"></div>\n    <script type="module" src="/src/main.jsx"></script>\n  </body>\n</html>'
+      }
     ]
   },
   'express-api': {
     name: 'Express REST API',
     description: 'Node.js REST API server',
     files: [
-      { name: 'package.json', language: 'json', content: `{
-  "name": "express-api",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "node index.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2"
-  }
-}` },
-      { name: 'index.js', language: 'javascript', content: `import express from 'express';
-
-const app = express();
-const PORT = 3000;
-
-app.use(express.json());
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-app.get('/api/users', (req, res) => {
-  res.json([
-    { id: 1, name: 'Alice' },
-    { id: 2, name: 'Bob' }
-  ]);
-});
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(\`✓ Server running on http://localhost:\${PORT}\`);
-});` }
+      { 
+        name: 'package.json', 
+        language: 'json', 
+        content: JSON.stringify({
+          name: "express-api",
+          version: "1.0.0",
+          type: "module",
+          scripts: {
+            dev: "node index.js"
+          },
+          dependencies: {
+            express: "^4.18.2"
+          }
+        }, null, 2)
+      },
+      { 
+        name: 'index.js', 
+        language: 'javascript', 
+        content: 'import express from \'express\';\n\nconst app = express();\nconst PORT = 3000;\n\napp.use(express.json());\n\napp.get(\'/api/health\', (req, res) => {\n  res.json({ status: \'ok\', timestamp: new Date().toISOString() });\n});\n\napp.get(\'/api/users\', (req, res) => {\n  res.json([\n    { id: 1, name: \'Alice\' },\n    { id: 2, name: \'Bob\' }\n  ]);\n});\n\napp.listen(PORT, \'0.0.0.0\', () => {\n  console.log(`✓ Server running on http://localhost:${PORT}`);\n});'
+      }
     ]
   },
   'python-flask': {
     name: 'Flask Web App',
     description: 'Python Flask web server',
     files: [
-      { name: 'main.py', language: 'python', content: `from flask import Flask, jsonify
-import os
-
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return '''
-    <html>
-        <body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-family: sans-serif; text-align: center; padding: 50px;">
-            <h1>Flask App Running!</h1>
-            <p>Visit <a href="/api/data" style="color: #00ff41;">/api/data</a> for JSON</p>
-        </body>
-    </html>
-    '''
-
-@app.route('/api/data')
-def get_data():
-    return jsonify({
-        'message': 'Hello from Flask!',
-        'status': 'success'
-    })
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)` }
+      { 
+        name: 'main.py', 
+        language: 'python', 
+        content: 'from flask import Flask, jsonify\nimport os\n\napp = Flask(__name__)\n\n@app.route(\'/\')\ndef home():\n    return \'\'\'\n    <html>\n        <body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-family: sans-serif; text-align: center; padding: 50px;">\n            <h1>Flask App Running!</h1>\n            <p>Visit <a href="/api/data" style="color: #00ff41;">/api/data</a> for JSON</p>\n        </body>\n    </html>\n    \'\'\'\n\n@app.route(\'/api/data\')\ndef get_data():\n    return jsonify({\n        \'message\': \'Hello from Flask!\',\n        \'status\': \'success\'\n    })\n\nif __name__ == \'__main__\':\n    app.run(host=\'0.0.0.0\', port=5000, debug=True)'
+      }
     ]
   }
 };
