@@ -1784,16 +1784,41 @@ ${code}
 # ===== USER CODE END =====
 
 ${hasMatplotlib ? `
-# Matplotlib capture
+# Matplotlib capture (static plots and animations)
 try:
     import matplotlib.pyplot as plt
+    from matplotlib import animation
+    
     if plt.get_fignums() and not _gui_output_generated:
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
-        buf.seek(0)
-        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
-        print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
-        _gui_output_generated = True
+        # Check if animation exists
+        has_animation = False
+        try:
+            # Look for FuncAnimation in globals
+            for name in dir():
+                obj = eval(name)
+                if isinstance(obj, animation.FuncAnimation):
+                    has_animation = True
+                    # Save animation as GIF
+                    gif_path = f'/tmp/animation_{os.getpid()}.gif'
+                    obj.save(gif_path, writer='pillow', fps=30, dpi=80)
+                    with open(gif_path, 'rb') as f:
+                        gif_base64 = base64.b64encode(f.read()).decode('utf-8')
+                    print(f'__GUI_OUTPUT__:<img src="data:image/gif;base64,{gif_base64}" style="max-width:100%; height:auto;" />')
+                    _gui_output_generated = True
+                    os.remove(gif_path)
+                    break
+        except:
+            pass
+        
+        # If no animation, capture static plot
+        if not _gui_output_generated:
+            buf = io.BytesIO()
+            plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
+            buf.seek(0)
+            img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+            print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
+            _gui_output_generated = True
+        
         plt.close('all')
 except ImportError:
     pass
