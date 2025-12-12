@@ -1580,36 +1580,56 @@
 
 @keyframes glow-pulse {
   0%, 100% {
-    opacity: 0.6;
-    filter: drop-shadow(0 0 8px rgba(0, 255, 0, 0.6));
+    opacity: 0.8;
+    filter: drop-shadow(0 0 16px rgba(0, 255, 0, 1)) drop-shadow(0 0 32px rgba(0, 255, 0, 0.8));
   }
   50% {
     opacity: 1;
-    filter: drop-shadow(0 0 16px rgba(0, 255, 0, 1));
+    filter: drop-shadow(0 0 32px rgba(0, 255, 0, 1)) drop-shadow(0 0 64px rgba(0, 255, 0, 1));
   }
 }
 
-/* Wavy text effect for response bubbles */
-@keyframes wavy-text {
+@keyframes sci-fi-pulse {
   0%, 100% {
-    text-shadow: 0 0 8px rgba(0, 255, 0, 0.8),
-                 0 0 16px rgba(0, 255, 0, 0.6);
-    filter: brightness(1.1);
-  }
-  25% {
-    text-shadow: 0 0 12px rgba(0, 255, 100, 1),
-                 0 0 24px rgba(0, 255, 100, 0.8);
-    filter: brightness(1.3);
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.8), 
+                0 0 60px rgba(0, 255, 0, 0.4), 
+                inset 0 0 20px rgba(0, 255, 0, 0.2);
+    opacity: 0.9;
   }
   50% {
-    text-shadow: 0 0 16px rgba(0, 255, 0, 1),
-                 0 0 32px rgba(0, 255, 0, 0.8);
-    filter: brightness(1.2);
+    box-shadow: 0 0 50px rgba(0, 255, 0, 1), 
+                0 0 100px rgba(0, 255, 0, 0.7), 
+                0 0 150px rgba(0, 255, 0, 0.4),
+                inset 0 0 30px rgba(0, 255, 0, 0.4);
+    opacity: 1;
+  }
+}
+
+/* Wavy text effect for response bubbles - Enhanced sci-fi version */
+@keyframes wavy-text {
+  0%, 100% {
+    text-shadow: 0 0 12px rgba(0, 255, 0, 1),
+                 0 0 24px rgba(0, 255, 0, 0.8),
+                 0 0 36px rgba(0, 255, 0, 0.4);
+    filter: brightness(1.2) saturate(1.3);
+  }
+  25% {
+    text-shadow: 0 0 16px rgba(0, 255, 100, 1),
+                 0 0 32px rgba(0, 255, 100, 1),
+                 0 0 48px rgba(0, 255, 100, 0.6);
+    filter: brightness(1.4) saturate(1.5);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(0, 255, 0, 1),
+                 0 0 40px rgba(0, 255, 0, 1),
+                 0 0 60px rgba(0, 255, 0, 0.8);
+    filter: brightness(1.3) saturate(1.4);
   }
   75% {
-    text-shadow: 0 0 12px rgba(0, 255, 100, 1),
-                 0 0 24px rgba(0, 255, 100, 0.8);
-    filter: brightness(1.3);
+    text-shadow: 0 0 16px rgba(0, 255, 100, 1),
+                 0 0 32px rgba(0, 255, 100, 1),
+                 0 0 48px rgba(0, 255, 100, 0.6);
+    filter: brightness(1.4) saturate(1.5);
   }
 }
 

@@ -691,26 +691,39 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                 title="Drag to resize"
               />
 
-              {/* Glowing border effect - pointer-events-none so buttons work */}
-              <div className="absolute inset-0 rounded-lg ring-1 ring-terminal-highlight/20 animate-pulse pointer-events-none"
-                   style={{ animationDuration: '2s' }} />
+              {/* Enhanced sci-fi glowing border effect - pointer-events-none so buttons work */}
+              <div 
+                className="absolute inset-0 rounded-lg pointer-events-none"
+                style={{
+                  boxShadow: '0 0 30px rgba(0, 255, 0, 0.8), 0 0 60px rgba(0, 255, 0, 0.4), inset 0 0 20px rgba(0, 255, 0, 0.2)',
+                  animation: 'sci-fi-pulse 1.5s ease-in-out infinite',
+                  border: '2px solid rgba(0, 255, 0, 0.6)',
+                }}
+              />
               
-              {/* Green wavy animated border effect - visible for 30 seconds */}
+              {/* Green wavy animated border effect - visible for 30 seconds with enhanced sci-fi glow */}
               {showWavyBorder && (
                 <div 
                   className="absolute inset-0 rounded-lg pointer-events-none overflow-hidden"
                   style={{
-                    boxShadow: '0 0 20px rgba(0, 255, 0, 0.3)',
+                    boxShadow: '0 0 40px rgba(0, 255, 0, 0.9), 0 0 80px rgba(0, 255, 0, 0.6), 0 0 120px rgba(0, 255, 0, 0.3)',
                     opacity: 1,
                   }}
                 >
                   <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                       <linearGradient id={`wave-gradient-${entryId}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="rgba(0, 255, 0, 0.6)" />
-                        <stop offset="50%" stopColor="rgba(0, 255, 100, 0.8)" />
-                        <stop offset="100%" stopColor="rgba(0, 255, 0, 0.6)" />
+                        <stop offset="0%" stopColor="rgba(0, 255, 0, 0.9)" />
+                        <stop offset="50%" stopColor="rgba(0, 255, 100, 1)" />
+                        <stop offset="100%" stopColor="rgba(0, 255, 0, 0.9)" />
                       </linearGradient>
+                      <filter id={`glow-filter-${entryId}`}>
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge>
+                          <feMergeNode in="coloredBlur"/>
+                          <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                      </filter>
                     </defs>
                     <rect 
                       x="0" 
@@ -719,10 +732,11 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                       height="100%" 
                       fill="none" 
                       stroke={`url(#wave-gradient-${entryId})`}
-                      strokeWidth="2"
+                      strokeWidth="3"
                       rx="8"
+                      filter={`url(#glow-filter-${entryId})`}
                       style={{
-                        filter: 'drop-shadow(0 0 8px rgba(0, 255, 0, 0.6))',
+                        filter: 'drop-shadow(0 0 16px rgba(0, 255, 0, 1)) drop-shadow(0 0 32px rgba(0, 255, 0, 0.8))',
                         strokeDasharray: '10 5',
                         animation: 'wave-flow 3s linear infinite, glow-pulse 2s ease-in-out infinite',
                         willChange: 'stroke-dashoffset, opacity'
