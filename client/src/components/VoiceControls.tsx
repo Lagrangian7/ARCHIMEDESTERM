@@ -22,8 +22,6 @@ interface VoiceControlsProps {
   isAuthenticated: boolean;
   setShowProfile: (show: boolean) => void;
   setShowUpload: (show: boolean) => void;
-  setShowChat: (show: boolean) => void;
-  unreadCount: number;
   notepads: Array<{ id: string }>;
   setNotepads: React.Dispatch<React.SetStateAction<Array<{ id: string }>>>;
   setShowPythonIDE: (show: boolean) => void;
@@ -41,8 +39,6 @@ export function VoiceControls({
   isAuthenticated,
   setShowProfile,
   setShowUpload,
-  setShowChat,
-  unreadCount,
   notepads,
   setNotepads,
   setShowPythonIDE,

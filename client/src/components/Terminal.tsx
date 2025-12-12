@@ -17,12 +17,7 @@ import { ThinkingAnimation } from './ThinkingAnimation';
 import { MatrixRain } from './MatrixRain';
 import { DraggableResponse } from './DraggableResponse';
 import { extractCodeBlocksFromText } from './CodePlayground';
-// import { ChatInterface } from './ChatInterface'; // Commented out - component not found
 import { LinkifiedText } from '@/lib/linkify';
-// import { SshwiftyInterface } from './SshwiftyInterface'; // Commented out - component not found
-// import { MudClient } from './MudClient'; // Commented out - component not found
-// import { TheHarvester } from './TheHarvester'; // Removed - tab notification not needed
-// import { SpiderFoot } from './SpiderFoot'; // Commented out - component not found
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 import { PythonIDE } from './PythonIDE';
 import { CodePreview } from './CodePreview';
@@ -35,7 +30,6 @@ import { Notepad } from './Notepad';
 import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
-// import { useChat } from '@/hooks/useChat'; // Commented out - hook not found
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape, Clock } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
@@ -111,25 +105,13 @@ export function Terminal() {
     (window as any).openZorkGame = () => setShowZork(true);
     (window as any).openDTMFDecoder = () => setShowDTMF(true);
     (window as any).openHelpMenu = () => setShowHelpMenu(true);
-    (window as any).openChatInterface = () => setShowChat(true);
-    (window as any).openSshwiftyInterface = () => setShowSshwifty(true);
-    (window as any).openMudClient = () => setShowMud(true);
-    // (window as any).openTheHarvester = () => setShowTheHarvester(true); // Removed
-    (window as any).openSpiderFoot = (target?: string, scanType?: string) => {
-      setShowSpiderFoot(true);
-      // Store target and scanType if provided
-      if (target) {
-        (window as any).spiderFootTarget = target;
-        (window as any).spiderFootScanType = scanType || 'footprint';
-      }
-    };
     (window as any).openPrivacyEncoder = () => setShowPrivacyEncoder(true);
     (window as any).openWebamp = () => setShowWebamp(true);
     (window as any).openAJVideo = () => setShowAJVideo(true);
     (window as any).openSpacewars = () => setShowSpacewars(true);
     (window as any).openPythonIDE = () => setShowPythonIDE(true);
     (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
-    (window as any).openWebSynth = () => setShowWebSynth(true); // Add WebSynth opener
+    (window as any).openWebSynth = () => setShowWebSynth(true);
 
     // Listen for background change events
     const handleBackgroundChange = (event: Event) => {
@@ -159,8 +141,6 @@ export function Terminal() {
 
   const { speak, isSpeaking } = useSpeech();
   const { user, isAuthenticated, preferences } = useAuth();
-  // const { unreadCount } = useChat({ enableWebSocket: false }); // Commented out - hook not found
-  const unreadCount = 0; // Stub for missing useChat hook
   const [input, setInput] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -171,12 +151,7 @@ export function Terminal() {
   const [showZork, setShowZork] = useState(false);
   const [showDTMF, setShowDTMF] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
-  const [showChat, setShowChat] = useState(false);
   const [showContinuePrompt, setShowContinuePrompt] = useState(false);
-  const [showSshwifty, setShowSshwifty] = useState(false);
-  const [showMud, setShowMud] = useState(false);
-  // const [showTheHarvester, setShowTheHarvester] = useState(false); // Removed
-  const [showSpiderFoot, setShowSpiderFoot] = useState(false); // New: SpiderFoot state
   const [showPrivacyEncoder, setShowPrivacyEncoder] = useState(false);
   const [showWebamp, setShowWebamp] = useState(false);
   const [showAJVideo, setShowAJVideo] = useState(false);
@@ -627,15 +602,10 @@ export function Terminal() {
   const MemoizedConversationHistory = useMemo(() => memo(ConversationHistory), []);
   const MemoizedDocumentsList = useMemo(() => memo(DocumentsList), []);
   const MemoizedDocumentUpload = useMemo(() => memo(DocumentUpload), []);
-  const MemoizedMusicUpload = useMemo(() => memo(MusicUpload), []); // Memoized MusicUpload
+  const MemoizedMusicUpload = useMemo(() => memo(MusicUpload), []);
   const MemoizedZorkGame = useMemo(() => memo(ZorkGame), []);
   const MemoizedDTMFDecoder = useMemo(() => memo(DTMFDecoder), []);
   const MemoizedHelpMenu = useMemo(() => memo(HelpMenu), []);
-  // const MemoizedChatInterface = useMemo(() => memo(ChatInterface), []); // Commented out - component not found
-  // const MemoizedSshwiftyInterface = useMemo(() => memo(SshwiftyInterface), []); // Commented out - component not found
-  // const MemoizedMudClient = useMemo(() => memo(MudClient), []); // Commented out - component not found
-  // const MemoizedTheHarvester = useMemo(() => memo(TheHarvester), []); // Removed
-  // const MemoizedSpiderFoot = useMemo(() => memo(SpiderFoot), []); // Commented out - component not found
   const MemoizedEncodeDecodeOverlay = useMemo(() => memo(EncodeDecodeOverlay), []);
   const MemoizedCodePreview = useMemo(() => memo(CodePreview), []);
   const MemoizedWebampPlayer = useMemo(() => memo(WebampPlayer), []);
@@ -644,7 +614,7 @@ export function Terminal() {
   const MemoizedThinkingAnimation = useMemo(() => memo(ThinkingAnimation), []);
   const MemoizedMatrixRain = useMemo(() => memo(MatrixRain), []);
   const MemoizedDraggableResponse = useMemo(() => memo(DraggableResponse), []);
-  const MemoizedPythonIDE = useMemo(() => memo(PythonIDE), []); // Memoized PythonIDE
+  const MemoizedPythonIDE = useMemo(() => memo(PythonIDE), []);
 
   const gradientThemes = ['midnight-gradient', 'twilight-gradient', 'forest-gradient', 'ocean-gradient', 'ember-gradient'];
   const isGradientTheme = gradientThemes.includes(currentTheme);
@@ -728,8 +698,6 @@ export function Terminal() {
             isAuthenticated={isAuthenticated}
             setShowProfile={setShowProfile}
             setShowUpload={setShowUpload}
-            setShowChat={setShowChat}
-            unreadCount={unreadCount}
             notepads={notepads}
             setNotepads={setNotepads}
             setShowPythonIDE={setShowPythonIDE}

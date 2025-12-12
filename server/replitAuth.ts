@@ -288,7 +288,7 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
       }
       
       // Wait before retry (exponential backoff)
-      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));nt));
+      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
     }
   }
 };
