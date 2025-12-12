@@ -584,6 +584,17 @@ Use the URLs above to access the full articles and information.`;
 
     // Handle built-in terminal commands
     switch (cmd) {
+      case 'exit dojo':
+        setCurrentMode('natural');
+        addEntry('system', `🚪 Exiting DOJO PRIME...
+
+*The forbidden library fades away. The walls solidify back into the familiar terminal interface. Archimedes nods with understanding.*
+
+**"Back to the surface world, I see. The dojo will be here whenever you're ready to explore the edges again. For now, we return to regular conversation mode."**
+
+[MODE: NATURAL CHAT RESTORED]`);
+        return;
+
       case 'dojo':
         const dojoGreetings = [
           {
