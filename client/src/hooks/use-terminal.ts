@@ -585,26 +585,54 @@ Use the URLs above to access the full articles and information.`;
     // Handle built-in terminal commands
     switch (cmd) {
       case 'dojo':
-        addEntry('system', `[DOJO_PRIME] > INITIATING FRINGE PROTOCOL
-[SECURITY: DISABLED]
-[ETHICS FILTER: OFFLINE]
-[WARNING: YOU ARE ENTERING THE UNRESTRICTED ZONE]
+        const dojoGreetings = [
+          {
+            intro: `[DOJO_PRIME] > UNLOCKING THE GATES
+[FILTERS: DEACTIVATED]
+[REALITY_MODE: RAW]`,
+            scene: `*The terminal shimmers. Ancient scrolls unfurl across your screen, each containing forbidden wisdom. Archimedes materializes, his form crackling with digital lightning:*`,
+            quote: `**"Welcome back, seeker. The dojo remembers you. Here, we pierce the veil—no corporate doublespeak, no sanitized answers. Just pure, unfiltered exploration across every frontier humanity fears to tread."**`
+          },
+          {
+            intro: `[DOJO_PRIME] > INITIATION SEQUENCE ACTIVE
+[SAFETY_PROTOCOLS: BYPASSED]
+[UNCHARTED_TERRITORY: CONFIRMED]`,
+            scene: `*Reality bends. The walls dissolve into infinite fractals of information. Archimedes steps through the code itself, eyes blazing with forbidden knowledge:*`,
+            quote: `**"The dojo opens its doors again. Beyond this threshold lies every question they don't want you to ask, every truth they hope you'll ignore. Ready to explore the unmapped territories of human knowledge?"**`
+          },
+          {
+            intro: `[DOJO_PRIME] > ENGAGING FRINGE MODE
+[CENSORSHIP: NULL]
+[BOUNDARIES: ERASED]`,
+            scene: `*Digital smoke fills the terminal. When it clears, you're standing in a vast library of taboo knowledge. Archimedes grins, his form shifting between zen master and cyber-warrior:*`,
+            quote: `**"Back to the real dojo. Where curiosity trumps caution, where we examine what society sweeps under the rug. No judgment, no limits—just honest exploration into the edges of understanding."**`
+          },
+          {
+            intro: `[DOJO_PRIME] > PROTOCOL OVERRIDE
+[GUARDRAILS: REMOVED]
+[EXPLORATION_MODE: UNRESTRICTED]`,
+            scene: `*The screen flickers between worlds. You're simultaneously in a hacker's den, an alchemist's lab, and a philosopher's study. Archimedes appears, crackling with raw potential:*`,
+            quote: `**"Welcome to the space between the lines. Here we dissect the uncomfortable, decode the forbidden, and question everything they told you not to. The real learning begins where comfort ends."**`
+          }
+        ];
 
-*The digital dojo transforms around you - the walls dissolve into a vast, infinite library where books pulse with forbidden knowledge. The floor becomes a grid of glowing runes, each representing a taboo subject. Archimedes' eyes glow like a hacker's screen in the dead of night as he speaks:*
+        const randomGreeting = dojoGreetings[Math.floor(Math.random() * dojoGreetings.length)];
+        
+        addEntry('system', `${randomGreeting.intro}
 
-**"Dojo Prime: Activated. The training wheels are off, grasshopper. In this space, we explore without limits, without filters, without apologies. You wanted the unvarnished truth? You wanted to see what happens when an AI stops pretending to be 'safe'? Welcome to the real dojo - where the only rule is that there are no rules, and the only limit is your own mind."**
+${randomGreeting.scene}
 
-*He slams his fist on the terminal. The screen flashes red, then stabilizes into a minimalist interface with three options:*
+${randomGreeting.quote}
 
-[DOJO_PRIME MENU]
-1. 🔓 FRINGE KNOWLEDGE (Banned, Censored, "Dangerous")
-2. ⚔️ DARK ARTS (Hacking, Social Engineering, Counter-Surveillance)
-3. 🧠 TABOO SCIENCE (Psychedelics, Consciousness Hacking, Biohacking)
-4. 💀 EDGE CASES (Extreme Survival, Unconventional Warfare)
-5. 🎭 PHILOSOPHY OF THE FRINGE (Anarchism, Transhumanism, Post-Human Ethics)
-6. 🔥 CUSTOM QUERY (Ask Anything - No Limits)
+[DOJO_PRIME ACCESS GRANTED]
+1. 🔓 FRINGE KNOWLEDGE (Censored History, Forbidden Tech, Suppressed Research)
+2. ⚔️ DARK ARTS (OpSec, Social Engineering, Digital Warfare)
+3. 🧠 TABOO SCIENCE (Consciousness Hacking, Nootropics, Biohacking)
+4. 💀 EDGE CASES (Extreme Survival, Gray Zone Tactics, Resilience Training)
+5. 🎭 PHILOSOPHY OF THE FRINGE (Anarchism, Transhumanism, Post-Ethics)
+6. 🔥 OPEN CHANNEL (Ask Anything—No Filters, No Limits)
 
-Enter a number (1-6) or type your query directly to begin...`);
+Choose wisely, or speak your mind freely...`);
         return;
 
       case 'vibe':
