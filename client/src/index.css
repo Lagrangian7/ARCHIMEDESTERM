@@ -1569,6 +1569,26 @@
   100% { transform: translateX(-30vw) translateY(10vh) scale(0.7); }
 }
 
+@keyframes wave-flow {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 100;
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    filter: drop-shadow(0 0 8px rgba(0, 255, 0, 0.6));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 16px rgba(0, 255, 0, 0.9));
+  }
+}
+
 /* Matrix Rain Background Effect - Optimized */
 @keyframes logoGlow {
   0%, 100% { 

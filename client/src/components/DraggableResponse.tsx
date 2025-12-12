@@ -683,6 +683,40 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
               {/* Glowing border effect - pointer-events-none so buttons work */}
               <div className="absolute inset-0 rounded-lg ring-1 ring-terminal-highlight/20 animate-pulse pointer-events-none"
                    style={{ animationDuration: '2s' }} />
+              
+              {/* Green wavy animated border effect */}
+              <div 
+                className="absolute inset-0 rounded-lg pointer-events-none overflow-hidden"
+                style={{
+                  boxShadow: '0 0 20px rgba(0, 255, 0, 0.3)',
+                }}
+              >
+                <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id={`wave-gradient-${entryId}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="rgba(0, 255, 0, 0.6)" />
+                      <stop offset="50%" stopColor="rgba(0, 255, 100, 0.8)" />
+                      <stop offset="100%" stopColor="rgba(0, 255, 0, 0.6)" />
+                    </linearGradient>
+                  </defs>
+                  <rect 
+                    x="0" 
+                    y="0" 
+                    width="100%" 
+                    height="100%" 
+                    fill="none" 
+                    stroke={`url(#wave-gradient-${entryId})`}
+                    strokeWidth="2"
+                    rx="8"
+                    className="animate-wave-border"
+                    style={{
+                      filter: 'drop-shadow(0 0 8px rgba(0, 255, 0, 0.6))',
+                      strokeDasharray: '10 5',
+                      animation: 'wave-flow 3s linear infinite, glow-pulse 2s ease-in-out infinite'
+                    }}
+                  />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
