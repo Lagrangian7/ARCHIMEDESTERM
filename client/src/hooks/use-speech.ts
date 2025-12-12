@@ -179,9 +179,40 @@ export function useSpeechSynthesis() {
         const hasJapanese = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]/.test(text);
 
         // Clean text for speech synthesis
-        let cleanText = text
-          .replace(/<[^>]*>/g, '') // Remove HTML tags
-          .replace(/\*/g, ''); // Remove asterisks
+        let cleanText = text;
+
+        // First, handle code blocks and technical content
+        if (cleanText.includes('```')) {
+          // Extract only non-code parts for speech
+          cleanText = cleanText.replace(/```[\s\S]*?```/g, ' code block ');
+        }
+
+        // Remove HTML tags
+        cleanText = cleanText.replace(/<[^>]*>/g, '');
+
+        // Remove markdown formatting
+        cleanText = cleanText
+            .replace(/#{1,6}\s/g, '') // Headers
+            .replace(/\*\*([^*]+)\*\*/g, '$1') // Bold
+            .replace(/\*([^*]+)\*/g, '$1') // Italic
+            .replace(/`([^`]+)`/g, '$1') // Inline code
+            .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Links
+            .replace(/^\s*[-*+]\s/gm, '') // Unordered list markers
+            .replace(/^\s*\d+\.\s/gm, '') // Ordered list markers
+            .replace(/^>\s/gm, '') // Blockquotes
+            .replace(/--+/g, ' ') // Multiple dashes to space
+            .replace(/\|/g, ' ') // Pipes to space
+            .replace(/\+/g, ' plus ')
+            .replace(/=/g, ' equals ')
+            .replace(/\s+/g, ' ') // Normalize whitespace
+            .trim();
+
+        // Convert all-caps words to proper case to prevent letter-by-letter reading
+        // But preserve acronyms (2-4 letters) and intentional capitalization
+        cleanText = cleanText.replace(/\b([A-Z]{5,})\b/g, (match) => {
+          // Convert long all-caps words to title case
+          return match.charAt(0) + match.slice(1).toLowerCase();
+        });
 
         if (hasJapanese) {
           // Minimal cleaning for Japanese - preserve natural flow
