@@ -39,6 +39,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // API status endpoint - shows which AI services are configured (no sensitive values)
+  app.get('/api/status', (req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      isDeployment: process.env.REPLIT_DEPLOYMENT === '1',
+      services: {
+        groq: !!process.env.GROQ_API_KEY,
+        gemini: !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY),
+        openai: !!process.env.OPENAI_API_KEY,
+        mistral: !!process.env.MISTRAL_API_KEY,
+        huggingface: !!process.env.HUGGINGFACE_API_KEY,
+        database: !!process.env.DATABASE_URL,
+      }
+    });
+  });
+
   // Enable gzip compression
   app.use(compression());
 
@@ -2203,8 +2221,15 @@ if _virtual_display_started:
         );
       } catch (llmError) {
         console.error("LLM Service error:", llmError);
-        // Fallback response if LLM fails
-        response = "I apologize, but I'm experiencing technical difficulties processing your request. Please try again in a moment.";
+        // Log which services are available for debugging
+        console.error("Available services:", {
+          groq: !!process.env.GROQ_API_KEY,
+          gemini: !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY),
+          openai: !!process.env.OPENAI_API_KEY,
+        });
+        // Fallback response if LLM fails - include more info for debugging
+        const errorMsg = llmError instanceof Error ? llmError.message : 'Unknown error';
+        response = `I apologize, but I'm experiencing technical difficulties: ${errorMsg}. Please try again in a moment.`;
       }
 
       const assistantMessage: Message = {
