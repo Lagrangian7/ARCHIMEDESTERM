@@ -1089,7 +1089,7 @@ Plan a complete, production-ready project structure. Be thorough.`;
 
 Project: "${spec}"
 File: ${fileSpec.name}
-Purpose: ${fileSpec.purpose}
+Purpose: ${filefileSpec.purpose}
 Language: ${fileSpec.language}
 
 Write COMPLETE, PRODUCTION-READY code. Include:
@@ -1227,39 +1227,88 @@ Provide a concise analysis covering:
         });
       }
 
-      // Check if code uses GUI libraries
+      // Check if code uses GUI libraries or animations
       const hasGuiLibraries = /import\s+(tkinter|matplotlib|pygame|turtle|PyQt|PySide)/i.test(code);
+      const hasAnimation = /FuncAnimation|ArtistAnimation|matplotlib\.animation/i.test(code);
 
-      // Wrap GUI code to capture output as HTML/image
+      // Wrap GUI code to capture output as HTML/image/animation
       const wrappedCode = hasGuiLibraries ? `
 import sys
 import io
 import base64
+import os
+import tempfile
 
-# Capture GUI output
-_gui_output = None
+# Flag to prevent duplicate GUI output
+_gui_output_generated = False
 
 ${code}
 
-# For matplotlib, capture plot as base64 image
+# Matplotlib animation and static plot capture
 try:
     import matplotlib.pyplot as plt
-    if plt.get_fignums():
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight')
-        buf.seek(0)
-        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
-        print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
+    from matplotlib import animation
+
+    if plt.get_fignums() and not _gui_output_generated:
+        # Check if FuncAnimation exists in global scope
+        has_animation = False
+        anim_obj = None
+
+        # Search for FuncAnimation instances
+        for name in list(globals().keys()):
+            try:
+                obj = globals()[name]
+                if isinstance(obj, animation.FuncAnimation):
+                    has_animation = True
+                    anim_obj = obj
+                    break
+            except:
+                pass
+
+        if has_animation and anim_obj:
+            # Save animation as GIF
+            temp_gif = tempfile.NamedTemporaryFile(delete=False, suffix='.gif')
+            gif_path = temp_gif.name
+            temp_gif.close()
+
+            try:
+                # Save with pillow writer (widely available)
+                anim_obj.save(gif_path, writer='pillow', fps=30, dpi=80)
+
+                # Read and encode GIF
+                with open(gif_path, 'rb') as f:
+                    gif_base64 = base64.b64encode(f.read()).decode('utf-8')
+
+                print(f'__GUI_OUTPUT__:<div style="text-align:center;"><img src="data:image/gif;base64,{gif_base64}" style="max-width:100%; height:auto; border-radius:8px;" alt="Matplotlib Animation" /></div>')
+                _gui_output_generated = True
+            except Exception as e:
+                print(f'Animation save error: {e}', file=sys.stderr)
+            finally:
+                # Clean up temp file
+                try:
+                    os.remove(gif_path)
+                except:
+                    pass
+
+        # If no animation, capture static plot
+        if not _gui_output_generated:
+            buf = io.BytesIO()
+            plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
+            buf.seek(0)
+            img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+            print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
+            _gui_output_generated = True
+
         plt.close('all')
 except ImportError:
     pass
 except Exception as e:
-    print(f'GUI rendering error: {e}', file=sys.stderr)
+    print(f'Matplotlib capture error: {e}', file=sys.stderr)
 
 # For tkinter, we can't render in headless but we'll note it
 try:
     import tkinter as tk
-    if tk._default_root:
+    if tk._default_root and not _gui_output_generated:
         print('__GUI_OUTPUT__:<div style="padding:20px; background:#f0f0f0; border-radius:8px;"><strong>🖼️ Tkinter GUI Application</strong><br/>GUI window was created but cannot be displayed in headless mode.<br/>Run this code locally to see the interface.</div>')
 except:
     pass
@@ -1306,10 +1355,10 @@ except:
       // Extract GUI output if present
       let guiOutput = null;
       let textOutput = result.stdout;
-      const guiMatch = result.stdout.match(/__GUI_OUTPUT__:(.*)/);
+      const guiMatch = result.stdout.match(/__GUI_OUTPUT__:([\s\S]*)/);
       if (guiMatch) {
         guiOutput = guiMatch[1];
-        textOutput = result.stdout.replace(/__GUI_OUTPUT__:.*/, '').trim();
+        textOutput = result.stdout.replace(/__GUI_OUTPUT__:[\s\S]*/, '').trim();
       }
 
       if (result.code !== 0) {
@@ -1610,6 +1659,7 @@ import io
 import base64
 import os
 import time
+import tempfile
 
 # Set up virtual display for headless rendering
 try:
@@ -1825,32 +1875,52 @@ ${code}
 # ===== USER CODE END =====
 
 ${hasMatplotlib ? `
-# Matplotlib capture (static plots and animations)
+# Matplotlib animation and static plot capture
 try:
     import matplotlib.pyplot as plt
     from matplotlib import animation
-    
+
     if plt.get_fignums() and not _gui_output_generated:
-        # Check if animation exists
+        # Check if FuncAnimation exists in global scope
         has_animation = False
-        try:
-            # Look for FuncAnimation in globals
-            for name in dir():
-                obj = eval(name)
+        anim_obj = None
+
+        # Search for FuncAnimation instances
+        for name in list(globals().keys()):
+            try:
+                obj = globals()[name]
                 if isinstance(obj, animation.FuncAnimation):
                     has_animation = True
-                    # Save animation as GIF
-                    gif_path = f'/tmp/animation_{os.getpid()}.gif'
-                    obj.save(gif_path, writer='pillow', fps=30, dpi=80)
-                    with open(gif_path, 'rb') as f:
-                        gif_base64 = base64.b64encode(f.read()).decode('utf-8')
-                    print(f'__GUI_OUTPUT__:<img src="data:image/gif;base64,{gif_base64}" style="max-width:100%; height:auto;" />')
-                    _gui_output_generated = True
-                    os.remove(gif_path)
+                    anim_obj = obj
                     break
-        except:
-            pass
-        
+            except:
+                pass
+
+        if has_animation and anim_obj:
+            # Save animation as GIF
+            temp_gif = tempfile.NamedTemporaryFile(delete=False, suffix='.gif')
+            gif_path = temp_gif.name
+            temp_gif.close()
+
+            try:
+                # Save with pillow writer (widely available)
+                anim_obj.save(gif_path, writer='pillow', fps=30, dpi=80)
+
+                # Read and encode GIF
+                with open(gif_path, 'rb') as f:
+                    gif_base64 = base64.b64encode(f.read()).decode('utf-8')
+
+                print(f'__GUI_OUTPUT__:<div style="text-align:center;"><img src="data:image/gif;base64,{gif_base64}" style="max-width:100%; height:auto; border-radius:8px;" alt="Matplotlib Animation" /></div>')
+                _gui_output_generated = True
+            except Exception as e:
+                print(f'Animation save error: {e}', file=sys.stderr)
+            finally:
+                # Clean up temp file
+                try:
+                    os.remove(gif_path)
+                except:
+                    pass
+
         # If no animation, capture static plot
         if not _gui_output_generated:
             buf = io.BytesIO()
@@ -1859,7 +1929,7 @@ try:
             img_base64 = base64.b64encode(buf.read()).decode('utf-8')
             print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
             _gui_output_generated = True
-        
+
         plt.close('all')
 except ImportError:
     pass
@@ -1891,7 +1961,7 @@ if _virtual_display_started:
           const guiMatch = result.stdout.match(/__GUI_OUTPUT__:([\s\S]*)/);
           if (guiMatch) {
             guiOutput = guiMatch[1];
-            output = result.stdout.replace(/__GUI_OUTPUT__:.*/, '').trim();
+            output = result.stdout.replace(/__GUI_OUTPUT__:[\s\S]*/, '').trim();
           } else {
             output = result.stdout;
           }
@@ -3965,7 +4035,7 @@ except:
 
             formatted += `├─ ${index + 1}. ${date} (Status: ${statusCode})\n`;
             formatted += `│   ${archiveUrl}\n`;
-          });
+          }
 
           formatted += `╰─ Found ${data.length - 1} total snapshots`;
 
