@@ -4327,7 +4327,7 @@ except:
 
         // Try to determine if SSL is available at all
         try {
-          const response = await fetch(`https://$\{domain}`, {
+          const response = await fetch(`https://${domain}`, {
             method: 'HEAD',
             signal: AbortSignal.timeout(5000)
           });
