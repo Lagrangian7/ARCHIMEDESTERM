@@ -114,7 +114,7 @@ export default function AJVideoPopup({ isOpen, onClose }: AJVideoPopupProps) {
     >
       {/* Title bar */}
       <div
-        className="flex items-center justify-between px-3 py-2 cursor-move select-none text-[12px]"
+        className="flex items-center justify-between px-3 py-2 cursor-move select-none"
         style={{
           backgroundColor: 'var(--terminal-bg)',
           borderBottom: `1px solid var(--terminal-text)`,
@@ -122,8 +122,8 @@ export default function AJVideoPopup({ isOpen, onClose }: AJVideoPopupProps) {
         onMouseDown={handleMouseDown}
         data-testid="aj-video-titlebar"
       >
-        <span className="font-mono text-[12px]" style={{ color: 'var(--terminal-text)' }}>
-          AJN
+        <span className="font-mono text-sm" style={{ color: 'var(--terminal-text)' }}>
+          AJ VIDEO PLAYER
         </span>
         <div className="flex items-center gap-1">
           <Button

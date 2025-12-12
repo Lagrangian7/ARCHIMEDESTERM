@@ -1029,9 +1029,9 @@ function windowResized() {
       const agentMessages: Array<{ role: 'agent' | 'architect', content: string }> = [];
 
       // Agent phase: Plan the architecture
-      agentMessages.push({
-        role: 'agent',
-        content: 'Analyzing project requirements and planning architecture...'
+      agentMessages.push({ 
+        role: 'agent', 
+        content: 'Analyzing project requirements and planning architecture...' 
       });
 
       const agentPrompt = `You are the AGENT. Analyze this project spec and create a detailed file structure plan:
@@ -1072,24 +1072,24 @@ Plan a complete, production-ready project structure. Be thorough.`;
         throw new Error('Agent failed to create file plan');
       }
 
-      agentMessages.push({
-        role: 'agent',
-        content: `Planned ${filePlan.length} files: ${filePlan.map(f => f.name).join(', ')}`
+      agentMessages.push({ 
+        role: 'agent', 
+        content: `Planned ${filePlan.length} files: ${filePlan.map(f => f.name).join(', ')}` 
       });
 
       // Architect phase: Implement each file
       const files = [];
       for (const fileSpec of filePlan) {
-        agentMessages.push({
-          role: 'architect',
-          content: `Implementing ${fileSpec.name}...`
+        agentMessages.push({ 
+          role: 'architect', 
+          content: `Implementing ${fileSpec.name}...` 
         });
 
         const architectPrompt = `You are the ARCHITECT. Implement this file based on the project spec:
 
 Project: "${spec}"
 File: ${fileSpec.name}
-Purpose: ${filefileSpec.purpose}
+Purpose: ${fileSpec.purpose}
 Language: ${fileSpec.language}
 
 Write COMPLETE, PRODUCTION-READY code. Include:
@@ -1122,15 +1122,15 @@ ONLY output the code, no explanations.`;
           content: cleanCode
         });
 
-        agentMessages.push({
-          role: 'architect',
-          content: `✓ ${fileSpec.name} implemented (${cleanCode.split('\n').length} lines)`
+        agentMessages.push({ 
+          role: 'architect', 
+          content: `✓ ${fileSpec.name} implemented (${cleanCode.split('\n').length} lines)` 
         });
       }
 
-      agentMessages.push({
-        role: 'agent',
-        content: 'Project complete! All ${files.length} files generated and ready.'
+      agentMessages.push({ 
+        role: 'agent', 
+        content: 'Project complete! All ${files.length} files generated and ready.' 
       });
 
       res.json({
@@ -1141,49 +1141,8 @@ ONLY output the code, no explanations.`;
 
     } catch (error) {
       console.error('Project builder error:', error);
-      res.status(500).json({
-        error: error instanceof Error ? error.message : 'Project generation failed'
-      });
-    }
-  });
-
-  // Code Quality Analysis endpoint
-  app.post('/api/analyze/quality', async (req, res) => {
-    try {
-      const { code } = req.body;
-
-      if (!code || typeof code !== 'string') {
-        return res.status(400).json({ error: 'Code is required' });
-      }
-
-      // Use LLM to analyze code quality
-      const analysisPrompt = `Analyze this code for quality, best practices, and potential improvements. Be specific and constructive:
-
-\`\`\`
-${code}
-\`\`\`
-
-Provide a concise analysis covering:
-1. Code quality issues
-2. Best practices violations
-3. Suggested improvements
-4. Security concerns (if any)`;
-
-      const analysis = await llmService.generateResponse(
-        analysisPrompt,
-        'technical',
-        [],
-        undefined,
-        'english',
-        false
-      );
-
-      res.json({ analysis });
-    } catch (error) {
-      console.error('Code quality analysis error:', error);
-      res.status(500).json({
-        error: 'Code analysis failed',
-        message: error instanceof Error ? error.message : 'Unknown error'
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Project generation failed' 
       });
     }
   });
@@ -1198,10 +1157,10 @@ Provide a concise analysis covering:
       }
 
       const result = await llmService.collaborativeCodeReview(
-        code,
-        language,
-        projectName,
-        filePath,
+        code, 
+        language, 
+        projectName, 
+        filePath, 
         relatedFiles
       );
 
@@ -1227,88 +1186,39 @@ Provide a concise analysis covering:
         });
       }
 
-      // Check if code uses GUI libraries or animations
+      // Check if code uses GUI libraries
       const hasGuiLibraries = /import\s+(tkinter|matplotlib|pygame|turtle|PyQt|PySide)/i.test(code);
-      const hasAnimation = /FuncAnimation|ArtistAnimation|matplotlib\.animation/i.test(code);
 
-      // Wrap GUI code to capture output as HTML/image/animation
+      // Wrap GUI code to capture output as HTML/image
       const wrappedCode = hasGuiLibraries ? `
 import sys
 import io
 import base64
-import os
-import tempfile
 
-# Flag to prevent duplicate GUI output
-_gui_output_generated = False
+# Capture GUI output
+_gui_output = None
 
 ${code}
 
-# Matplotlib animation and static plot capture
+# For matplotlib, capture plot as base64 image
 try:
     import matplotlib.pyplot as plt
-    from matplotlib import animation
-
-    if plt.get_fignums() and not _gui_output_generated:
-        # Check if FuncAnimation exists in global scope
-        has_animation = False
-        anim_obj = None
-
-        # Search for FuncAnimation instances
-        for name in list(globals().keys()):
-            try:
-                obj = globals()[name]
-                if isinstance(obj, animation.FuncAnimation):
-                    has_animation = True
-                    anim_obj = obj
-                    break
-            except:
-                pass
-
-        if has_animation and anim_obj:
-            # Save animation as GIF
-            temp_gif = tempfile.NamedTemporaryFile(delete=False, suffix='.gif')
-            gif_path = temp_gif.name
-            temp_gif.close()
-
-            try:
-                # Save with pillow writer (widely available)
-                anim_obj.save(gif_path, writer='pillow', fps=30, dpi=80)
-
-                # Read and encode GIF
-                with open(gif_path, 'rb') as f:
-                    gif_base64 = base64.b64encode(f.read()).decode('utf-8')
-
-                print(f'__GUI_OUTPUT__:<div style="text-align:center;"><img src="data:image/gif;base64,{gif_base64}" style="max-width:100%; height:auto; border-radius:8px;" alt="Matplotlib Animation" /></div>')
-                _gui_output_generated = True
-            except Exception as e:
-                print(f'Animation save error: {e}', file=sys.stderr)
-            finally:
-                # Clean up temp file
-                try:
-                    os.remove(gif_path)
-                except:
-                    pass
-
-        # If no animation, capture static plot
-        if not _gui_output_generated:
-            buf = io.BytesIO()
-            plt.savefig(buf, format='png', bbox_inches='tight', dpi=100)
-            buf.seek(0)
-            img_base64 = base64.b64encode(buf.read()).decode('utf-8')
-            print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
-            _gui_output_generated = True
-
+    if plt.get_fignums():
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', bbox_inches='tight')
+        buf.seek(0)
+        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
         plt.close('all')
 except ImportError:
     pass
 except Exception as e:
-    print(f'Matplotlib capture error: {e}', file=sys.stderr)
+    print(f'GUI rendering error: {e}', file=sys.stderr)
 
 # For tkinter, we can't render in headless but we'll note it
 try:
     import tkinter as tk
-    if tk._default_root and not _gui_output_generated:
+    if tk._default_root:
         print('__GUI_OUTPUT__:<div style="padding:20px; background:#f0f0f0; border-radius:8px;"><strong>🖼️ Tkinter GUI Application</strong><br/>GUI window was created but cannot be displayed in headless mode.<br/>Run this code locally to see the interface.</div>')
 except:
     pass
@@ -1355,10 +1265,10 @@ except:
       // Extract GUI output if present
       let guiOutput = null;
       let textOutput = result.stdout;
-      const guiMatch = result.stdout.match(/__GUI_OUTPUT__:([\s\S]*)/);
+      const guiMatch = result.stdout.match(/__GUI_OUTPUT__:(.*)/);
       if (guiMatch) {
         guiOutput = guiMatch[1];
-        textOutput = result.stdout.replace(/__GUI_OUTPUT__:[\s\S]*/, '').trim();
+        textOutput = result.stdout.replace(/__GUI_OUTPUT__:.*/, '').trim();
       }
 
       if (result.code !== 0) {
@@ -1659,7 +1569,6 @@ import io
 import base64
 import os
 import time
-import tempfile
 
 # Set up virtual display for headless rendering
 try:
@@ -1700,7 +1609,7 @@ def _do_tkinter_capture():
 
             # Try using scrot for screenshot
             try:
-                screenshot_file = f'/tmp/tk_capture_${os.getpid()}.png'
+                screenshot_file = f'/tmp/tk_capture_{os.getpid()}.png'
                 subprocess.run(['scrot', '-o', screenshot_file], timeout=5, check=True)
                 img = Image.open(screenshot_file)
                 # Crop to window area
@@ -1875,52 +1784,32 @@ ${code}
 # ===== USER CODE END =====
 
 ${hasMatplotlib ? `
-# Matplotlib animation and static plot capture
+# Matplotlib capture (static plots and animations)
 try:
     import matplotlib.pyplot as plt
     from matplotlib import animation
-
+    
     if plt.get_fignums() and not _gui_output_generated:
-        # Check if FuncAnimation exists in global scope
+        # Check if animation exists
         has_animation = False
-        anim_obj = None
-
-        # Search for FuncAnimation instances
-        for name in list(globals().keys()):
-            try:
-                obj = globals()[name]
+        try:
+            # Look for FuncAnimation in globals
+            for name in dir():
+                obj = eval(name)
                 if isinstance(obj, animation.FuncAnimation):
                     has_animation = True
-                    anim_obj = obj
-                    break
-            except:
-                pass
-
-        if has_animation and anim_obj:
-            # Save animation as GIF
-            temp_gif = tempfile.NamedTemporaryFile(delete=False, suffix='.gif')
-            gif_path = temp_gif.name
-            temp_gif.close()
-
-            try:
-                # Save with pillow writer (widely available)
-                anim_obj.save(gif_path, writer='pillow', fps=30, dpi=80)
-
-                # Read and encode GIF
-                with open(gif_path, 'rb') as f:
-                    gif_base64 = base64.b64encode(f.read()).decode('utf-8')
-
-                print(f'__GUI_OUTPUT__:<div style="text-align:center;"><img src="data:image/gif;base64,{gif_base64}" style="max-width:100%; height:auto; border-radius:8px;" alt="Matplotlib Animation" /></div>')
-                _gui_output_generated = True
-            except Exception as e:
-                print(f'Animation save error: {e}', file=sys.stderr)
-            finally:
-                # Clean up temp file
-                try:
+                    # Save animation as GIF
+                    gif_path = f'/tmp/animation_{os.getpid()}.gif'
+                    obj.save(gif_path, writer='pillow', fps=30, dpi=80)
+                    with open(gif_path, 'rb') as f:
+                        gif_base64 = base64.b64encode(f.read()).decode('utf-8')
+                    print(f'__GUI_OUTPUT__:<img src="data:image/gif;base64,{gif_base64}" style="max-width:100%; height:auto;" />')
+                    _gui_output_generated = True
                     os.remove(gif_path)
-                except:
-                    pass
-
+                    break
+        except:
+            pass
+        
         # If no animation, capture static plot
         if not _gui_output_generated:
             buf = io.BytesIO()
@@ -1929,7 +1818,7 @@ try:
             img_base64 = base64.b64encode(buf.read()).decode('utf-8')
             print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
             _gui_output_generated = True
-
+        
         plt.close('all')
 except ImportError:
     pass
@@ -1961,7 +1850,7 @@ if _virtual_display_started:
           const guiMatch = result.stdout.match(/__GUI_OUTPUT__:([\s\S]*)/);
           if (guiMatch) {
             guiOutput = guiMatch[1];
-            output = result.stdout.replace(/__GUI_OUTPUT__:[\s\S]*/, '').trim();
+            output = result.stdout.replace(/__GUI_OUTPUT__:.*/, '').trim();
           } else {
             output = result.stdout;
           }
@@ -2145,6 +2034,18 @@ if _virtual_display_started:
     }
   });
 
+  // Create HTTP server first
+  const httpServer = createServer(app);
+
+  // Setup authentication BEFORE returning (must complete before Vite middleware)
+  // This ensures auth routes are registered before the Vite catch-all route
+  try {
+    await setupAuth(app);
+  } catch (error) {
+    console.error('Failed to setup authentication:', error);
+    console.warn('Server will continue running without authentication');
+  }
+
   // Auth routes
   app.get('/api/auth/user', async (req, res) => {
     try {
@@ -2177,9 +2078,9 @@ if _virtual_display_started:
   // Session keep-alive heartbeat endpoint
   // This endpoint triggers token refresh via isAuthenticated middleware
   app.get('/api/auth/heartbeat', isAuthenticated, async (req, res) => {
-    res.json({
+    res.json({ 
       status: 'ok',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString() 
     });
   });
 
@@ -2259,8 +2160,8 @@ if _virtual_display_started:
 
       const validModes = ["natural", "technical", "freestyle", "health"];
       if (!mode || !validModes.includes(mode)) {
-        return res.status(400).json({
-          error: "Invalid mode. Valid modes are: natural, technical, freestyle, health"
+        return res.status(400).json({ 
+          error: "Invalid mode. Valid modes are: natural, technical, freestyle, health" 
         });
       }
 
@@ -2327,7 +2228,7 @@ if _virtual_display_started:
       console.error("Chat error:", error);
       const errorMessage = error instanceof Error ? error.message : "Internal server error";
       console.error("Full error details:", error);
-      res.status(500).json({
+      res.status(500).json({ 
         error: "Internal server error",
         details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
       });
@@ -2763,7 +2664,7 @@ if _virtual_display_started:
         }))
       };
 
-      console.log(` exported ${documents.length} documents`);
+      console.log(`📤 Exported ${documents.length} documents`);
 
       // Set headers for file download
       res.setHeader('Content-Type', 'application/json');
@@ -2799,7 +2700,7 @@ if _virtual_display_started:
       // Validate request body with Zod
       const parseResult = importRequestSchema.safeParse(req.body);
       if (!parseResult.success) {
-        return res.status(400).json({
+        return res.status(400).json({ 
           error: "Invalid import data format",
           details: parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
         });
@@ -4023,7 +3924,7 @@ except:
 
             formatted += `├─ ${index + 1}. ${date} (Status: ${statusCode})\n`;
             formatted += `│   ${archiveUrl}\n`;
-          }
+          });
 
           formatted += `╰─ Found ${data.length - 1} total snapshots`;
 
@@ -4315,7 +4216,7 @@ except:
 
         // Try to determine if SSL is available at all
         try {
-          const response = await fetch(`https://${domain}`, {
+          const response = await fetch(`https://$\{domain}`, {
             method: 'HEAD',
             signal: AbortSignal.timeout(5000)
           });
@@ -4519,7 +4420,7 @@ except:
       let formatted = `╭─ Technology Stack Analysis for ${domain}\n`;
 
       try {
-        const url = `https://${domain}`;
+        const url = `https://$\{domain}`;
         const response = await fetch(url, {
           method: 'GET',
           signal: AbortSignal.timeout(10000),

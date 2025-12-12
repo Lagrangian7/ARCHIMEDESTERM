@@ -518,20 +518,15 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
               {/* Matplotlib Auto-Render (including animations) */}
               {isExecuting && (
                 <div className="mt-3 p-2 bg-terminal-highlight/10 rounded text-terminal-highlight text-xs">
-                  {matplotOutput && matplotOutput.includes('image/gif') 
-                    ? '🎬 Rendering matplotlib animation...' 
-                    : '🎨 Rendering matplotlib visualization...'}
+                  🎨 Rendering matplotlib visualization...
                 </div>
               )}
               {matplotOutput && (
                 <div className="mt-3 border-t border-terminal-highlight/20 pt-3">
-                  <div className="text-terminal-highlight text-xs mb-2 flex items-center gap-2">
-                    {matplotOutput.includes('image/gif') 
-                      ? '🎬 Auto-generated animation (GIF):' 
+                  <div className="text-terminal-highlight text-xs mb-2">
+                    {matplotOutput.includes('iframe') || matplotOutput.includes('image/gif') 
+                      ? '🎬 Auto-generated animation:' 
                       : '📊 Auto-generated visualization:'}
-                    {matplotOutput.includes('image/gif') && (
-                      <span className="text-terminal-text/70 text-[10px]">30 FPS</span>
-                    )}
                   </div>
                   <div 
                     dangerouslySetInnerHTML={{ __html: matplotOutput }} 

@@ -410,7 +410,7 @@ Remember: You are a supportive health educator promoting natural wellness while 
     // Define technology categories for full-stack detection
     const backendKeywords = ['flask', 'django', 'fastapi', 'express', 'node.js', 'koa', 'fastify', 'backend', 'server', 'api'];
     const frontendKeywords = ['react', 'vue', 'angular', 'svelte', 'frontend', 'client', 'ui'];
-
+    
     const hasBackendTerm = backendKeywords.some(kw => msg.includes(kw));
     const hasFrontendTerm = frontendKeywords.some(kw => msg.includes(kw));
 
@@ -422,7 +422,7 @@ Remember: You are a supportive health educator promoting natural wellness while 
       'server and client', 'client and server',
       'both frontend', 'both backend'
     ];
-
+    
     // Explicit full-stack phrases always trigger full-stack mode
     if (explicitFullStackPatterns.some(pattern => msg.includes(pattern))) {
       return 'fullstack';
@@ -437,7 +437,7 @@ Remember: You are a supportive health educator promoting natural wellness while 
       'fastapi + vue', 'fastapi and vue', 'fastapi with vue',
       'express + vue', 'express and vue', 'express with vue'
     ];
-
+    
     if (specificCombinations.some(pattern => msg.includes(pattern))) {
       return 'fullstack';
     }
@@ -446,7 +446,7 @@ Remember: You are a supportive health educator promoting natural wellness while 
     const hasPythonBackend = msg.includes('flask') || msg.includes('django') || msg.includes('fastapi');
     const hasNodeBackend = msg.includes('express') || msg.includes('koa') || msg.includes('fastify');
     const hasFrontendFramework = msg.includes('react') || msg.includes('vue') || msg.includes('angular') || msg.includes('svelte');
-
+    
     if ((hasPythonBackend || hasNodeBackend) && hasFrontendFramework) {
       return 'fullstack';
     }
@@ -518,7 +518,7 @@ Remember: You are a supportive health educator promoting natural wellness while 
     return 'python';
   }
 
-  private getFreestyleModeSystemPrompt(userMessage: string = '', language: string = 'english'): string {
+  private getFreestyleModeSystemPrompt(language: string = 'english', userMessage: string = ''): string {
     const programmingLang = this.detectLanguage(userMessage);
 
     switch (programmingLang) {
@@ -839,7 +839,7 @@ Generate complete, runnable ${config.name} code. Use \`\`\`${config.block} block
     userMessage: string = ''
   ): string {
     let basePrompt: string;
-
+    
     switch (mode) {
       case 'natural':
         basePrompt = this.getNaturalChatSystemPrompt();
@@ -990,7 +990,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
         // Unified fallback chain for all modes
         // For Natural mode after Gemini fails: Groq → Replit Mistral → OpenAI → Mistral AI → Hugging Face
         // For other modes after Groq fails: Replit Mistral → OpenAI → Mistral AI → Hugging Face
-
+        
         let fallbackSuccess = false;
 
         // First fallback: Groq (only for Natural mode when Gemini failed)
@@ -1239,7 +1239,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
     // Build conversation history for Gemini
     const history: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
-
+    
     for (const msg of recentHistory) {
       if (msg.role === 'user') {
         history.push({ role: 'user', parts: [{ text: msg.content }] });
@@ -1250,7 +1250,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
     // Start chat with history
     const chat = model.startChat({ history });
-
+    
     // Send the current message
     const result = await chat.sendMessage(userMessage);
     const response = result.response;
@@ -1579,7 +1579,7 @@ This is a fallback response. The actual AI analysis could not be completed.`;
           .slice(0, 3) // Limit to 3 most relevant files
           .map(f => `File: ${f.name}\n${f.content.slice(0, 500)}...`) // First 500 chars
           .join('\n\n');
-
+        
         if (otherFiles) {
           contextInfo = `\n\nProject Context (other files):\n${otherFiles}`;
         }
@@ -1660,15 +1660,15 @@ ${code}`;
   }> {
     // Build codebase context
     let codebaseContext = '';
-
+    
     if (projectName) {
       codebaseContext += `\n**Project**: ${projectName}`;
     }
-
+    
     if (filePath) {
       codebaseContext += `\n**File Path**: ${filePath}`;
     }
-
+    
     if (relatedFiles && relatedFiles.length > 0) {
       codebaseContext += `\n\n**Related Files in Codebase**:\n`;
       relatedFiles.forEach((file, idx) => {
@@ -1730,7 +1730,7 @@ ${code}
 
       let summary = `AI Code Review completed. Rating: ${rating}/10. `;
       const feedbackLower = feedback.toLowerCase();
-
+      
       const issues: string[] = [];
       if (feedbackLower.includes('error handling') || feedbackLower.includes('exception')) {
         issues.push('error handling');
@@ -1741,7 +1741,7 @@ ${code}
       if (feedbackLower.includes('security') || feedbackLower.includes('validation')) {
         issues.push('security');
       }
-
+      
       if (issues.length > 0) {
         summary += `Key areas: ${issues.join(', ')}.`;
       } else if (rating >= 8) {
