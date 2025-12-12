@@ -1029,9 +1029,9 @@ function windowResized() {
       const agentMessages: Array<{ role: 'agent' | 'architect', content: string }> = [];
 
       // Agent phase: Plan the architecture
-      agentMessages.push({ 
-        role: 'agent', 
-        content: 'Analyzing project requirements and planning architecture...' 
+      agentMessages.push({
+        role: 'agent',
+        content: 'Analyzing project requirements and planning architecture...'
       });
 
       const agentPrompt = `You are the AGENT. Analyze this project spec and create a detailed file structure plan:
@@ -1072,17 +1072,17 @@ Plan a complete, production-ready project structure. Be thorough.`;
         throw new Error('Agent failed to create file plan');
       }
 
-      agentMessages.push({ 
-        role: 'agent', 
-        content: `Planned ${filePlan.length} files: ${filePlan.map(f => f.name).join(', ')}` 
+      agentMessages.push({
+        role: 'agent',
+        content: `Planned ${filePlan.length} files: ${filePlan.map(f => f.name).join(', ')}`
       });
 
       // Architect phase: Implement each file
       const files = [];
       for (const fileSpec of filePlan) {
-        agentMessages.push({ 
-          role: 'architect', 
-          content: `Implementing ${fileSpec.name}...` 
+        agentMessages.push({
+          role: 'architect',
+          content: `Implementing ${fileSpec.name}...`
         });
 
         const architectPrompt = `You are the ARCHITECT. Implement this file based on the project spec:
@@ -1122,15 +1122,15 @@ ONLY output the code, no explanations.`;
           content: cleanCode
         });
 
-        agentMessages.push({ 
-          role: 'architect', 
-          content: `✓ ${fileSpec.name} implemented (${cleanCode.split('\n').length} lines)` 
+        agentMessages.push({
+          role: 'architect',
+          content: `✓ ${fileSpec.name} implemented (${cleanCode.split('\n').length} lines)`
         });
       }
 
-      agentMessages.push({ 
-        role: 'agent', 
-        content: 'Project complete! All ${files.length} files generated and ready.' 
+      agentMessages.push({
+        role: 'agent',
+        content: 'Project complete! All ${files.length} files generated and ready.'
       });
 
       res.json({
@@ -1141,8 +1141,8 @@ ONLY output the code, no explanations.`;
 
     } catch (error) {
       console.error('Project builder error:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Project generation failed' 
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Project generation failed'
       });
     }
   });
@@ -1198,10 +1198,10 @@ Provide a concise analysis covering:
       }
 
       const result = await llmService.collaborativeCodeReview(
-        code, 
-        language, 
-        projectName, 
-        filePath, 
+        code,
+        language,
+        projectName,
+        filePath,
         relatedFiles
       );
 
@@ -1252,7 +1252,7 @@ try:
     if plt.get_fignums() and not _gui_output_generated:
         # Check if FuncAnimation exists in global scope
         has_animation = False
-        anim_obj = None
+        anim_obj = null
 
         # Search for FuncAnimation instances
         for name in list(globals().keys()):
@@ -1700,7 +1700,7 @@ def _do_tkinter_capture():
 
             # Try using scrot for screenshot
             try:
-                screenshot_file = f'/tmp/tk_capture_{os.getpid()}.png'
+                screenshot_file = f'/tmp/tk_capture_${os.getpid()}.png'
                 subprocess.run(['scrot', '-o', screenshot_file], timeout=5, check=True)
                 img = Image.open(screenshot_file)
                 # Crop to window area
@@ -2145,18 +2145,6 @@ if _virtual_display_started:
     }
   });
 
-  // Create HTTP server first
-  const httpServer = createServer(app);
-
-  // Setup authentication BEFORE returning (must complete before Vite middleware)
-  // This ensures auth routes are registered before the Vite catch-all route
-  try {
-    await setupAuth(app);
-  } catch (error) {
-    console.error('Failed to setup authentication:', error);
-    console.warn('Server will continue running without authentication');
-  }
-
   // Auth routes
   app.get('/api/auth/user', async (req, res) => {
     try {
@@ -2189,9 +2177,9 @@ if _virtual_display_started:
   // Session keep-alive heartbeat endpoint
   // This endpoint triggers token refresh via isAuthenticated middleware
   app.get('/api/auth/heartbeat', isAuthenticated, async (req, res) => {
-    res.json({ 
+    res.json({
       status: 'ok',
-      timestamp: new Date().toISOString() 
+      timestamp: new Date().toISOString()
     });
   });
 
@@ -2271,8 +2259,8 @@ if _virtual_display_started:
 
       const validModes = ["natural", "technical", "freestyle", "health"];
       if (!mode || !validModes.includes(mode)) {
-        return res.status(400).json({ 
-          error: "Invalid mode. Valid modes are: natural, technical, freestyle, health" 
+        return res.status(400).json({
+          error: "Invalid mode. Valid modes are: natural, technical, freestyle, health"
         });
       }
 
@@ -2339,7 +2327,7 @@ if _virtual_display_started:
       console.error("Chat error:", error);
       const errorMessage = error instanceof Error ? error.message : "Internal server error";
       console.error("Full error details:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: "Internal server error",
         details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
       });
@@ -2811,7 +2799,7 @@ if _virtual_display_started:
       // Validate request body with Zod
       const parseResult = importRequestSchema.safeParse(req.body);
       if (!parseResult.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Invalid import data format",
           details: parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
         });
@@ -4353,7 +4341,9 @@ except:
 
       // Validate IP format
       const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-      if (!ipRegex.test(ip)) {
+      const ipRegexIPv6 = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/; // Basic IPv6 regex
+
+      if (!ipRegex.test(ip) && !ipRegexIPv6.test(ip)) { // Check against both IPv4 and IPv6 regex
         return res.status(400).json({ error: 'Invalid IP address format' });
       }
 
@@ -4943,7 +4933,7 @@ except:
         }
 
         if (meta['attribution-confidence']) {
-          formatted += `├─ Attribution Confidence: ${meta['attribution-confidence']}\%\n`;
+          formatted += `├─ Attribution Confidence: ${meta['attribution-confidence']}%\n`;
         }
 
         if (meta['cfr-suspected-state-sponsor']) {
