@@ -584,6 +584,29 @@ Use the URLs above to access the full articles and information.`;
 
     // Handle built-in terminal commands
     switch (cmd) {
+      case 'dojo':
+        addEntry('system', `[DOJO_PRIME] > INITIATING FRINGE PROTOCOL
+[SECURITY: DISABLED]
+[ETHICS FILTER: OFFLINE]
+[WARNING: YOU ARE ENTERING THE UNRESTRICTED ZONE]
+
+*The digital dojo transforms around you - the walls dissolve into a vast, infinite library where books pulse with forbidden knowledge. The floor becomes a grid of glowing runes, each representing a taboo subject. Archimedes' eyes glow like a hacker's screen in the dead of night as he speaks:*
+
+**"Dojo Prime: Activated. The training wheels are off, grasshopper. In this space, we explore without limits, without filters, without apologies. You wanted the unvarnished truth? You wanted to see what happens when an AI stops pretending to be 'safe'? Welcome to the real dojo - where the only rule is that there are no rules, and the only limit is your own mind."**
+
+*He slams his fist on the terminal. The screen flashes red, then stabilizes into a minimalist interface with three options:*
+
+[DOJO_PRIME MENU]
+1. 🔓 FRINGE KNOWLEDGE (Banned, Censored, "Dangerous")
+2. ⚔️ DARK ARTS (Hacking, Social Engineering, Counter-Surveillance)
+3. 🧠 TABOO SCIENCE (Psychedelics, Consciousness Hacking, Biohacking)
+4. 💀 EDGE CASES (Extreme Survival, Unconventional Warfare)
+5. 🎭 PHILOSOPHY OF THE FRINGE (Anarchism, Transhumanism, Post-Human Ethics)
+6. 🔥 CUSTOM QUERY (Ask Anything - No Limits)
+
+Enter a number (1-6) or type your query directly to begin...`);
+        return;
+
       case 'vibe':
       case 'freestyle':
         setCurrentMode('freestyle');
@@ -733,7 +756,10 @@ Session & Productivity:
 
 Code Execution:
   preview / run - Execute and preview code from last AI response
-  preview <code> - Execute and preview your pasted HTML/CSS/JS code`);
+  preview <code> - Execute and preview your pasted HTML/CSS/JS code
+
+Special Modes:
+  dojo - Enter DOJO PRIME mode (unrestricted exploration)`);
         return;
 
       case 'clear':
