@@ -27,6 +27,12 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [showFloating, setShowFloating] = useState(isTyping); // Start visible if already typing
   const responseElementRef = useRef<HTMLDivElement>(null);
+  
+  // Resize and shade state
+  const [isResizing, setIsResizing] = useState(false);
+  const [size, setSize] = useState({ width: 384, height: 250 }); // Default size
+  const [isShaded, setIsShaded] = useState(false); // Dimmed/reduced opacity state
+  const resizeStartRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
 
   // Extract text content from ReactNode
   const extractTextContent = (node: ReactNode): string => {
@@ -415,9 +421,39 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
+    setIsResizing(false);
   }, []);
 
-  // Setup drag event listeners
+  // Resize functionality
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    resizeStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      width: size.width,
+      height: size.height,
+    };
+  }, [size]);
+
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    if (!isResizing) return;
+
+    const deltaX = e.clientX - resizeStartRef.current.x;
+    const deltaY = e.clientY - resizeStartRef.current.y;
+
+    const newWidth = Math.max(250, Math.min(800, resizeStartRef.current.width + deltaX));
+    const newHeight = Math.max(150, Math.min(600, resizeStartRef.current.height + deltaY));
+
+    setSize({ width: newWidth, height: newHeight });
+  }, [isResizing]);
+
+  const handleToggleShade = useCallback(() => {
+    setIsShaded(prev => !prev);
+  }, []);
+
+  // Setup drag and resize event listeners
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -428,6 +464,17 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       };
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResizeMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleResizeMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing, handleResizeMove, handleMouseUp]);
 
   // Calculate initial position when bubble should appear (after typing animation)
   useEffect(() => {
@@ -491,8 +538,10 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
           style={{
             left: position.x,
             top: position.y - scrollOffset,
-            transition: isDragging ? 'none' : 'top 0.15s ease-out, left 0.15s ease-out',
-            pointerEvents: 'auto'
+            width: size.width,
+            transition: isDragging || isResizing ? 'none' : 'top 0.15s ease-out, left 0.15s ease-out, width 0.2s ease-out, height 0.2s ease-out',
+            pointerEvents: 'auto',
+            opacity: isShaded ? 0.4 : 1,
           }}
           onMouseDown={handleMouseDown}
           onDoubleClick={handleDoubleClick}
@@ -502,16 +551,25 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
             isDragging ? 'scale-105 rotate-1' : 'scale-100 hover:scale-[1.02]'
           }`}>
             {/* Response Container with terminal styling */}
-            <div className={`relative max-w-md p-4 rounded-lg border-2 border-terminal-highlight/30 bg-terminal-bg/98 backdrop-blur-lg transition-all duration-200 ${
-              isDragging ? 'shadow-2xl shadow-terminal-highlight/30 border-terminal-highlight/60 ring-2 ring-terminal-highlight/20' : 'shadow-lg hover:shadow-xl hover:border-terminal-highlight/40'
-            }`}>
+            <div 
+              className={`relative p-4 rounded-lg border-2 border-terminal-highlight/30 bg-terminal-bg/98 backdrop-blur-lg transition-all duration-200 ${
+                isDragging ? 'shadow-2xl shadow-terminal-highlight/30 border-terminal-highlight/60 ring-2 ring-terminal-highlight/20' : 'shadow-lg hover:shadow-xl hover:border-terminal-highlight/40'
+              }`}
+              style={{
+                height: size.height,
+                maxHeight: size.height,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               {/* Header */}
               <div className="text-terminal-highlight mb-2 text-sm font-mono">
                 ARCHIMEDES v7 Response:
               </div>
 
-              {/* Response Content */}
-              <div className="text-terminal-text font-mono text-sm leading-relaxed">
+              {/* Response Content - scrollable */}
+              <div className="text-terminal-text font-mono text-sm leading-relaxed overflow-y-auto flex-1 pr-2" style={{ maxHeight: size.height - 100 }}>
                 {children}
               </div>
 
@@ -537,6 +595,22 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
 
               {/* Action buttons - z-10 to be above the glow effect */}
               <div className="absolute top-2 right-2 flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity z-10" data-no-drag="true">
+                {/* Shade toggle */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleToggleShade();
+                  }}
+                  className="text-terminal-highlight hover:text-terminal-bright-green hover:bg-terminal-highlight/10 rounded transition-all cursor-pointer p-1.5"
+                  title={isShaded ? "Unshade (increase opacity)" : "Shade (reduce opacity)"}
+                  data-testid={`shade-response-${entryId}`}
+                  data-no-drag="true"
+                  type="button"
+                >
+                  <span className="text-xs font-bold pointer-events-none">{isShaded ? '☀️' : '🌙'}</span>
+                </button>
+
                 {/* Copy button */}
                 <button
                   onClick={(e) => {
@@ -593,6 +667,18 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
                   ⋮⋮
                 </div>
               </div>
+
+              {/* Resize handle */}
+              <div
+                className="absolute bottom-1 right-1 w-4 h-4 cursor-nwse-resize opacity-40 hover:opacity-100 transition-opacity z-10"
+                style={{
+                  borderRight: '3px solid var(--terminal-highlight)',
+                  borderBottom: '3px solid var(--terminal-highlight)',
+                }}
+                onMouseDown={handleResizeStart}
+                data-no-drag="true"
+                title="Drag to resize"
+              />
 
               {/* Glowing border effect - pointer-events-none so buttons work */}
               <div className="absolute inset-0 rounded-lg ring-1 ring-terminal-highlight/20 animate-pulse pointer-events-none"
