@@ -4531,7 +4531,7 @@ except:
       let formatted = `╭─ Technology Stack Analysis for ${domain}\n`;
 
       try {
-        const url = `https://$\{domain}`;
+        const url = `https://${domain}`;
         const response = await fetch(url, {
           method: 'GET',
           signal: AbortSignal.timeout(10000),
