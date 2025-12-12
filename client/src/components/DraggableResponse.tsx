@@ -580,7 +580,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
               </div>
 
               {/* Response Content - scrollable */}
-              <div className="text-terminal-text font-mono text-sm leading-relaxed overflow-y-auto flex-1 pr-2" style={{ maxHeight: size.height - 100 }}>
+              <div className={`text-terminal-text font-mono text-sm leading-relaxed overflow-y-auto flex-1 pr-2 ${showWavyBorder ? 'wavy-text-effect' : ''}`} style={{ maxHeight: size.height - 100 }}>
                 {children}
               </div>
 
