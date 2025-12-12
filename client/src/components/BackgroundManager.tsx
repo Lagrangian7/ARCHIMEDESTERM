@@ -154,6 +154,8 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
         setWallpapers(dbWallpapers);
       } catch (error) {
         console.error('Failed to load wallpapers from DB:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('Wallpaper loading error details:', errorMessage);
         // Fallback to localStorage if DB fails (though we're moving away from it)
         const stored = localStorage.getItem('terminal-wallpapers');
         let userWallpapers: WallpaperSlot[] = [];
