@@ -970,16 +970,16 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       let aiResponse: string = '';
 
       try {
-        // For Natural mode: Use Gemini as PRIMARY, Groq as fallback
-        // For other modes: Use Groq as primary
-        if (safeMode === 'natural' && gemini) {
-          console.log(`[LLM] Using Gemini (Primary) for NATURAL mode`);
-          aiResponse = await this.generateGeminiDirectResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-        } else if (process.env.GROQ_API_KEY) {
+        // Use Groq as PRIMARY for all modes (free, fast, no quotas)
+        // Fallback to Gemini if Groq fails
+        if (process.env.GROQ_API_KEY) {
           console.log(`[LLM] Using Groq (Primary, Free) for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+        } else if (safeMode === 'natural' && gemini) {
+          console.log(`[LLM] Using Gemini (Fallback) for NATURAL mode`);
+          aiResponse = await this.generateGeminiDirectResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         } else {
-          // Fallback to Replit's managed Mistral if Groq is not available
+          // Fallback to Replit's managed Mistral if neither is available
           console.log(`[LLM] Using Replit Managed Mistral (Fallback) for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         }
