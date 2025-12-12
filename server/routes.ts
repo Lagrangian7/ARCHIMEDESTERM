@@ -1252,7 +1252,7 @@ try:
     if plt.get_fignums() and not _gui_output_generated:
         # Check if FuncAnimation exists in global scope
         has_animation = False
-        anim_obj = null
+        anim_obj = None
 
         # Search for FuncAnimation instances
         for name in list(globals().keys()):
@@ -2763,7 +2763,7 @@ if _virtual_display_started:
         }))
       };
 
-      console.log(`📤 Exported ${documents.length} documents`);
+      console.log(` exported ${documents.length} documents`);
 
       // Set headers for file download
       res.setHeader('Content-Type', 'application/json');
@@ -4341,9 +4341,7 @@ except:
 
       // Validate IP format
       const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-      const ipRegexIPv6 = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/; // Basic IPv6 regex
-
-      if (!ipRegex.test(ip) && !ipRegexIPv6.test(ip)) { // Check against both IPv4 and IPv6 regex
+      if (!ipRegex.test(ip)) {
         return res.status(400).json({ error: 'Invalid IP address format' });
       }
 
@@ -4933,7 +4931,7 @@ except:
         }
 
         if (meta['attribution-confidence']) {
-          formatted += `├─ Attribution Confidence: ${meta['attribution-confidence']}%\n`;
+          formatted += `├─ Attribution Confidence: ${meta['attribution-confidence']}\%\n`;
         }
 
         if (meta['cfr-suspected-state-sponsor']) {
