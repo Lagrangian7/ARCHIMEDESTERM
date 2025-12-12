@@ -970,10 +970,10 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       let aiResponse: string = '';
 
       try {
-        // Use Groq as PRIMARY for all modes (free, fast, no quotas)
+        // Use Groq (Llama 3.1) as PRIMARY for all modes (free, fast, no quotas)
         // Fallback to Gemini if Groq fails
         if (process.env.GROQ_API_KEY) {
-          console.log(`[LLM] Using Groq (Primary, Free) for ${safeMode.toUpperCase()} mode`);
+          console.log(`[LLM] ✓ Using Groq Llama 3.1 (Primary) for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         } else if (safeMode === 'natural' && gemini) {
           console.log(`[LLM] Using Gemini (Fallback) for NATURAL mode`);
@@ -1552,8 +1552,12 @@ This is a fallback response. The actual AI analysis could not be completed.`;
   ): Promise<string> {
     try {
       if (!mistral) {
+        console.log('[Code Completion] Mistral API not configured - using fallback');
         return ''; // No Mistral API key configured, return empty completion
       }
+
+      console.log(`[Code Completion] Using Codestral for ${language} code completion`);
+
       // Language-specific style guidelines
       const styleGuides: Record<string, string> = {
         python: 'follow PEP 8 style guidelines',
@@ -1585,7 +1589,7 @@ This is a fallback response. The actual AI analysis could not be completed.`;
         }
       }
 
-      const systemPrompt = `You are an expert ${language} code completion assistant with full project awareness. Your task is to provide concise, accurate code completions.
+      const systemPrompt = `You are Codestral, an expert ${language} code completion assistant with full project awareness. Your task is to provide concise, accurate code completions.
 
 CRITICAL RULES:
 1. Only provide the completion text - NO explanations, NO markdown, NO code blocks
@@ -1602,19 +1606,20 @@ Current file code:
 ${code}`;
 
       const chatResponse = await mistral.chat.complete({
-        model: 'codestral-latest', // Mistral's specialized code model
+        model: 'codestral-latest', // Mistral's specialized Codestral model for code
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        maxTokens: 600, // Slightly increased for context-aware completions
-        temperature: 0.2, // Low temperature for more predictable completions
+        maxTokens: 800, // Increased for better completions
+        temperature: 0.15, // Very low for deterministic code
         topP: 0.95,
       });
 
       const completion = chatResponse.choices?.[0]?.message?.content;
 
       if (!completion) {
+        console.log('[Code Completion] No completion received from Codestral');
         return '';
       }
 
@@ -1634,9 +1639,10 @@ ${code}`;
       // Trim excessive whitespace
       cleanedCompletion = cleanedCompletion.trim();
 
+      console.log(`[Code Completion] Codestral generated ${cleanedCompletion.length} characters`);
       return cleanedCompletion;
     } catch (error) {
-      console.error('Code completion error:', error);
+      console.error('[Code Completion] Codestral error:', error);
       return ''; // Return empty string on error - graceful degradation
     }
   }
