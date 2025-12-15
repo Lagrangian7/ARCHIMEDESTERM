@@ -57,6 +57,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Git log endpoint for Code Playground git panel
+  app.get('/api/git/log', async (req, res) => {
+    try {
+      // Use spawn with array args for security (no shell injection)
+      const { execFile } = await import('child_process');
+      const execFilePromise = promisify(execFile);
+      
+      const { stdout } = await execFilePromise('git', [
+        'log',
+        '--oneline',
+        '--format=%H|%s|%an|%ar',
+        '-n', '20'
+      ], { timeout: 5000 });
+      
+      const commits = stdout.trim().split('\n')
+        .filter(line => line.includes('|'))
+        .map(line => {
+          const parts = line.split('|');
+          return { 
+            hash: parts[0] || '', 
+            message: parts[1] || '', 
+            author: parts[2] || '', 
+            date: parts[3] || '' 
+          };
+        });
+      
+      res.json({ commits });
+    } catch (error: any) {
+      // Git not available or not a repo - return empty gracefully
+      res.json({ commits: [] });
+    }
+  });
+
   // Enable gzip compression
   app.use(compression());
 

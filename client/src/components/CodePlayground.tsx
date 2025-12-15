@@ -1,17 +1,338 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   X, Download, Play, FileCode, Copy, Check, Plus, Trash2, 
   FileText, Terminal as TerminalIcon, Info, ChevronDown, ChevronUp, Table2, Bot, 
-  Maximize, Minimize 
+  Maximize, Minimize, Eye, GitBranch, FolderOpen, RefreshCw
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import playIcon from '../../../attached_assets/play icon.png';
+
+// Project Templates
+const PROJECT_TEMPLATES: Record<string, { name: string; icon: string; description: string; files: { name: string; language: string; content: string }[] }> = {
+  'flask-api': {
+    name: 'Flask API',
+    icon: '🌶️',
+    description: 'Python Flask REST API starter',
+    files: [
+      { name: 'app.py', language: 'python', content: `from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+# Sample data store
+items = []
+
+@app.route('/api/items', methods=['GET'])
+def get_items():
+    return jsonify(items)
+
+@app.route('/api/items', methods=['POST'])
+def add_item():
+    data = request.get_json()
+    items.append(data)
+    return jsonify(data), 201
+
+@app.route('/api/items/<int:item_id>', methods=['DELETE'])
+def delete_item(item_id):
+    if 0 <= item_id < len(items):
+        deleted = items.pop(item_id)
+        return jsonify(deleted)
+    return jsonify({'error': 'Not found'}), 404
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
+` },
+      { name: 'requirements.txt', language: 'text', content: `flask>=2.0.0
+python-dotenv>=0.19.0
+` }
+    ]
+  },
+  'react-app': {
+    name: 'React App',
+    icon: '⚛️',
+    description: 'React component with hooks',
+    files: [
+      { name: 'App.tsx', language: 'typescript', content: `import { useState, useEffect } from 'react';
+
+interface Item {
+  id: number;
+  name: string;
+  completed: boolean;
+}
+
+export default function App() {
+  const [items, setItems] = useState<Item[]>([]);
+  const [newItem, setNewItem] = useState('');
+
+  const addItem = () => {
+    if (!newItem.trim()) return;
+    setItems([...items, { id: Date.now(), name: newItem, completed: false }]);
+    setNewItem('');
+  };
+
+  const toggleItem = (id: number) => {
+    setItems(items.map(item => 
+      item.id === id ? { ...item, completed: !item.completed } : item
+    ));
+  };
+
+  return (
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <h1>Todo List</h1>
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <input 
+          value={newItem}
+          onChange={(e) => setNewItem(e.target.value)}
+          placeholder="Add new item..."
+          style={{ padding: '8px', flex: 1 }}
+        />
+        <button onClick={addItem}>Add</button>
+      </div>
+      <ul style={{ listStyle: 'none', padding: 0 }}>
+        {items.map(item => (
+          <li 
+            key={item.id}
+            onClick={() => toggleItem(item.id)}
+            style={{ 
+              padding: '10px', 
+              cursor: 'pointer',
+              textDecoration: item.completed ? 'line-through' : 'none',
+              opacity: item.completed ? 0.6 : 1
+            }}
+          >
+            {item.name}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+` }
+    ]
+  },
+  'express-api': {
+    name: 'Express API',
+    icon: '🚀',
+    description: 'Node.js Express REST API',
+    files: [
+      { name: 'server.js', language: 'javascript', content: `const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+// In-memory store
+let items = [];
+let nextId = 1;
+
+// Get all items
+app.get('/api/items', (req, res) => {
+  res.json(items);
+});
+
+// Create item
+app.post('/api/items', (req, res) => {
+  const item = { id: nextId++, ...req.body };
+  items.push(item);
+  res.status(201).json(item);
+});
+
+// Update item
+app.put('/api/items/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = items.findIndex(i => i.id === id);
+  if (index === -1) return res.status(404).json({ error: 'Not found' });
+  items[index] = { ...items[index], ...req.body };
+  res.json(items[index]);
+});
+
+// Delete item
+app.delete('/api/items/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  items = items.filter(i => i.id !== id);
+  res.status(204).send();
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(\`Server running on port \${PORT}\`));
+` }
+    ]
+  },
+  'html-page': {
+    name: 'HTML Page',
+    icon: '🌐',
+    description: 'Responsive HTML/CSS/JS page',
+    files: [
+      { name: 'index.html', language: 'html', content: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Web Page</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: system-ui, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      max-width: 500px;
+      width: 90%;
+    }
+    h1 { color: #333; margin-bottom: 1rem; }
+    p { color: #666; line-height: 1.6; }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+    button:hover { background: #5a6fd6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome!</h1>
+    <p>This is a responsive HTML page template with modern CSS styling.</p>
+    <button onclick="showAlert()">Click Me</button>
+  </div>
+  <script>
+    function showAlert() {
+      alert('Hello from JavaScript!');
+    }
+  </script>
+</body>
+</html>
+` }
+    ]
+  },
+  'python-script': {
+    name: 'Python Script',
+    icon: '🐍',
+    description: 'Python utility script',
+    files: [
+      { name: 'main.py', language: 'python', content: `#!/usr/bin/env python3
+"""
+A simple Python script template with common patterns.
+"""
+
+import json
+import os
+from datetime import datetime
+from typing import List, Dict, Any
+
+def load_config(filepath: str = 'config.json') -> Dict[str, Any]:
+    """Load configuration from a JSON file."""
+    if os.path.exists(filepath):
+        with open(filepath, 'r') as f:
+            return json.load(f)
+    return {}
+
+def process_data(items: List[str]) -> List[str]:
+    """Process a list of items and return results."""
+    return [item.strip().upper() for item in items if item.strip()]
+
+def main():
+    """Main entry point."""
+    print(f"Script started at {datetime.now().isoformat()}")
+    
+    # Example usage
+    sample_data = ["hello", "  world  ", "", "python"]
+    result = process_data(sample_data)
+    
+    print(f"Processed {len(result)} items:")
+    for item in result:
+        print(f"  - {item}")
+    
+    print("\\nScript completed successfully!")
+
+if __name__ == '__main__':
+    main()
+` }
+    ]
+  },
+  'vue-component': {
+    name: 'Vue Component',
+    icon: '💚',
+    description: 'Vue 3 component with Composition API',
+    files: [
+      { name: 'App.vue', language: 'html', content: `<template>
+  <div class="app">
+    <h1>{{ title }}</h1>
+    <div class="controls">
+      <input v-model="newTodo" @keyup.enter="addTodo" placeholder="Add todo..." />
+      <button @click="addTodo">Add</button>
+    </div>
+    <ul class="todo-list">
+      <li v-for="todo in todos" :key="todo.id" 
+          :class="{ completed: todo.done }"
+          @click="toggleTodo(todo.id)">
+        {{ todo.text }}
+      </li>
+    </ul>
+    <p class="stats">{{ completedCount }} / {{ todos.length }} completed</p>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+
+const title = ref('Vue Todo App')
+const newTodo = ref('')
+const todos = ref([
+  { id: 1, text: 'Learn Vue 3', done: true },
+  { id: 2, text: 'Build something awesome', done: false }
+])
+
+const completedCount = computed(() => 
+  todos.value.filter(t => t.done).length
+)
+
+function addTodo() {
+  if (!newTodo.value.trim()) return
+  todos.value.push({
+    id: Date.now(),
+    text: newTodo.value,
+    done: false
+  })
+  newTodo.value = ''
+}
+
+function toggleTodo(id) {
+  const todo = todos.value.find(t => t.id === id)
+  if (todo) todo.done = !todo.done
+}
+</script>
+
+<style scoped>
+.app { padding: 20px; font-family: sans-serif; }
+.controls { display: flex; gap: 10px; margin: 20px 0; }
+input { flex: 1; padding: 8px; }
+.todo-list { list-style: none; padding: 0; }
+.todo-list li { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+.todo-list li.completed { text-decoration: line-through; opacity: 0.6; }
+.stats { color: #666; margin-top: 20px; }
+</style>
+` }
+    ]
+  }
+};
 
 type MonacoAIMode = 'natural' | 'technical' | 'freestyle' | 'health';
 
@@ -375,10 +696,76 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   });
 
   const [showOutput, setShowOutput] = useState(true);
+  const [showLivePreview, setShowLivePreview] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showGitPanel, setShowGitPanel] = useState(false);
+  const [gitCommits, setGitCommits] = useState<Array<{ hash: string; message: string; date: string; author: string }>>([]);
+  const [gitLoading, setGitLoading] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
   }, [monacoAIMode]);
+
+  // Live preview content - combines HTML, CSS, JS files and auto-updates on changes
+  const livePreviewContent = useMemo(() => {
+    const htmlFile = files.find(f => f.language === 'html');
+    const cssFile = files.find(f => f.language === 'css');
+    const jsFile = files.find(f => f.language === 'javascript');
+    
+    if (htmlFile) {
+      let content = htmlFile.content;
+      // Inject CSS if separate file exists
+      if (cssFile && !content.includes(cssFile.content)) {
+        content = content.replace('</head>', `<style>${cssFile.content}</style></head>`);
+      }
+      // Inject JS if separate file exists  
+      if (jsFile && !content.includes(jsFile.content)) {
+        content = content.replace('</body>', `<script>${jsFile.content}</script></body>`);
+      }
+      return content;
+    }
+    return '';
+  }, [files]);
+  
+  // Generate unique key for iframe to force refresh on content changes
+  const livePreviewKey = useMemo(() => {
+    return `preview-${Date.now()}-${livePreviewContent.length}`;
+  }, [livePreviewContent]);
+
+  // Load template
+  const loadTemplate = (templateId: string) => {
+    const template = PROJECT_TEMPLATES[templateId];
+    if (!template) return;
+    
+    const newFiles: CodeFile[] = template.files.map((f, i) => ({
+      id: `template-${Date.now()}-${i}`,
+      name: f.name,
+      language: f.language,
+      content: f.content
+    }));
+    
+    setFiles(newFiles);
+    if (newFiles.length > 0) {
+      setActiveFileId(newFiles[0].id);
+    }
+    setShowTemplates(false);
+    toast({ title: `Loaded ${template.name} template`, description: `${newFiles.length} file(s) created` });
+  };
+
+  // Fetch git status
+  const fetchGitInfo = async () => {
+    setGitLoading(true);
+    try {
+      const response = await fetch('/api/git/log');
+      if (response.ok) {
+        const data = await response.json();
+        setGitCommits(data.commits || []);
+      }
+    } catch (e) {
+      console.error('Failed to fetch git info:', e);
+    }
+    setGitLoading(false);
+  };
 
   // Initialize with regular size positioned at top-right
   useEffect(() => {
@@ -783,6 +1170,50 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
               </SelectContent>
             </Select>
           </div>
+          {/* Templates Button */}
+          <Button
+            onClick={() => setShowTemplates(!showTemplates)}
+            variant="ghost"
+            size="sm"
+            className={`text-xs ${showTemplates ? 'bg-[#00FF41]/20' : ''}`}
+            style={{ color: 'var(--terminal-highlight)' }}
+            data-testid="button-templates"
+            title="Project Templates"
+          >
+            <FolderOpen className="w-4 h-4 mr-1" />
+            Templates
+          </Button>
+          {/* Live Preview Button (only for HTML files) */}
+          {files.some(f => f.language === 'html') && (
+            <Button
+              onClick={() => setShowLivePreview(!showLivePreview)}
+              variant="ghost"
+              size="sm"
+              className={`text-xs ${showLivePreview ? 'bg-[#00FF41]/20' : ''}`}
+              style={{ color: 'var(--terminal-highlight)' }}
+              data-testid="button-live-preview"
+              title="Live Preview"
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              Preview
+            </Button>
+          )}
+          {/* Git Panel Button */}
+          <Button
+            onClick={() => {
+              setShowGitPanel(!showGitPanel);
+              if (!showGitPanel) fetchGitInfo();
+            }}
+            variant="ghost"
+            size="sm"
+            className={`text-xs ${showGitPanel ? 'bg-[#00FF41]/20' : ''}`}
+            style={{ color: 'var(--terminal-highlight)' }}
+            data-testid="button-git-panel"
+            title="Git History"
+          >
+            <GitBranch className="w-4 h-4 mr-1" />
+            Git
+          </Button>
           <Button
             onClick={() => setShowOutput(!showOutput)}
             variant="ghost"
@@ -826,6 +1257,90 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
           <pre className="text-[#00FF41]/80 text-xs font-mono whitespace-pre-wrap">
             {generateLocalInstructions(files)}
           </pre>
+        </div>
+      )}
+
+      {/* Templates Panel (dropdown) */}
+      {showTemplates && (
+        <div className="px-4 py-3 bg-black/40 border-b border-[#00FF41]/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[#00FF41] font-mono text-sm">📁 Project Templates</span>
+            <Button
+              onClick={() => setShowTemplates(false)}
+              variant="ghost"
+              size="sm"
+              className="text-[#00FF41]/60 hover:bg-[#00FF41]/20 h-6 w-6 p-0"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {Object.entries(PROJECT_TEMPLATES).map(([id, template]) => (
+              <button
+                key={id}
+                onClick={() => loadTemplate(id)}
+                className="flex items-center gap-2 px-3 py-2 rounded border border-[#00FF41]/20 hover:bg-[#00FF41]/10 hover:border-[#00FF41]/40 transition-colors text-left"
+                data-testid={`template-${id}`}
+              >
+                <span className="text-xl">{template.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[#00FF41] text-xs font-mono truncate">{template.name}</div>
+                  <div className="text-[#00FF41]/50 text-[10px] truncate">{template.description}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Git Panel (dropdown) */}
+      {showGitPanel && (
+        <div className="px-4 py-3 bg-black/40 border-b border-[#00FF41]/20 max-h-48 overflow-y-auto">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[#00FF41] font-mono text-sm">
+              <GitBranch className="w-4 h-4 inline mr-2" />
+              Recent Commits
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={fetchGitInfo}
+                variant="ghost"
+                size="sm"
+                className="text-[#00FF41]/60 hover:bg-[#00FF41]/20 h-6 px-2"
+                disabled={gitLoading}
+              >
+                <RefreshCw className={`w-3 h-3 ${gitLoading ? 'animate-spin' : ''}`} />
+              </Button>
+              <Button
+                onClick={() => setShowGitPanel(false)}
+                variant="ghost"
+                size="sm"
+                className="text-[#00FF41]/60 hover:bg-[#00FF41]/20 h-6 w-6 p-0"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+          {gitLoading ? (
+            <div className="text-[#00FF41]/50 text-xs font-mono py-2">Loading commits...</div>
+          ) : gitCommits.length > 0 ? (
+            <div className="space-y-1">
+              {gitCommits.slice(0, 10).map((commit, i) => (
+                <div 
+                  key={commit.hash}
+                  className="flex items-start gap-2 px-2 py-1 rounded hover:bg-[#00FF41]/5 border-l-2 border-[#00FF41]/20"
+                >
+                  <code className="text-[#00FF41]/40 text-[10px] font-mono shrink-0">{commit.hash.slice(0, 7)}</code>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[#00FF41]/80 text-xs font-mono truncate">{commit.message}</div>
+                    <div className="text-[#00FF41]/40 text-[10px]">{commit.author} • {commit.date}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-[#00FF41]/50 text-xs font-mono py-2">No commits found or git not initialized</div>
+          )}
         </div>
       )}
 
@@ -982,6 +1497,36 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
             </>
           )}
         </div>
+
+        {/* Live Preview Panel */}
+        {showLivePreview && livePreviewContent && (
+          <div className="w-96 bg-white border-l border-[#00FF41]/20 flex flex-col">
+            <div className="px-4 py-2 bg-black/30 border-b border-[#00FF41]/20 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4 text-[#00FF41]" />
+                <span className="text-[#00FF41] font-mono text-sm">Live Preview</span>
+              </div>
+              <Button
+                onClick={() => setShowLivePreview(false)}
+                variant="ghost"
+                size="sm"
+                className="text-[#00FF41]/60 hover:bg-[#00FF41]/20 h-6 w-6 p-0"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex-1 bg-white">
+              <iframe
+                key={livePreviewKey}
+                srcDoc={livePreviewContent}
+                className="w-full h-full border-0"
+                sandbox="allow-scripts"
+                title="Live Preview"
+                data-testid="live-preview-iframe"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Output Panel - conditionally rendered */}
         {showOutput && (
