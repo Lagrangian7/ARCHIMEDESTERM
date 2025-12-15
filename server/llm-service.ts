@@ -15,19 +15,16 @@ const openrouter = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENROUTER_API_KEY || 'placeholder',
 });
 const hasOpenRouter = !!process.env.AI_INTEGRATIONS_OPENROUTER_BASE_URL;
-console.log('[LLM] OpenRouter AI Integration:', hasOpenRouter ? '✓ Configured' : '✗ Not configured');
 
 // FALLBACK: Groq client for fast responses (if user has their own key)
 const groq = process.env.GROQ_API_KEY ? new Groq({
   apiKey: process.env.GROQ_API_KEY,
 }) : null;
-console.log('[LLM] Groq:', groq ? '✓ Configured' : '✗ Not configured');
 
 // FALLBACK: Mistral client (if user has their own key)
 const mistral = process.env.MISTRAL_API_KEY ? new Mistral({
   apiKey: process.env.MISTRAL_API_KEY,
 }) : null;
-console.log('[LLM] Mistral:', mistral ? '✓ Configured' : '✗ Not configured');
 
 // FALLBACK: HuggingFace client
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
