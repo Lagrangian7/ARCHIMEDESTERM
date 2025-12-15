@@ -700,7 +700,10 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const [showTemplates, setShowTemplates] = useState(false);
   const [showGitPanel, setShowGitPanel] = useState(false);
   const [gitCommits, setGitCommits] = useState<Array<{ hash: string; message: string; date: string; author: string }>>([]);
+  const [gitStatus, setGitStatus] = useState<Array<{ file: string; status: string; raw: string; staged?: boolean; unstaged?: boolean }>>([]);
+  const [gitDiff, setGitDiff] = useState<string>('');
   const [gitLoading, setGitLoading] = useState(false);
+  const [gitView, setGitView] = useState<'commits' | 'status' | 'diff'>('commits');
 
   useEffect(() => {
     localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
@@ -752,14 +755,27 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     toast({ title: `Loaded ${template.name} template`, description: `${newFiles.length} file(s) created` });
   };
 
-  // Fetch git status
+  // Fetch git info (log, status, diff)
   const fetchGitInfo = async () => {
     setGitLoading(true);
     try {
-      const response = await fetch('/api/git/log');
-      if (response.ok) {
-        const data = await response.json();
+      const [logRes, statusRes, diffRes] = await Promise.all([
+        fetch('/api/git/log'),
+        fetch('/api/git/status'),
+        fetch('/api/git/diff')
+      ]);
+      
+      if (logRes.ok) {
+        const data = await logRes.json();
         setGitCommits(data.commits || []);
+      }
+      if (statusRes.ok) {
+        const data = await statusRes.json();
+        setGitStatus(data.files || []);
+      }
+      if (diffRes.ok) {
+        const data = await diffRes.json();
+        setGitDiff(data.diff || '');
       }
     } catch (e) {
       console.error('Failed to fetch git info:', e);
@@ -1295,12 +1311,28 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
 
       {/* Git Panel (dropdown) */}
       {showGitPanel && (
-        <div className="px-4 py-3 bg-black/40 border-b border-[#00FF41]/20 max-h-48 overflow-y-auto">
+        <div className="px-4 py-3 bg-black/40 border-b border-[#00FF41]/20 max-h-64 overflow-y-auto">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[#00FF41] font-mono text-sm">
-              <GitBranch className="w-4 h-4 inline mr-2" />
-              Recent Commits
-            </span>
+            <div className="flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-[#00FF41]" />
+              <div className="flex gap-1">
+                {(['commits', 'status', 'diff'] as const).map(view => (
+                  <button
+                    key={view}
+                    onClick={() => setGitView(view)}
+                    className={`px-2 py-1 text-xs font-mono rounded ${
+                      gitView === view 
+                        ? 'bg-[#00FF41]/20 text-[#00FF41]' 
+                        : 'text-[#00FF41]/50 hover:text-[#00FF41]/80'
+                    }`}
+                    data-testid={`git-tab-${view}`}
+                  >
+                    {view === 'commits' ? `Commits (${gitCommits.length})` : 
+                     view === 'status' ? `Status (${gitStatus.length})` : 'Diff'}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 onClick={fetchGitInfo}
@@ -1321,25 +1353,67 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
               </Button>
             </div>
           </div>
+          
           {gitLoading ? (
-            <div className="text-[#00FF41]/50 text-xs font-mono py-2">Loading commits...</div>
-          ) : gitCommits.length > 0 ? (
-            <div className="space-y-1">
-              {gitCommits.slice(0, 10).map((commit, i) => (
-                <div 
-                  key={commit.hash}
-                  className="flex items-start gap-2 px-2 py-1 rounded hover:bg-[#00FF41]/5 border-l-2 border-[#00FF41]/20"
-                >
-                  <code className="text-[#00FF41]/40 text-[10px] font-mono shrink-0">{commit.hash.slice(0, 7)}</code>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[#00FF41]/80 text-xs font-mono truncate">{commit.message}</div>
-                    <div className="text-[#00FF41]/40 text-[10px]">{commit.author} • {commit.date}</div>
+            <div className="text-[#00FF41]/50 text-xs font-mono py-2">Loading git info...</div>
+          ) : gitView === 'commits' ? (
+            gitCommits.length > 0 ? (
+              <div className="space-y-1">
+                {gitCommits.slice(0, 10).map((commit) => (
+                  <div 
+                    key={commit.hash}
+                    className="flex items-start gap-2 px-2 py-1 rounded hover:bg-[#00FF41]/5 border-l-2 border-[#00FF41]/20"
+                  >
+                    <code className="text-[#00FF41]/40 text-[10px] font-mono shrink-0">{commit.hash.slice(0, 7)}</code>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[#00FF41]/80 text-xs font-mono truncate">{commit.message}</div>
+                      <div className="text-[#00FF41]/40 text-[10px]">{commit.author} • {commit.date}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-[#00FF41]/50 text-xs font-mono py-2">No commits found or git not initialized</div>
+            )
+          ) : gitView === 'status' ? (
+            gitStatus.length > 0 ? (
+              <div className="space-y-1">
+                {gitStatus.map((file, i) => (
+                  <div 
+                    key={i}
+                    className="flex items-center gap-2 px-2 py-1 rounded hover:bg-[#00FF41]/5 border-l-2"
+                    style={{ 
+                      borderColor: file.status === 'added' ? '#22c55e' : 
+                                   file.status === 'deleted' ? '#ef4444' : 
+                                   file.status === 'untracked' ? '#eab308' : '#00FF41' 
+                    }}
+                  >
+                    <span className={`text-[10px] font-mono px-1 rounded ${
+                      file.status === 'added' ? 'bg-green-500/20 text-green-400' :
+                      file.status === 'deleted' ? 'bg-red-500/20 text-red-400' :
+                      file.status === 'untracked' ? 'bg-yellow-500/20 text-yellow-400' :
+                      'bg-[#00FF41]/20 text-[#00FF41]'
+                    }`}>
+                      {file.status.charAt(0).toUpperCase()}
+                    </span>
+                    <span className="text-[#00FF41]/80 text-xs font-mono truncate flex-1">{file.file}</span>
+                    <div className="flex items-center gap-1">
+                      {file.staged && <span className="text-[9px] font-mono px-1 rounded bg-cyan-500/20 text-cyan-400">S</span>}
+                      {file.unstaged && <span className="text-[9px] font-mono px-1 rounded bg-orange-500/20 text-orange-400">U</span>}
+                      <span className="text-[#00FF41]/40 text-[10px] font-mono">{file.status}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-[#00FF41]/50 text-xs font-mono py-2">Working tree clean - no changes</div>
+            )
           ) : (
-            <div className="text-[#00FF41]/50 text-xs font-mono py-2">No commits found or git not initialized</div>
+            gitDiff ? (
+              <pre className="text-[#00FF41]/80 text-xs font-mono whitespace-pre-wrap bg-black/30 p-2 rounded">{gitDiff}</pre>
+            ) : (
+              <div className="text-[#00FF41]/50 text-xs font-mono py-2">No uncommitted changes</div>
+            )
           )}
         </div>
       )}

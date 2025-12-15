@@ -60,16 +60,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Git log endpoint for Code Playground git panel
   app.get('/api/git/log', async (req, res) => {
     try {
-      // Use spawn with array args for security (no shell injection)
-      const { execFile } = await import('child_process');
-      const execFilePromise = promisify(execFile);
-      
-      const { stdout } = await execFilePromise('git', [
-        'log',
-        '--oneline',
-        '--format=%H|%s|%an|%ar',
-        '-n', '20'
-      ], { timeout: 5000 });
+      const execPromise = promisify(exec);
+      const { stdout } = await execPromise(
+        'git log --format="%H|%s|%an|%ar" -n 20',
+        { timeout: 5000 }
+      );
       
       const commits = stdout.trim().split('\n')
         .filter(line => line.includes('|'))
@@ -85,8 +80,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ commits });
     } catch (error: any) {
-      // Git not available or not a repo - return empty gracefully
       res.json({ commits: [] });
+    }
+  });
+
+  // Git status endpoint for file status
+  app.get('/api/git/status', async (req, res) => {
+    try {
+      const execPromise = promisify(exec);
+      const { stdout } = await execPromise(
+        'git status --porcelain',
+        { timeout: 5000 }
+      );
+      
+      const files = stdout.trim().split('\n')
+        .filter(line => line.trim())
+        .map(line => {
+          const staged = line[0];   // Index (staged) status
+          const unstaged = line[1]; // Working tree (unstaged) status
+          const file = line.slice(3);
+          
+          // Determine primary status and whether staged/unstaged
+          let statusLabel = 'modified';
+          let isStaged = false;
+          let isUnstaged = false;
+          
+          if (staged === '?' && unstaged === '?') {
+            statusLabel = 'untracked';
+          } else {
+            // Check staged status
+            if (staged === 'A') { statusLabel = 'added'; isStaged = true; }
+            else if (staged === 'M') { statusLabel = 'modified'; isStaged = true; }
+            else if (staged === 'D') { statusLabel = 'deleted'; isStaged = true; }
+            else if (staged === 'R') { statusLabel = 'renamed'; isStaged = true; }
+            
+            // Check unstaged status (working tree)
+            if (unstaged === 'M') { isUnstaged = true; if (!isStaged) statusLabel = 'modified'; }
+            else if (unstaged === 'D') { isUnstaged = true; if (!isStaged) statusLabel = 'deleted'; }
+          }
+          
+          return { file, status: statusLabel, raw: line.slice(0, 2), staged: isStaged, unstaged: isUnstaged };
+        });
+      
+      res.json({ files });
+    } catch (error: any) {
+      res.json({ files: [] });
+    }
+  });
+
+  // Git diff endpoint - shows full unified diff of uncommitted changes
+  app.get('/api/git/diff', async (req, res) => {
+    try {
+      const execPromise = promisify(exec);
+      // Get full unified diff, limit output to prevent huge responses
+      const { stdout } = await execPromise(
+        'git diff HEAD 2>/dev/null | head -500 || git diff | head -500',
+        { timeout: 10000, maxBuffer: 1024 * 1024 }
+      );
+      
+      res.json({ diff: stdout.trim() });
+    } catch (error: any) {
+      res.json({ diff: '' });
     }
   });
 
