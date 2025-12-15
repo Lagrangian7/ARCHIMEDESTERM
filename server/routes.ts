@@ -2203,7 +2203,7 @@ if _virtual_display_started:
           voiceEnabled: false,
           selectedVoice: "default",
           voiceRate: "1",
-          terminalTheme: "classic"
+          terminalTheme: "hacker"
         });
         return res.json(defaultPrefs);
       }

@@ -113,7 +113,7 @@ export class MemStorage implements IStorage {
         voiceEnabled: false,
         selectedVoice: "default",
         voiceRate: "1",
-        terminalTheme: "classic"
+        terminalTheme: "hacker"
       });
 
       return user;
@@ -434,7 +434,7 @@ export class DatabaseStorage implements IStorage {
           voiceEnabled: false,
           selectedVoice: "default",
           voiceRate: "1",
-          terminalTheme: "classic"
+          terminalTheme: "hacker"
         });
       }
 
