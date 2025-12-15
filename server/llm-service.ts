@@ -3,60 +3,67 @@ import { HfInference } from '@huggingface/inference';
 import { Mistral } from '@mistralai/mistralai';
 import Groq from 'groq-sdk';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import pLimit from 'p-limit';
+import pRetry from 'p-retry';
 import type { Message } from '@shared/schema';
 import { knowledgeService } from './knowledge-service';
 
-// Use Replit's managed AI inference for multiple models
-const REPLIT_AI_ENDPOINT = 'https://ai-inference.replit.com/v1';
-const replitAI = new OpenAI({
-  apiKey: process.env.REPLIT_AI_API_KEY || 'placeholder',
-  baseURL: REPLIT_AI_ENDPOINT,
+// PRIMARY: Replit AI Integrations OpenRouter (no API key needed, uses Replit credits)
+// This provides reliable access to Llama, Mistral, Qwen, DeepSeek models
+const openrouter = new OpenAI({
+  baseURL: process.env.AI_INTEGRATIONS_OPENROUTER_BASE_URL,
+  apiKey: process.env.AI_INTEGRATIONS_OPENROUTER_API_KEY || 'placeholder',
 });
+const hasOpenRouter = !!process.env.AI_INTEGRATIONS_OPENROUTER_BASE_URL;
+console.log('[LLM] OpenRouter AI Integration:', hasOpenRouter ? '✓ Configured' : '✗ Not configured');
 
-// Legacy Mistral client (if using your own API key)
-// Only initialize if API key is available to prevent crashes
-const mistral = process.env.MISTRAL_API_KEY ? new Mistral({
-  apiKey: process.env.MISTRAL_API_KEY,
-}) : null;
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
-
-// Groq client for fast, free natural chat (using Llama/Mistral models)
-// Only initialize if API key is available
+// FALLBACK: Groq client for fast responses (if user has their own key)
 const groq = process.env.GROQ_API_KEY ? new Groq({
   apiKey: process.env.GROQ_API_KEY,
 }) : null;
+console.log('[LLM] Groq:', groq ? '✓ Configured' : '✗ Not configured');
 
-// Google Gemini client - Primary AI for Natural mode
-// Uses user's own API key for direct access to Gemini models
-// Falls back to GOOGLE_API_KEY if GEMINI_API_KEY is not available
-// Handle case where multiple keys might be concatenated - extract first valid 39-char key
+// FALLBACK: Mistral client (if user has their own key)
+const mistral = process.env.MISTRAL_API_KEY ? new Mistral({
+  apiKey: process.env.MISTRAL_API_KEY,
+}) : null;
+console.log('[LLM] Mistral:', mistral ? '✓ Configured' : '✗ Not configured');
+
+// FALLBACK: HuggingFace client
+const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+
+// FALLBACK: Gemini client
 const rawGeminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '';
 const geminiApiKey = rawGeminiKey.startsWith('AIzaSy') ? rawGeminiKey.slice(0, 39) : rawGeminiKey;
 const gemini = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
-console.log('[LLM] Gemini initialized with key length:', geminiApiKey.length);
 
-// Replit-specific AI configuration
-const REPLIT_AI_CONFIG = {
-  primaryModel: 'meta-llama/Llama-3.1-8B-Instruct', // Llama 3.1 via HF router (fast, free tier)
+// OpenRouter model configuration (via Replit AI Integrations)
+const OPENROUTER_CONFIG = {
+  // Primary model: Fast, reliable Llama 3.3
+  primaryModel: 'meta-llama/llama-3.3-70b-instruct',
+  // Fallback models in order of preference
   fallbackModels: [
-    'mistralai/Mistral-7B-Instruct-v0.3',  // Mistral instruct via HF router
-    'Qwen/Qwen2.5-7B-Instruct',            // Qwen 2.5 via HF router
-    'microsoft/Phi-3-mini-4k-instruct',    // Phi-3 lightweight model
+    'meta-llama/llama-3.1-8b-instruct',
+    'mistralai/mistral-7b-instruct-v0.3',
+    'qwen/qwen-2.5-7b-instruct',
   ],
-  maxTokens: {
-    natural: 2000,
-    technical: 4000
-  },
-  temperature: {
-    natural: 0.8,
-    technical: 0.3
+  // Mode-specific settings
+  settings: {
+    natural: { maxTokens: 2000, temperature: 0.85 },
+    technical: { maxTokens: 4000, temperature: 0.3 },
+    freestyle: { maxTokens: 6000, temperature: 0.7 },
+    health: { maxTokens: 3000, temperature: 0.4 },
   }
 };
+
+// Rate limiter for concurrent requests
+const aiRequestLimit = pLimit(3);
+
+// Helper to check if error is rate limit
+function isRateLimitError(error: any): boolean {
+  const msg = error?.message || String(error);
+  return msg.includes('429') || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('quota');
+}
 
 export class LLMService {
   private static instance: LLMService;
@@ -968,71 +975,58 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
       let aiResponse: string = '';
 
+      // PRIMARY: OpenRouter via Replit AI Integrations (most reliable, uses Replit credits)
+      // FALLBACK CHAIN: Groq → Mistral API → HuggingFace → Static
+      
       try {
-        // Use Groq (Llama 3.1) as PRIMARY for all modes (free, fast, no quotas)
-        // Fallback to Gemini if Groq fails
-        if (process.env.GROQ_API_KEY) {
-          console.log(`[LLM] ✓ Using Groq Llama 3.1 (Primary) for ${safeMode.toUpperCase()} mode`);
+        if (hasOpenRouter) {
+          console.log(`[LLM] ✓ Using OpenRouter (Primary) for ${safeMode.toUpperCase()} mode`);
+          aiResponse = await this.generateOpenRouterResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+        } else if (groq) {
+          console.log(`[LLM] Using Groq (Fallback) for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-        } else if (safeMode === 'natural' && gemini) {
-          console.log(`[LLM] Using Gemini (Fallback) for NATURAL mode`);
-          aiResponse = await this.generateGeminiDirectResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+        } else if (mistral) {
+          console.log(`[LLM] Using Mistral API (Fallback) for ${safeMode.toUpperCase()} mode`);
+          aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         } else {
-          // Fallback to Replit's managed Mistral if neither is available
-          console.log(`[LLM] Using Replit Managed Mistral (Fallback) for ${safeMode.toUpperCase()} mode`);
-          aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+          console.log(`[LLM] Using HuggingFace (Fallback) for ${safeMode.toUpperCase()} mode`);
+          aiResponse = await this.generateHuggingFaceResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         }
-
       } catch (primaryError) {
         console.error('Primary AI error:', primaryError);
-
-        // Unified fallback chain for all modes
-        // For Natural mode after Gemini fails: Groq → Replit Mistral → OpenAI → Mistral AI → Hugging Face
-        // For other modes after Groq fails: Replit Mistral → OpenAI → Mistral AI → Hugging Face
         
         let fallbackSuccess = false;
 
-        // First fallback: Groq (only for Natural mode when Gemini failed)
-        if (safeMode === 'natural' && process.env.GROQ_API_KEY && !fallbackSuccess) {
+        // Fallback 1: Groq
+        if (!fallbackSuccess && groq) {
           try {
-            console.log(`[LLM] Gemini failed, falling back to Groq for NATURAL mode`);
+            console.log(`[LLM] Falling back to Groq for ${safeMode.toUpperCase()} mode`);
             aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
             fallbackSuccess = true;
-          } catch (groqError) {
-            console.error('Groq fallback error:', groqError);
+          } catch (e) {
+            console.error('Groq fallback error:', e);
           }
         }
 
-        // Second fallback: Replit Mistral
-        if (!fallbackSuccess) {
+        // Fallback 2: Mistral API
+        if (!fallbackSuccess && mistral) {
           try {
-            console.log(`[LLM] Falling back to Replit Mistral for ${safeMode.toUpperCase()} mode`);
-            aiResponse = await this.generateReplitMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-            fallbackSuccess = true;
-          } catch (mistralError) {
-            console.error('Replit Mistral fallback error:', mistralError);
-          }
-        }
-
-        // Third fallback: Mistral AI (skip OpenAI due to quota issues)
-        if (!fallbackSuccess && process.env.MISTRAL_API_KEY) {
-          try {
-            console.log(`[LLM] Falling back to Mistral AI for ${safeMode.toUpperCase()} mode`);
+            console.log(`[LLM] Falling back to Mistral API for ${safeMode.toUpperCase()} mode`);
             aiResponse = await this.generateMistralResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
             fallbackSuccess = true;
-          } catch (mistralApiError) {
-            console.error('Mistral AI fallback error:', mistralApiError);
+          } catch (e) {
+            console.error('Mistral API fallback error:', e);
           }
         }
 
-        // Fourth fallback: Hugging Face
+        // Fallback 3: HuggingFace
         if (!fallbackSuccess) {
           try {
-            console.log(`[LLM] Trying Hugging Face models for ${safeMode.toUpperCase()} mode`);
-            aiResponse = await this.generateReplitOptimizedResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+            console.log(`[LLM] Falling back to HuggingFace for ${safeMode.toUpperCase()} mode`);
+            aiResponse = await this.generateHuggingFaceResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
             fallbackSuccess = true;
-          } catch (hfError) {
-            console.error('Hugging Face fallback error:', hfError);
+          } catch (e) {
+            console.error('HuggingFace fallback error:', e);
           }
         }
 
@@ -1072,6 +1066,50 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     }
   }
 
+  private async generateOpenRouterResponse(
+    userMessage: string,
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
+    conversationHistory: Message[] = [],
+    language: string = 'english',
+    isNewSession: boolean = false
+  ): Promise<string> {
+    const systemPrompt = this.getSystemPrompt(mode, userMessage);
+    const greetingInstruction = this.buildSessionGreeting(isNewSession);
+    const recentHistory = this.buildConversationHistory(conversationHistory, 10);
+    const settings = OPENROUTER_CONFIG.settings[mode];
+
+    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+      { role: 'system', content: systemPrompt + greetingInstruction }
+    ];
+
+    for (const msg of recentHistory) {
+      if (msg.role === 'user' || msg.role === 'assistant') {
+        messages.push({ role: msg.role, content: msg.content });
+      }
+    }
+    messages.push({ role: 'user', content: userMessage });
+
+    const response = await pRetry(async () => {
+      const completion = await openrouter.chat.completions.create({
+        model: OPENROUTER_CONFIG.primaryModel,
+        messages,
+        max_tokens: settings.maxTokens,
+        temperature: settings.temperature,
+      });
+      return completion.choices[0]?.message?.content || '';
+    }, {
+      retries: 3,
+      minTimeout: 1000,
+      maxTimeout: 8000,
+      factor: 2,
+      onFailedAttempt: (error) => {
+        console.log(`[OpenRouter] Attempt ${error.attemptNumber} failed, retrying...`);
+      }
+    });
+
+    return this.postProcessResponse(response, mode);
+  }
+
   private async generateReplitMistralResponse(
     userMessage: string,
     mode: 'natural' | 'technical' | 'freestyle' | 'health',
@@ -1101,8 +1139,8 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     // Add current user message
     messages.push({ role: 'user', content: userMessage });
 
-    // Use Replit's managed Mistral model
-    const completion = await replitAI.chat.completions.create({
+    // Use OpenRouter managed Mistral model
+    const completion = await openrouter.chat.completions.create({
       model: 'mistralai/mistral-7b-instruct-v0.3',
       messages,
       max_tokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
@@ -1187,8 +1225,8 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     // Add current user message
     messages.push({ role: 'user', content: userMessage });
 
-    // Use Replit's managed Gemini model
-    const completion = await replitAI.chat.completions.create({
+    // Use OpenRouter managed Gemini model
+    const completion = await openrouter.chat.completions.create({
       model: 'google/gemini-2.0-flash-exp',
       messages,
       max_tokens: mode === 'technical' || mode === 'health' ? 4000 : mode === 'freestyle' ? 3000 : 1200,
@@ -1313,7 +1351,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     return this.postProcessResponse(responseText, mode);
   }
 
-  private async generateReplitOptimizedResponse(
+  private async generateHuggingFaceResponse(
     userMessage: string,
     mode: 'natural' | 'technical' | 'freestyle' | 'health',
     conversationHistory: Message[] = [],
@@ -1329,13 +1367,12 @@ Make it feel like meeting an old friend who happens to know the date and has odd
       ? this.getEnhancedFreestyleMessage(userMessage)
       : userMessage;
 
-    // Enhanced context building for Replit environment
-    let prompt = `${systemPrompt}${greetingInstruction}\n\nReplit Environment Context:
+    // Enhanced context building
+    let prompt = `${systemPrompt}${greetingInstruction}\n\nEnvironment Context:
 - Terminal Interface: ARCHIMEDES v7 cyberpunk-styled AI terminal
-- User Environment: Replit development workspace
-- Deployment Target: Replit's cloud infrastructure
-- Database: Replit-managed PostgreSQL available
-- Authentication: Replit Auth integrated
+- Deployment Target: Cloud infrastructure
+- Database: PostgreSQL available
+- Authentication: Integrated
 
 Conversation Context:\n`;
 
@@ -1355,8 +1392,8 @@ Conversation Context:\n`;
       setTimeout(() => reject(new Error('Request timeout')), 6000);
     });
 
-    // Use optimized models for Replit
-    const fetchPromise = this.tryReplitOptimizedModels(prompt, mode);
+    // Use HuggingFace models for fallback
+    const fetchPromise = this.tryHuggingFaceModels(prompt, mode);
 
     const result = await Promise.race([fetchPromise, timeoutPromise]);
 
@@ -1364,14 +1401,14 @@ Conversation Context:\n`;
       return this.postProcessResponse(result.trim(), mode);
     }
 
-    throw new Error('No valid response from Replit-optimized AI pipeline');
+    throw new Error('No valid response from HuggingFace AI pipeline');
   }
 
-  private async tryReplitOptimizedModels(prompt: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): Promise<string> {
-    // Primary model: Fast and efficient for Replit
+  private async tryHuggingFaceModels(prompt: string, mode: 'natural' | 'technical' | 'freestyle' | 'health'): Promise<string> {
+    // HuggingFace models for fallback
     const models = [
-      REPLIT_AI_CONFIG.primaryModel,
-      ...REPLIT_AI_CONFIG.fallbackModels
+      OPENROUTER_CONFIG.primaryModel,
+      ...OPENROUTER_CONFIG.fallbackModels
     ];
 
     for (const model of models) {
@@ -1391,8 +1428,8 @@ Conversation Context:\n`;
               { role: 'system', content: 'You are ARCHIMEDES v7, a helpful AI assistant.' },
               { role: 'user', content: prompt }
             ],
-            max_tokens: REPLIT_AI_CONFIG.maxTokens[(mode === 'freestyle' || mode === 'health') ? 'technical' : mode],
-            temperature: REPLIT_AI_CONFIG.temperature[(mode === 'freestyle' || mode === 'health') ? 'technical' : mode],
+            max_tokens: OPENROUTER_CONFIG.settings[mode].maxTokens,
+            temperature: OPENROUTER_CONFIG.settings[mode].temperature,
           }),
           signal: controller.signal
         });
@@ -1483,8 +1520,8 @@ Conversation Context:\n`;
     // Add current user message
     messages.push({ role: 'user', content: enhancedMessage });
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+    const completion = await openrouter.chat.completions.create({
+      model: 'openai/gpt-4o-mini',
       messages,
       max_tokens: mode === 'technical' || mode === 'freestyle' ? 4000 : 2000, // Adjusted for freestyle
       temperature: mode === 'technical' || mode === 'freestyle' ? 0.3 : 0.7, // Adjusted for freestyle
@@ -1537,7 +1574,7 @@ This is a fallback response. The actual AI analysis could not be completed.`;
   }
 
   /**
-   * Generate code completions using Mistral AI for monacopilot
+   * Generate code completions using OpenRouter (primary) or Mistral AI (fallback)
    * Supports multiple programming languages with proper cleanup
    */
   async generateCodeCompletion(
@@ -1547,12 +1584,16 @@ This is a fallback response. The actual AI analysis could not be completed.`;
     projectContext?: { files: Array<{ name: string; content: string; language: string }> }
   ): Promise<string> {
     try {
-      if (!mistral) {
-        console.log('[Code Completion] Mistral API not configured - using fallback');
-        return ''; // No Mistral API key configured, return empty completion
+      // Primary: OpenRouter, Fallback: Mistral Codestral
+      const useOpenRouter = hasOpenRouter;
+      const useMistral = !!mistral;
+      
+      if (!useOpenRouter && !useMistral) {
+        console.log('[Code Completion] No AI backend configured');
+        return '';
       }
 
-      console.log(`[Code Completion] Using Codestral for ${language} code completion`);
+      console.log(`[Code Completion] Using ${useOpenRouter ? 'OpenRouter' : 'Codestral'} for ${language} code completion`);
 
       // Language-specific style guidelines
       const styleGuides: Record<string, string> = {
@@ -1601,26 +1642,50 @@ CRITICAL RULES:
 Current file code:
 ${code}`;
 
-      const chatResponse = await mistral.chat.complete({
-        model: 'codestral-latest', // Mistral's specialized Codestral model for code
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        maxTokens: 800, // Increased for better completions
-        temperature: 0.15, // Very low for deterministic code
-        topP: 0.95,
-      });
+      let completion: string | null = null;
 
-      const completion = chatResponse.choices?.[0]?.message?.content;
+      // Try OpenRouter first (primary)
+      if (useOpenRouter) {
+        try {
+          const response = await openrouter.chat.completions.create({
+            model: 'meta-llama/llama-3.3-70b-instruct',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            max_tokens: 800,
+            temperature: 0.15,
+          });
+          completion = response.choices?.[0]?.message?.content || null;
+        } catch (error) {
+          console.error('[Code Completion] OpenRouter error, trying Mistral fallback:', error);
+        }
+      }
+
+      // Fallback to Mistral Codestral
+      if (!completion && useMistral && mistral) {
+        const chatResponse = await mistral.chat.complete({
+          model: 'codestral-latest',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          maxTokens: 800,
+          temperature: 0.15,
+          topP: 0.95,
+        });
+        const mistralContent = chatResponse.choices?.[0]?.message?.content;
+        completion = typeof mistralContent === 'string' ? mistralContent : 
+          (Array.isArray(mistralContent) ? mistralContent.map((c: any) => c.text).join('') : null);
+      }
 
       if (!completion) {
-        console.log('[Code Completion] No completion received from Codestral');
+        console.log('[Code Completion] No completion received from AI backends');
         return '';
       }
 
       // Clean up the response - remove any markdown code blocks
-      let cleanedCompletion = typeof completion === 'string' ? completion : completion.map((chunk: any) => chunk.text).join('');
+      let cleanedCompletion = completion;
 
       // Remove markdown code blocks for all supported languages
       const codeBlockPatterns = [
@@ -1635,10 +1700,10 @@ ${code}`;
       // Trim excessive whitespace
       cleanedCompletion = cleanedCompletion.trim();
 
-      console.log(`[Code Completion] Codestral generated ${cleanedCompletion.length} characters`);
+      console.log(`[Code Completion] Generated ${cleanedCompletion.length} characters`);
       return cleanedCompletion;
     } catch (error) {
-      console.error('[Code Completion] Codestral error:', error);
+      console.error('[Code Completion] Error:', error);
       return ''; // Return empty string on error - graceful degradation
     }
   }
