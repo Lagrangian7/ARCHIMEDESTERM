@@ -1940,7 +1940,7 @@ calculator()
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ title: notepadTitle, content: notepadContent }),
+        body: JSON.JSON.stringify({ title: notepadTitle, content: notepadContent }),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -2131,7 +2131,7 @@ calculator()
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ code, inputs }),
+        body: JSON.JSON.stringify({ code, inputs }),
       });
 
       if (!response.ok) {
@@ -2609,7 +2609,7 @@ calculator()
       const response = await fetch('/api/execute/python', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: codeToRun })
+        body: JSON.JSON.stringify({ code: codeToRun })
       });
 
       const data = await response.json();
@@ -2738,7 +2738,6 @@ calculator()
 
     setDimensions({ width: defaultWidth, height: defaultHeight });
 
-    // Center the window
     const centerX = (window.innerWidth - defaultWidth) / 2;
     const centerY = terminalAreaTop + ((window.innerHeight - terminalAreaTop - terminalAreaBottom - defaultHeight) / 2);
     setPosition({ x: Math.max(0, centerX), y: Math.max(terminalAreaTop, centerY) });
@@ -2951,7 +2950,7 @@ calculator()
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
+        body: JSON.JSON.stringify({
           message,
           mode: isFreestyleMode ? 'freestyle' : 'technical',
           language: 'english', // Human language (English/Spanish/Japanese)
