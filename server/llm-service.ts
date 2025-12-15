@@ -42,12 +42,11 @@ console.log('[LLM] Gemini initialized with key length:', geminiApiKey.length);
 
 // Replit-specific AI configuration
 const REPLIT_AI_CONFIG = {
-  primaryModel: 'mistralai/Mistral-7B-Instruct-v0.2', // Mistral instruct model (open access)
+  primaryModel: 'meta-llama/Llama-3.1-8B-Instruct', // Llama 3.1 via HF router (fast, free tier)
   fallbackModels: [
-    'HuggingFaceH4/zephyr-7b-beta',        // Fast, efficient instruction model
-    'microsoft/DialoGPT-large',            // Good for conversational AI
-    'tiiuae/falcon-7b-instruct',           // Reliable instruction following
-    'bigscience/bloom-560m'                // Lightweight fallback
+    'mistralai/Mistral-7B-Instruct-v0.3',  // Mistral instruct via HF router
+    'Qwen/Qwen2.5-7B-Instruct',            // Qwen 2.5 via HF router
+    'microsoft/Phi-3-mini-4k-instruct',    // Phi-3 lightweight model
   ],
   maxTokens: {
     natural: 2000,
@@ -1380,23 +1379,20 @@ Conversation Context:\n`;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-        const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+        const response = await fetch('https://router.huggingface.co/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
             'Content-Type': 'application/json',
-            'User-Agent': 'ARCHIMEDES-v7-Replit-Terminal/1.0'
           },
           body: JSON.stringify({
-            inputs: prompt,
-            parameters: {
-              max_new_tokens: REPLIT_AI_CONFIG.maxTokens[(mode === 'freestyle' || mode === 'health') ? 'technical' : mode],
-              temperature: REPLIT_AI_CONFIG.temperature[(mode === 'freestyle' || mode === 'health') ? 'technical' : mode],
-              return_full_text: false,
-              do_sample: true,
-              top_p: 0.9,
-              repetition_penalty: 1.1
-            }
+            model: model,
+            messages: [
+              { role: 'system', content: 'You are ARCHIMEDES v7, a helpful AI assistant.' },
+              { role: 'user', content: prompt }
+            ],
+            max_tokens: REPLIT_AI_CONFIG.maxTokens[(mode === 'freestyle' || mode === 'health') ? 'technical' : mode],
+            temperature: REPLIT_AI_CONFIG.temperature[(mode === 'freestyle' || mode === 'health') ? 'technical' : mode],
           }),
           signal: controller.signal
         });
@@ -1406,6 +1402,12 @@ Conversation Context:\n`;
         if (response.ok) {
           const result = await response.json();
 
+          // Handle OpenAI-compatible chat completions format
+          if (result.choices?.[0]?.message?.content) {
+            return result.choices[0].message.content;
+          }
+
+          // Legacy format fallback
           if (Array.isArray(result) && result[0]?.generated_text) {
             return result[0].generated_text;
           }
