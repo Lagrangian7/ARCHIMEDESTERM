@@ -622,15 +622,6 @@ export function Terminal() {
   // Check if user has set a custom background (from Background Manager)
   // const hasCustomBackground = customBackgroundUrl && customBackgroundUrl.length > 0; // This line seems redundant with the state variable
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Background state:', {
-      customBackgroundUrl: customBackgroundUrl ? customBackgroundUrl.substring(0, 50) + '...' : 'none',
-      hasCustomBackground,
-      currentTheme
-    });
-  }, [customBackgroundUrl, hasCustomBackground, currentTheme]);
-
   // Initialize background from localStorage on mount
   useEffect(() => {
     const savedBg = localStorage.getItem('terminal-background-url');
