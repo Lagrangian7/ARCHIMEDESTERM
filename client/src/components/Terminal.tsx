@@ -25,6 +25,7 @@ import { CodePlayground } from './CodePlayground';
 import { BackgroundManager } from './BackgroundManager';
 import WebampPlayer from './WebampPlayer';
 import AJVideoPopup from './AJVideoPopup';
+import AJ2VideoPopup from './AJ2VideoPopup';
 import { MusicUpload } from './MusicUpload'; // Import the new MusicUpload component
 import { Notepad } from './Notepad';
 import { useTerminal } from '@/hooks/use-terminal';
@@ -108,6 +109,7 @@ export function Terminal() {
     (window as any).openPrivacyEncoder = () => setShowPrivacyEncoder(true);
     (window as any).openWebamp = () => setShowWebamp(true);
     (window as any).openAJVideo = () => setShowAJVideo(true);
+    (window as any).openAJ2Video = () => setShowAJ2Video(true);
     (window as any).openSpacewars = () => setShowSpacewars(true);
     (window as any).openPythonIDE = () => setShowPythonIDE(true);
     (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
@@ -155,6 +157,7 @@ export function Terminal() {
   const [showPrivacyEncoder, setShowPrivacyEncoder] = useState(false);
   const [showWebamp, setShowWebamp] = useState(false);
   const [showAJVideo, setShowAJVideo] = useState(false);
+  const [showAJ2Video, setShowAJ2Video] = useState(false);
   const [isWebampOpen, setIsWebampOpen] = useState(false); // State to track if Webamp is open
   const [showSpacewars, setShowSpacewars] = useState(false);
   const [notepads, setNotepads] = useState<Array<{ id: string }>>([]);
@@ -1021,6 +1024,12 @@ export function Terminal() {
       <AJVideoPopup
         isOpen={showAJVideo}
         onClose={() => setShowAJVideo(false)}
+      />
+
+      {/* AJ2 Video Player */}
+      <AJ2VideoPopup
+        isOpen={showAJ2Video}
+        onClose={() => setShowAJ2Video(false)}
       />
 
       {/* SPACEWAR Game */}
