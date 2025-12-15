@@ -685,7 +685,6 @@ export function Terminal() {
             onVoiceInput={handleVoiceInput}
             currentMode={currentMode}
             switchMode={switchMode}
-            switchTheme={switchTheme}
             setShowWebamp={setShowWebamp}
             setIsWebampOpen={setIsWebampOpen} // Pass down the state setter
             user={user}
@@ -869,6 +868,22 @@ export function Terminal() {
               <History className="w-4 h-4" />
               <span className="hidden md:inline">HISTORY</span>
             </Button>
+
+            <button
+              onClick={switchTheme}
+              className="cursor-pointer p-1.5 rounded transition-all duration-300 hover:scale-110 min-h-[44px] min-w-[44px] flex items-center justify-center bg-transparent border-2 border-terminal-subtle hover:border-terminal-highlight"
+              data-testid="button-theme-toggle"
+              aria-label="Switch Theme"
+              title="Switch Theme"
+            >
+              <img
+                src={cubesIcon}
+                alt="Theme Switcher"
+                width="18"
+                height="18"
+                className="rgb-theme-icon"
+              />
+            </button>
           </div>
         </div>
       </div>
