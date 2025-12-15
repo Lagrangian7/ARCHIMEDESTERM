@@ -200,25 +200,6 @@ export function VoiceControls({
         <TooltipProvider>
           {isAuthenticated && (
             <>
-              {/* Profile Button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => setShowProfile(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[32px] min-w-[32px] p-1.5"
-                    data-testid="button-user-profile"
-                    aria-label="Profile"
-                  >
-                    <User size={14} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>Profile</p>
-                </TooltipContent>
-              </Tooltip>
-
               {/* Notepad Button */}
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -298,6 +279,26 @@ export function VoiceControls({
               {/* Chat Button - Removed */}
 
               {/* Radio button removed - Webamp now controls animated character */}
+            </>
+          )}
+        {/* Profile Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowProfile(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[32px] min-w-[32px] p-1.5"
+                    data-testid="button-user-profile"
+                    aria-label="Profile"
+                  >
+                    <User size={14} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <p>Profile</p>
+                </TooltipContent>
+              </Tooltip>
             </>
           )}
         </TooltipProvider>
