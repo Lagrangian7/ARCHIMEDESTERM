@@ -32,6 +32,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
   const [isResizing, setIsResizing] = useState(false);
   const [size, setSize] = useState({ width: 384, height: 250 }); // Default size
   const [isShaded, setIsShaded] = useState(false); // Dimmed/reduced opacity state
+  const [zIndex, setZIndex] = useState(50);
   const resizeStartRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
 
   // Extract text content from ReactNode
@@ -383,8 +384,14 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     setShowFloating(false);
   }, []); // No dependencies needed for simple dismiss
 
+  const bringToFront = useCallback(() => {
+    setZIndex(prev => Math.max(prev, 100));
+  }, []);
+
   // Drag functionality - similar to RadioCharacter
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    bringToFront();
+    
     // Prevent dragging if clicking on a button or other interactive element
     const target = e.target as HTMLElement;
     
@@ -545,8 +552,10 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       {/* Floating draggable version - always visible and follows scroll */}
       {position && showFloating && (
         <div
-          className="fixed z-50 cursor-move group"
+          className="fixed cursor-move group"
+          onClick={bringToFront}
           style={{
+            zIndex,
             left: position.x,
             top: position.y - scrollOffset,
             width: size.width,
