@@ -3,6 +3,7 @@ import { Save, Copy } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import DOMPurify from 'dompurify';
 
 interface DraggableResponseProps {
   children: ReactNode;
@@ -39,7 +40,8 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
     if (typeof node === 'string') {
       // If it's HTML string, create a temporary div to extract text
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = node;
+      // Sanitize HTML before setting to prevent XSS attacks
+      tempDiv.innerHTML = DOMPurify.sanitize(node);
       const textContent = tempDiv.textContent || tempDiv.innerText || '';
       return textContent.trim();
     }
@@ -49,7 +51,8 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
       // Handle dangerouslySetInnerHTML case
       if (node.props && node.props.dangerouslySetInnerHTML && node.props.dangerouslySetInnerHTML.__html) {
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = node.props.dangerouslySetInnerHTML.__html;
+        // Sanitize HTML before setting to prevent XSS attacks
+        tempDiv.innerHTML = DOMPurify.sanitize(node.props.dangerouslySetInnerHTML.__html);
         const textContent = tempDiv.textContent || tempDiv.innerText || '';
         return textContent.trim();
       }
