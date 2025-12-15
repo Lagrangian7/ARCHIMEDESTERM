@@ -591,7 +591,7 @@ export function Terminal() {
     const lastEntry = entries[entries.length - 1];
     if (lastEntry && lastEntry.type === 'response' && lastEntry.action) {
       if (lastEntry.action === 'open_spiderfoot') {
-        setShowSpiderFoot(true);
+        console.log('SpiderFoot action triggered but feature not implemented');
       }
       // Add other action handlers here as needed
     }

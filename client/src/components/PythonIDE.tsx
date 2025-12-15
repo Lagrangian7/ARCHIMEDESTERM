@@ -2178,7 +2178,7 @@ calculator()
 
     const hasPackageJson = files.some(f => f.name === 'package.json');
 
-    if ((isReactProject || isNodeProject || hasPackageJson) && !showWebContainer && showMultiFileMode) {
+    if ((isReactProject || isNodeProject || hasPackageJson) && !showWebContainer && showMultiFileMode && activeFile) {
       // Auto-open WebContainer for detected projects
       setShowWebContainer(true);
 

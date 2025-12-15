@@ -445,7 +445,7 @@ export function useSpeechRecognition() {
           errorMessage = 'Speech recognition aborted. If using Safari on Mac with Siri enabled, try disabling Siri in System Settings.';
           break;
         default:
-          errorMessage = `Speech recognition error: ${event.error}`;Message = `Speech recognition error: ${event.error}`;
+          errorMessage = `Speech recognition error: ${event.error}`;
       }
 
       console.error('Error details:', errorMessage);

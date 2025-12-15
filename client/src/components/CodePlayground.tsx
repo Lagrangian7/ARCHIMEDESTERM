@@ -640,8 +640,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       // Prevent focus loss by stopping event propagation on editor interactions
       const domNode = editor.getDomNode();
       if (domNode) {
-        domNode.addEventListener('mousedown', (e) => e.stopPropagation());
-        domNode.addEventListener('click', (e) => e.stopPropagation());
+        domNode.addEventListener('mousedown', (e: MouseEvent) => e.stopPropagation());
+        domNode.addEventListener('click', (e: MouseEvent) => e.stopPropagation());
       }
     }, 100);
 

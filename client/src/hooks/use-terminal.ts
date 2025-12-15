@@ -861,7 +861,7 @@ Special Modes:
 
       case 'debug audio':
       case 'test audio':
-        addEntry('system', `Audio Debug Information:\n\nImported path: ${lagrangianSong}\nPath type: ${typeof lagrangianSong}\nPath length: ${lagrangianSong.length}\nEnvironment: ${import.meta.env.MODE}\n\nTrying to create Audio element...`);
+        addEntry('system', `Audio Debug Information:\n\nImported path: ${lagrangianSong}\nPath type: ${typeof lagrangianSong}\nPath length: ${lagrangianSong.length}\nEnvironment: ${(import.meta as any).env.MODE}\n\nTrying to create Audio element...`);
 
         try {
           const testAudio = new Audio(lagrangianSong);
