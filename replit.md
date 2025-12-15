@@ -26,6 +26,12 @@ Preferred communication style: Simple, everyday language.
   - Toggle via Terminal icon button in Workshop IDE toolbar
   - Helper functions: createNodeProjectFiles() and createViteProjectFiles() for common project setups
   - coi-serviceworker polyfill installed to enable cross-origin isolation where possible
+- **Animation System**: Comprehensive CSS animation library for enhanced visual effects
+  - **Terminal animations**: Typewriter effects, glitch text, CRT boot, matrix reveal, scanline sweep, character-by-character reveal, flicker effects
+  - **Monaco editor animations**: Cursor glow, bracket matching pulse, line highlight animation, selection glow, code execution flash, error shake, success pulse
+  - **Matplotlib output animations**: Chart fade-in, hover glow, GIF animation container with rotating border, loading spinners
+  - **Utility animations**: Fade, slide, scale, bounce animations with staggered delay utilities
+  - **Accessibility**: All animations respect `prefers-reduced-motion` media query
 - **Code Playground**: Multi-language code editor with Monaco supporting 15+ languages (Python, JavaScript, TypeScript, Java, C++, Rust, Go, Ruby, PHP, C#, Swift, Kotlin, Bash, SQL, HTML/CSS). Features include:
   - Automatic language detection from code content and fenced blocks
   - Multi-file extraction from AI responses (separates HTML, JS, Python, etc. into individual files)
