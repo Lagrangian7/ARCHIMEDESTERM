@@ -1015,18 +1015,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
           }
         }
 
-        // Third fallback: OpenAI
-        if (!fallbackSuccess && process.env.OPENAI_API_KEY) {
-          try {
-            console.log(`[LLM] Falling back to OpenAI for ${safeMode.toUpperCase()} mode`);
-            aiResponse = await this.generateOpenAIResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-            fallbackSuccess = true;
-          } catch (openaiError) {
-            console.error('OpenAI fallback error:', openaiError);
-          }
-        }
-
-        // Fourth fallback: Mistral AI
+        // Third fallback: Mistral AI (skip OpenAI due to quota issues)
         if (!fallbackSuccess && process.env.MISTRAL_API_KEY) {
           try {
             console.log(`[LLM] Falling back to Mistral AI for ${safeMode.toUpperCase()} mode`);
@@ -1037,7 +1026,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
           }
         }
 
-        // Fifth fallback: Hugging Face
+        // Fourth fallback: Hugging Face
         if (!fallbackSuccess) {
           try {
             console.log(`[LLM] Trying Hugging Face models for ${safeMode.toUpperCase()} mode`);
