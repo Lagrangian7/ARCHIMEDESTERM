@@ -2,9 +2,9 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  X, Download, Play, FileCode, Copy, Check, Plus, Trash2,
-  FileText, Terminal as TerminalIcon, Info, ChevronDown, ChevronUp, Table2, Bot,
+import { 
+  X, Download, Play, FileCode, Copy, Check, Plus, Trash2, 
+  FileText, Terminal as TerminalIcon, Info, ChevronDown, ChevronUp, Table2, Bot, 
   Maximize, Minimize, Eye, GitBranch, FolderOpen, RefreshCw
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
@@ -76,7 +76,7 @@ export default function App() {
   };
 
   const toggleItem = (id: number) => {
-    setItems(items.map(item =>
+    setItems(items.map(item => 
       item.id === id ? { ...item, completed: !item.completed } : item
     ));
   };
@@ -85,7 +85,7 @@ export default function App() {
     <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
       <h1>Todo List</h1>
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <input
+        <input 
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
           placeholder="Add new item..."
@@ -95,11 +95,11 @@ export default function App() {
       </div>
       <ul style={{ listStyle: 'none', padding: 0 }}>
         {items.map(item => (
-          <li
+          <li 
             key={item.id}
             onClick={() => toggleItem(item.id)}
-            style={{
-              padding: '10px',
+            style={{ 
+              padding: '10px', 
               cursor: 'pointer',
               textDecoration: item.completed ? 'line-through' : 'none',
               opacity: item.completed ? 0.6 : 1
@@ -175,8 +175,8 @@ app.listen(PORT, () => console.log(\`Server running on port \${PORT}\`));
   <title>My Web Page</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, sans-serif;
+    body { 
+      font-family: system-ui, sans-serif; 
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       display: flex;
@@ -251,15 +251,15 @@ def process_data(items: List[str]) -> List[str]:
 def main():
     """Main entry point."""
     print(f"Script started at {datetime.now().isoformat()}")
-
+    
     # Example usage
     sample_data = ["hello", "  world  ", "", "python"]
     result = process_data(sample_data)
-
+    
     print(f"Processed {len(result)} items:")
     for item in result:
         print(f"  - {item}")
-
+    
     print("\\nScript completed successfully!")
 
 if __name__ == '__main__':
@@ -280,7 +280,7 @@ if __name__ == '__main__':
       <button @click="addTodo">Add</button>
     </div>
     <ul class="todo-list">
-      <li v-for="todo in todos" :key="todo.id"
+      <li v-for="todo in todos" :key="todo.id" 
           :class="{ completed: todo.done }"
           @click="toggleTodo(todo.id)">
         {{ todo.text }}
@@ -300,7 +300,7 @@ const todos = ref([
   { id: 2, text: 'Build something awesome', done: false }
 ])
 
-const completedCount = computed(() =>
+const completedCount = computed(() => 
   todos.value.filter(t => t.done).length
 )
 
@@ -686,13 +686,12 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const [isResizing, setIsResizing] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dimensions, setDimensions] = useState({ width: 900, height: 600 });
-  const [zIndex, setZIndex] = useState(50); // Added zIndex state
   const dragStartRef = useRef({ x: 0, y: 0 });
   const resizeStartRef = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 });
 
   const [monacoAIMode, setMonacoAIMode] = useState<MonacoAIMode>(() => {
     const saved = localStorage.getItem(MONACO_AI_MODE_KEY);
-    return (saved === 'natural' || saved === 'technical' || saved === 'freestyle' || saved === 'health')
+    return (saved === 'natural' || saved === 'technical' || saved === 'freestyle' || saved === 'health') 
       ? saved : 'freestyle';
   });
 
@@ -715,14 +714,14 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     const htmlFile = files.find(f => f.language === 'html');
     const cssFile = files.find(f => f.language === 'css');
     const jsFile = files.find(f => f.language === 'javascript');
-
+    
     if (htmlFile) {
       let content = htmlFile.content;
       // Inject CSS if separate file exists
       if (cssFile && !content.includes(cssFile.content)) {
         content = content.replace('</head>', `<style>${cssFile.content}</style></head>`);
       }
-      // Inject JS if separate file exists
+      // Inject JS if separate file exists  
       if (jsFile && !content.includes(jsFile.content)) {
         content = content.replace('</body>', `<script>${jsFile.content}</script></body>`);
       }
@@ -730,7 +729,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     }
     return '';
   }, [files]);
-
+  
   // Generate unique key for iframe to force refresh on content changes
   const livePreviewKey = useMemo(() => {
     return `preview-${Date.now()}-${livePreviewContent.length}`;
@@ -740,14 +739,14 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const loadTemplate = (templateId: string) => {
     const template = PROJECT_TEMPLATES[templateId];
     if (!template) return;
-
+    
     const newFiles: CodeFile[] = template.files.map((f, i) => ({
       id: `template-${Date.now()}-${i}`,
       name: f.name,
       language: f.language,
       content: f.content
     }));
-
+    
     setFiles(newFiles);
     if (newFiles.length > 0) {
       setActiveFileId(newFiles[0].id);
@@ -765,7 +764,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
         fetch('/api/git/status'),
         fetch('/api/git/diff')
       ]);
-
+      
       if (logRes.ok) {
         const data = await logRes.json();
         setGitCommits(data.commits || []);
@@ -791,7 +790,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     const height = 600;
     const rightX = Math.max(0, window.innerWidth - width - 20);
     const topY = terminalAreaTop + 20;
-
+    
     setDimensions({ width, height });
     setPosition({ x: rightX, y: topY });
   }, []);
@@ -815,11 +814,6 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       setPosition({ x: 0, y: terminalAreaTop });
     }
   }, [isMaximized]);
-
-  // Function to bring the window to the front
-  const bringToFront = useCallback(() => {
-    setZIndex(prev => Math.max(prev, 100));
-  }, []);
 
   // Mouse move handler for dragging (matching Workshop behavior)
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -918,7 +912,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const activeFile = files.find(f => f.id === activeFileId);
 
   const updateFileContent = useCallback((content: string) => {
-    setFiles(prev => prev.map(f =>
+    setFiles(prev => prev.map(f => 
       f.id === activeFileId ? { ...f, content } : f
     ));
   }, [activeFileId]);
@@ -934,7 +928,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       }
     }
 
-    setFiles(prev => prev.map(f =>
+    setFiles(prev => prev.map(f => 
       f.id === id ? { ...f, name, language: newLang } : f
     ));
   }, [files]);
@@ -1022,7 +1016,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       return response.json();
     },
     onSuccess: (data) => {
-      const outputText = data.success
+      const outputText = data.success 
         ? `${data.output || 'Execution complete.'}\n\n✓ Completed in ${data.executionTime || '0'}s`
         : `ERROR:\n${data.error}\n\n${data.output || ''}`;
       setOutput(outputText);
@@ -1041,8 +1035,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     setIsRunning(true);
     setOutput('Running...\n');
     const stdinLines = stdinInput.split('\n').filter(l => l.trim());
-    runMutation.mutate({
-      code: activeFile.content,
+    runMutation.mutate({ 
+      code: activeFile.content, 
       language: activeFile.language,
       stdin: stdinLines.length > 0 ? stdinInput : undefined
     });
@@ -1081,18 +1075,18 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     // Convert HSL to hex
     const hslToHex = (hslString: string): string => {
       if (hslString.startsWith('#')) return hslString.replace('#', '');
-
+      
       const hslMatch = hslString.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
       if (!hslMatch) return '00FF41'; // fallback
-
+      
       const h = parseInt(hslMatch[1]);
       const s = parseInt(hslMatch[2]) / 100;
       const l = parseInt(hslMatch[3]) / 100;
-
+      
       const c = (1 - Math.abs(2 * l - 1)) * s;
       const x = c * (1 - Math.abs((h / 60) % 2 - 1));
       const m = l - c / 2;
-
+      
       let r = 0, g = 0, b = 0;
       if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
       else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
@@ -1100,12 +1094,12 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
       else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
       else if (h >= 300 && h < 360) { r = c; g = 0; b = x; }
-
+      
       const toHex = (n: number) => {
         const hex = Math.round((n + m) * 255).toString(16);
         return hex.length === 1 ? '0' + hex : hex;
       };
-
+      
       return toHex(r) + toHex(g) + toHex(b);
     };
 
@@ -1136,43 +1130,23 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     monaco.editor.setTheme('archimedes-dynamic');
   };
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    bringToFront();
-
-    const target = e.target as HTMLElement;
-    if (
-      target.closest('button') ||
-      target.closest('.monaco-editor') ||
-      target.tagName === 'BUTTON'
-    ) {
-      return;
-    }
-
-    setIsDragging(true);
-    dragStartRef.current = { x: e.clientX, y: e.clientY };
-  }, [bringToFront]);
-
   return (
-    <div
-      className={`fixed bg-terminal-bg border-2 border-terminal-highlight rounded-lg shadow-2xl flex flex-col ${
-        isMaximized ? 'inset-0' : ''
-      }`}
-      onClick={bringToFront}
+    <div 
+      className={`theme-${currentTheme} flex flex-col border-2 rounded-lg shadow-2xl overflow-hidden`}
       style={{
         position: 'fixed',
         top: `${position.y}px`,
         left: `${position.x}px`,
         width: `${dimensions.width}px`,
         height: `${dimensions.height}px`,
-        zIndex,
+        zIndex: 40,
         backgroundColor: 'var(--terminal-bg)',
         borderColor: 'var(--terminal-highlight)',
       }}
       data-testid="code-playground"
-      onMouseDown={handleMouseDown}
     >
       {/* Header with drag handle */}
-      <div
+      <div 
         className="flex items-center justify-between px-4 py-3 cursor-move"
         style={{
           backgroundColor: 'var(--terminal-bg)',
@@ -1215,8 +1189,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
               </SelectTrigger>
               <SelectContent className="bg-[#0D1117] border-[#00FF41]/30">
                 {(Object.keys(AI_MODE_CONFIG) as MonacoAIMode[]).map((mode) => (
-                  <SelectItem
-                    key={mode}
+                  <SelectItem 
+                    key={mode} 
                     value={mode}
                     className="text-[#00FF41] hover:bg-[#00FF41]/20 focus:bg-[#00FF41]/20 font-mono text-xs"
                   >
@@ -1364,13 +1338,13 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                     key={view}
                     onClick={() => setGitView(view)}
                     className={`px-2 py-1 text-xs font-mono rounded ${
-                      gitView === view
-                        ? 'bg-[#00FF41]/20 text-[#00FF41]'
+                      gitView === view 
+                        ? 'bg-[#00FF41]/20 text-[#00FF41]' 
                         : 'text-[#00FF41]/50 hover:text-[#00FF41]/80'
                     }`}
                     data-testid={`git-tab-${view}`}
                   >
-                    {view === 'commits' ? `Commits (${gitCommits.length})` :
+                    {view === 'commits' ? `Commits (${gitCommits.length})` : 
                      view === 'status' ? `Status (${gitStatus.length})` : 'Diff'}
                   </button>
                 ))}
@@ -1396,14 +1370,14 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
               </Button>
             </div>
           </div>
-
+          
           {gitLoading ? (
             <div className="text-[#00FF41]/50 text-xs font-mono py-2">Loading git info...</div>
           ) : gitView === 'commits' ? (
             gitCommits.length > 0 ? (
               <div className="space-y-1">
                 {gitCommits.slice(0, 10).map((commit) => (
-                  <div
+                  <div 
                     key={commit.hash}
                     className="flex items-start gap-2 px-2 py-1 rounded hover:bg-[#00FF41]/5 border-l-2 border-[#00FF41]/20"
                   >
@@ -1422,13 +1396,13 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
             gitStatus.length > 0 ? (
               <div className="space-y-1">
                 {gitStatus.map((file, i) => (
-                  <div
+                  <div 
                     key={i}
                     className="flex items-center gap-2 px-2 py-1 rounded hover:bg-[#00FF41]/5 border-l-2"
-                    style={{
-                      borderColor: file.status === 'added' ? '#22c55e' :
-                                   file.status === 'deleted' ? '#ef4444' :
-                                   file.status === 'untracked' ? '#eab308' : '#00FF41'
+                    style={{ 
+                      borderColor: file.status === 'added' ? '#22c55e' : 
+                                   file.status === 'deleted' ? '#ef4444' : 
+                                   file.status === 'untracked' ? '#eab308' : '#00FF41' 
                     }}
                   >
                     <span className={`text-[10px] font-mono px-1 rounded ${
@@ -1484,8 +1458,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                   <div
                     key={file.id}
                     className={`group flex items-center justify-between px-2 py-1.5 rounded cursor-pointer transition-colors ${
-                      activeFileId === file.id
-                        ? 'bg-[#00FF41]/20 border border-[#00FF41]/40'
+                      activeFileId === file.id 
+                        ? 'bg-[#00FF41]/20 border border-[#00FF41]/40' 
                         : 'hover:bg-[#00FF41]/10 border border-transparent'
                     }`}
                     onClick={() => setActiveFileId(file.id)}
@@ -1541,11 +1515,11 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                 <div className="flex items-center gap-3">
                   <span className="text-lg">{LANGUAGE_CONFIG[activeFile.language]?.icon || '📄'}</span>
                   <span className="text-[#00FF41] font-mono text-sm">{activeFile.name}</span>
-                  <Select
-                    value={activeFile.language}
+                  <Select 
+                    value={activeFile.language} 
                     onValueChange={(lang) => updateFileLanguage(activeFile.id, lang)}
                   >
-                    <SelectTrigger
+                    <SelectTrigger 
                       className="w-32 h-7 bg-black/40 border-[#00FF41]/30 text-[#00FF41] text-xs font-mono focus:ring-[#00FF41]/50"
                       data-testid="select-file-language"
                     >
@@ -1555,8 +1529,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                     </SelectTrigger>
                     <SelectContent className="bg-[#0D1117] border-[#00FF41]/30 max-h-64">
                       {Object.entries(LANGUAGE_CONFIG).map(([lang, config]) => (
-                        <SelectItem
-                          key={lang}
+                        <SelectItem 
+                          key={lang} 
                           value={lang}
                           className="text-[#00FF41] hover:bg-[#00FF41]/20 focus:bg-[#00FF41]/20 font-mono text-xs"
                         >
@@ -1692,11 +1666,11 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
           <ScrollArea className="flex-1">
             {guiOutput && (
               <div className="p-4 border-b border-[#00FF41]/20">
-                <div
+                <div 
                   className={`rounded overflow-hidden matplotlib-output ${
                     guiOutput.includes('data:image/gif') ? 'matplotlib-animation-container' : ''
                   }`}
-                  dangerouslySetInnerHTML={{ __html: guiOutput }}
+                  dangerouslySetInnerHTML={{ __html: guiOutput }} 
                 />
               </div>
             )}
@@ -1746,7 +1720,7 @@ Supported languages:
       {/* Footer */}
       <div className="px-4 py-2 bg-black/50 border-t border-[#00FF41]/30 flex items-center justify-between">
         <div className="text-[#00FF41]/50 font-mono text-xs">
-          {files.length} file{files.length !== 1 ? 's' : ''} •
+          {files.length} file{files.length !== 1 ? 's' : ''} • 
           Languages: {Array.from(new Set(files.map(f => LANGUAGE_CONFIG[f.language]?.displayName || f.language))).join(', ')}
         </div>
         <div className="text-[#00FF41]/50 font-mono text-xs">

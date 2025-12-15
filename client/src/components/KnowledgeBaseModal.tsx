@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { X, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -43,18 +44,7 @@ export function KnowledgeBaseModal({
   children 
 }: KnowledgeBaseModalProps) {
   // Resizable window state - start with default size
-  const [isMaximized, setIsMaximized] = useState(initialMaximized);
-  const [zIndex, setZIndex] = useState(50);
-
-  const bringToFront = () => {
-    // Set a high z-index when clicked
-    setZIndex(prev => Math.max(prev, 100));
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    bringToFront();
-  };
-
+  const [isMaximized, setIsMaximized] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 600, height: 600 });
@@ -130,7 +120,7 @@ export function KnowledgeBaseModal({
   const toggleMaximize = () => {
     const terminalAreaTop = 60;
     const terminalAreaBottom = 60;
-
+    
     if (isMaximized) {
       // Restore previous size and center position
       setDimensions({ width: 600, height: 600 });
@@ -152,7 +142,6 @@ export function KnowledgeBaseModal({
   return (
     <div 
       className="fixed z-50 overflow-hidden shadow-2xl flex flex-col"
-      onClick={bringToFront}
       style={{
         width: isMaximized ? '100vw' : `${dimensions.width}px`,
         height: isMaximized ? `${terminalAreaHeight}px` : `${dimensions.height}px`,
@@ -166,8 +155,7 @@ export function KnowledgeBaseModal({
         WebkitBackdropFilter: 'blur(12px) saturate(180%)',
         willChange: 'transform',
         transform: 'translateZ(0)',
-        isolation: 'isolate',
-        zIndex,
+        isolation: 'isolate'
       }}
       data-testid="knowledge-base-panel"
       data-no-terminal-autofocus
