@@ -251,15 +251,15 @@ def process_data(items: List[str]) -> List[str]:
 def main():
     """Main entry point."""
     print(f"Script started at {datetime.now().isoformat()}")
-    
+
     # Example usage
     sample_data = ["hello", "  world  ", "", "python"]
     result = process_data(sample_data)
-    
+
     print(f"Processed {len(result)} items:")
     for item in result:
         print(f"  - {item}")
-    
+
     print("\\nScript completed successfully!")
 
 if __name__ == '__main__':
@@ -716,7 +716,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     const htmlFile = files.find(f => f.language === 'html');
     const cssFile = files.find(f => f.language === 'css');
     const jsFile = files.find(f => f.language === 'javascript');
-    
+
     if (htmlFile) {
       let content = htmlFile.content;
       // Inject CSS if separate file exists
@@ -731,7 +731,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     }
     return '';
   }, [files]);
-  
+
   // Generate unique key for iframe to force refresh on content changes
   const livePreviewKey = useMemo(() => {
     return `preview-${Date.now()}-${livePreviewContent.length}`;
@@ -741,14 +741,14 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const loadTemplate = (templateId: string) => {
     const template = PROJECT_TEMPLATES[templateId];
     if (!template) return;
-    
+
     const newFiles: CodeFile[] = template.files.map((f, i) => ({
       id: `template-${Date.now()}-${i}`,
       name: f.name,
       language: f.language,
       content: f.content
     }));
-    
+
     setFiles(newFiles);
     if (newFiles.length > 0) {
       setActiveFileId(newFiles[0].id);
@@ -779,7 +779,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
         fetch('/api/git/status'),
         fetch('/api/git/diff')
       ]);
-      
+
       if (logRes.ok) {
         const data = await logRes.json();
         setGitCommits(data.commits || []);
@@ -805,7 +805,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     const height = 600;
     const rightX = Math.max(0, window.innerWidth - width - 20);
     const topY = terminalAreaTop + 20;
-    
+
     setDimensions({ width, height });
     setPosition({ x: rightX, y: topY });
   }, []);
@@ -1090,18 +1090,18 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     // Convert HSL to hex
     const hslToHex = (hslString: string): string => {
       if (hslString.startsWith('#')) return hslString.replace('#', '');
-      
+
       const hslMatch = hslString.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
       if (!hslMatch) return '00FF41'; // fallback
-      
+
       const h = parseInt(hslMatch[1]);
       const s = parseInt(hslMatch[2]) / 100;
       const l = parseInt(hslMatch[3]) / 100;
-      
+
       const c = (1 - Math.abs(2 * l - 1)) * s;
       const x = c * (1 - Math.abs((h / 60) % 2 - 1));
       const m = l - c / 2;
-      
+
       let r = 0, g = 0, b = 0;
       if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
       else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
@@ -1109,12 +1109,12 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
       else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
       else if (h >= 300 && h < 360) { r = c; g = 0; b = x; }
-      
+
       const toHex = (n: number) => {
         const hex = Math.round((n + m) * 255).toString(16);
         return hex.length === 1 ? '0' + hex : hex;
       };
-      
+
       return toHex(r) + toHex(g) + toHex(b);
     };
 
@@ -1357,7 +1357,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                 <X className="w-4 h-4" />
               </button>
             </div>
-            
+
             <div className="space-y-2 mb-4">
               <div className="flex items-center gap-2">
                 <code className="text-[#00FF41]/60 text-xs font-mono">Hash:</code>
@@ -1441,7 +1441,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
               </Button>
             </div>
           </div>
-          
+
           {gitLoading ? (
             <div className="text-[#00FF41]/50 text-xs font-mono py-2">Loading git info...</div>
           ) : gitView === 'commits' ? (
@@ -1680,7 +1680,11 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                     automaticLayout: true,
                     tabSize: 2,
                     wordWrap: 'on',
+                    renderWhitespace: 'selection',
+                    renderLineHighlight: 'all',
                     padding: { top: 10 },
+                    // Add vim keybindings support
+                    // keyMap: 'vim', // Uncomment to enable vim mode
                     fontFamily: '"Fira Code", "JetBrains Mono", Consolas, monospace',
                     fontLigatures: true,
                     cursorBlinking: 'smooth',
