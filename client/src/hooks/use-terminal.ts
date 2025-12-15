@@ -1156,7 +1156,7 @@ Special Modes:
     }
 
     if (cmd === 'theme') {
-      const currentTheme = localStorage.getItem('terminal-theme') || 'forest-gradient';
+      const currentTheme = localStorage.getItem('terminal-theme') || 'hacker';
       addEntry('system', `Current theme: ${currentTheme}\n\nUse "theme list" to see all available themes\nUse "theme <name>" to change theme`);
       return;
     }
@@ -1169,7 +1169,7 @@ Special Modes:
         'atari', 'nes', 'gameboy', 'arcade', 'spectrum', 'rainbow-cycle'
       ];
 
-      const currentTheme = localStorage.getItem('terminal-theme') || 'forest-gradient';
+      const currentTheme = localStorage.getItem('terminal-theme') || 'hacker';
       const formattedList = themesList.map(theme =>
         theme === currentTheme ? `  ▶ ${theme} (current)` : `    ${theme}`
       ).join('\n');

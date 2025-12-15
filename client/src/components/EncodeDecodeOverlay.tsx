@@ -11,7 +11,7 @@ export function EncodeDecodeOverlay({ isOpen, onClose }: EncodeDecodeOverlayProp
   
   // Get current theme from localStorage
   const getCurrentTheme = () => {
-    return localStorage.getItem('terminal-theme') || 'green';
+    return localStorage.getItem('terminal-theme') || 'hacker';
   };
 
   // Listen for "QWERTY" to be typed to unlock
