@@ -139,7 +139,7 @@ export function DTMFDecoder({ onClose }: DTMFDecoderProps) {
   const analyzeAudio = useCallback(() => {
     if (!analyserRef.current || !dataArrayRef.current || !audioContextRef.current) return;
     
-    analyserRef.current.getFloatFrequencyData(dataArrayRef.current);
+    analyserRef.current.getFloatFrequencyData(dataArrayRef.current as Float32Array<ArrayBuffer>);
     
     // Calculate volume level for visual feedback
     const sum = dataArrayRef.current.reduce((acc, val) => acc + Math.pow(10, val / 10), 0);
