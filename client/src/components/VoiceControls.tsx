@@ -299,8 +299,6 @@ export function VoiceControls({
                   <p>Profile</p>
                 </TooltipContent>
               </Tooltip>
-            </>
-          )}
         </TooltipProvider>
 
         {/* Power/Login Button */}

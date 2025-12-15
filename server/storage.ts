@@ -136,7 +136,7 @@ export class MemStorage implements IStorage {
       voiceEnabled: preferences.voiceEnabled || false,
       selectedVoice: preferences.selectedVoice || null,
       voiceRate: preferences.voiceRate || null,
-      terminalTheme: preferences.terminalTheme || null,
+      terminalTheme: preferences.terminalTheme || "hacker",
       createdAt: now,
       updatedAt: now
     };
