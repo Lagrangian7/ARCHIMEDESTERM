@@ -2382,3 +2382,477 @@
 }
 
 /* Terminal grid and watermark are now consolidated in Terminal.tsx component */
+
+/* ========================= */
+/* ENHANCED ANIMATION SYSTEM */
+/* ========================= */
+
+/* Terminal Typewriter Animation */
+@keyframes terminal-typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes terminal-blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: var(--terminal-highlight, #00ff41); }
+}
+
+.terminal-typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 3px solid var(--terminal-highlight, #00ff41);
+  animation: 
+    terminal-typewriter var(--type-duration, 2s) steps(var(--type-steps, 40), end),
+    terminal-blink-caret 0.75s step-end infinite;
+}
+
+/* Terminal Glitch Text Effect */
+@keyframes terminal-glitch-1 {
+  0%, 100% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+}
+
+@keyframes terminal-glitch-2 {
+  0%, 100% { opacity: 1; }
+  20% { opacity: 0.8; clip-path: inset(10% 0 60% 0); }
+  40% { opacity: 0.9; clip-path: inset(40% 0 20% 0); }
+  60% { opacity: 0.7; clip-path: inset(70% 0 10% 0); }
+  80% { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+@keyframes terminal-glitch-skew {
+  0%, 100% { transform: skew(0deg); filter: none; }
+  25% { transform: skew(2deg); filter: hue-rotate(20deg); }
+  50% { transform: skew(-2deg); filter: hue-rotate(-20deg); }
+  75% { transform: skew(1deg); filter: saturate(1.5); }
+}
+
+.terminal-glitch-text {
+  position: relative;
+  animation: terminal-glitch-1 0.5s infinite;
+}
+
+.terminal-glitch-text::before,
+.terminal-glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.terminal-glitch-text::before {
+  color: #ff0000;
+  animation: terminal-glitch-2 0.3s infinite;
+  clip-path: inset(0 0 50% 0);
+  transform: translate(-2px, 0);
+}
+
+.terminal-glitch-text::after {
+  color: #00ffff;
+  animation: terminal-glitch-2 0.3s 0.1s infinite;
+  clip-path: inset(50% 0 0 0);
+  transform: translate(2px, 0);
+}
+
+/* Terminal Matrix Rain Effect on Text */
+@keyframes matrix-text-fade {
+  0% { opacity: 0; transform: translateY(-10px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; }
+  100% { opacity: 0.8; }
+}
+
+.terminal-matrix-reveal {
+  animation: matrix-text-fade 0.8s ease-out forwards;
+}
+
+/* Terminal Scanline Sweep */
+@keyframes scanline-sweep {
+  0% { top: -100%; }
+  100% { top: 100%; }
+}
+
+.terminal-scanline-effect::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(0, 255, 65, 0.4),
+    rgba(0, 255, 65, 0.8),
+    rgba(0, 255, 65, 0.4),
+    transparent
+  );
+  animation: scanline-sweep 3s linear infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Terminal Character-by-Character Reveal */
+@keyframes char-reveal {
+  0% { opacity: 0; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.terminal-char-reveal > span {
+  display: inline-block;
+  opacity: 0;
+  animation: char-reveal 0.1s ease-out forwards;
+}
+
+/* Terminal Flicker Effect */
+@keyframes terminal-flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.4; }
+}
+
+.terminal-flicker {
+  animation: terminal-flicker 3s linear infinite;
+}
+
+/* Terminal CRT Boot Animation */
+@keyframes crt-boot {
+  0% { 
+    transform: scaleY(0.01) scaleX(0.5);
+    filter: brightness(10) blur(10px);
+  }
+  30% { 
+    transform: scaleY(0.01) scaleX(1);
+    filter: brightness(5) blur(5px);
+  }
+  50% { 
+    transform: scaleY(1) scaleX(1);
+    filter: brightness(2) blur(2px);
+  }
+  100% { 
+    transform: scaleY(1) scaleX(1);
+    filter: brightness(1) blur(0);
+  }
+}
+
+.terminal-crt-boot {
+  animation: crt-boot 1s ease-out forwards;
+}
+
+/* ========================= */
+/* MONACO EDITOR ANIMATIONS  */
+/* ========================= */
+
+/* Monaco Cursor Glow Effect */
+@keyframes monaco-cursor-glow {
+  0%, 100% { 
+    box-shadow: 0 0 5px var(--terminal-highlight, #00ff41),
+                0 0 10px var(--terminal-highlight, #00ff41),
+                0 0 15px var(--terminal-highlight, #00ff41);
+  }
+  50% { 
+    box-shadow: 0 0 10px var(--terminal-highlight, #00ff41),
+                0 0 20px var(--terminal-highlight, #00ff41),
+                0 0 30px var(--terminal-highlight, #00ff41);
+  }
+}
+
+.monaco-editor .cursor {
+  animation: monaco-cursor-glow 1.5s ease-in-out infinite !important;
+}
+
+/* Monaco Bracket Matching Animation */
+@keyframes bracket-pulse {
+  0%, 100% { 
+    background-color: rgba(0, 255, 65, 0.2);
+    box-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+  }
+  50% { 
+    background-color: rgba(0, 255, 65, 0.4);
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.8);
+  }
+}
+
+.monaco-editor .bracket-match {
+  animation: bracket-pulse 1s ease-in-out infinite !important;
+  border: 1px solid var(--terminal-highlight, #00ff41) !important;
+  border-radius: 2px;
+}
+
+/* Monaco Line Highlight Animation */
+@keyframes line-highlight-pulse {
+  0%, 100% { 
+    background-color: rgba(0, 255, 65, 0.05);
+  }
+  50% { 
+    background-color: rgba(0, 255, 65, 0.1);
+  }
+}
+
+.monaco-editor .current-line {
+  animation: line-highlight-pulse 2s ease-in-out infinite !important;
+}
+
+/* Monaco Selection Glow */
+@keyframes selection-glow {
+  0%, 100% { 
+    box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.3);
+  }
+  50% { 
+    box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.5);
+  }
+}
+
+.monaco-editor .selected-text {
+  animation: selection-glow 2s ease-in-out infinite;
+}
+
+/* Monaco Code Execution Flash */
+@keyframes code-execute-flash {
+  0% { 
+    background-color: rgba(0, 255, 65, 0.6);
+    transform: scale(1);
+  }
+  50% { 
+    background-color: rgba(0, 255, 65, 0.3);
+    transform: scale(1.01);
+  }
+  100% { 
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+.monaco-code-execute-flash {
+  animation: code-execute-flash 0.5s ease-out forwards;
+}
+
+/* Monaco Error Shake */
+@keyframes code-error-shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+.monaco-error-shake {
+  animation: code-error-shake 0.5s ease-in-out;
+}
+
+/* Monaco Success Pulse */
+@keyframes code-success-pulse {
+  0% { 
+    box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.7);
+  }
+  70% { 
+    box-shadow: 0 0 0 10px rgba(0, 255, 65, 0);
+  }
+  100% { 
+    box-shadow: 0 0 0 0 rgba(0, 255, 65, 0);
+  }
+}
+
+.monaco-success-pulse {
+  animation: code-success-pulse 1s ease-out;
+}
+
+/* Monaco Minimap Glow */
+.monaco-editor .minimap {
+  box-shadow: -5px 0 20px rgba(0, 255, 65, 0.1);
+}
+
+/* ========================= */
+/* MATPLOTLIB OUTPUT ANIMATIONS */
+/* ========================= */
+
+/* Chart Fade In */
+@keyframes chart-fade-in {
+  0% { 
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.matplotlib-output {
+  animation: chart-fade-in 0.5s ease-out forwards;
+}
+
+/* Chart Hover Glow */
+.matplotlib-output:hover {
+  box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+  transition: box-shadow 0.3s ease;
+}
+
+/* GIF Animation Container */
+@keyframes gif-border-rotate {
+  0% { 
+    border-image-source: linear-gradient(0deg, #00ff41, #00ffff, #ff00ff, #00ff41);
+  }
+  25% { 
+    border-image-source: linear-gradient(90deg, #00ff41, #00ffff, #ff00ff, #00ff41);
+  }
+  50% { 
+    border-image-source: linear-gradient(180deg, #00ff41, #00ffff, #ff00ff, #00ff41);
+  }
+  75% { 
+    border-image-source: linear-gradient(270deg, #00ff41, #00ffff, #ff00ff, #00ff41);
+  }
+  100% { 
+    border-image-source: linear-gradient(360deg, #00ff41, #00ffff, #ff00ff, #00ff41);
+  }
+}
+
+.matplotlib-animation-container {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  animation: gif-border-rotate 3s linear infinite;
+  border-image-slice: 1;
+  padding: 4px;
+}
+
+/* Animation Loading Spinner */
+@keyframes loading-spinner {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.matplotlib-loading {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 255, 65, 0.3);
+  border-top-color: var(--terminal-highlight, #00ff41);
+  border-radius: 50%;
+  animation: loading-spinner 1s linear infinite;
+}
+
+/* Chart Data Point Animation */
+@keyframes data-point-pop {
+  0% { 
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% { 
+    transform: scale(1.3);
+  }
+  100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.chart-data-point {
+  animation: data-point-pop 0.3s ease-out forwards;
+}
+
+/* ========================= */
+/* UTILITY ANIMATION CLASSES */
+/* ========================= */
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceIn {
+  0% { 
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% { 
+    transform: scale(0.9);
+  }
+  100% { 
+    transform: scale(1);
+  }
+}
+
+/* Staggered animation delay utilities */
+.animation-delay-100 { animation-delay: 100ms; }
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-300 { animation-delay: 300ms; }
+.animation-delay-400 { animation-delay: 400ms; }
+.animation-delay-500 { animation-delay: 500ms; }
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .terminal-typewriter,
+  .terminal-glitch-text,
+  .terminal-matrix-reveal,
+  .terminal-scanline-effect::after,
+  .terminal-char-reveal > span,
+  .terminal-flicker,
+  .terminal-crt-boot,
+  .monaco-editor .cursor,
+  .monaco-editor .bracket-match,
+  .monaco-editor .current-line,
+  .matplotlib-output,
+  .matplotlib-animation-container {
+    animation: none !important;
+  }
+}

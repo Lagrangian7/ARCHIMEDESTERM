@@ -1007,7 +1007,9 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
             {guiOutput && (
               <div className="p-4 border-b border-[#00FF41]/20">
                 <div 
-                  className="rounded overflow-hidden"
+                  className={`rounded overflow-hidden matplotlib-output ${
+                    guiOutput.includes('data:image/gif') ? 'matplotlib-animation-container' : ''
+                  }`}
                   dangerouslySetInnerHTML={{ __html: guiOutput }} 
                 />
               </div>
