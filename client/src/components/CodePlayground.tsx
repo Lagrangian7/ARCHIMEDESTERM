@@ -933,6 +933,23 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     ));
   }, [files]);
 
+  const updateFileLanguage = useCallback((id: string, language: string) => {
+    const config = LANGUAGE_CONFIG[language];
+    setFiles(prev => prev.map(f => {
+      if (f.id === id) {
+        // Optionally update the file extension to match the new language
+        const currentExt = f.name.split('.').pop();
+        const newExt = config?.extension.slice(1); // Remove leading dot
+        let newName = f.name;
+        if (currentExt && newExt && currentExt !== newExt) {
+          newName = f.name.replace(/\.[^.]+$/, config.extension);
+        }
+        return { ...f, language, name: newName };
+      }
+      return f;
+    }));
+  }, []);
+
   const addNewFile = useCallback(() => {
     const newFile: CodeFile = {
       id: `file-${Date.now()}`,
@@ -1498,9 +1515,33 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                 <div className="flex items-center gap-3">
                   <span className="text-lg">{LANGUAGE_CONFIG[activeFile.language]?.icon || '📄'}</span>
                   <span className="text-[#00FF41] font-mono text-sm">{activeFile.name}</span>
-                  <span className="text-[#00FF41]/50 text-xs font-mono">
-                    {LANGUAGE_CONFIG[activeFile.language]?.displayName || activeFile.language}
-                  </span>
+                  <Select 
+                    value={activeFile.language} 
+                    onValueChange={(lang) => updateFileLanguage(activeFile.id, lang)}
+                  >
+                    <SelectTrigger 
+                      className="w-32 h-7 bg-black/40 border-[#00FF41]/30 text-[#00FF41] text-xs font-mono focus:ring-[#00FF41]/50"
+                      data-testid="select-file-language"
+                    >
+                      <SelectValue>
+                        {LANGUAGE_CONFIG[activeFile.language]?.icon} {LANGUAGE_CONFIG[activeFile.language]?.displayName || activeFile.language}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0D1117] border-[#00FF41]/30 max-h-64">
+                      {Object.entries(LANGUAGE_CONFIG).map(([lang, config]) => (
+                        <SelectItem 
+                          key={lang} 
+                          value={lang}
+                          className="text-[#00FF41] hover:bg-[#00FF41]/20 focus:bg-[#00FF41]/20 font-mono text-xs"
+                        >
+                          <span className="flex items-center gap-2">
+                            <span>{config.icon}</span>
+                            <span>{config.displayName}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
