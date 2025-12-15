@@ -376,7 +376,7 @@ export default function WebampPlayer({ isOpen, onClose, onOpen }: WebampPlayerPr
 
           // Custom default skin
           initialSkin: {
-            url: "/skin-green.wsz"
+            url: "/skin-technics.wsz"
           },
 
           
