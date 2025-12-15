@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Copy, Check } from 'lucide-react';
 import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -1903,6 +1903,7 @@ calculator()
   const [fontSize, setFontSize] = useState(13);
   const [isFormatting, setIsFormatting] = useState(false);
   const [showMinimap, setShowMinimap] = useState(true); // Default to showing minimap
+  const [codeCopied, setCodeCopied] = useState(false); // For copy button feedback
   const htmlPreview = ''; // Dummy variable, actual preview logic handled elsewhere
   const [htmlPreviewState, setHtmlPreview] = useState(''); // State to hold HTML preview content
   const [showCodePlayground, setShowCodePlayground] = useState(false); // State for Code Playground toggle
@@ -4031,6 +4032,22 @@ server.listen(PORT, '0.0.0.0', () => {
                 {/* Editor Panel */}
                 <Panel defaultSize={50} minSize={30}>
                   <div className="h-full w-full relative">
+                    {/* Copy Code Button */}
+                    <button
+                      onClick={() => {
+                        const codeContent = showMultiFileMode && activeFile ? activeFile.content : code;
+                        navigator.clipboard.writeText(codeContent).then(() => {
+                          setCodeCopied(true);
+                          toast({ title: "Copied!", description: "Code copied to clipboard" });
+                          setTimeout(() => setCodeCopied(false), 2000);
+                        });
+                      }}
+                      className="absolute top-2 right-4 z-10 p-2 bg-black/60 hover:bg-black/80 rounded text-white/80 hover:text-white transition-colors"
+                      title="Copy code to clipboard"
+                      data-testid="button-copy-code"
+                    >
+                      {codeCopied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                    </button>
                     <Editor
                       height="100%"
                       width="100%"
@@ -4153,6 +4170,22 @@ server.listen(PORT, '0.0.0.0', () => {
                 {/* Editor Panel */}
                 <Panel defaultSize={60} minSize={30}>
                   <div className="h-full w-full relative">
+                    {/* Copy Code Button */}
+                    <button
+                      onClick={() => {
+                        const codeContent = showMultiFileMode && activeFile ? activeFile.content : code;
+                        navigator.clipboard.writeText(codeContent).then(() => {
+                          setCodeCopied(true);
+                          toast({ title: "Copied!", description: "Code copied to clipboard" });
+                          setTimeout(() => setCodeCopied(false), 2000);
+                        });
+                      }}
+                      className="absolute top-2 right-4 z-10 p-2 bg-black/60 hover:bg-black/80 rounded text-white/80 hover:text-white transition-colors"
+                      title="Copy code to clipboard"
+                      data-testid="button-copy-code-2"
+                    >
+                      {codeCopied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                    </button>
                     <Editor
                       height="100%"
                       width="100%"
@@ -4401,6 +4434,22 @@ server.listen(PORT, '0.0.0.0', () => {
               </PanelGroup>
             ) : (
               <div className="h-full w-full relative">
+                {/* Copy Code Button */}
+                <button
+                  onClick={() => {
+                    const codeContent = showMultiFileMode && activeFile ? activeFile.content : code;
+                    navigator.clipboard.writeText(codeContent).then(() => {
+                      setCodeCopied(true);
+                      toast({ title: "Copied!", description: "Code copied to clipboard" });
+                      setTimeout(() => setCodeCopied(false), 2000);
+                    });
+                  }}
+                  className="absolute top-2 right-4 z-10 p-2 bg-black/60 hover:bg-black/80 rounded text-white/80 hover:text-white transition-colors"
+                  title="Copy code to clipboard"
+                  data-testid="button-copy-code-3"
+                >
+                  {codeCopied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                </button>
                 <Editor
                   height="100%"
                   width="100%"
