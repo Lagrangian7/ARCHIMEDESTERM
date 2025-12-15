@@ -13,6 +13,24 @@
   }
 }
 
+/* Bubble response glow effect - same as code editor processing */
+@keyframes bubble-glow-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 8px var(--terminal-highlight, #00ff41),
+                0 0 15px var(--terminal-highlight, #00ff41),
+                inset 0 0 10px rgba(0, 255, 65, 0.1);
+  }
+  50% { 
+    box-shadow: 0 0 20px var(--terminal-highlight, #00ff41),
+                0 0 35px var(--terminal-highlight, #00ff41),
+                inset 0 0 15px rgba(0, 255, 65, 0.2);
+  }
+}
+
+.bubble-glow-effect {
+  animation: bubble-glow-pulse 1.5s ease-in-out infinite;
+}
+
 @keyframes ai-glyph-pulse {
   0%, 100% {
     opacity: 0.4;

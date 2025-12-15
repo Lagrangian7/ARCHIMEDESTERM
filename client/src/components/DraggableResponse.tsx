@@ -565,7 +565,7 @@ export function DraggableResponse({ children, isTyping, entryId, onBubbleRendere
             <div 
               className={`relative p-4 rounded-lg border-2 border-terminal-highlight/30 bg-terminal-bg/98 backdrop-blur-lg transition-all duration-200 ${
                 isDragging ? 'shadow-2xl shadow-terminal-highlight/30 border-terminal-highlight/60 ring-2 ring-terminal-highlight/20' : 'shadow-lg hover:shadow-xl hover:border-terminal-highlight/40'
-              }`}
+              } ${isTyping ? 'bubble-glow-effect' : ''}`}
               style={{
                 height: size.height,
                 maxHeight: size.height,
