@@ -17,14 +17,3 @@ externalPort = 80
 
 [agent]
 integrations = ["javascript_openrouter_ai_integrations:1.0.0"]
-
-[workflows]
-
-[[workflows.workflow]]
-name = "start"
-mode = "sequential"
-author = 47036850
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
