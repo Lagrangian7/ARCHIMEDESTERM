@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import cubesIcon from '@assets/cubes_1758504853239.png';
 import { LogoIcon } from './LogoIcon';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
 
@@ -15,7 +14,6 @@ interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
   currentMode: 'natural' | 'technical' | 'freestyle' | 'health';
   switchMode: (mode: 'natural' | 'technical' | 'freestyle' | 'health') => void;
-  switchTheme: () => void;
   setShowWebamp: (show: boolean) => void;
   setIsWebampOpen?: (show: boolean) => void;
   user: any;
@@ -32,7 +30,6 @@ export function VoiceControls({
   onVoiceInput,
   currentMode,
   switchMode,
-  switchTheme,
   setShowWebamp,
   setIsWebampOpen,
   user,
@@ -203,25 +200,6 @@ export function VoiceControls({
         <TooltipProvider>
           {isAuthenticated && (
             <>
-              {/* Profile Button */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => setShowProfile(true)}
-                    variant="outline"
-                    size="sm"
-                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[32px] min-w-[32px] p-1.5"
-                    data-testid="button-user-profile"
-                    aria-label="Profile"
-                  >
-                    <User size={14} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>Profile</p>
-                </TooltipContent>
-              </Tooltip>
-
               {/* Notepad Button */}
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -303,6 +281,24 @@ export function VoiceControls({
               {/* Radio button removed - Webamp now controls animated character */}
             </>
           )}
+        {/* Profile Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setShowProfile(true)}
+                    variant="outline"
+                    size="sm"
+                    className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[32px] min-w-[32px] p-1.5"
+                    data-testid="button-user-profile"
+                    aria-label="Profile"
+                  >
+                    <User size={14} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                  <p>Profile</p>
+                </TooltipContent>
+              </Tooltip>
         </TooltipProvider>
 
         {/* Power/Login Button */}
@@ -342,22 +338,7 @@ export function VoiceControls({
           <CassetteTape size={14} />
         </Button>
 
-        {/* RGB Theme Switcher */}
-        <button
-          onClick={switchTheme}
-          className="cursor-pointer p-1.5 rounded transition-all duration-300 hover:scale-110 min-h-[32px] min-w-[32px] flex items-center justify-center bg-transparent border-none"
-          data-testid="button-theme-toggle"
-          aria-label="Switch Theme"
-        >
-          <img
-            src={cubesIcon}
-            alt="Theme Switcher"
-            width="18"
-            height="18"
-            className="rgb-theme-icon"
-          />
-        </button>
-      </div>
+        </div>
 
       {showPrivacyEncoder && (
         <EncodeDecodeOverlay isOpen={showPrivacyEncoder} onClose={() => setShowPrivacyEncoderLocal(false)} />
