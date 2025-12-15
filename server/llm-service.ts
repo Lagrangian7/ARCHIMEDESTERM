@@ -42,12 +42,12 @@ console.log('[LLM] Gemini initialized with key length:', geminiApiKey.length);
 
 // Replit-specific AI configuration
 const REPLIT_AI_CONFIG = {
-  primaryModel: 'mlabonne/CWC-Mistral-Nemo-12B-V2-q4_k_m', // Quantized Mistral Nemo model
+  primaryModel: 'mistralai/Mistral-7B-Instruct-v0.2', // Mistral instruct model (open access)
   fallbackModels: [
-    'meta-llama/Llama-2-7b-chat-hf',       // Fast, efficient model for Replit
-    'microsoft/DialoGPT-medium',           // Good for conversational AI
-    'google/flan-t5-large',                // Reliable instruction following
-    'EleutherAI/gpt-neo-2.7B'              // Creative and flexible responses
+    'HuggingFaceH4/zephyr-7b-beta',        // Fast, efficient instruction model
+    'microsoft/DialoGPT-large',            // Good for conversational AI
+    'tiiuae/falcon-7b-instruct',           // Reliable instruction following
+    'bigscience/bloom-560m'                // Lightweight fallback
   ],
   maxTokens: {
     natural: 2000,
@@ -1413,9 +1413,14 @@ Conversation Context:\n`;
           if (typeof result === 'object' && result.generated_text) {
             return result.generated_text;
           }
+          
+          console.log(`[HuggingFace] Model ${model} returned unexpected format:`, JSON.stringify(result).slice(0, 200));
+        } else {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          console.error(`[HuggingFace] Model ${model} failed with status ${response.status}: ${errorText.slice(0, 200)}`);
         }
       } catch (error) {
-        console.log(`Model ${model} failed, trying next...`);
+        console.error(`[HuggingFace] Model ${model} error:`, error instanceof Error ? error.message : error);
         continue;
       }
     }
