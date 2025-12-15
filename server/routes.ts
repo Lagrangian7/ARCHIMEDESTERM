@@ -1243,7 +1243,7 @@ except:
 ` : code;
 
       const startTime = Date.now();
-      const timeout = 30000; // 30 second timeout
+      const timeout = 120000; // 2 minute timeout for large programs
 
       const result = await new Promise<{ stdout: string; stderr: string; code: number }>((resolve, reject) => {
         const pythonProcess = spawn('python3', ['-c', wrappedCode]);
@@ -1254,7 +1254,7 @@ except:
         const timer = setTimeout(() => {
           killed = true;
           pythonProcess.kill();
-          reject(new Error('Execution timeout (30 seconds) - Code took too long to execute'));
+          reject(new Error('Execution timeout (2 minutes) - Code took too long to execute'));
         }, timeout);
 
         pythonProcess.stdout.on('data', (data) => {
@@ -1331,7 +1331,7 @@ except:
 
       const startTime = Date.now();
       const { stdout, stderr } = await execAsync(`node -e ${JSON.stringify(code)}`, {
-        timeout: 10000,
+        timeout: 60000,
         maxBuffer: 1024 * 1024
       });
       const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -1374,7 +1374,7 @@ except:
 
       const startTime = Date.now();
       const { stdout, stderr } = await execAsync(`npx tsx ${tmpFile}`, {
-        timeout: 15000,
+        timeout: 60000,
         maxBuffer: 1024 * 1024
       });
       const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -1421,7 +1421,7 @@ except:
       const startTime = Date.now();
       const { stdout, stderr } = await execAsync(code, {
         shell: '/bin/bash',
-        timeout: 10000,
+        timeout: 60000,
         maxBuffer: 1024 * 1024
       });
       const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -1465,12 +1465,12 @@ except:
       await fs.writeFile(tmpFile, code);
 
       // Compile
-      await execAsync(`g++ ${tmpFile} -o ${tmpExec}`, { timeout: 15000 });
+      await execAsync(`g++ ${tmpFile} -o ${tmpExec}`, { timeout: 60000 });
 
       // Execute
       const startTime = Date.now();
       const { stdout, stderr } = await execAsync(tmpExec, {
-        timeout: 10000,
+        timeout: 120000,
         maxBuffer: 1024 * 1024
       });
       const executionTime = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -1520,7 +1520,7 @@ except:
     const lang = (language || 'python').toLowerCase();
 
     // Helper to run a process with timeout using spawn (safer than exec)
-    const runProcess = (cmd: string, args: string[], timeout: number = 10000, stdinData?: string): Promise<{ stdout: string; stderr: string; code: number }> => {
+    const runProcess = (cmd: string, args: string[], timeout: number = 60000, stdinData?: string): Promise<{ stdout: string; stderr: string; code: number }> => {
       return new Promise((resolve, reject) => {
         const proc = spawn(cmd, args, { timeout, stdio: stdinData ? ['pipe', 'pipe', 'pipe'] : ['inherit', 'pipe', 'pipe'] });
         let stdout = '';
@@ -1862,7 +1862,7 @@ if _virtual_display_started:
 `;
           }
 
-          const result = await runProcess('python3', ['-c', wrappedCode], 30000, stdin);
+          const result = await runProcess('python3', ['-c', wrappedCode], 120000, stdin);
 
           // Extract GUI output if present (using [\s\S] instead of /s flag for compatibility)
           const guiMatch = result.stdout.match(/__GUI_OUTPUT__:([\s\S]*)/);
@@ -1879,7 +1879,7 @@ if _virtual_display_started:
         case 'javascript':
         case 'js': {
           // Use spawn with -e flag (code passed as argument, not shell-interpolated)
-          const result = await runProcess('node', ['-e', code], 10000, stdin);
+          const result = await runProcess('node', ['-e', code], 60000, stdin);
           output = result.stdout;
           error = result.stderr;
           break;
@@ -1890,7 +1890,7 @@ if _virtual_display_started:
           const tmpFile = path.join('/tmp', `ts_${randomId}.ts`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
-            const result = await runProcess('npx', ['tsx', tmpFile], 15000, stdin);
+            const result = await runProcess('npx', ['tsx', tmpFile], 60000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -1906,7 +1906,7 @@ if _virtual_display_started:
           const tmpFile = path.join('/tmp', `sh_${randomId}.sh`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
-            const result = await runProcess('bash', [tmpFile], 10000, stdin);
+            const result = await runProcess('bash', [tmpFile], 60000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -1922,9 +1922,9 @@ if _virtual_display_started:
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
             // Compile using spawn with array args
-            await runProcess('g++', [tmpFile, '-o', tmpExec], 15000);
+            await runProcess('g++', [tmpFile, '-o', tmpExec], 60000);
             // Execute
-            const result = await runProcess(tmpExec, [], 10000, stdin);
+            const result = await runProcess(tmpExec, [], 120000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -1940,9 +1940,9 @@ if _virtual_display_started:
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
             // Compile using spawn with array args
-            await runProcess('gcc', [tmpFile, '-o', tmpExec], 15000);
+            await runProcess('gcc', [tmpFile, '-o', tmpExec], 60000);
             // Execute
-            const result = await runProcess(tmpExec, [], 10000, stdin);
+            const result = await runProcess(tmpExec, [], 120000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -1957,7 +1957,7 @@ if _virtual_display_started:
           const tmpFile = path.join('/tmp', `go_${randomId}.go`);
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
-            const result = await runProcess('go', ['run', tmpFile], 15000, stdin);
+            const result = await runProcess('go', ['run', tmpFile], 60000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -1973,9 +1973,9 @@ if _virtual_display_started:
           await fs.writeFile(tmpFile, code, { mode: 0o600 });
           try {
             // Compile using spawn with array args
-            await runProcess('rustc', [tmpFile, '-o', tmpExec], 30000);
+            await runProcess('rustc', [tmpFile, '-o', tmpExec], 60000);
             // Execute
-            const result = await runProcess(tmpExec, [], 10000, stdin);
+            const result = await runProcess(tmpExec, [], 120000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -1988,7 +1988,7 @@ if _virtual_display_started:
         case 'ruby':
         case 'rb': {
           // Use spawn with -e flag
-          const result = await runProcess('ruby', ['-e', code], 10000, stdin);
+          const result = await runProcess('ruby', ['-e', code], 60000, stdin);
           output = result.stdout;
           error = result.stderr;
           break;
@@ -1999,7 +1999,7 @@ if _virtual_display_started:
           const tmpFile = path.join('/tmp', `php_${randomId}.php`);
           await fs.writeFile(tmpFile, `<?php\n${code}\n?>`, { mode: 0o600 });
           try {
-            const result = await runProcess('php', [tmpFile], 10000, stdin);
+            const result = await runProcess('php', [tmpFile], 60000, stdin);
             output = result.stdout;
             error = result.stderr;
           } finally {
@@ -3409,7 +3409,7 @@ except:
 ` : code;
 
       const startTime = Date.now();
-      const timeout = 30000; // 30 second timeout
+      const timeout = 120000; // 2 minute timeout for large programs
 
       const result = await new Promise<{ stdout: string; stderr: string; code: number }>((resolve, reject) => {
         const pythonProcess = spawn('python3', ['-c', wrappedCode]);
@@ -3420,7 +3420,7 @@ except:
         const timer = setTimeout(() => {
           killed = true;
           pythonProcess.kill();
-          reject(new Error('Execution timeout (30 seconds) - Code took too long to execute'));
+          reject(new Error('Execution timeout (2 minutes) - Code took too long to execute'));
         }, timeout);
 
         pythonProcess.stdout.on('data', (data) => {
