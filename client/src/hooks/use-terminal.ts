@@ -127,14 +127,6 @@ export function useTerminal(onUploadCommand?: () => void) {
             });
         }
       }
-
-      // Handle special actions
-      if (data.action === 'open_aj_video') {
-        (window as any).openAJVideo?.();
-      }
-      if (data.action === 'open_aj2_video') {
-        (window as any).openAJ2Video?.();
-      }
     },
     onError: (error) => {
       setIsTyping(false);
@@ -636,7 +628,7 @@ Use the URLs above to access the full articles and information.`;
         ];
 
         const randomGreeting = dojoGreetings[Math.floor(Math.random() * dojoGreetings.length)];
-
+        
         addEntry('system', `${randomGreeting.intro}
 
 ${randomGreeting.scene}
@@ -755,7 +747,6 @@ Music:
   debug audio - Test audio file loading and show diagnostic info
   webamp - Launch Webamp player with Milkdrop visualizer
   aj - Launch AJ video player
-  aj2 - Launch AJ video player 2
 
 OSINT (Open Source Intelligence):
   whois <domain> - Domain registration lookup
@@ -949,17 +940,6 @@ Special Modes:
           openAJVideo();
         } else {
           addEntry('error', 'AJ video player not available. Please ensure the system is loaded.');
-        }
-        return;
-
-      case 'aj2': // New command for the second AJ video player
-        addEntry('system', '📺 Launching AJ video player 2...');
-
-        const openAJ2Video = (window as any).openAJ2Video;
-        if (openAJ2Video) {
-          openAJ2Video();
-        } else {
-          addEntry('error', 'AJ video player 2 not available. Please ensure the system is loaded.');
         }
         return;
 

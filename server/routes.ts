@@ -65,7 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'git log --format="%H|%s|%an|%ar" -n 20',
         { timeout: 5000 }
       );
-
+      
       const commits = stdout.trim().split('\n')
         .filter(line => line.includes('|'))
         .map(line => {
@@ -77,7 +77,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             date: parts[3] || '' 
           };
         });
-
+      
       res.json({ commits });
     } catch (error: any) {
       res.json({ commits: [] });
@@ -92,19 +92,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'git status --porcelain',
         { timeout: 5000 }
       );
-
+      
       const files = stdout.trim().split('\n')
         .filter(line => line.trim())
         .map(line => {
           const staged = line[0];   // Index (staged) status
           const unstaged = line[1]; // Working tree (unstaged) status
           const file = line.slice(3);
-
+          
           // Determine primary status and whether staged/unstaged
           let statusLabel = 'modified';
           let isStaged = false;
           let isUnstaged = false;
-
+          
           if (staged === '?' && unstaged === '?') {
             statusLabel = 'untracked';
           } else {
@@ -113,15 +113,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             else if (staged === 'M') { statusLabel = 'modified'; isStaged = true; }
             else if (staged === 'D') { statusLabel = 'deleted'; isStaged = true; }
             else if (staged === 'R') { statusLabel = 'renamed'; isStaged = true; }
-
+            
             // Check unstaged status (working tree)
             if (unstaged === 'M') { isUnstaged = true; if (!isStaged) statusLabel = 'modified'; }
             else if (unstaged === 'D') { isUnstaged = true; if (!isStaged) statusLabel = 'deleted'; }
           }
-
+          
           return { file, status: statusLabel, raw: line.slice(0, 2), staged: isStaged, unstaged: isUnstaged };
         });
-
+      
       res.json({ files });
     } catch (error: any) {
       res.json({ files: [] });
@@ -137,7 +137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'git diff HEAD 2>/dev/null | head -500 || git diff | head -500',
         { timeout: 10000, maxBuffer: 1024 * 1024 }
       );
-
+      
       res.json({ diff: stdout.trim() });
     } catch (error: any) {
       res.json({ diff: '' });
@@ -1893,7 +1893,7 @@ ${hasMatplotlib ? `
 try:
     import matplotlib.pyplot as plt
     from matplotlib import animation
-
+    
     if plt.get_fignums() and not _gui_output_generated:
         # Check if animation exists
         has_animation = False
@@ -1914,7 +1914,7 @@ try:
                     break
         except:
             pass
-
+        
         # If no animation, capture static plot
         if not _gui_output_generated:
             buf = io.BytesIO()
@@ -1923,7 +1923,7 @@ try:
             img_base64 = base64.b64encode(buf.read()).decode('utf-8')
             print(f'__GUI_OUTPUT__:<img src="data:image/png;base64,{img_base64}" style="max-width:100%; height:auto;" />')
             _gui_output_generated = True
-
+        
         plt.close('all')
 except ImportError:
     pass
@@ -2203,7 +2203,7 @@ if _virtual_display_started:
           voiceEnabled: false,
           selectedVoice: "default",
           voiceRate: "1",
-          terminalTheme: "hacker"
+          terminalTheme: "classic"
         });
         return res.json(defaultPrefs);
       }
@@ -4532,7 +4532,7 @@ except:
       let formatted = `╭─ Technology Stack Analysis for ${domain}\n`;
 
       try {
-        const url = `https://${domain}`;
+        const url = `https://$\{domain}`;
         const response = await fetch(url, {
           method: 'GET',
           signal: AbortSignal.timeout(10000),
@@ -4719,7 +4719,8 @@ except:
       }
 
       // For both IPs and domains, resolve to IP if needed
-      let resolvedIP = target;      if (!isIP) {
+      let resolvedIP = target;
+      if (!isIP) {
         try {
           const addresses = await dns.resolve4(target);
           resolvedIP = addresses[0];

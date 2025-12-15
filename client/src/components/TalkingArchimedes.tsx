@@ -226,7 +226,7 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
   return (
     <div
       ref={containerRef}
-      className="fixed z-[9999] cursor-move"
+      className="fixed z-40 cursor-move"
       style={{
         left: 0,
         top: 0,
