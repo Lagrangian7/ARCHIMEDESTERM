@@ -4785,6 +4785,8 @@ server.listen(PORT, '0.0.0.0', () => {
                 }}
               />
             </div>
+              </Panel>
+            </PanelGroup>
 
             {/* Collaborative AI Review Panel */}
             {showCollaborativeReview && collaborativeReviewResult && (
