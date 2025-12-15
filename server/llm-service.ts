@@ -65,6 +65,67 @@ function isRateLimitError(error: any): boolean {
   return msg.includes('429') || msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('quota');
 }
 
+// Helper to check if error is context length exceeded
+function isContextLengthError(error: any): boolean {
+  const msg = error?.message || String(error);
+  return msg.toLowerCase().includes('too large') || 
+         msg.toLowerCase().includes('context length') ||
+         msg.toLowerCase().includes('maximum context') ||
+         msg.toLowerCase().includes('token limit') ||
+         msg.includes('413');
+}
+
+// Estimate token count (rough approximation: ~4 chars per token)
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+// Truncate messages to fit within token limit
+function truncateMessagesForGroq(
+  messages: Array<{role: 'system' | 'user' | 'assistant', content: string}>,
+  maxTokens: number = 6000 // Leave room for response in 8K context
+): Array<{role: 'system' | 'user' | 'assistant', content: string}> {
+  let totalTokens = 0;
+  const result: typeof messages = [];
+  
+  // Always include system message first (but truncate if needed)
+  if (messages.length > 0 && messages[0].role === 'system') {
+    let systemContent = messages[0].content;
+    const systemTokens = estimateTokens(systemContent);
+    // If system prompt alone is too long, truncate it
+    if (systemTokens > maxTokens * 0.6) {
+      const maxChars = Math.floor(maxTokens * 0.6 * 4);
+      systemContent = systemContent.slice(0, maxChars) + '\n\n[System prompt truncated for context limit]';
+    }
+    result.push({ role: 'system', content: systemContent });
+    totalTokens += estimateTokens(systemContent);
+  }
+  
+  // Always include the last user message
+  const lastMessage = messages[messages.length - 1];
+  const lastMessageTokens = estimateTokens(lastMessage.content);
+  const reservedForLast = lastMessageTokens;
+  
+  // Add conversation history from most recent, working backwards
+  const historyMessages = messages.slice(1, -1).reverse();
+  const includedHistory: typeof messages = [];
+  
+  for (const msg of historyMessages) {
+    const msgTokens = estimateTokens(msg.content);
+    if (totalTokens + msgTokens + reservedForLast < maxTokens) {
+      includedHistory.unshift(msg);
+      totalTokens += msgTokens;
+    } else {
+      break; // Stop adding history when we run out of space
+    }
+  }
+  
+  result.push(...includedHistory);
+  result.push(lastMessage);
+  
+  return result;
+}
+
 export class LLMService {
   private static instance: LLMService;
   private currentPersonalityContext: string = '';
@@ -1174,10 +1235,11 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
-    const recentHistory = this.buildConversationHistory(conversationHistory, 10);
+    // Reduce history limit for Groq's smaller context window
+    const recentHistory = this.buildConversationHistory(conversationHistory, 5);
 
     // Build messages array for Groq
-    const messages: Array<{role: 'system' | 'user' | 'assistant', content: string}> = [
+    let messages: Array<{role: 'system' | 'user' | 'assistant', content: string}> = [
       { role: 'system', content: systemPrompt + greetingInstruction }
     ];
 
@@ -1194,11 +1256,14 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     // Add current user message
     messages.push({ role: 'user', content: userMessage });
 
+    // Truncate messages to fit within Groq's context limit (8K tokens, leaving room for response)
+    messages = truncateMessagesForGroq(messages, 5500);
+
     // Use Groq's fast Llama model as primary AI for all modes
     const completion = await groq.chat.completions.create({
       model: 'llama-3.1-8b-instant', // Fast, efficient model for all modes
       messages,
-      max_tokens: mode === 'technical' ? 4000 : mode === 'health' ? 3000 : mode === 'freestyle' ? 4000 : 1500,
+      max_tokens: mode === 'technical' ? 2000 : mode === 'health' ? 2000 : mode === 'freestyle' ? 2000 : 1500,
       temperature: mode === 'technical' ? 0.4 : mode === 'health' ? 0.4 : mode === 'freestyle' ? 0.7 : 0.85,
     });
 
