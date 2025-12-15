@@ -31,7 +31,7 @@ import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
-import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape, Clock } from 'lucide-react';
+import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape, Clock, X } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
@@ -852,6 +852,18 @@ export function Terminal() {
             </div>
 
             <CSTClock />
+
+            <Button
+              onClick={clearTerminal}
+              variant="outline"
+              size="sm"
+              className="px-2 border-terminal-subtle hover:bg-terminal-subtle text-xs bg-transparent text-terminal-text min-h-[44px] flex items-center gap-1"
+              data-testid="button-clear-screen"
+              title="Clear screen"
+            >
+              <X className="w-4 h-4" />
+              <span className="hidden md:inline">CLEAR</span>
+            </Button>
 
             <Button
               onClick={() => setShowHistory(!showHistory)}
