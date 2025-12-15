@@ -128,6 +128,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Git commit details endpoint - get diff and files for a specific commit
+  app.get('/api/git/commit/:hash', async (req, res) => {
+    try {
+      const { hash } = req.params;
+      const execPromise = promisify(exec);
+      
+      // Get commit diff
+      const { stdout: diff } = await execPromise(
+        `git show ${hash} --pretty=format:'' --unified=3 2>/dev/null || echo "No diff available"`,
+        { timeout: 10000, maxBuffer: 1024 * 1024 }
+      );
+
+      // Get list of changed files
+      const { stdout: filesOutput } = await execPromise(
+        `git show ${hash} --name-only --pretty=format:'' 2>/dev/null || echo ""`,
+        { timeout: 5000 }
+      );
+
+      const files = filesOutput.trim().split('\n').filter(f => f.trim());
+
+      res.json({ diff: diff.trim(), files });
+    } catch (error: any) {
+      res.json({ diff: 'Error loading commit details', files: [] });
+    }
+  });
+
   // Git diff endpoint - shows full unified diff of uncommitted changes
   app.get('/api/git/diff', async (req, res) => {
     try {

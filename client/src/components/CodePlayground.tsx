@@ -704,6 +704,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const [gitDiff, setGitDiff] = useState<string>('');
   const [gitLoading, setGitLoading] = useState(false);
   const [gitView, setGitView] = useState<'commits' | 'status' | 'diff'>('commits');
+  const [selectedCommit, setSelectedCommit] = useState<{hash: string, message: string, author: string, date: string} | null>(null);
+  const [commitDetails, setCommitDetails] = useState<{diff: string, files: string[]} | null>(null);
 
   useEffect(() => {
     localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
@@ -753,6 +755,19 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     }
     setShowTemplates(false);
     toast({ title: `Loaded ${template.name} template`, description: `${newFiles.length} file(s) created` });
+  };
+
+  // Fetch specific commit details
+  const fetchCommitDetails = async (hash: string) => {
+    try {
+      const response = await fetch(`/api/git/commit/${hash}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCommitDetails(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch commit details:', error);
+    }
   };
 
   // Fetch git info (log, status, diff)
@@ -1326,6 +1341,62 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
         </div>
       )}
 
+      {/* Commit Details Modal */}
+      {selectedCommit && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setSelectedCommit(null)}>
+          <div 
+            className="bg-[#0D1117] border-2 border-[#00FF41]/30 rounded-lg p-4 max-w-2xl max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[#00FF41] font-mono text-sm">Commit Details</h3>
+              <button
+                onClick={() => setSelectedCommit(null)}
+                className="text-[#00FF41]/60 hover:text-[#00FF41]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-2">
+                <code className="text-[#00FF41]/60 text-xs font-mono">Hash:</code>
+                <code className="text-[#00FF41] text-xs font-mono">{selectedCommit.hash}</code>
+                <button
+                  onClick={() => navigator.clipboard.writeText(selectedCommit.hash)}
+                  className="text-[#00FF41]/60 hover:text-[#00FF41] p-1"
+                >
+                  <Copy className="w-3 h-3" />
+                </button>
+              </div>
+              <div>
+                <code className="text-[#00FF41]/60 text-xs font-mono">Message:</code>
+                <p className="text-[#00FF41] text-xs font-mono mt-1">{selectedCommit.message}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <code className="text-[#00FF41]/60 text-xs font-mono">Author:</code>
+                <span className="text-[#00FF41]/80 text-xs">{selectedCommit.author}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <code className="text-[#00FF41]/60 text-xs font-mono">Date:</code>
+                <span className="text-[#00FF41]/80 text-xs">{selectedCommit.date}</span>
+              </div>
+            </div>
+
+            {commitDetails ? (
+              <div>
+                <h4 className="text-[#00FF41]/80 font-mono text-xs mb-2">Changes:</h4>
+                <pre className="text-[#00FF41]/70 text-[10px] font-mono whitespace-pre-wrap bg-black/30 p-2 rounded max-h-96 overflow-y-auto">
+                  {commitDetails.diff || 'No changes to display'}
+                </pre>
+              </div>
+            ) : (
+              <div className="text-[#00FF41]/50 text-xs font-mono">Loading commit details...</div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Git Panel (dropdown) */}
       {showGitPanel && (
         <div className="px-4 py-3 bg-black/40 border-b border-[#00FF41]/20 max-h-64 overflow-y-auto">
@@ -1379,12 +1450,28 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                 {gitCommits.slice(0, 10).map((commit) => (
                   <div 
                     key={commit.hash}
-                    className="flex items-start gap-2 px-2 py-1 rounded hover:bg-[#00FF41]/5 border-l-2 border-[#00FF41]/20"
+                    className="group flex items-start gap-2 px-2 py-1 rounded hover:bg-[#00FF41]/10 border-l-2 border-[#00FF41]/20 cursor-pointer transition-colors"
+                    onClick={() => {
+                      setSelectedCommit(commit);
+                      fetchCommitDetails(commit.hash);
+                    }}
                   >
                     <code className="text-[#00FF41]/40 text-[10px] font-mono shrink-0">{commit.hash.slice(0, 7)}</code>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[#00FF41]/80 text-xs font-mono truncate">{commit.message}</div>
+                      <div className="text-[#00FF41]/80 text-xs font-mono truncate group-hover:text-[#00FF41]">{commit.message}</div>
                       <div className="text-[#00FF41]/40 text-[10px]">{commit.author} • {commit.date}</div>
+                    </div>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(commit.hash);
+                        }}
+                        className="text-[#00FF41]/60 hover:text-[#00FF41] p-1"
+                        title="Copy hash"
+                      >
+                        <Copy className="w-3 h-3" />
+                      </button>
                     </div>
                   </div>
                 ))}
