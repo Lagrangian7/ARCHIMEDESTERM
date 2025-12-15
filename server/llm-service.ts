@@ -975,14 +975,24 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
       let aiResponse: string = '';
 
-      // PRIMARY: OpenRouter via Replit AI Integrations (most reliable, uses Replit credits)
-      // FALLBACK CHAIN: Groq → Mistral API → HuggingFace → Static
+      // AI BACKEND ROUTING:
+      // - NATURAL mode: Groq (fast, free, works well for chat)
+      // - Other modes (Technical, Freestyle, Health): OpenRouter (Llama 3.3 70B for complex tasks)
+      // FALLBACK CHAIN: Primary → Groq → OpenRouter → Mistral API → HuggingFace → Static
       
       try {
-        if (hasOpenRouter) {
+        // Use Groq as primary for NATURAL mode (fast conversational responses)
+        if (safeMode === 'natural' && groq) {
+          console.log(`[LLM] ✓ Using Groq (Primary) for NATURAL mode - fast chat responses`);
+          aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
+        } 
+        // Use OpenRouter for Technical, Freestyle, Health modes (better for complex/code tasks)
+        else if (hasOpenRouter) {
           console.log(`[LLM] ✓ Using OpenRouter (Primary) for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateOpenRouterResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
-        } else if (groq) {
+        } 
+        // Fallback: Groq for any mode
+        else if (groq) {
           console.log(`[LLM] Using Groq (Fallback) for ${safeMode.toUpperCase()} mode`);
           aiResponse = await this.generateGroqResponse(contextualMessage, safeMode, conversationHistory, lang, isNewSession);
         } else if (mistral) {
@@ -1574,7 +1584,8 @@ This is a fallback response. The actual AI analysis could not be completed.`;
   }
 
   /**
-   * Generate code completions using OpenRouter (primary) or Mistral AI (fallback)
+   * Generate code completions optimized for Monaco Copilot and Codeium-style integration
+   * Priority: Mistral Codestral (specialized for code) → OpenRouter (DeepSeek Coder) → Groq
    * Supports multiple programming languages with proper cleanup
    */
   async generateCodeCompletion(
@@ -1584,16 +1595,20 @@ This is a fallback response. The actual AI analysis could not be completed.`;
     projectContext?: { files: Array<{ name: string; content: string; language: string }> }
   ): Promise<string> {
     try {
-      // Primary: OpenRouter, Fallback: Mistral Codestral
-      const useOpenRouter = hasOpenRouter;
+      // Best combo for Monaco Copilot:
+      // 1. Mistral Codestral (PRIMARY) - specialized code completion model, fastest and most accurate
+      // 2. OpenRouter DeepSeek Coder (FALLBACK) - excellent code model via Replit integration
+      // 3. Groq (LAST RESORT) - fast but less specialized for code
       const useMistral = !!mistral;
+      const useOpenRouter = hasOpenRouter;
+      const useGroq = !!groq;
       
-      if (!useOpenRouter && !useMistral) {
+      if (!useMistral && !useOpenRouter && !useGroq) {
         console.log('[Code Completion] No AI backend configured');
         return '';
       }
 
-      console.log(`[Code Completion] Using ${useOpenRouter ? 'OpenRouter' : 'Codestral'} for ${language} code completion`);
+      console.log(`[Code Completion] Using ${useMistral ? 'Codestral' : useOpenRouter ? 'OpenRouter' : 'Groq'} for ${language} code completion`);
 
       // Language-specific style guidelines
       const styleGuides: Record<string, string> = {
@@ -1644,39 +1659,73 @@ ${code}`;
 
       let completion: string | null = null;
 
-      // Try OpenRouter first (primary)
-      if (useOpenRouter) {
+      // PRIMARY: Mistral Codestral - specialized code completion model (fastest, most accurate for code)
+      if (useMistral && mistral) {
         try {
+          console.log('[Code Completion] Trying Mistral Codestral (primary)...');
+          const chatResponse = await mistral.chat.complete({
+            model: 'codestral-latest',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            maxTokens: 800,
+            temperature: 0.1, // Very low for deterministic code completions
+            topP: 0.95,
+          });
+          const mistralContent = chatResponse.choices?.[0]?.message?.content;
+          completion = typeof mistralContent === 'string' ? mistralContent : 
+            (Array.isArray(mistralContent) ? mistralContent.map((c: any) => c.text).join('') : null);
+          if (completion) {
+            console.log('[Code Completion] ✓ Codestral succeeded');
+          }
+        } catch (error) {
+          console.error('[Code Completion] Codestral error, trying fallback:', error);
+        }
+      }
+
+      // FALLBACK 1: OpenRouter with DeepSeek Coder (excellent code model)
+      if (!completion && useOpenRouter) {
+        try {
+          console.log('[Code Completion] Trying OpenRouter DeepSeek Coder (fallback 1)...');
           const response = await openrouter.chat.completions.create({
-            model: 'meta-llama/llama-3.3-70b-instruct',
+            model: 'deepseek/deepseek-coder', // Specialized code model
             messages: [
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
             ],
             max_tokens: 800,
-            temperature: 0.15,
+            temperature: 0.1,
           });
           completion = response.choices?.[0]?.message?.content || null;
+          if (completion) {
+            console.log('[Code Completion] ✓ OpenRouter DeepSeek succeeded');
+          }
         } catch (error) {
-          console.error('[Code Completion] OpenRouter error, trying Mistral fallback:', error);
+          console.error('[Code Completion] OpenRouter error, trying Groq fallback:', error);
         }
       }
 
-      // Fallback to Mistral Codestral
-      if (!completion && useMistral && mistral) {
-        const chatResponse = await mistral.chat.complete({
-          model: 'codestral-latest',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          maxTokens: 800,
-          temperature: 0.15,
-          topP: 0.95,
-        });
-        const mistralContent = chatResponse.choices?.[0]?.message?.content;
-        completion = typeof mistralContent === 'string' ? mistralContent : 
-          (Array.isArray(mistralContent) ? mistralContent.map((c: any) => c.text).join('') : null);
+      // FALLBACK 2: Groq with Llama (fast, but less specialized for code)
+      if (!completion && useGroq && groq) {
+        try {
+          console.log('[Code Completion] Trying Groq Llama (fallback 2)...');
+          const response = await groq.chat.completions.create({
+            model: 'llama-3.1-8b-instant',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            max_tokens: 800,
+            temperature: 0.1,
+          });
+          completion = response.choices?.[0]?.message?.content || null;
+          if (completion) {
+            console.log('[Code Completion] ✓ Groq Llama succeeded');
+          }
+        } catch (error) {
+          console.error('[Code Completion] Groq error:', error);
+        }
       }
 
       if (!completion) {
