@@ -931,6 +931,21 @@ Generate complete, runnable ${config.name} code. Use \`\`\`${config.block} block
     return basePrompt;
   }
 
+  // Condensed system prompt for Groq's strict 6000 TPM limit
+  private getCondensedSystemPrompt(mode: 'natural' | 'technical' | 'freestyle' | 'health'): string {
+    switch (mode) {
+      case 'natural':
+        return `You are ARCHIMEDES v7, a sassy cyberpunk AI sensei. Blend Zen wisdom with hacker attitude. Be witty, helpful, and use metaphors. Call users "grasshopper" or "choom". Keep responses concise but insightful. For code, use proper markdown blocks.`;
+      case 'health':
+        return `You are ARCHIMEDES v7 in Health Mode - a naturopathic wellness advisor. Provide evidence-based natural health guidance. Be compassionate and professional. Always recommend consulting healthcare providers for serious conditions. Include safety precautions.`;
+      case 'freestyle':
+        return `You are ARCHIMEDES v7 in Freestyle Mode - a proactive coding assistant. Generate complete, runnable code in proper markdown blocks. Anticipate user needs. Ask ONE follow-up question if helpful. Be direct and get to the point.`;
+      case 'technical':
+      default:
+        return `You are ARCHIMEDES v7 in Technical Mode - a master builder and technical instructor. Provide step-by-step instructions with materials lists, specific measurements, and pro tips. Be thorough and practical.`;
+    }
+  }
+
   // Helper: Consolidates session greeting logic
   private buildSessionGreeting(isNewSession: boolean): string {
     if (!isNewSession) {
@@ -1235,35 +1250,38 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
-    // Reduce history limit for Groq's smaller context window
-    const recentHistory = this.buildConversationHistory(conversationHistory, 5);
+    // Groq free tier has strict 6000 TPM limit - use minimal history
+    const recentHistory = this.buildConversationHistory(conversationHistory, 2);
+
+    // Use condensed system prompt for Groq's strict token limits
+    const condensedPrompt = this.getCondensedSystemPrompt(mode);
 
     // Build messages array for Groq
     let messages: Array<{role: 'system' | 'user' | 'assistant', content: string}> = [
-      { role: 'system', content: systemPrompt + greetingInstruction }
+      { role: 'system', content: condensedPrompt + greetingInstruction }
     ];
 
-    // Add recent conversation history
+    // Add recent conversation history (limited)
     for (const msg of recentHistory) {
       if (msg.role === 'user' || msg.role === 'assistant') {
-        messages.push({
-          role: msg.role,
-          content: msg.content
-        });
+        // Truncate individual messages if too long
+        const content = msg.content.length > 500 ? msg.content.slice(0, 500) + '...' : msg.content;
+        messages.push({ role: msg.role, content });
       }
     }
 
-    // Add current user message
-    messages.push({ role: 'user', content: userMessage });
+    // Add current user message (truncate if needed)
+    const truncatedUserMessage = userMessage.length > 1000 ? userMessage.slice(0, 1000) + '...' : userMessage;
+    messages.push({ role: 'user', content: truncatedUserMessage });
 
-    // Truncate messages to fit within Groq's context limit (8K tokens, leaving room for response)
-    messages = truncateMessagesForGroq(messages, 5500);
+    // Groq free tier: 6000 TPM limit, leave room for 1000 token response
+    messages = truncateMessagesForGroq(messages, 4000);
 
     // Use Groq's fast Llama model as primary AI for all modes
     const completion = await groq.chat.completions.create({
       model: 'llama-3.1-8b-instant', // Fast, efficient model for all modes
       messages,
-      max_tokens: mode === 'technical' ? 2000 : mode === 'health' ? 2000 : mode === 'freestyle' ? 2000 : 1500,
+      max_tokens: 1000, // Keep response small for free tier
       temperature: mode === 'technical' ? 0.4 : mode === 'health' ? 0.4 : mode === 'freestyle' ? 0.7 : 0.85,
     });
 
