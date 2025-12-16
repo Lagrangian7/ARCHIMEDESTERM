@@ -126,7 +126,7 @@ export function VoiceControls({
   const [memoryUsage, setMemoryUsage] = useState<MemoryUsage | null>(null);
   const [showMemory, setShowMemory] = useState(() => {
     const saved = localStorage.getItem('show-memory-indicator');
-    return saved ? JSON.parse(saved) : true;
+    return saved === null ? true : saved !== 'false';
   });
 
   // Poll memory usage every 3 seconds
@@ -237,7 +237,7 @@ export function VoiceControls({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div 
+                <div
                   className="flex items-center gap-1.5 px-2 py-1 rounded border cursor-pointer hover:opacity-80 transition-opacity"
                   style={{
                     borderColor: getMemoryColor(memoryUsage.percentage),
@@ -245,11 +245,11 @@ export function VoiceControls({
                   }}
                   onClick={() => setShowMemory(false)}
                 >
-                  <Activity 
-                    size={12} 
+                  <Activity
+                    size={12}
                     style={{ color: getMemoryColor(memoryUsage.percentage) }}
                   />
-                  <span 
+                  <span
                     className="text-xs font-mono"
                     style={{ color: getMemoryColor(memoryUsage.percentage) }}
                   >
