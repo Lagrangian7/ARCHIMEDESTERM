@@ -35,82 +35,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const execPromise = promisify(exec);
       
       // Check if .git directory exists
-      const { stdout: gitCheck } = await execPromise('[ -d .git ] && echo "exists" || echo "missing"', { timeout: 1000 });
+      const { stdout: gitCheck } = await execPromise('[ -d .git ] && echo "exists" || echo "missing"', { timeout: 2000 });
       
       if (gitCheck.trim() === 'missing') {
         console.log('🔧 Git not initialized, initializing now...');
         await execPromise('git init', { timeout: 5000 });
-        await execPromise('git config user.name "Archimedes Terminal"', { timeout: 1000 });
-        await execPromise('git config user.email "terminal@archimedes.local"', { timeout: 1000 });
-        
-        // Create initial commit with all files
+        await execPromise('git config user.name "Archimedes Terminal"', { timeout: 2000 });
+        await execPromise('git config user.email "terminal@archimedes.local"', { timeout: 2000 });
+      }
+      
+      // Always check if we have commits, regardless of whether .git existed
+      let hasCommits = false;
+      try {
+        await execPromise('git rev-parse HEAD', { timeout: 2000 });
+        hasCommits = true;
+        console.log('✅ Git repository has commits');
+      } catch {
+        console.log('🔧 No commits found, creating initial commit...');
+      }
+      
+      // Create initial commit if needed
+      if (!hasCommits) {
         try {
-          // Add all files including hidden ones
-          await execPromise('git add -A', { timeout: 8000 });
+          // Add all files (including hidden ones, excluding .git itself)
+          await execPromise('git add -A', { timeout: 10000 });
           
-          // Check if there are files to commit
-          const { stdout: statusCheck } = await execPromise('git status --porcelain', { timeout: 2000 });
+          // Always create a commit with --allow-empty to ensure we have at least one
+          await execPromise('git commit -m "Initial commit" --allow-empty --no-verify', { timeout: 20000 });
+          console.log('✅ Initial commit created successfully');
           
-          if (statusCheck.trim()) {
-            await execPromise('git commit -m "Initial commit" --no-verify --allow-empty', { timeout: 15000 });
-            console.log('✅ Git repository initialized with initial commit');
-          } else {
-            // Force an empty initial commit if no files
-            await execPromise('git commit --allow-empty -m "Initial commit" --no-verify', { timeout: 10000 });
-            console.log('✅ Git repository initialized with empty commit');
-          }
+          // Verify the commit was created
+          await execPromise('git rev-parse HEAD', { timeout: 2000 });
+          console.log('✅ Git repository fully initialized with commits');
         } catch (commitError: any) {
           console.error('⚠️ Failed to create initial commit:', commitError.message);
-          // Try one more time with --allow-empty
-          try {
-            await execPromise('git commit --allow-empty -m "Initial commit" --no-verify', { timeout: 10000 });
-            console.log('✅ Created empty initial commit as fallback');
-          } catch (fallbackError: any) {
-            console.error('⚠️ Fallback commit also failed:', fallbackError.message);
-          }
-        }
-      } else {
-        // Check if there are any commits
-        try {
-          await execPromise('git rev-parse HEAD', { timeout: 1000 });
-          console.log('✅ Git repository already initialized with commits');
-        } catch (noCommitsError) {
-          // Repository exists but has no commits - create initial commit
-          console.log('🔧 Git repository exists but has no commits, creating initial commit...');
-          try {
-            // Add all files including hidden ones
-            await execPromise('git add -A', { timeout: 8000 });
-            
-            // Check if there are files to commit
-            const { stdout: statusCheck } = await execPromise('git status --porcelain', { timeout: 2000 });
-            
-            if (statusCheck.trim()) {
-              await execPromise('git commit -m "Initial commit" --no-verify --allow-empty', { timeout: 15000 });
-              console.log('✅ Initial commit created');
-            } else {
-              // Force an empty initial commit if no files
-              await execPromise('git commit --allow-empty -m "Initial commit" --no-verify', { timeout: 10000 });
-              console.log('✅ Created empty initial commit');
-            }
-          } catch (commitError: any) {
-            console.error('⚠️ Failed to create initial commit:', commitError.message);
-            // Try one more time with --allow-empty
-            try {
-              await execPromise('git commit --allow-empty -m "Initial commit" --no-verify', { timeout: 10000 });
-              console.log('✅ Created empty initial commit as fallback');
-            } catch (fallbackError: any) {
-              console.error('⚠️ Fallback commit also failed:', fallbackError.message);
-            }
-          }
+          console.error('⚠️ Error details:', commitError.stderr || commitError.stdout || 'No additional details');
         }
       }
     } catch (error: any) {
       console.error('⚠️ Git initialization failed:', error.message);
+      console.error('⚠️ Error details:', error.stderr || error.stdout || 'No additional details');
     }
   };
 
-  // Run Git initialization asynchronously (don't block server startup)
-  initializeGit().catch(err => console.error('Git init error:', err));
+  // Run Git initialization and wait for it to complete before continuing
+  await initializeGit();
 
   // Health check endpoint - MUST be first, before any middleware
   // This allows deployment health checks to succeed quickly (v2.0)
@@ -178,10 +147,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const execPromise = promisify(exec);
       
       // Check if .git exists first
-      const { stdout: gitCheck } = await execPromise('[ -d .git ] && echo "exists" || echo "missing"', { timeout: 1000 });
+      const { stdout: gitCheck } = await execPromise('[ -d .git ] && echo "exists" || echo "missing"', { timeout: 2000 });
       
       if (gitCheck.trim() === 'missing') {
+        console.log('📊 Git log: .git directory not found');
         return res.json({ commits: [], needsInit: true });
+      }
+      
+      // Check if repository has commits
+      try {
+        await execPromise('git rev-parse HEAD', { timeout: 2000 });
+      } catch {
+        console.log('📊 Git log: repository has no commits yet');
+        return res.json({ commits: [], needsInit: false, message: 'Repository initialized but no commits yet' });
       }
       
       const { stdout } = await execPromise(
@@ -190,7 +168,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       const commits = stdout.trim().split('\n')
-        .filter(line => line.includes('|'))
+        .filter(line => line.trim() && line.includes('|'))
         .map(line => {
           const parts = line.split('|');
           return { 
@@ -201,9 +179,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         });
 
-      res.json({ commits });
+      console.log(`📊 Git log: found ${commits.length} commits`);
+      res.json({ commits, needsInit: false });
     } catch (error: any) {
-      res.json({ commits: [], needsInit: true });
+      console.error('📊 Git log error:', error.message);
+      res.json({ commits: [], needsInit: false, error: error.message });
     }
   });
 
