@@ -251,15 +251,15 @@ def process_data(items: List[str]) -> List[str]:
 def main():
     """Main entry point."""
     print(f"Script started at {datetime.now().isoformat()}")
-    
+
     # Example usage
     sample_data = ["hello", "  world  ", "", "python"]
     result = process_data(sample_data)
-    
+
     print(f"Processed {len(result)} items:")
     for item in result:
         print(f"  - {item}")
-    
+
     print("\\nScript completed successfully!")
 
 if __name__ == '__main__':
@@ -699,12 +699,14 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const [showLivePreview, setShowLivePreview] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showGitPanel, setShowGitPanel] = useState(false);
-  const [gitCommits, setGitCommits] = useState<Array<{ hash: string; message: string; date: string; author: string }>>([]);
-  const [gitStatus, setGitStatus] = useState<Array<{ file: string; status: string; raw: string; staged?: boolean; unstaged?: boolean }>>([]);
-  const [gitDiff, setGitDiff] = useState<string>('');
-  const [gitLoading, setGitLoading] = useState(false);
   const [gitView, setGitView] = useState<'commits' | 'status' | 'diff'>('commits');
-  
+  const [gitLoading, setGitLoading] = useState(false);
+  const [gitCommits, setGitCommits] = useState<Array<{ hash: string; message: string; author: string; date: string }>>([]);
+  const [gitStatus, setGitStatus] = useState<Array<{ file: string; status: string; raw: string; staged: boolean; unstaged: boolean }>>([]);
+  const [gitDiff, setGitDiff] = useState<string>('');
+  const [selectedCommit, setSelectedCommit] = useState<string | null>(null);
+  const [commitDiff, setCommitDiff] = useState<string>('');
+
   // Enhanced features
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   const [showMinimap, setShowMinimap] = useState(true);
@@ -722,7 +724,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     const htmlFile = files.find(f => f.language === 'html');
     const cssFile = files.find(f => f.language === 'css');
     const jsFile = files.find(f => f.language === 'javascript');
-    
+
     if (htmlFile) {
       let content = htmlFile.content;
       // Inject CSS if separate file exists
@@ -737,7 +739,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     }
     return '';
   }, [files]);
-  
+
   // Generate unique key for iframe to force refresh on content changes
   const livePreviewKey = useMemo(() => {
     return `preview-${Date.now()}-${livePreviewContent.length}`;
@@ -747,14 +749,14 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const loadTemplate = (templateId: string) => {
     const template = PROJECT_TEMPLATES[templateId];
     if (!template) return;
-    
+
     const newFiles: CodeFile[] = template.files.map((f, i) => ({
       id: `template-${Date.now()}-${i}`,
       name: f.name,
       language: f.language,
       content: f.content
     }));
-    
+
     setFiles(newFiles);
     if (newFiles.length > 0) {
       setActiveFileId(newFiles[0].id);
@@ -767,26 +769,34 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const fetchGitInfo = async () => {
     setGitLoading(true);
     try {
-      const [logRes, statusRes, diffRes] = await Promise.all([
+      const [commitsRes, statusRes, diffRes] = await Promise.all([
         fetch('/api/git/log'),
         fetch('/api/git/status'),
         fetch('/api/git/diff')
       ]);
-      
-      if (logRes.ok) {
-        const data = await logRes.json();
-        setGitCommits(data.commits || []);
-      }
-      if (statusRes.ok) {
-        const data = await statusRes.json();
-        setGitStatus(data.files || []);
-      }
-      if (diffRes.ok) {
-        const data = await diffRes.json();
-        setGitDiff(data.diff || '');
-      }
-    } catch (e) {
-      console.error('Failed to fetch git info:', e);
+
+      const commitsData = await commitsRes.json();
+      const statusData = await statusRes.json();
+      const diffData = await diffRes.json();
+
+      setGitCommits(commitsData.commits || []);
+      setGitStatus(statusData.files || []);
+      setGitDiff(diffData.diff || '');
+    } catch (error) {
+      console.error('Failed to fetch git info:', error);
+    }
+    setGitLoading(false);
+  };
+
+  const fetchCommitDetails = async (hash: string) => {
+    setGitLoading(true);
+    try {
+      const response = await fetch(`/api/git/commit/${hash}`);
+      const data = await response.json();
+      setCommitDiff(data.diff || '');
+      setSelectedCommit(hash);
+    } catch (error) {
+      console.error('Failed to fetch commit details:', error);
     }
     setGitLoading(false);
   };
@@ -798,7 +808,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     const height = 600;
     const rightX = Math.max(0, window.innerWidth - width - 20);
     const topY = terminalAreaTop + 20;
-    
+
     setDimensions({ width, height });
     setPosition({ x: rightX, y: topY });
   }, []);
@@ -923,7 +933,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     setFiles(prev => prev.map(f => 
       f.id === activeFileId ? { ...f, content } : f
     ));
-    
+
     // Auto-save to localStorage with debounce
     if (autoSaveEnabled) {
       const timeoutId = setTimeout(() => {
@@ -1093,18 +1103,18 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     // Convert HSL to hex
     const hslToHex = (hslString: string): string => {
       if (hslString.startsWith('#')) return hslString.replace('#', '');
-      
+
       const hslMatch = hslString.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
       if (!hslMatch) return '00FF41'; // fallback
-      
+
       const h = parseInt(hslMatch[1]);
       const s = parseInt(hslMatch[2]) / 100;
       const l = parseInt(hslMatch[3]) / 100;
-      
+
       const c = (1 - Math.abs(2 * l - 1)) * s;
       const x = c * (1 - Math.abs((h / 60) % 2 - 1));
       const m = l - c / 2;
-      
+
       let r = 0, g = 0, b = 0;
       if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
       else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
@@ -1112,12 +1122,12 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
       else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
       else if (h >= 300 && h < 360) { r = c; g = 0; b = x; }
-      
+
       const toHex = (n: number) => {
         const hex = Math.round((n + m) * 255).toString(16);
         return hex.length === 1 ? '0' + hex : hex;
       };
-      
+
       return toHex(r) + toHex(g) + toHex(b);
     };
 
@@ -1388,7 +1398,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
               </Button>
             </div>
           </div>
-          
+
           {gitLoading ? (
             <div className="text-[#00FF41]/50 text-xs font-mono py-2">Loading git info...</div>
           ) : gitView === 'commits' ? (
@@ -1397,7 +1407,8 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                 {gitCommits.slice(0, 10).map((commit) => (
                   <div 
                     key={commit.hash}
-                    className="flex items-start gap-2 px-2 py-1 rounded hover:bg-[#00FF41]/5 border-l-2 border-[#00FF41]/20"
+                    className="flex items-start gap-2 px-2 py-1 rounded hover:bg-[#00FF41]/5 border-l-2 border-[#00FF41]/20 cursor-pointer"
+                    onClick={() => fetchCommitDetails(commit.hash)}
                   >
                     <code className="text-[#00FF41]/40 text-[10px] font-mono shrink-0">{commit.hash.slice(0, 7)}</code>
                     <div className="flex-1 min-w-0">
@@ -1444,10 +1455,10 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
               <div className="text-[#00FF41]/50 text-xs font-mono py-2">Working tree clean - no changes</div>
             )
           ) : (
-            gitDiff ? (
-              <pre className="text-[#00FF41]/80 text-xs font-mono whitespace-pre-wrap bg-black/30 p-2 rounded">{gitDiff}</pre>
+            commitDiff ? (
+              <pre className="text-[#00FF41]/80 text-xs font-mono whitespace-pre-wrap bg-black/30 p-2 rounded">{commitDiff}</pre>
             ) : (
-              <div className="text-[#00FF41]/50 text-xs font-mono py-2">No uncommitted changes</div>
+              <div className="text-[#00FF41]/50 text-xs font-mono py-2">Click on a commit to see its diff.</div>
             )
           )}
         </div>

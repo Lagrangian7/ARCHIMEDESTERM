@@ -144,6 +144,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Git commit details endpoint - shows full diff for a specific commit
+  app.get('/api/git/commit/:hash', async (req, res) => {
+    try {
+      const { hash } = req.params;
+      const execPromise = promisify(exec);
+      
+      // Get commit details and diff
+      const { stdout } = await execPromise(
+        `git show ${hash} --format=fuller | head -1000`,
+        { timeout: 10000, maxBuffer: 1024 * 1024 }
+      );
+
+      res.json({ diff: stdout.trim() });
+    } catch (error: any) {
+      res.json({ diff: '' });
+    }
+  });
+
   // Enable gzip compression
   app.use(compression());
 
