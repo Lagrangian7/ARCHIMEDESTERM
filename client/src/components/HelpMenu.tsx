@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, ArrowRight, Terminal as TerminalIcon, Radio, Book, TrendingUp, Wifi, Gamepad2, Upload, Mic, MessageSquare } from 'lucide-react';
+import { X, ArrowRight, Terminal as TerminalIcon, Radio, Book, TrendingUp, Wifi, Gamepad2, Upload, Mic, MessageSquare, Server } from 'lucide-react';
 
 interface HelpMenuItem {
   id: string;
@@ -97,7 +97,7 @@ const helpMenuItems: HelpMenuItem[] = [
     title: 'List Virtual Systems',
     description: 'Display all available virtual computing systems',
     command: 'vsys list',
-    icon: <Terminal size={16} />
+    icon: <Server size={16} />
   },
   {
     id: 'vsys-connect',
@@ -106,7 +106,7 @@ const helpMenuItems: HelpMenuItem[] = [
     description: 'Connect to a virtual VAX/VMS, Unix, or DOS system',
     command: 'vsys connect',
     example: 'vsys connect vax.archimedes.local',
-    icon: <Terminal size={16} />
+    icon: <Server size={16} />
   },
   {
     id: 'vsys-execute',
@@ -115,7 +115,7 @@ const helpMenuItems: HelpMenuItem[] = [
     description: 'Run commands on connected virtual systems',
     command: 'vsys execute',
     example: 'vsys execute unix.archimedes.local ls /home/user',
-    icon: <Terminal size={16} />
+    icon: <Server size={16} />
   },
   {
     id: 'vsys-seed',
@@ -123,7 +123,7 @@ const helpMenuItems: HelpMenuItem[] = [
     title: 'Initialize Virtual Systems',
     description: 'Seed default virtual systems (VAX/VMS, Unix, DOS)',
     command: 'vsys seed',
-    icon: <Terminal size={16} />
+    icon: <Server size={16} />
   },
 
   // Stock Market
