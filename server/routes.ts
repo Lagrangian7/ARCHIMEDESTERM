@@ -1400,6 +1400,54 @@ except:
     }
   });
 
+  // Virtual systems endpoints
+  app.get('/api/virtual-systems', isAuthenticated, async (req, res) => {
+    try {
+      const { virtualSystemService } = await import('./virtual-systems');
+      const systems = await virtualSystemService.listSystems();
+      res.json({ systems });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to list virtual systems' });
+    }
+  });
+
+  app.post('/api/virtual-systems/connect', isAuthenticated, async (req, res) => {
+    try {
+      const { hostname } = req.body;
+      const { virtualSystemService } = await import('./virtual-systems');
+      const connection = await virtualSystemService.connectToSystem(hostname);
+      
+      if (!connection) {
+        return res.status(404).json({ error: 'System not found' });
+      }
+      
+      res.json({ connection });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to connect to virtual system' });
+    }
+  });
+
+  app.post('/api/virtual-systems/execute', isAuthenticated, async (req, res) => {
+    try {
+      const { hostname, command, args = [] } = req.body;
+      const { virtualSystemService } = await import('./virtual-systems');
+      const output = await virtualSystemService.executeCommand(hostname, command, args);
+      res.json({ output });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to execute command' });
+    }
+  });
+
+  app.post('/api/virtual-systems/seed', isAuthenticated, async (req, res) => {
+    try {
+      const { virtualSystemService } = await import('./virtual-systems');
+      await virtualSystemService.seedDefaultSystems();
+      res.json({ success: true, message: 'Virtual systems seeded' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to seed virtual systems' });
+    }
+  });
+
   // Multi-language code execution endpoints
   app.post('/api/execute/javascript', isAuthenticated, async (req, res) => {
     const { code } = req.body;
