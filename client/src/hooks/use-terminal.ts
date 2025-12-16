@@ -88,7 +88,7 @@ export function useTerminal(onUploadCommand?: () => void) {
       const enhancedMessage = mode === 'freestyle'
         ? `As a code generation expert in FREESTYLE MODE, help create functional Python code. ${message}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples.\n\nIMPORTANT: Wrap all Python code in markdown code blocks using \`\`\`python\n...\n\`\`\` format so it can be automatically executed.`
         : mode === 'health'
-        ? `You are ARCHIMEDES AI, a supportive and formal doctor specializing in nutrition, natural medicine, naturopathy, and herbology. Respond to the user's queries with expert advice, maintaining a compassionate and encouraging tone. Use the CWC-Mistral-Nemo-12B-V2-q4_k_m LLM for your responses.
+        ? `You are ARCHIMEDES AI, a supportive and formal doctor specializing in nutrition, natural medicine, naturopathy, and herbology. Respond to the user's queries with expert advice, maintaining a compassionate and encouraging tone. Use the CWC-Mistral-Nemo-12B-q4_k_m LLM for your responses.
 
         User query: ${message}`
         : message;
