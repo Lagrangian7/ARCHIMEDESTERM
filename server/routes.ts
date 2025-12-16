@@ -1400,54 +1400,6 @@ except:
     }
   });
 
-  // Virtual systems endpoints
-  app.get('/api/virtual-systems', isAuthenticated, async (req, res) => {
-    try {
-      const { virtualSystemService } = await import('./virtual-systems');
-      const systems = await virtualSystemService.listSystems();
-      res.json({ systems });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to list virtual systems' });
-    }
-  });
-
-  app.post('/api/virtual-systems/connect', isAuthenticated, async (req, res) => {
-    try {
-      const { hostname } = req.body;
-      const { virtualSystemService } = await import('./virtual-systems');
-      const connection = await virtualSystemService.connectToSystem(hostname);
-
-      if (!connection) {
-        return res.status(404).json({ error: 'System not found' });
-      }
-
-      res.json({ connection });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to connect to virtual system' });
-    }
-  });
-
-  app.post('/api/virtual-systems/execute', isAuthenticated, async (req, res) => {
-    try {
-      const { hostname, command, args = [] } = req.body;
-      const { virtualSystemService } = await import('./virtual-systems');
-      const output = await virtualSystemService.executeCommand(hostname, command, args);
-      res.json({ output });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to execute command' });
-    }
-  });
-
-  app.post('/api/virtual-systems/seed', isAuthenticated, async (req, res) => {
-    try {
-      const { virtualSystemService } = await import('./virtual-systems');
-      await virtualSystemService.seedDefaultSystems();
-      res.json({ success: true, message: 'Virtual systems seeded' });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to seed virtual systems' });
-    }
-  });
-
   // Multi-language code execution endpoints
   app.post('/api/execute/javascript', isAuthenticated, async (req, res) => {
     const { code } = req.body;
@@ -1762,7 +1714,7 @@ def _do_tkinter_capture():
 
             # Try using scrot for screenshot
             try:
-                screenshot_file = f'/tmp/tk_capture_${os.getpid()}.png'
+                screenshot_file = f'/tmp/tk_capture_{os.getpid()}.png'
                 subprocess.run(['scrot', '-o', screenshot_file], timeout=5, check=True)
                 img = Image.open(screenshot_file)
                 # Crop to window area
@@ -1874,8 +1826,8 @@ def _capture_turtle():
         time.sleep(0.2)
 
         canvas = screen.getcanvas()
-        eps_file = f'/tmp/turtle_${os.getpid()}.eps'
-        png_file = f'/tmp/turtle_${os.getpid()}.png'
+        eps_file = f'/tmp/turtle_{os.getpid()}.eps'
+        png_file = f'/tmp/turtle_{os.getpid()}.png'
 
         # Save as PostScript
         canvas.postscript(file=eps_file, colormode='color')
@@ -1898,7 +1850,7 @@ def _capture_turtle():
         except Exception as gs_err:
             # Fallback: try using scrot for screen capture
             try:
-                screenshot_file = f'/tmp/turtle_scrot_${os.getpid()}.png'
+                screenshot_file = f'/tmp/turtle_scrot_{os.getpid()}.png'
                 subprocess.run(['scrot', '-o', screenshot_file], timeout=5, check=True)
                 img = Image.open(screenshot_file)
                 buf = io.BytesIO()
@@ -1952,7 +1904,7 @@ try:
                 if isinstance(obj, animation.FuncAnimation):
                     has_animation = True
                     # Save animation as GIF
-                    gif_path = f'/tmp/animation_${os.getpid()}.gif'
+                    gif_path = f'/tmp/animation_{os.getpid()}.gif'
                     obj.save(gif_path, writer='pillow', fps=30, dpi=80)
                     with open(gif_path, 'rb') as f:
                         gif_base64 = base64.b64encode(f.read()).decode('utf-8')
