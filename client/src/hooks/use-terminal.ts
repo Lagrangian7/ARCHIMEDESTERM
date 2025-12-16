@@ -2575,6 +2575,154 @@ Powered by Wolfram Alpha Full Results API`);
       return;
     }
 
+    // Virtual Systems commands
+    if (cmd.startsWith('vsys ')) {
+      const subCmd = cmd.substring(5).trim();
+      
+      if (subCmd === 'list') {
+        setIsTyping(true);
+        addEntry('system', '📡 Retrieving virtual systems...');
+        
+        fetch('/api/virtual-systems', { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            setIsTyping(false);
+            if (data.systems && data.systems.length > 0) {
+              let formatted = `╭─ Available Virtual Systems (${data.systems.length})\n`;
+              data.systems.forEach((sys: any, index: number) => {
+                const prefix = index === data.systems.length - 1 ? '╰─' : '├─';
+                formatted += `${prefix} ${sys.name}\n`;
+                formatted += `│  Hostname: ${sys.hostname}\n`;
+                formatted += `│  Type: ${sys.systemType}\n`;
+                formatted += `│  Status: ${sys.isActive ? '✅ Active' : '❌ Inactive'}\n`;
+                if (sys.description) {
+                  formatted += `│  ${sys.description}\n`;
+                }
+                if (index < data.systems.length - 1) formatted += '│\n';
+              });
+              addEntry('response', formatted);
+            } else {
+              addEntry('system', 'No virtual systems available. Use "vsys seed" to initialize default systems.');
+            }
+          })
+          .catch(() => {
+            setIsTyping(false);
+            addEntry('error', 'Failed to retrieve virtual systems');
+          });
+        return;
+      }
+      
+      if (subCmd === 'seed') {
+        setIsTyping(true);
+        addEntry('system', '🌱 Initializing default virtual systems...');
+        
+        fetch('/api/virtual-systems/seed', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        })
+          .then(res => res.json())
+          .then(data => {
+            setIsTyping(false);
+            if (data.success) {
+              addEntry('system', `✅ ${data.message}\n\nSystems initialized:\n• VAX/VMS (vax.archimedes.local)\n• Unix (unix.archimedes.local)\n• MS-DOS (dos.archimedes.local)\n\nUse "vsys list" to view all systems.`);
+            } else {
+              addEntry('error', 'Failed to seed virtual systems');
+            }
+          })
+          .catch(() => {
+            setIsTyping(false);
+            addEntry('error', 'Failed to seed virtual systems');
+          });
+        return;
+      }
+      
+      if (subCmd.startsWith('connect ')) {
+        const hostname = subCmd.substring(8).trim();
+        if (!hostname) {
+          addEntry('error', 'Usage: vsys connect <hostname>');
+          return;
+        }
+        
+        setIsTyping(true);
+        addEntry('system', `🔌 Connecting to ${hostname}...`);
+        
+        fetch('/api/virtual-systems/connect', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hostname })
+        })
+          .then(res => res.json())
+          .then(data => {
+            setIsTyping(false);
+            if (data.connection) {
+              const conn = data.connection;
+              let formatted = `╭─ Connected to ${conn.name}\n`;
+              formatted += `├─ Hostname: ${conn.hostname}\n`;
+              formatted += `├─ Welcome Message:\n│  ${conn.welcomeMessage}\n`;
+              if (conn.motd) {
+                formatted += `├─ MOTD:\n│  ${conn.motd}\n`;
+              }
+              formatted += `├─ Prompt: ${conn.prompt}\n`;
+              formatted += `╰─ Use "vsys execute ${hostname} <command>" to run commands`;
+              addEntry('response', formatted);
+            } else if (data.error) {
+              addEntry('error', data.error);
+            } else {
+              addEntry('error', 'System not found');
+            }
+          })
+          .catch(() => {
+            setIsTyping(false);
+            addEntry('error', 'Failed to connect to virtual system');
+          });
+        return;
+      }
+      
+      if (subCmd.startsWith('execute ')) {
+        const parts = subCmd.substring(8).trim().split(' ');
+        if (parts.length < 2) {
+          addEntry('error', 'Usage: vsys execute <hostname> <command> [args]');
+          return;
+        }
+        
+        const hostname = parts[0];
+        const command = parts[1];
+        const args = parts.slice(2);
+        
+        setIsTyping(true);
+        addEntry('system', `⚙️  Executing "${command}" on ${hostname}...`);
+        
+        fetch('/api/virtual-systems/execute', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hostname, command, args })
+        })
+          .then(res => res.json())
+          .then(data => {
+            setIsTyping(false);
+            if (data.output) {
+              addEntry('response', `${hostname}$ ${command} ${args.join(' ')}\n${data.output}`);
+            } else if (data.error) {
+              addEntry('error', data.error);
+            } else {
+              addEntry('error', 'Command execution failed');
+            }
+          })
+          .catch(() => {
+            setIsTyping(false);
+            addEntry('error', 'Failed to execute command on virtual system');
+          });
+        return;
+      }
+      
+      // If no valid vsys subcommand
+      addEntry('error', 'Unknown vsys command. Available: list, seed, connect, execute\nType "help" for details.');
+      return;
+    }
+
     // Handle OSINT commands
     if (cmd.startsWith('whois ')) {
       const domain = cmd.substring(6).trim();
