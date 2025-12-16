@@ -145,6 +145,25 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
   }, []);
 
   // Optimized drag handlers using direct DOM manipulation
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Stop any ongoing speech
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    
+    // Stop video and hide animation
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+    
+    setShouldKeepVisible(false);
+    setIsVisible(false);
+  }, []);
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return; // Only left click
     e.preventDefault();
@@ -238,7 +257,9 @@ export const TalkingArchimedes = memo(function TalkingArchimedes({ isTyping, isS
       }}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
+      onDoubleClick={handleDoubleClick}
       data-testid="talking-archimedes-draggable"
+      title="Double-click to stop speech"
     >
       <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-terminal-highlight/40 bg-terminal-bg shadow-lg shadow-terminal-highlight/20 archimedes-glitch-container">
         {/* Video with chromatic aberration effect */}
