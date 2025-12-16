@@ -238,31 +238,39 @@ export function VoiceControls({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="flex items-center gap-1.5 px-2 py-1 rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                  className="flex items-center gap-1.5 px-2 py-1 rounded border-2 cursor-pointer hover:opacity-90 transition-all hover:scale-105"
                   style={{
                     borderColor: getMemoryColor(memoryUsage.percentage),
-                    backgroundColor: `${getMemoryColor(memoryUsage.percentage)}15`
+                    backgroundColor: `${getMemoryColor(memoryUsage.percentage)}25`,
+                    boxShadow: `0 0 8px ${getMemoryColor(memoryUsage.percentage)}40`
                   }}
                   onClick={() => setShowMemory(false)}
                 >
                   <Activity
-                    size={12}
+                    size={14}
                     style={{ color: getMemoryColor(memoryUsage.percentage) }}
                   />
                   <span
-                    className="text-xs font-mono"
+                    className="text-sm font-mono font-semibold"
                     style={{ color: getMemoryColor(memoryUsage.percentage) }}
                   >
                     {formatBytes(memoryUsage.usedJSHeapSize)}
+                  </span>
+                  <span
+                    className="text-xs font-mono opacity-80"
+                    style={{ color: getMemoryColor(memoryUsage.percentage) }}
+                  >
+                    ({memoryUsage.percentage.toFixed(0)}%)
                   </span>
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                 <div className="space-y-1 text-xs">
-                  <p>Memory Usage: {memoryUsage.percentage.toFixed(1)}%</p>
+                  <p className="font-semibold">Memory Usage: {memoryUsage.percentage.toFixed(1)}%</p>
                   <p>Used: {formatBytes(memoryUsage.usedJSHeapSize)}</p>
+                  <p>Total: {formatBytes(memoryUsage.totalJSHeapSize)}</p>
                   <p>Limit: {formatBytes(memoryUsage.jsHeapSizeLimit)}</p>
-                  <p className="text-terminal-subtle mt-2">Click to hide</p>
+                  <p className="text-terminal-subtle mt-2 italic">Click to hide</p>
                 </div>
               </TooltipContent>
             </Tooltip>
