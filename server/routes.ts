@@ -43,13 +43,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await execPromise('git config user.name "Archimedes Terminal"', { timeout: 1000 });
         await execPromise('git config user.email "terminal@archimedes.local"', { timeout: 1000 });
         
-        // Create initial commit
+        // Create initial commit with all files
         try {
-          await execPromise('git add .', { timeout: 5000 });
-          await execPromise('git commit -m "Initial commit" --no-verify', { timeout: 10000 });
-          console.log('✅ Git repository initialized with initial commit');
+          // Add all files including hidden ones
+          await execPromise('git add -A', { timeout: 8000 });
+          
+          // Check if there are files to commit
+          const { stdout: statusCheck } = await execPromise('git status --porcelain', { timeout: 2000 });
+          
+          if (statusCheck.trim()) {
+            await execPromise('git commit -m "Initial commit" --no-verify --allow-empty', { timeout: 15000 });
+            console.log('✅ Git repository initialized with initial commit');
+          } else {
+            // Force an empty initial commit if no files
+            await execPromise('git commit --allow-empty -m "Initial commit" --no-verify', { timeout: 10000 });
+            console.log('✅ Git repository initialized with empty commit');
+          }
         } catch (commitError: any) {
           console.error('⚠️ Failed to create initial commit:', commitError.message);
+          // Try one more time with --allow-empty
+          try {
+            await execPromise('git commit --allow-empty -m "Initial commit" --no-verify', { timeout: 10000 });
+            console.log('✅ Created empty initial commit as fallback');
+          } catch (fallbackError: any) {
+            console.error('⚠️ Fallback commit also failed:', fallbackError.message);
+          }
         }
       } else {
         // Check if there are any commits
@@ -60,11 +78,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Repository exists but has no commits - create initial commit
           console.log('🔧 Git repository exists but has no commits, creating initial commit...');
           try {
-            await execPromise('git add .', { timeout: 5000 });
-            await execPromise('git commit -m "Initial commit" --no-verify', { timeout: 10000 });
-            console.log('✅ Initial commit created');
+            // Add all files including hidden ones
+            await execPromise('git add -A', { timeout: 8000 });
+            
+            // Check if there are files to commit
+            const { stdout: statusCheck } = await execPromise('git status --porcelain', { timeout: 2000 });
+            
+            if (statusCheck.trim()) {
+              await execPromise('git commit -m "Initial commit" --no-verify --allow-empty', { timeout: 15000 });
+              console.log('✅ Initial commit created');
+            } else {
+              // Force an empty initial commit if no files
+              await execPromise('git commit --allow-empty -m "Initial commit" --no-verify', { timeout: 10000 });
+              console.log('✅ Created empty initial commit');
+            }
           } catch (commitError: any) {
             console.error('⚠️ Failed to create initial commit:', commitError.message);
+            // Try one more time with --allow-empty
+            try {
+              await execPromise('git commit --allow-empty -m "Initial commit" --no-verify', { timeout: 10000 });
+              console.log('✅ Created empty initial commit as fallback');
+            } catch (fallbackError: any) {
+              console.error('⚠️ Fallback commit also failed:', fallbackError.message);
+            }
           }
         }
       }
