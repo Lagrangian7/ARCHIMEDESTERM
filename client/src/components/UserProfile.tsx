@@ -216,6 +216,32 @@ export function UserProfile({ onClose }: UserProfileProps) {
 
             <div className="space-y-4">
               <div className="flex items-center gap-2" style={{ color: 'var(--terminal-text)' }}>
+                <Activity size={16} />
+                <h4 className="font-semibold">Memory Monitor</h4>
+              </div>
+              <div className="space-y-2">
+                <Button
+                  onClick={() => {
+                    const newValue = !localStorage.getItem('show-memory-indicator') || localStorage.getItem('show-memory-indicator') === 'false';
+                    localStorage.setItem('show-memory-indicator', JSON.stringify(newValue));
+                    window.location.reload();
+                  }}
+                  variant={localStorage.getItem('show-memory-indicator') !== 'false' ? "default" : "outline"}
+                  style={localStorage.getItem('show-memory-indicator') !== 'false'
+                    ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
+                    : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
+                  }
+                >
+                  {localStorage.getItem('show-memory-indicator') !== 'false' ? "Showing Memory" : "Hidden"}
+                </Button>
+                <p className="text-xs" style={{ color: 'var(--terminal-subtle)' }}>
+                  Display real-time memory usage indicator
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2" style={{ color: 'var(--terminal-text)' }}>
                 <Settings size={16} />
                 <h4 className="font-semibold">Terminal Theme</h4>
               </div>

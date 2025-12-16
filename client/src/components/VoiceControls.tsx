@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code, Terminal as TerminalIcon } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code, Terminal as TerminalIcon, Activity } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { LogoIcon } from './LogoIcon';
 import { EncodeDecodeOverlay } from './EncodeDecodeOverlay';
+
+interface MemoryUsage {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+  percentage: number;
+}
 
 interface VoiceControlsProps {
   onVoiceInput: (transcript: string) => void;
@@ -116,6 +123,47 @@ export function VoiceControls({
   const [showSpiderFoot, setShowSpiderFoot] = useState(false);
   const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
   const [showSshwifty, setShowSshwiftyLocal] = useState(false);
+  const [memoryUsage, setMemoryUsage] = useState<MemoryUsage | null>(null);
+  const [showMemory, setShowMemory] = useState(() => {
+    const saved = localStorage.getItem('show-memory-indicator');
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  // Poll memory usage every 3 seconds
+  useEffect(() => {
+    const updateMemory = () => {
+      if ('memory' in performance && (performance as any).memory) {
+        const mem = (performance as any).memory;
+        const percentage = (mem.usedJSHeapSize / mem.jsHeapSizeLimit) * 100;
+        setMemoryUsage({
+          usedJSHeapSize: mem.usedJSHeapSize,
+          totalJSHeapSize: mem.totalJSHeapSize,
+          jsHeapSizeLimit: mem.jsHeapSizeLimit,
+          percentage
+        });
+      }
+    };
+
+    updateMemory();
+    const interval = setInterval(updateMemory, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Persist memory visibility preference
+  useEffect(() => {
+    localStorage.setItem('show-memory-indicator', JSON.stringify(showMemory));
+  }, [showMemory]);
+
+  const getMemoryColor = (percentage: number) => {
+    if (percentage < 50) return 'var(--terminal-highlight)'; // green
+    if (percentage < 75) return '#fbbf24'; // yellow
+    return '#ef4444'; // red
+  };
+
+  const formatBytes = (bytes: number) => {
+    const mb = bytes / (1024 * 1024);
+    return mb.toFixed(1) + 'MB';
+  };
 
   const openNewNotepad = () => {
     const newNotepad = { id: Date.now().toString() };
@@ -183,6 +231,43 @@ export function VoiceControls({
           />
           <span className="text-xs text-terminal-subtle min-w-[3ch]">{Math.round(speechVolume * 100)}%</span>
         </div>
+
+        {/* Memory Usage Indicator */}
+        {showMemory && memoryUsage && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div 
+                  className="flex items-center gap-1.5 px-2 py-1 rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                  style={{
+                    borderColor: getMemoryColor(memoryUsage.percentage),
+                    backgroundColor: `${getMemoryColor(memoryUsage.percentage)}15`
+                  }}
+                  onClick={() => setShowMemory(false)}
+                >
+                  <Activity 
+                    size={12} 
+                    style={{ color: getMemoryColor(memoryUsage.percentage) }}
+                  />
+                  <span 
+                    className="text-xs font-mono"
+                    style={{ color: getMemoryColor(memoryUsage.percentage) }}
+                  >
+                    {formatBytes(memoryUsage.usedJSHeapSize)}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                <div className="space-y-1 text-xs">
+                  <p>Memory Usage: {memoryUsage.percentage.toFixed(1)}%</p>
+                  <p>Used: {formatBytes(memoryUsage.usedJSHeapSize)}</p>
+                  <p>Limit: {formatBytes(memoryUsage.jsHeapSizeLimit)}</p>
+                  <p className="text-terminal-subtle mt-2">Click to hide</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
 
       <div className="flex items-center gap-1.5 md:gap-3 flex-wrap">
