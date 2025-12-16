@@ -804,10 +804,7 @@ Session & Productivity:
 
 Code Execution:
   preview / run - Execute and preview code from last AI response
-  preview <code> - Execute and preview your pasted HTML/CSS/JS code
-
-Special Modes:
-  dojo - Enter DOJO PRIME mode (unrestricted exploration)`);
+  preview <code> - Execute and preview your pasted HTML/CSS/JS code`);
         return;
 
       case 'clear':
@@ -1019,6 +1016,12 @@ Special Modes:
           addEntry('error', 'Background Manager not available. Please ensure the system is loaded.');
         }
         return;
+    }
+
+    // Check for command aliases
+    if (commandAliases.has(cmd)) {
+      processCommand(commandAliases.get(cmd)!); // Recursively call with the aliased command
+      return;
     }
 
     if (cmd.startsWith('mode ')) {
@@ -2878,7 +2881,7 @@ Powered by Wolfram Alpha Full Results API`);
     // For non-command inputs, send to AI
     setIsTyping(true);
     chatMutation.mutate({ message: command, mode: currentMode });
-  }, [currentMode, sessionId, commandHistory.length, addEntry, chatMutation, weatherMutation]);
+  }, [currentMode, sessionId, commandHistory.length, addEntry, chatMutation, weatherMutation, commandAliases]); // Added commandAliases dependency
 
   const clearTerminal = useCallback(() => {
     setEntries([]);

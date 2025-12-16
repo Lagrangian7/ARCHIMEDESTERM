@@ -704,6 +704,14 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const [gitDiff, setGitDiff] = useState<string>('');
   const [gitLoading, setGitLoading] = useState(false);
   const [gitView, setGitView] = useState<'commits' | 'status' | 'diff'>('commits');
+  
+  // Enhanced features
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [showMinimap, setShowMinimap] = useState(true);
+  const [fontSize, setFontSize] = useState(14);
+  const [showLineNumbers, setShowLineNumbers] = useState(true);
+  const [enableAutoFormat, setEnableAutoFormat] = useState(true);
+  const [showCollabCursor, setShowCollabCursor] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(MONACO_AI_MODE_KEY, monacoAIMode);
@@ -915,7 +923,17 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     setFiles(prev => prev.map(f => 
       f.id === activeFileId ? { ...f, content } : f
     ));
-  }, [activeFileId]);
+    
+    // Auto-save to localStorage with debounce
+    if (autoSaveEnabled) {
+      const timeoutId = setTimeout(() => {
+        saveSession(files.map(f => 
+          f.id === activeFileId ? { ...f, content } : f
+        ), activeFileId);
+      }, 1000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [activeFileId, autoSaveEnabled, files]);
 
   const updateFileName = useCallback((id: string, name: string) => {
     const ext = name.split('.').pop()?.toLowerCase();
@@ -1586,9 +1604,9 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                   onChange={(value) => updateFileContent(value || '')}
                   onMount={handleEditorMount}
                   options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineNumbers: 'on',
+                    minimap: { enabled: showMinimap },
+                    fontSize: fontSize,
+                    lineNumbers: showLineNumbers ? 'on' : 'off',
                     scrollBeyondLastLine: false,
                     automaticLayout: true,
                     tabSize: 2,
@@ -1601,10 +1619,25 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
                     suggest: {
                       showIcons: true,
                       showInlineDetails: true,
+                      snippetsPreventQuickSuggestions: false,
+                    },
+                    quickSuggestions: {
+                      other: true,
+                      comments: true,
+                      strings: true,
                     },
                     autoClosingBrackets: 'always',
-                    formatOnPaste: true,
-                    formatOnType: true,
+                    autoClosingQuotes: 'always',
+                    formatOnPaste: enableAutoFormat,
+                    formatOnType: enableAutoFormat,
+                    bracketPairColorization: { enabled: true },
+                    inlineSuggest: { enabled: true },
+                    parameterHints: { enabled: true },
+                    acceptSuggestionOnEnter: 'on',
+                    tabCompletion: 'on',
+                    codeLens: true,
+                    folding: true,
+                    foldingStrategy: 'indentation',
                   }}
                   key={`${activeFile.id}-${activeFile.language}`}
                 />

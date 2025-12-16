@@ -155,6 +155,18 @@ export function CodeSnippets({ language, onInsert, theme }: CodeSnippetsProps) {
     category: string;
   }>>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Enhanced snippet features
+  const [favoriteSnippets, setFavoriteSnippets] = useState<Set<string>>(new Set());
+  const [customSnippets, setCustomSnippets] = useState<Array<{
+    name: string;
+    description: string;
+    code: string;
+    language: string;
+    category: string;
+  }>>([]);
+  const [showAddSnippet, setShowAddSnippet] = useState(false);
+  const [snippetTags, setSnippetTags] = useState<Map<string, string[]>>(new Map());
 
   const generateSnippetMutation = useMutation({
     mutationFn: async (query: string) => {

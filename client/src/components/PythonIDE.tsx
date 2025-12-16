@@ -1916,6 +1916,11 @@ calculator()
   // AI processing visual feedback
   const [aiProcessingLines, setAiProcessingLines] = useState<number[]>([]);
   const decorationsCollectionRef = useRef<any>(null);
+  
+  // Enhanced code quality features
+  const [codeQualityHints, setCodeQualityHints] = useState<Array<{ line: number; message: string; severity: 'warning' | 'error' | 'info' }>>([]);
+  const [showCodeMetrics, setShowCodeMetrics] = useState(false);
+  const [executionHistory, setExecutionHistory] = useState<Array<{ timestamp: string; code: string; output: string; success: boolean }>>([]);
 
   // Dragging and resizing state
   const [isDragging, setIsDragging] = useState(false);
@@ -2003,11 +2008,29 @@ calculator()
     const currentActiveFile = files.find(f => f.id === activeFileId);
     const currentCode = showMultiFileMode && currentActiveFile ? currentActiveFile.content : code;
     if (currentCode.trim()) {
+      // Basic inline quality checks
+      const hints: Array<{ line: number; message: string; severity: 'warning' | 'error' | 'info' }> = [];
+      const lines = currentCode.split('\n');
+      
+      lines.forEach((line, index) => {
+        // Check for common issues
+        if (line.length > 120) {
+          hints.push({ line: index + 1, message: 'Line too long (>120 chars)', severity: 'warning' });
+        }
+        if (/print\(.*\).*print\(.*\)/.test(line)) {
+          hints.push({ line: index + 1, message: 'Multiple print statements on one line', severity: 'info' });
+        }
+        if (/except:/.test(line) && !/except\s+\w+/.test(line)) {
+          hints.push({ line: index + 1, message: 'Bare except clause - specify exception type', severity: 'warning' });
+        }
+      });
+      
+      setCodeQualityHints(hints);
       analyzeCodeQualityMutation.mutate(currentCode);
     } else {
       toast({ title: "No code to analyze", description: "Please write some code first." });
     }
-  }, [analyzeCodeQualityMutation, code, files, activeFileId, showMultiFileMode]);
+  }, [analyzeCodeQualityMutation, code, files, activeFileId, showMultiFileMode, toast]);
 
   // Collaborative AI Review state
   const [showCollaborativeReview, setShowCollaborativeReview] = useState(false);
