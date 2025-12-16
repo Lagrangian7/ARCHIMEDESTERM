@@ -29,6 +29,39 @@ import { tmpdir } from 'os';
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
+  // Initialize Git repository on startup (for both dev and production)
+  const initializeGit = async () => {
+    try {
+      const execPromise = promisify(exec);
+      
+      // Check if .git directory exists
+      const { stdout: gitCheck } = await execPromise('[ -d .git ] && echo "exists" || echo "missing"', { timeout: 1000 });
+      
+      if (gitCheck.trim() === 'missing') {
+        console.log('🔧 Git not initialized, initializing now...');
+        await execPromise('git init', { timeout: 5000 });
+        await execPromise('git config user.name "Archimedes Terminal"', { timeout: 1000 });
+        await execPromise('git config user.email "terminal@archimedes.local"', { timeout: 1000 });
+        
+        // Create initial commit
+        try {
+          await execPromise('git add .', { timeout: 5000 });
+          await execPromise('git commit -m "Initial commit"', { timeout: 10000 });
+          console.log('✅ Git repository initialized with initial commit');
+        } catch (commitError) {
+          console.log('ℹ️ Git initialized (no initial commit created)');
+        }
+      } else {
+        console.log('✅ Git repository already initialized');
+      }
+    } catch (error: any) {
+      console.error('⚠️ Git initialization failed:', error.message);
+    }
+  };
+
+  // Run Git initialization asynchronously (don't block server startup)
+  initializeGit().catch(err => console.error('Git init error:', err));
+
   // Health check endpoint - MUST be first, before any middleware
   // This allows deployment health checks to succeed quickly (v2.0)
   app.get('/health', (req, res) => {
