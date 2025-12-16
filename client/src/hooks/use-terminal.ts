@@ -391,6 +391,17 @@ Use the URLs above to access the full articles and information.`;
     }
   }, []);
 
+  // Command aliases - shortcuts for common commands
+  const commandAliases = useMemo(() => new Map<string, string>([
+    ['py', 'python'],
+    ['ide', 'python'],
+    ['ls', 'docs'],
+    ['dir', 'docs'],
+    ['cls', 'clear'],
+    ['exit', 'clear'],
+    ['quit', 'clear'],
+  ]), []);
+
   const processCommand = useCallback((command: string) => {
     const timestamp = new Date().toLocaleTimeString();
     addEntry('command', command);
