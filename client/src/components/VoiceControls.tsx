@@ -232,41 +232,54 @@ export function VoiceControls({
           <span className="text-xs text-terminal-subtle min-w-[3ch]">{Math.round(speechVolume * 100)}%</span>
         </div>
 
-        {/* Memory Usage Indicator */}
+        {/* Memory Usage Indicator - HIGHLY VISIBLE */}
         {showMemory && memoryUsage && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="flex items-center gap-1.5 px-2 py-1 rounded border-2 cursor-pointer hover:opacity-90 transition-all hover:scale-105"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all hover:scale-110 animate-pulse"
                   style={{
                     borderColor: getMemoryColor(memoryUsage.percentage),
-                    backgroundColor: `${getMemoryColor(memoryUsage.percentage)}25`,
-                    boxShadow: `0 0 8px ${getMemoryColor(memoryUsage.percentage)}40`
+                    backgroundColor: `${getMemoryColor(memoryUsage.percentage)}35`,
+                    boxShadow: `0 0 20px ${getMemoryColor(memoryUsage.percentage)}80, 0 0 40px ${getMemoryColor(memoryUsage.percentage)}40`,
+                    minWidth: '140px'
                   }}
                   onClick={() => setShowMemory(false)}
                 >
                   <Activity
-                    size={14}
-                    style={{ color: getMemoryColor(memoryUsage.percentage) }}
+                    size={18}
+                    className="animate-spin"
+                    style={{ 
+                      color: getMemoryColor(memoryUsage.percentage),
+                      filter: `drop-shadow(0 0 4px ${getMemoryColor(memoryUsage.percentage)})`
+                    }}
                   />
-                  <span
-                    className="text-sm font-mono font-semibold"
-                    style={{ color: getMemoryColor(memoryUsage.percentage) }}
-                  >
-                    {formatBytes(memoryUsage.usedJSHeapSize)}
-                  </span>
-                  <span
-                    className="text-xs font-mono opacity-80"
-                    style={{ color: getMemoryColor(memoryUsage.percentage) }}
-                  >
-                    ({memoryUsage.percentage.toFixed(0)}%)
-                  </span>
+                  <div className="flex flex-col items-start">
+                    <span
+                      className="text-base font-mono font-bold leading-tight"
+                      style={{ 
+                        color: getMemoryColor(memoryUsage.percentage),
+                        textShadow: `0 0 8px ${getMemoryColor(memoryUsage.percentage)}`
+                      }}
+                    >
+                      {formatBytes(memoryUsage.usedJSHeapSize)}
+                    </span>
+                    <span
+                      className="text-xs font-mono font-semibold"
+                      style={{ 
+                        color: getMemoryColor(memoryUsage.percentage),
+                        opacity: 0.9
+                      }}
+                    >
+                      {memoryUsage.percentage.toFixed(1)}% RAM
+                    </span>
+                  </div>
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                 <div className="space-y-1 text-xs">
-                  <p className="font-semibold">Memory Usage: {memoryUsage.percentage.toFixed(1)}%</p>
+                  <p className="font-semibold text-terminal-highlight">Memory Usage: {memoryUsage.percentage.toFixed(1)}%</p>
                   <p>Used: {formatBytes(memoryUsage.usedJSHeapSize)}</p>
                   <p>Total: {formatBytes(memoryUsage.totalJSHeapSize)}</p>
                   <p>Limit: {formatBytes(memoryUsage.jsHeapSizeLimit)}</p>
