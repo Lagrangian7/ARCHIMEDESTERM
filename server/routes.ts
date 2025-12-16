@@ -57,10 +57,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Git initialization endpoint - ensures .git exists
+  app.post('/api/git/init', async (req, res) => {
+    try {
+      const execPromise = promisify(exec);
+      
+      // Check if .git directory exists
+      const { stdout: gitCheck } = await execPromise('[ -d .git ] && echo "exists" || echo "missing"', { timeout: 1000 });
+      
+      if (gitCheck.trim() === 'missing') {
+        // Initialize git repository
+        await execPromise('git init', { timeout: 5000 });
+        await execPromise('git config user.name "Archimedes Terminal"', { timeout: 1000 });
+        await execPromise('git config user.email "terminal@archimedes.local"', { timeout: 1000 });
+        
+        // Create initial commit if there are no commits
+        try {
+          await execPromise('git add .', { timeout: 5000 });
+          await execPromise('git commit -m "Initial commit"', { timeout: 10000 });
+        } catch (commitError) {
+          // Ignore commit errors (might already have commits or no changes)
+        }
+        
+        res.json({ initialized: true, message: 'Git repository initialized' });
+      } else {
+        res.json({ initialized: false, message: 'Git repository already exists' });
+      }
+    } catch (error: any) {
+      console.error('Git init error:', error);
+      res.status(500).json({ error: 'Failed to initialize git repository', details: error.message });
+    }
+  });
+
   // Git log endpoint for Code Playground git panel
   app.get('/api/git/log', async (req, res) => {
     try {
       const execPromise = promisify(exec);
+      
+      // Check if .git exists first
+      const { stdout: gitCheck } = await execPromise('[ -d .git ] && echo "exists" || echo "missing"', { timeout: 1000 });
+      
+      if (gitCheck.trim() === 'missing') {
+        return res.json({ commits: [], needsInit: true });
+      }
+      
       const { stdout } = await execPromise(
         'git log --format="%H|%s|%an|%ar" -n 20',
         { timeout: 5000 }
@@ -80,7 +120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ commits });
     } catch (error: any) {
-      res.json({ commits: [] });
+      res.json({ commits: [], needsInit: true });
     }
   });
 

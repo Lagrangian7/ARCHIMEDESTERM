@@ -769,17 +769,34 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const fetchGitInfo = async () => {
     setGitLoading(true);
     try {
-      const [commitsRes, statusRes, diffRes] = await Promise.all([
-        fetch('/api/git/log'),
+      // First fetch commits to check if git needs initialization
+      const commitsRes = await fetch('/api/git/log');
+      const commitsData = await commitsRes.json();
+      
+      // If git needs initialization, initialize it first
+      if (commitsData.needsInit) {
+        console.log('🔧 Git not initialized, initializing now...');
+        const initRes = await fetch('/api/git/init', { method: 'POST' });
+        const initData = await initRes.json();
+        console.log('✓ Git initialized:', initData.message);
+        
+        // Re-fetch commits after initialization
+        const retryCommitsRes = await fetch('/api/git/log');
+        const retryCommitsData = await retryCommitsRes.json();
+        setGitCommits(retryCommitsData.commits || []);
+      } else {
+        setGitCommits(commitsData.commits || []);
+      }
+
+      // Fetch status and diff
+      const [statusRes, diffRes] = await Promise.all([
         fetch('/api/git/status'),
         fetch('/api/git/diff')
       ]);
 
-      const commitsData = await commitsRes.json();
       const statusData = await statusRes.json();
       const diffData = await diffRes.json();
 
-      setGitCommits(commitsData.commits || []);
       setGitStatus(statusData.files || []);
       setGitDiff(diffData.diff || '');
     } catch (error) {
@@ -1361,23 +1378,27 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <GitBranch className="w-4 h-4 text-[#00FF41]" />
-              <div className="flex gap-1">
-                {(['commits', 'status', 'diff'] as const).map(view => (
-                  <button
-                    key={view}
-                    onClick={() => setGitView(view)}
-                    className={`px-2 py-1 text-xs font-mono rounded ${
-                      gitView === view 
-                        ? 'bg-[#00FF41]/20 text-[#00FF41]' 
-                        : 'text-[#00FF41]/50 hover:text-[#00FF41]/80'
-                    }`}
-                    data-testid={`git-tab-${view}`}
-                  >
-                    {view === 'commits' ? `Commits (${gitCommits.length})` : 
-                     view === 'status' ? `Status (${gitStatus.length})` : 'Diff'}
-                  </button>
-                ))}
-              </div>
+              {gitLoading && gitCommits.length === 0 ? (
+                <span className="text-[#00FF41]/70 text-xs font-mono">Initializing Git...</span>
+              ) : (
+                <div className="flex gap-1">
+                  {(['commits', 'status', 'diff'] as const).map(view => (
+                    <button
+                      key={view}
+                      onClick={() => setGitView(view)}
+                      className={`px-2 py-1 text-xs font-mono rounded ${
+                        gitView === view 
+                          ? 'bg-[#00FF41]/20 text-[#00FF41]' 
+                          : 'text-[#00FF41]/50 hover:text-[#00FF41]/80'
+                      }`}
+                      data-testid={`git-tab-${view}`}
+                    >
+                      {view === 'commits' ? `Commits (${gitCommits.length})` : 
+                       view === 'status' ? `Status (${gitStatus.length})` : 'Diff'}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Button
