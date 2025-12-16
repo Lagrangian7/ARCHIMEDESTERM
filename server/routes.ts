@@ -46,13 +46,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create initial commit
         try {
           await execPromise('git add .', { timeout: 5000 });
-          await execPromise('git commit -m "Initial commit"', { timeout: 10000 });
+          await execPromise('git commit -m "Initial commit" --no-verify', { timeout: 10000 });
           console.log('✅ Git repository initialized with initial commit');
-        } catch (commitError) {
-          console.log('ℹ️ Git initialized (no initial commit created)');
+        } catch (commitError: any) {
+          console.error('⚠️ Failed to create initial commit:', commitError.message);
         }
       } else {
-        console.log('✅ Git repository already initialized');
+        // Check if there are any commits
+        try {
+          await execPromise('git rev-parse HEAD', { timeout: 1000 });
+          console.log('✅ Git repository already initialized with commits');
+        } catch (noCommitsError) {
+          // Repository exists but has no commits - create initial commit
+          console.log('🔧 Git repository exists but has no commits, creating initial commit...');
+          try {
+            await execPromise('git add .', { timeout: 5000 });
+            await execPromise('git commit -m "Initial commit" --no-verify', { timeout: 10000 });
+            console.log('✅ Initial commit created');
+          } catch (commitError: any) {
+            console.error('⚠️ Failed to create initial commit:', commitError.message);
+          }
+        }
       }
     } catch (error: any) {
       console.error('⚠️ Git initialization failed:', error.message);
