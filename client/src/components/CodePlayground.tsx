@@ -795,6 +795,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       const data = await response.json();
       setCommitDiff(data.diff || '');
       setSelectedCommit(hash);
+      setGitView('diff'); // Switch to diff view to show the commit details
     } catch (error) {
       console.error('Failed to fetch commit details:', error);
     }
@@ -1456,7 +1457,26 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
             )
           ) : (
             commitDiff ? (
-              <pre className="text-[#00FF41]/80 text-xs font-mono whitespace-pre-wrap bg-black/30 p-2 rounded">{commitDiff}</pre>
+              <div>
+                {selectedCommit && (
+                  <div className="mb-2 pb-2 border-b border-[#00FF41]/20">
+                    <div className="text-[#00FF41] text-xs font-mono">
+                      Commit: <code className="text-[#00FF41]/70">{selectedCommit.slice(0, 7)}</code>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setCommitDiff('');
+                        setSelectedCommit(null);
+                        setGitView('commits');
+                      }}
+                      className="text-[#00FF41]/60 hover:text-[#00FF41] text-[10px] mt-1"
+                    >
+                      ← Back to commits
+                    </button>
+                  </div>
+                )}
+                <pre className="text-[#00FF41]/80 text-xs font-mono whitespace-pre-wrap bg-black/30 p-2 rounded max-h-48 overflow-y-auto">{commitDiff}</pre>
+              </div>
             ) : (
               <div className="text-[#00FF41]/50 text-xs font-mono py-2">Click on a commit to see its diff.</div>
             )
