@@ -90,6 +90,42 @@ const helpMenuItems: HelpMenuItem[] = [
     icon: <Wifi size={16} />
   },
 
+  // Virtual Systems
+  {
+    id: 'vsys-list',
+    category: 'Virtual Systems',
+    title: 'List Virtual Systems',
+    description: 'Display all available virtual computing systems',
+    command: 'vsys list',
+    icon: <Terminal size={16} />
+  },
+  {
+    id: 'vsys-connect',
+    category: 'Virtual Systems',
+    title: 'Connect to Virtual System',
+    description: 'Connect to a virtual VAX/VMS, Unix, or DOS system',
+    command: 'vsys connect',
+    example: 'vsys connect vax.archimedes.local',
+    icon: <Terminal size={16} />
+  },
+  {
+    id: 'vsys-execute',
+    category: 'Virtual Systems',
+    title: 'Execute Virtual Command',
+    description: 'Run commands on connected virtual systems',
+    command: 'vsys execute',
+    example: 'vsys execute unix.archimedes.local ls /home/user',
+    icon: <Terminal size={16} />
+  },
+  {
+    id: 'vsys-seed',
+    category: 'Virtual Systems',
+    title: 'Initialize Virtual Systems',
+    description: 'Seed default virtual systems (VAX/VMS, Unix, DOS)',
+    command: 'vsys seed',
+    icon: <Terminal size={16} />
+  },
+
   // Stock Market
   {
     id: 'stock-quote',

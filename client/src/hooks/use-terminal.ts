@@ -725,6 +725,17 @@ Network & BBS Commands:
   bbs-popular - Show popular BBS systems
   bbs-favorites - Show your favorite BBS systems
 
+Virtual Systems (Retro Computing):
+  vsys list - List all available virtual systems
+  vsys connect <hostname> - Connect to a virtual system
+  vsys execute <hostname> <command> [args] - Execute command on virtual system
+  vsys seed - Initialize default virtual systems (VAX/VMS, Unix, DOS)
+  
+  Available Virtual Systems:
+  • vax.archimedes.local - OpenVMS 7.3 (VMS commands: DIR, SHOW, TYPE, etc.)
+  • unix.archimedes.local - SunOS 4.1.4 (Unix commands: ls, cat, pwd, who, etc.)
+  • dos.archimedes.local - MS-DOS 6.22 (DOS commands: DIR, TYPE, MEM, etc.)
+
 Stock Market Data:
   stock quote <symbol> - Get current stock price and info
   stock quotes <symbols> - Get multiple quotes (comma-separated)
