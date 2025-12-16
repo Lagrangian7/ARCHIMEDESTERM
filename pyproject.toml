@@ -9,4 +9,5 @@ dependencies = [
     "pillow>=12.0.0",
     "pygame>=2.6.1",
     "pyvirtualdisplay>=3.0",
+    "rich>=13.9.4",
 ]
