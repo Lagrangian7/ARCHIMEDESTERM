@@ -398,7 +398,7 @@ export function VoiceControls({
                         opacity: 0.9
                       }}
                     >
-                      {storageUsage.percentage.toFixed(1)}% STORAGE
+                      {storageUsage.percentage.toFixed(1)}% HD
                     </span>
                   </div>
                 </div>
