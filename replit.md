@@ -95,7 +95,12 @@ Preferred communication style: Simple, everyday language.
   - **Fallback Chain**: Primary → Groq → OpenRouter → Mistral API → HuggingFace → Static response
 - **Token Optimization System** (December 2025):
   - Compact system prompts (~80% token savings vs verbose prompts)
-  - Response caching for common queries (greetings, help, etc.) with 5-minute TTL
+  - Response caching for common queries (greetings, help, etc.) with 5-minute TTL, max 100 entries
+  - **Caching Security Rules**:
+    - Cache keys include userId to prevent cross-user data leakage
+    - Cache bypassed when user has personalization active (personality context or knowledge context)
+    - Only non-personalized responses are cached; personalized users always get fresh generation
+    - Anonymous users share cache (no personalization possible), authenticated users get isolated cache
   - Token-aware conversation history (mode-specific limits: natural=4, technical/health=6, freestyle=4 messages)
   - Reduced max_tokens per mode: natural=800, technical=2000, freestyle=3000, health=1500
   - Editor context truncation at 1000 chars
