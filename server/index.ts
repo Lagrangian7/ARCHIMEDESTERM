@@ -24,6 +24,23 @@ app.use(compression());
 app.use(express.json({ limit: '1mb' })); // Add size limit
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 
+// Health check endpoint - MUST be registered early for deployment health checks
+// This responds immediately without waiting for other initialization
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Root path quick response for deployment health checks
+app.get('/', (req, res, next) => {
+  // If this is a health check (no Accept header for HTML), respond quickly
+  const acceptHeader = req.headers.accept || '';
+  if (!acceptHeader.includes('text/html') && !acceptHeader.includes('*/*')) {
+    return res.status(200).send('OK');
+  }
+  // Otherwise, let it pass through to Vite/static serving
+  next();
+});
+
 app.use((req, res, next) => {
   // Only log in development and only for API routes
   if (app.get("env") === "development" && req.path.startsWith("/api")) {

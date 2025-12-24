@@ -8,6 +8,13 @@
       "when": 1764771652090,
       "tag": "0000_demonic_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766599329360,
+      "tag": "0001_amazing_shatterstar",
+      "breakpoints": true
     }
   ]
 }

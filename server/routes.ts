@@ -78,8 +78,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  // Run Git initialization and wait for it to complete before continuing
-  await initializeGit();
+  // Run Git initialization in the background (non-blocking)
+  // Skip in production deployments where .git doesn't exist and can't be created
+  if (process.env.REPLIT_DEPLOYMENT !== '1') {
+    // Fire and forget - don't block server startup
+    initializeGit().catch(err => console.error('Git init background error:', err));
+  } else {
+    console.log('⏭️ Skipping git initialization in deployment environment');
+  }
 
   // Health check endpoint - MUST be first, before any middleware
   // This allows deployment health checks to succeed quickly (v2.0)
