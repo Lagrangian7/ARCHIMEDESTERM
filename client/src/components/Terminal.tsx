@@ -110,7 +110,6 @@ export function Terminal() {
     (window as any).openWebamp = () => setShowWebamp(true);
     (window as any).openAJVideo = () => setShowAJVideo(true);
     (window as any).openAJ2Video = () => setShowAJ2Video(true);
-    (window as any).openSpacewars = () => setShowSpacewars(true);
     (window as any).openPythonIDE = () => setShowPythonIDE(true);
     (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
     (window as any).openWebSynth = () => setShowWebSynth(true);
@@ -159,7 +158,6 @@ export function Terminal() {
   const [showAJVideo, setShowAJVideo] = useState(false);
   const [showAJ2Video, setShowAJ2Video] = useState(false);
   const [isWebampOpen, setIsWebampOpen] = useState(false); // State to track if Webamp is open
-  const [showSpacewars, setShowSpacewars] = useState(false);
   const [notepads, setNotepads] = useState<Array<{ id: string }>>([]);
   const [showPythonIDE, setShowPythonIDE] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
@@ -564,11 +562,6 @@ export function Terminal() {
       }
     }, 100);
   }, [processCommand]);
-
-  // Launch SPACEWAR game in iframe
-  const launchSpacewars = useCallback(() => {
-    setShowSpacewars(true);
-  }, []);
 
   const formatTimestamp = useCallback((timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
@@ -1044,29 +1037,6 @@ export function Terminal() {
         isOpen={showAJ2Video}
         onClose={() => setShowAJ2Video(false)}
       />
-
-      {/* SPACEWAR Game */}
-      {showSpacewars && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className="relative w-[800px] h-[600px] border-2 border-terminal-highlight rounded-lg overflow-hidden shadow-2xl pointer-events-auto" style={{ backgroundColor: 'black' }}>
-            <Button
-              onClick={() => setShowSpacewars(false)}
-              variant="ghost"
-              size="sm"
-              className="absolute top-2 right-2 z-10 text-terminal-highlight hover:bg-terminal-highlight hover:text-terminal-bg"
-              data-testid="close-spacewars"
-            >
-              ✕ Close
-            </Button>
-            <iframe
-              src={`/spacewar.html?v=${Date.now()}`}
-              className="w-full h-full border-none"
-              title="SPACEWAR Game"
-              data-testid="spacewars-iframe"
-            />
-          </div>
-        </div>
-      )}
 
       {/* Python IDE */}
       {showPythonIDE && <MemoizedPythonIDE onClose={() => setShowPythonIDE(false)} />}

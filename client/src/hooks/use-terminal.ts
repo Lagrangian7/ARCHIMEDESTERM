@@ -792,7 +792,6 @@ Audio & Signal Processing:
 Games:
   snake - Play the classic Snake game
   zork - Play ZORK: The Great Underground Empire
-  spacewars - Launch SPACEWAR game in new browser window
 
 System Commands:
   privacy - Activate matrix rain privacy screen (type "QWERTY" to unlock)
@@ -986,12 +985,6 @@ Code Execution:
         setCurrentMode(newMode);
         addEntry('system', `Mode switched to: ${newMode.toUpperCase()}`);
         return;
-
-      case 'spacewar':
-      case 'spacewars':
-        (window as any).openSpacewars?.();
-        addEntry('system', '🚀 Launching SPACEWAR game...');
-        return; // Return early to skip auto-code extraction
 
       case 'workshop':
         setShowPythonIDE(true);

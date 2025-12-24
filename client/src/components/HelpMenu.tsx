@@ -400,15 +400,6 @@ const helpMenuItems: HelpMenuItem[] = [
     command: 'zork',
     icon: <Gamepad2 size={16} />
   },
-  {
-    id: 'invaders',
-    category: 'Games',
-    title: 'SPACEWAR',
-    description: 'Launch enhanced SPACEWAR game in new browser window featuring Nyan Cat, UFOs, and multiple invasion patterns',
-    command: 'spacewars',
-    icon: <Gamepad2 size={16} />
-  },
-
   // Research & Academic
   {
     id: 'research',
