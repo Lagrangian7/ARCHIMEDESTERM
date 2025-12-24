@@ -14,7 +14,10 @@ import {
   userPreferences,
   conversations,
   documents,
-  knowledgeChunks
+  knowledgeChunks,
+  wallpapers, // Assuming 'wallpapers' schema is imported or defined elsewhere
+  type Wallpaper, // Assuming 'Wallpaper' type is imported or defined elsewhere
+  type InsertWallpaper // Assuming 'InsertWallpaper' type is imported or defined elsewhere
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -55,6 +58,13 @@ export interface IStorage {
   getDocumentChunks(documentId: string): Promise<KnowledgeChunk[]>;
   searchKnowledgeChunks(userId: string, query: string): Promise<KnowledgeChunk[]>;
   deleteDocumentChunks(documentId: string): Promise<void>;
+
+  // Wallpaper management methods
+  getUserWallpapers(userId: string): Promise<Wallpaper[]>;
+  createWallpaper(data: InsertWallpaper): Promise<Wallpaper>;
+  deleteWallpaper(wallpaperId: string, userId: string): Promise<boolean>;
+  setSelectedWallpaper(wallpaperId: string, userId: string): Promise<boolean>;
+  clearSelectedWallpaper(userId: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -63,6 +73,7 @@ export class MemStorage implements IStorage {
   private conversations: Map<string, Conversation>;
   private documents: Map<string, Document>;
   private knowledgeChunks: Map<string, KnowledgeChunk>;
+  private wallpapers: Map<string, Wallpaper>; // In-memory store for wallpapers
 
   constructor() {
     this.users = new Map();
@@ -70,6 +81,7 @@ export class MemStorage implements IStorage {
     this.conversations = new Map();
     this.documents = new Map();
     this.knowledgeChunks = new Map();
+    this.wallpapers = new Map(); // Initialize wallpaper map
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -391,11 +403,67 @@ export class MemStorage implements IStorage {
     });
     idsToDelete.forEach(id => this.knowledgeChunks.delete(id));
   }
+
+  // Wallpaper management methods
+  async getUserWallpapers(userId: string): Promise<Wallpaper[]> {
+    return Array.from(this.wallpapers.values())
+      .filter(wallpaper => wallpaper.userId === userId)
+      .sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0));
+  }
+
+  async createWallpaper(data: InsertWallpaper): Promise<Wallpaper> {
+    const id = randomUUID();
+    const now = new Date();
+    const wallpaper: Wallpaper = {
+      id,
+      userId: data.userId,
+      url: data.url,
+      thumbnailUrl: data.thumbnailUrl,
+      source: data.source,
+      timestamp: now,
+      isSelected: data.isSelected || false,
+    };
+    this.wallpapers.set(id, wallpaper);
+    return wallpaper;
+  }
+
+  async deleteWallpaper(wallpaperId: string, userId: string): Promise<boolean> {
+    if (this.wallpapers.has(wallpaperId) && this.wallpapers.get(wallpaperId)?.userId === userId) {
+      this.wallpapers.delete(wallpaperId);
+      return true;
+    }
+    return false;
+  }
+
+  async setSelectedWallpaper(wallpaperId: string, userId: string): Promise<boolean> {
+    let success = false;
+    this.wallpapers.forEach((wallpaper, id) => {
+      if (wallpaper.userId === userId) {
+        const isSelected = id === wallpaperId;
+        wallpaper.isSelected = isSelected;
+        if (isSelected) {
+          success = true;
+        }
+      }
+    });
+    return success;
+  }
+
+  async clearSelectedWallpaper(userId: string): Promise<void> {
+    this.wallpapers.forEach((wallpaper, id) => {
+      if (wallpaper.userId === userId) {
+        wallpaper.isSelected = false;
+      }
+    });
+  }
 }
 
 export class DatabaseStorage implements IStorage {
+  // Inject db instance directly
+  constructor(private db: any) {}
+
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await this.db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
@@ -406,7 +474,7 @@ export class DatabaseStorage implements IStorage {
     if (existingUser) {
       // Update existing user - preserve createdAt, only update updatedAt
       const { createdAt, ...updateFields } = userData;
-      const [user] = await db
+      const [user] = await this.db
         .update(users)
         .set({
           ...updateFields,
@@ -417,7 +485,7 @@ export class DatabaseStorage implements IStorage {
       return user;
     } else {
       // Create new user
-      const [user] = await db
+      const [user] = await this.db
         .insert(users)
         .values({
           ...userData,
@@ -443,17 +511,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
-    const [prefs] = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+    const [prefs] = await this.db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
     return prefs;
   }
 
   async createUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences> {
-    const [prefs] = await db.insert(userPreferences).values(preferences).returning();
+    const [prefs] = await this.db.insert(userPreferences).values(preferences).returning();
     return prefs;
   }
 
   async updateUserPreferences(userId: string, preferences: Partial<InsertUserPreferences>): Promise<UserPreferences> {
-    const [prefs] = await db
+    const [prefs] = await this.db
       .update(userPreferences)
       .set({ ...preferences, updatedAt: new Date() })
       .where(eq(userPreferences.userId, userId))
@@ -462,12 +530,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getConversation(sessionId: string): Promise<Conversation | undefined> {
-    const [conversation] = await db.select().from(conversations).where(eq(conversations.sessionId, sessionId));
+    const [conversation] = await this.db.select().from(conversations).where(eq(conversations.sessionId, sessionId));
     return conversation;
   }
 
   async getUserConversations(userId: string, limit: number = 50): Promise<Conversation[]> {
-    return await db
+    return await this.db
       .select()
       .from(conversations)
       .where(eq(conversations.userId, userId))
@@ -476,12 +544,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createConversation(conversation: InsertConversation): Promise<Conversation> {
-    const [conv] = await db.insert(conversations).values(conversation).returning();
+    const [conv] = await this.db.insert(conversations).values(conversation).returning();
     return conv;
   }
 
   async updateConversation(sessionId: string, messages: Message[]): Promise<void> {
-    await db
+    await this.db
       .update(conversations)
       .set({ messages: JSON.stringify(messages), updatedAt: new Date() })
       .where(eq(conversations.sessionId, sessionId));
@@ -503,37 +571,37 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateConversationTitle(sessionId: string, title: string): Promise<void> {
-    await db
+    await this.db
       .update(conversations)
       .set({ title, updatedAt: new Date() })
       .where(eq(conversations.sessionId, sessionId));
   }
 
   async updateConversationUserId(sessionId: string, userId: string): Promise<void> {
-    await db
+    await this.db
       .update(conversations)
       .set({ userId, updatedAt: new Date() })
       .where(eq(conversations.sessionId, sessionId));
   }
 
   async createDocument(document: InsertDocument & { isNote?: boolean }): Promise<Document> {
-    const [doc] = await db.insert(documents).values({ ...document, isNote: document.isNote || false }).returning();
+    const [doc] = await this.db.insert(documents).values({ ...document, isNote: document.isNote || false }).returning();
     return doc;
   }
 
   async getUserDocuments(userId: string): Promise<Document[]> {
-    const docs = await db.select().from(documents).where(eq(documents.userId, userId)).orderBy(desc(documents.uploadedAt));
+    const docs = await this.db.select().from(documents).where(eq(documents.userId, userId)).orderBy(desc(documents.uploadedAt));
     // Return all document fields without modification - the database already has the correct values
     return docs;
   }
 
   async getDocument(id: string): Promise<Document | undefined> {
-    const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+    const [doc] = await this.db.select().from(documents).where(eq(documents.id, id));
     return doc;
   }
 
   async getDocumentByFilename(userId: string, filename: string): Promise<Document | undefined> {
-    const [doc] = await db.select()
+    const [doc] = await this.db.select()
       .from(documents)
       .where(
         and(
@@ -545,7 +613,7 @@ export class DatabaseStorage implements IStorage {
 
     // Update last accessed time if document found
     if (doc) {
-      await db.update(documents)
+      await this.db.update(documents)
         .set({ lastAccessedAt: new Date() })
         .where(eq(documents.id, doc.id));
       doc.lastAccessedAt = new Date();
@@ -555,16 +623,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDocument(id: string, updates: Partial<InsertDocument> & { isNote?: boolean }): Promise<Document> {
-    const [doc] = await db.update(documents).set({ ...updates, lastAccessedAt: new Date() }).where(eq(documents.id, id)).returning();
+    const [doc] = await this.db.update(documents).set({ ...updates, lastAccessedAt: new Date() }).where(eq(documents.id, id)).returning();
     return doc;
   }
 
-  async deleteDocument(id: string): Promise<void> {
-    await db.delete(documents).where(eq(documents.id, id));
+  async deleteDocument(documentId: string): Promise<boolean> {
+    const result = await this.db.delete(documents)
+      .where(eq(documents.id, documentId))
+      .returning();
+
+    // Also delete associated chunks
+    await this.deleteDocumentChunks(documentId);
+
+    return result.length > 0;
   }
 
   async searchDocuments(userId: string, query: string): Promise<Document[]> {
-    return await db.select().from(documents)
+    return await this.db.select().from(documents)
       .where(and(
         eq(documents.userId, userId),
         like(documents.originalName, `%${query}%`)
@@ -572,7 +647,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPersonalityDocuments(userId: string): Promise<Document[]> {
-    return await db.select().from(documents)
+    return await this.db.select().from(documents)
       .where(and(
         eq(documents.userId, userId),
         eq(documents.isPersonality, true)
@@ -581,7 +656,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDocumentPersonality(id: string, isPersonality: boolean): Promise<Document> {
-    const [doc] = await db.update(documents)
+    const [doc] = await this.db.update(documents)
       .set({ isPersonality, lastAccessedAt: new Date() })
       .where(eq(documents.id, id))
       .returning();
@@ -589,12 +664,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createKnowledgeChunk(chunk: InsertKnowledgeChunk): Promise<KnowledgeChunk> {
-    const [chunkResult] = await db.insert(knowledgeChunks).values(chunk).returning();
+    const [chunkResult] = await this.db.insert(knowledgeChunks).values(chunk).returning();
     return chunkResult;
   }
 
   async getDocumentChunks(documentId: string): Promise<KnowledgeChunk[]> {
-    return await db.select().from(knowledgeChunks).where(eq(knowledgeChunks.documentId, documentId));
+    return await this.db.select().from(knowledgeChunks).where(eq(knowledgeChunks.documentId, documentId));
   }
 
   async searchKnowledgeChunks(userId: string, query: string): Promise<KnowledgeChunk[]> {
@@ -605,14 +680,68 @@ export class DatabaseStorage implements IStorage {
     if (docIds.length === 0) return [];
 
     // Simple text search in chunks
-    return await db.select().from(knowledgeChunks)
+    return await this.db.select().from(knowledgeChunks)
       .where(like(knowledgeChunks.content, `%${query}%`));
   }
 
   async deleteDocumentChunks(documentId: string): Promise<void> {
-    await db.delete(knowledgeChunks).where(eq(knowledgeChunks.documentId, documentId));
+    await this.db.delete(knowledgeChunks).where(eq(knowledgeChunks.documentId, documentId));
+  }
+
+  // Wallpaper management methods
+  async getUserWallpapers(userId: string): Promise<Wallpaper[]> {
+    return await this.db.select()
+      .from(wallpapers)
+      .where(eq(wallpapers.userId, userId))
+      .orderBy(desc(wallpapers.timestamp));
+  }
+
+  async createWallpaper(data: InsertWallpaper): Promise<Wallpaper> {
+    const [wallpaper] = await this.db.insert(wallpapers)
+      .values(data)
+      .returning();
+    return wallpaper;
+  }
+
+  async deleteWallpaper(wallpaperId: string, userId: string): Promise<boolean> {
+    const result = await this.db.delete(wallpapers)
+      .where(
+        and(
+          eq(wallpapers.id, wallpaperId),
+          eq(wallpapers.userId, userId)
+        )
+      )
+      .returning();
+
+    return result.length > 0;
+  }
+
+  async setSelectedWallpaper(wallpaperId: string, userId: string): Promise<boolean> {
+    // First, unset all wallpapers for this user
+    await this.db.update(wallpapers)
+      .set({ isSelected: false })
+      .where(eq(wallpapers.userId, userId));
+
+    // Then set the selected one
+    const result = await this.db.update(wallpapers)
+      .set({ isSelected: true })
+      .where(
+        and(
+          eq(wallpapers.id, wallpaperId),
+          eq(wallpapers.userId, userId)
+        )
+      )
+      .returning();
+
+    return result.length > 0;
+  }
+
+  async clearSelectedWallpaper(userId: string): Promise<void> {
+    await this.db.update(wallpapers)
+      .set({ isSelected: false })
+      .where(eq(wallpapers.userId, userId));
   }
 }
 
 // Use database storage for persistent document storage
-export const storage = new DatabaseStorage();
+export const storage = new DatabaseStorage(db);

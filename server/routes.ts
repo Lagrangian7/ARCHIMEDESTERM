@@ -2262,6 +2262,94 @@ if _virtual_display_started:
     }
   });
 
+  // Wallpaper API endpoints
+  app.get("/api/wallpapers", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const wallpapers = await storage.getUserWallpapers(userId);
+      res.json(wallpapers);
+    } catch (error) {
+      console.error("Get wallpapers error:", error);
+      res.status(500).json({ error: "Failed to fetch wallpapers" });
+    }
+  });
+
+  app.post("/api/wallpapers", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { name, dataUrl, objectPath } = req.body;
+
+      if (!name) {
+        return res.status(400).json({ error: "Wallpaper name is required" });
+      }
+
+      if (!dataUrl && !objectPath) {
+        return res.status(400).json({ error: "Either dataUrl or objectPath is required" });
+      }
+
+      const wallpaper = await storage.createWallpaper({
+        id: randomUUID(),
+        userId,
+        name,
+        dataUrl: dataUrl || null,
+        objectPath: objectPath || null,
+        isSelected: false,
+      });
+
+      res.json(wallpaper);
+    } catch (error) {
+      console.error("Create wallpaper error:", error);
+      res.status(500).json({ error: "Failed to create wallpaper" });
+    }
+  });
+
+  app.delete("/api/wallpapers/:wallpaperId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { wallpaperId } = req.params;
+
+      const success = await storage.deleteWallpaper(wallpaperId, userId);
+
+      if (!success) {
+        return res.status(404).json({ error: "Wallpaper not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete wallpaper error:", error);
+      res.status(500).json({ error: "Failed to delete wallpaper" });
+    }
+  });
+
+  app.post("/api/wallpapers/:wallpaperId/select", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { wallpaperId } = req.params;
+
+      const success = await storage.setSelectedWallpaper(wallpaperId, userId);
+
+      if (!success) {
+        return res.status(404).json({ error: "Wallpaper not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Select wallpaper error:", error);
+      res.status(500).json({ error: "Failed to select wallpaper" });
+    }
+  });
+
+  app.post("/api/wallpapers/clear-selection", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.clearSelectedWallpaper(userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Clear wallpaper selection error:", error);
+      res.status(500).json({ error: "Failed to clear selection" });
+    }
+  });
+
   // Object Storage endpoints for knowledge base files
   // Reference: blueprint:javascript_object_storage
 

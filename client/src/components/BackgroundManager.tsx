@@ -49,6 +49,24 @@ async function saveWallpaper(wallpaper: WallpaperData): Promise<void> {
   });
 }
 
+// Placeholder for backend saving function
+async function saveWallpaperToBackend(wallpaper: WallpaperData): Promise<void> {
+  // Replace this with your actual API call to save the wallpaper to the backend
+  console.log('Saving wallpaper to backend:', wallpaper.name);
+  // Example:
+  // const response = await fetch('/api/wallpapers', {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify(wallpaper),
+  // });
+  // if (!response.ok) {
+  //   throw new Error(`Failed to save wallpaper: ${response.statusText}`);
+  // }
+  // Simulate a network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  console.log('Wallpaper saved to backend successfully (simulated).');
+}
+
 async function getWallpapersFromDB(): Promise<WallpaperData[]> {
   const db = await getDB();
   return new Promise((resolve, reject) => {
@@ -219,15 +237,15 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
         };
 
         try {
-          // Save to IndexedDB
-          await saveWallpaper(newWallpaper);
+          // Save to backend
+          await saveWallpaperToBackend(newWallpaper);
 
           // Update UI
           setWallpapers(prev => [...prev, newWallpaper]);
           console.log(`Wallpaper "${file.name}" saved successfully (${formatFileSize(size)})`);
         } catch (error) {
           console.error('Failed to save wallpaper:', error);
-          alert(`Failed to save wallpaper "${file.name}". Storage may be full.`);
+          alert(`Failed to save wallpaper "${file.name}". Please try again.`);
         }
       };
       reader.readAsDataURL(file);
@@ -274,15 +292,15 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
         };
 
         try {
-          // Save to IndexedDB
-          await saveWallpaper(newWallpaper);
+          // Save to backend
+          await saveWallpaperToBackend(newWallpaper);
 
           // Update UI
           setWallpapers(prev => [...prev, newWallpaper]);
           console.log(`Wallpaper "${file.name}" saved successfully (${formatFileSize(size)})`);
         } catch (error) {
           console.error('Failed to save wallpaper:', error);
-          alert(`Failed to save wallpaper "${file.name}". Storage may be full.`);
+          alert(`Failed to save wallpaper "${file.name}". Please try again.`);
         }
       };
       reader.readAsDataURL(file);
@@ -334,6 +352,8 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
     try {
       // Delete from IndexedDB first
       await deleteWallpaperFromDB(id);
+
+      // TODO: Add backend deletion call here
 
       // Update UI
       setWallpapers(prev => {
@@ -585,7 +605,7 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
             <li>• Click a wallpaper to set it as your terminal background</li>
             <li>• Images automatically fit to screen while maintaining aspect ratio</li>
             <li>• Hover over wallpapers and click trash icon to delete</li>
-            <li>• Your wallpapers persist with your account via IndexedDB</li>
+            <li>• Your wallpapers persist with your account via backend storage</li>
           </ul>
         </div>
       </div>

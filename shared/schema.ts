@@ -149,21 +149,26 @@ export const knowledgeChunksRelations = relations(knowledgeChunks, ({ one }) => 
 }));
 
 // Document schema definitions
-export const insertDocumentSchema = createInsertSchema(documents).omit({
-  id: true,
-  uploadedAt: true,
-  lastAccessedAt: true,
-});
-
-export const insertKnowledgeChunkSchema = createInsertSchema(knowledgeChunks).omit({
-  id: true,
-  createdAt: true,
-});
+export const insertDocumentSchema = createInsertSchema(documents);
 
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
-export type KnowledgeChunk = typeof knowledgeChunks.$inferSelect;
-export type InsertKnowledgeChunk = z.infer<typeof insertKnowledgeChunkSchema>;
+
+// Wallpapers table for persistent user wallpapers
+export const wallpapers = pgTable('wallpapers', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  name: text('name').notNull(),
+  objectPath: text('object_path'), // Path in object storage
+  dataUrl: text('data_url'), // Fallback for small images
+  timestamp: timestamp('timestamp').notNull().defaultNow(),
+  isSelected: boolean('is_selected').notNull().default(false),
+});
+
+export const insertWallpaperSchema = createInsertSchema(wallpapers);
+
+export type Wallpaper = typeof wallpapers.$inferSelect;
+export type InsertWallpaper = z.infer<typeof insertWallpaperSchema>;
 
 // BBS Directory tables for retro computing portal
 export const bbsSystems = pgTable("bbs_systems", {
