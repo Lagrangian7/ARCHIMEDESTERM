@@ -31,6 +31,7 @@ interface VoiceControlsProps {
   setNotepads: React.Dispatch<React.SetStateAction<Array<{ id: string }>>>;
   setShowPythonIDE: (show: boolean) => void;
   setShowCodePlayground: (show: boolean) => void;
+  showResources: boolean;
 }
 
 export function VoiceControls({
@@ -47,6 +48,7 @@ export function VoiceControls({
   setNotepads,
   setShowPythonIDE,
   setShowCodePlayground,
+  showResources,
 }: VoiceControlsProps) {
   const { toast } = useToast();
   const {
@@ -303,8 +305,8 @@ export function VoiceControls({
           <span className="text-xs text-terminal-subtle min-w-[3ch]">{Math.round(speechVolume * 100)}%</span>
         </div>
 
-        {/* Memory Usage Indicator - ALWAYS VISIBLE */}
-        {memoryUsage && (
+        {/* Memory Usage Indicator */}
+        {showResources && memoryUsage && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -355,8 +357,8 @@ export function VoiceControls({
           </TooltipProvider>
         )}
 
-        {/* Storage Usage Indicator - ALWAYS VISIBLE */}
-        {storageUsage && (
+        {/* Storage Usage Indicator */}
+        {showResources && storageUsage && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -407,8 +409,8 @@ export function VoiceControls({
           </TooltipProvider>
         )}
 
-        {/* CPU Usage Indicator - ALWAYS VISIBLE */}
-        {cpuUsage && (
+        {/* CPU Usage Indicator */}
+        {showResources && cpuUsage && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

@@ -33,17 +33,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const initializeGit = async () => {
     try {
       const execPromise = promisify(exec);
-      
+
       // Check if .git directory exists
       const { stdout: gitCheck } = await execPromise('[ -d .git ] && echo "exists" || echo "missing"', { timeout: 2000 });
-      
+
       if (gitCheck.trim() === 'missing') {
         console.log('🔧 Git not initialized, initializing now...');
         await execPromise('git init', { timeout: 5000 });
         await execPromise('git config user.name "Archimedes Terminal"', { timeout: 2000 });
         await execPromise('git config user.email "terminal@archimedes.local"', { timeout: 2000 });
       }
-      
+
       // Always check if we have commits, regardless of whether .git existed
       let hasCommits = false;
       try {
@@ -53,17 +53,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch {
         console.log('🔧 No commits found, creating initial commit...');
       }
-      
+
       // Create initial commit if needed
       if (!hasCommits) {
         try {
           // Add all files (including hidden ones, excluding .git itself)
           await execPromise('git add -A', { timeout: 10000 });
-          
+
           // Always create a commit with --allow-empty to ensure we have at least one
           await execPromise('git commit -m "Initial commit" --allow-empty --no-verify', { timeout: 20000 });
           console.log('✅ Initial commit created successfully');
-          
+
           // Verify the commit was created
           await execPromise('git rev-parse HEAD', { timeout: 2000 });
           console.log('✅ Git repository fully initialized with commits');
@@ -113,16 +113,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/git/init', async (req, res) => {
     try {
       const execPromise = promisify(exec);
-      
+
       // Check if .git directory exists
       const { stdout: gitCheck } = await execPromise('[ -d .git ] && echo "exists" || echo "missing"', { timeout: 1000 });
-      
+
       if (gitCheck.trim() === 'missing') {
         // Initialize git repository
         await execPromise('git init', { timeout: 5000 });
         await execPromise('git config user.name "Archimedes Terminal"', { timeout: 1000 });
         await execPromise('git config user.email "terminal@archimedes.local"', { timeout: 1000 });
-        
+
         // Create initial commit if there are no commits
         try {
           await execPromise('git add .', { timeout: 5000 });
@@ -130,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (commitError) {
           // Ignore commit errors (might already have commits or no changes)
         }
-        
+
         res.json({ initialized: true, message: 'Git repository initialized' });
       } else {
         res.json({ initialized: false, message: 'Git repository already exists' });
@@ -145,15 +145,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/git/log', async (req, res) => {
     try {
       const execPromise = promisify(exec);
-      
+
       // Check if .git exists first
       const { stdout: gitCheck } = await execPromise('[ -d .git ] && echo "exists" || echo "missing"', { timeout: 2000 });
-      
+
       if (gitCheck.trim() === 'missing') {
         console.log('📊 Git log: .git directory not found');
         return res.json({ commits: [], needsInit: true });
       }
-      
+
       // Check if repository has commits
       try {
         await execPromise('git rev-parse HEAD', { timeout: 2000 });
@@ -161,7 +161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('📊 Git log: repository has no commits yet');
         return res.json({ commits: [], needsInit: false, message: 'Repository initialized but no commits yet' });
       }
-      
+
       const { stdout } = await execPromise(
         'git log --format="%H|%s|%an|%ar" -n 20',
         { timeout: 5000 }
@@ -171,11 +171,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .filter(line => line.trim() && line.includes('|'))
         .map(line => {
           const parts = line.split('|');
-          return { 
-            hash: parts[0] || '', 
-            message: parts[1] || '', 
-            author: parts[2] || '', 
-            date: parts[3] || '' 
+          return {
+            hash: parts[0] || '',
+            message: parts[1] || '',
+            author: parts[2] || '',
+            date: parts[3] || ''
           };
         });
 
@@ -252,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { hash } = req.params;
       const execPromise = promisify(exec);
-      
+
       // Get commit details and diff
       const { stdout } = await execPromise(
         `git show ${hash} --format=fuller | head -1000`,
@@ -291,9 +291,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const agentMessages: Array<{ role: 'agent' | 'architect', content: string }> = [];
 
       // Agent phase: Plan the architecture
-      agentMessages.push({ 
-        role: 'agent', 
-        content: 'Analyzing project requirements and planning architecture...' 
+      agentMessages.push({
+        role: 'agent',
+        content: 'Analyzing project requirements and planning architecture...'
       });
 
       const agentPrompt = `You are the AGENT. Analyze this project spec and create a detailed file structure plan:
@@ -334,17 +334,17 @@ Plan a complete, production-ready project structure. Be thorough.`;
         throw new Error('Agent failed to create file plan');
       }
 
-      agentMessages.push({ 
-        role: 'agent', 
-        content: `Planned ${filePlan.length} files: ${filePlan.map(f => f.name).join(', ')}` 
+      agentMessages.push({
+        role: 'agent',
+        content: `Planned ${filePlan.length} files: ${filePlan.map(f => f.name).join(', ')}`
       });
 
       // Architect phase: Implement each file
       const files = [];
       for (const fileSpec of filePlan) {
-        agentMessages.push({ 
-          role: 'architect', 
-          content: `Implementing ${fileSpec.name}...` 
+        agentMessages.push({
+          role: 'architect',
+          content: `Implementing ${fileSpec.name}...`
         });
 
         const architectPrompt = `You are the ARCHITECT. Implement this file based on the project spec:
@@ -384,15 +384,15 @@ ONLY output the code, no explanations.`;
           content: cleanCode
         });
 
-        agentMessages.push({ 
-          role: 'architect', 
-          content: `✓ ${fileSpec.name} implemented (${cleanCode.split('\n').length} lines)` 
+        agentMessages.push({
+          role: 'architect',
+          content: `✓ ${fileSpec.name} implemented (${cleanCode.split('\n').length} lines)`
         });
       }
 
-      agentMessages.push({ 
-        role: 'agent', 
-        content: 'Project complete! All ${files.length} files generated and ready.' 
+      agentMessages.push({
+        role: 'agent',
+        content: 'Project complete! All ${files.length} files generated and ready.'
       });
 
       res.json({
@@ -403,8 +403,8 @@ ONLY output the code, no explanations.`;
 
     } catch (error) {
       console.error('Project builder error:', error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : 'Project generation failed' 
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Project generation failed'
       });
     }
   });
@@ -419,10 +419,10 @@ ONLY output the code, no explanations.`;
       }
 
       const result = await llmService.collaborativeCodeReview(
-        code, 
-        language, 
-        projectName, 
-        filePath, 
+        code,
+        language,
+        projectName,
+        filePath,
         relatedFiles
       );
 
@@ -1340,9 +1340,9 @@ if _virtual_display_started:
   // Session keep-alive heartbeat endpoint
   // This endpoint triggers token refresh via isAuthenticated middleware
   app.get('/api/auth/heartbeat', isAuthenticated, async (req, res) => {
-    res.json({ 
+    res.json({
       status: 'ok',
-      timestamp: new Date().toISOString() 
+      timestamp: new Date().toISOString()
     });
   });
 
@@ -1422,8 +1422,8 @@ if _virtual_display_started:
 
       const validModes = ["natural", "technical", "freestyle", "health"];
       if (!mode || !validModes.includes(mode)) {
-        return res.status(400).json({ 
-          error: "Invalid mode. Valid modes are: natural, technical, freestyle, health" 
+        return res.status(400).json({
+          error: "Invalid mode. Valid modes are: natural, technical, freestyle, health"
         });
       }
 
@@ -1497,7 +1497,7 @@ if _virtual_display_started:
       console.error("Chat error:", error);
       const errorMessage = error instanceof Error ? error.message : "Internal server error";
       console.error("Full error details:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: "Internal server error",
         details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
       });
@@ -1969,7 +1969,7 @@ if _virtual_display_started:
       // Validate request body with Zod
       const parseResult = importRequestSchema.safeParse(req.body);
       if (!parseResult.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: "Invalid import data format",
           details: parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
         });

@@ -113,6 +113,7 @@ export function Terminal() {
     (window as any).openPythonIDE = () => setShowPythonIDE(true);
     (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
     (window as any).openWebSynth = () => setShowWebSynth(true);
+    (window as any).toggleResources = () => setShowResources(prev => !prev);
 
     // Listen for background change events
     const handleBackgroundChange = (event: Event) => {
@@ -164,6 +165,7 @@ export function Terminal() {
   const [showBackgroundManager, setShowBackgroundManager] = useState(false);
   const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>('/default-wallpaper.png');
   const [hasCustomBackground, setHasCustomBackground] = useState<boolean>(true);
+  const [showResources, setShowResources] = useState(true);
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
 
@@ -688,6 +690,7 @@ export function Terminal() {
             setNotepads={setNotepads}
             setShowPythonIDE={setShowPythonIDE}
             setShowCodePlayground={setShowCodePlayground}
+            showResources={showResources}
           />
         </div>
 

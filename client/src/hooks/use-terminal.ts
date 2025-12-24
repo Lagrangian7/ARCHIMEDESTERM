@@ -135,6 +135,13 @@ export function useTerminal(onUploadCommand?: () => void) {
       if (data.action === 'open_aj2_video') {
         (window as any).openAJ2Video?.();
       }
+      if (data.action === 'open_background_manager') {
+        (window as any).openBackgroundManager?.();
+      }
+
+      if (data.action === 'toggle_resources') {
+        (window as any).toggleResources?.();
+      }
     },
     onError: (error) => {
       setIsTyping(false);
@@ -1061,10 +1068,6 @@ Code Execution:
 
     // Stop command - halt all text-to-speech
     if (cmd === 'stop') {
-      // Stop speech synthesis globally
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
       // Dispatch event to notify all components
       window.dispatchEvent(new CustomEvent('stop-all-speech'));
       addEntry('system', '🔇 All speech synthesis stopped.');
