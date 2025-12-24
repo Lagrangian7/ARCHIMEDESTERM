@@ -325,7 +325,7 @@ export function VoiceControls({
                   />
                   <div className="flex flex-col items-start">
                     <span
-                      className="text-base font-mono font-bold leading-tight"
+                      className="font-mono font-bold text-[12px]"
                       style={{ 
                         color: getMemoryColor(memoryUsage.percentage)
                       }}
