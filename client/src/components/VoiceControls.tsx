@@ -311,9 +311,8 @@ export function VoiceControls({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110 text-[12px]"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:scale-110 text-[12px]"
                   style={{
-                    borderColor: getMemoryColor(memoryUsage.percentage),
                     backgroundColor: `${getMemoryColor(memoryUsage.percentage)}20`,
                     minWidth: '140px'
                   }}
@@ -363,9 +362,8 @@ export function VoiceControls({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:scale-110"
                   style={{
-                    borderColor: getMemoryColor(storageUsage.percentage),
                     backgroundColor: `${getMemoryColor(storageUsage.percentage)}20`,
                     minWidth: '140px'
                   }}
@@ -415,9 +413,8 @@ export function VoiceControls({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:scale-110"
                   style={{
-                    borderColor: getMemoryColor(cpuUsage.percentage),
                     backgroundColor: `${getMemoryColor(cpuUsage.percentage)}20`,
                     minWidth: '140px'
                   }}
