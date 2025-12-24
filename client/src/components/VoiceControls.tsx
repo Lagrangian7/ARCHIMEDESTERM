@@ -124,6 +124,11 @@ export function VoiceControls({
   const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
   const [showSshwifty, setShowSshwiftyLocal] = useState(false);
   const [memoryUsage, setMemoryUsage] = useState<MemoryUsage | null>(null);
+  const [storageUsage, setStorageUsage] = useState<{
+    used: number;
+    quota: number;
+    percentage: number;
+  } | null>(null);
 
   // Poll memory usage every 3 seconds
   useEffect(() => {
@@ -142,6 +147,27 @@ export function VoiceControls({
 
     updateMemory();
     const interval = setInterval(updateMemory, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Poll storage usage every 3 seconds
+  useEffect(() => {
+    const updateStorage = async () => {
+      if ('storage' in navigator && 'estimate' in navigator.storage) {
+        try {
+          const estimate = await navigator.storage.estimate();
+          const used = estimate.usage || 0;
+          const quota = estimate.quota || 0;
+          const percentage = quota > 0 ? (used / quota) * 100 : 0;
+          setStorageUsage({ used, quota, percentage });
+        } catch (error) {
+          console.error('Failed to get storage estimate:', error);
+        }
+      }
+    };
+
+    updateStorage();
+    const interval = setInterval(updateStorage, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -273,6 +299,62 @@ export function VoiceControls({
                   <p>Used: {formatBytes(memoryUsage.usedJSHeapSize)}</p>
                   <p>Total: {formatBytes(memoryUsage.totalJSHeapSize)}</p>
                   <p>Limit: {formatBytes(memoryUsage.jsHeapSizeLimit)}</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {/* Storage Usage Indicator - ALWAYS VISIBLE */}
+        {storageUsage && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110 animate-pulse"
+                  style={{
+                    borderColor: getMemoryColor(storageUsage.percentage),
+                    backgroundColor: `${getMemoryColor(storageUsage.percentage)}35`,
+                    boxShadow: `0 0 20px ${getMemoryColor(storageUsage.percentage)}80, 0 0 40px ${getMemoryColor(storageUsage.percentage)}40`,
+                    minWidth: '140px'
+                  }}
+                >
+                  <Activity
+                    size={18}
+                    className="animate-spin"
+                    style={{ 
+                      color: getMemoryColor(storageUsage.percentage),
+                      filter: `drop-shadow(0 0 4px ${getMemoryColor(storageUsage.percentage)})`
+                    }}
+                  />
+                  <div className="flex flex-col items-start">
+                    <span
+                      className="text-base font-mono font-bold leading-tight"
+                      style={{ 
+                        color: getMemoryColor(storageUsage.percentage),
+                        textShadow: `0 0 8px ${getMemoryColor(storageUsage.percentage)}`
+                      }}
+                    >
+                      {formatBytes(storageUsage.used)}
+                    </span>
+                    <span
+                      className="text-xs font-mono font-semibold"
+                      style={{ 
+                        color: getMemoryColor(storageUsage.percentage),
+                        opacity: 0.9
+                      }}
+                    >
+                      {storageUsage.percentage.toFixed(1)}% STORAGE
+                    </span>
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
+                <div className="space-y-1 text-xs">
+                  <p className="font-semibold text-terminal-highlight">Storage Usage: {storageUsage.percentage.toFixed(1)}%</p>
+                  <p>Used: {formatBytes(storageUsage.used)}</p>
+                  <p>Quota: {formatBytes(storageUsage.quota)}</p>
+                  <p className="text-terminal-subtle mt-2 italic">Session & Local Storage</p>
                 </div>
               </TooltipContent>
             </Tooltip>
