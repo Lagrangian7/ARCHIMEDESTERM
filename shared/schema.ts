@@ -150,9 +150,12 @@ export const knowledgeChunksRelations = relations(knowledgeChunks, ({ one }) => 
 
 // Document schema definitions
 export const insertDocumentSchema = createInsertSchema(documents);
+export const insertKnowledgeChunkSchema = createInsertSchema(knowledgeChunks);
 
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type KnowledgeChunk = typeof knowledgeChunks.$inferSelect;
+export type InsertKnowledgeChunk = z.infer<typeof insertKnowledgeChunkSchema>;
 
 // Wallpapers table for persistent user wallpapers
 export const wallpapers = pgTable('wallpapers', {

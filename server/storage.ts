@@ -412,14 +412,14 @@ export class MemStorage implements IStorage {
   }
 
   async createWallpaper(data: InsertWallpaper): Promise<Wallpaper> {
-    const id = randomUUID();
+    const id = data.id || randomUUID();
     const now = new Date();
     const wallpaper: Wallpaper = {
       id,
       userId: data.userId,
-      url: data.url,
-      thumbnailUrl: data.thumbnailUrl,
-      source: data.source,
+      name: data.name,
+      objectPath: data.objectPath || null,
+      dataUrl: data.dataUrl || null,
       timestamp: now,
       isSelected: data.isSelected || false,
     };
@@ -627,15 +627,12 @@ export class DatabaseStorage implements IStorage {
     return doc;
   }
 
-  async deleteDocument(documentId: string): Promise<boolean> {
-    const result = await this.db.delete(documents)
-      .where(eq(documents.id, documentId))
-      .returning();
+  async deleteDocument(documentId: string): Promise<void> {
+    await this.db.delete(documents)
+      .where(eq(documents.id, documentId));
 
     // Also delete associated chunks
     await this.deleteDocumentChunks(documentId);
-
-    return result.length > 0;
   }
 
   async searchDocuments(userId: string, query: string): Promise<Document[]> {

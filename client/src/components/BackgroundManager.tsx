@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Upload, Trash2, ImageOff } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import type { Wallpaper } from '@shared/schema';
 
-// Constants
-const MAX_WALLPAPERS = 20; // Max custom wallpapers (increased since no built-in)
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit for each wallpaper
+const MAX_WALLPAPERS = 20;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
 
-// --- IndexedDB Setup ---
+// --- IndexedDB Setup (fallback for unauthenticated users) ---
 const DB_NAME = 'terminal_wallpapers_db';
 const STORE_NAME = 'wallpapers';
 let dbInstance: IDBDatabase | null = null;
@@ -37,7 +40,14 @@ async function getDB(): Promise<IDBDatabase> {
   });
 }
 
-async function saveWallpaper(wallpaper: WallpaperData): Promise<void> {
+interface LocalWallpaperData {
+  id: string;
+  url: string;
+  name: string;
+  timestamp: number;
+}
+
+async function saveWallpaperToLocalDB(wallpaper: LocalWallpaperData): Promise<void> {
   const db = await getDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readwrite');
@@ -49,25 +59,7 @@ async function saveWallpaper(wallpaper: WallpaperData): Promise<void> {
   });
 }
 
-// Placeholder for backend saving function
-async function saveWallpaperToBackend(wallpaper: WallpaperData): Promise<void> {
-  // Replace this with your actual API call to save the wallpaper to the backend
-  console.log('Saving wallpaper to backend:', wallpaper.name);
-  // Example:
-  // const response = await fetch('/api/wallpapers', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(wallpaper),
-  // });
-  // if (!response.ok) {
-  //   throw new Error(`Failed to save wallpaper: ${response.statusText}`);
-  // }
-  // Simulate a network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  console.log('Wallpaper saved to backend successfully (simulated).');
-}
-
-async function getWallpapersFromDB(): Promise<WallpaperData[]> {
+async function getWallpapersFromLocalDB(): Promise<LocalWallpaperData[]> {
   const db = await getDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readonly');
@@ -81,7 +73,7 @@ async function getWallpapersFromDB(): Promise<WallpaperData[]> {
   });
 }
 
-async function deleteWallpaperFromDB(id: string): Promise<void> {
+async function deleteWallpaperFromLocalDB(id: string): Promise<void> {
   const db = await getDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readwrite');
@@ -95,12 +87,8 @@ async function deleteWallpaperFromDB(id: string): Promise<void> {
 
 // --- Utility Functions ---
 function getBase64Size(base64String: string): number {
-  // Remove header and any potential padding
   const base64 = base64String.replace(/^data:image\/\w+;base64,/, '');
   const byteLength = base64.length;
-  // Calculate the actual size in bytes (approximate for base64)
-  // Each 4 base64 chars represent 3 bytes.
-  // We also need to account for potential padding '=' characters.
   let padding = 0;
   if (base64.endsWith('==')) {
     padding = 2;
@@ -128,73 +116,166 @@ interface BackgroundManagerProps {
   onDefaultBgToggle?: (hide: boolean) => void;
 }
 
-interface WallpaperData { // Renamed for clarity with DB
+interface WallpaperSlot {
   id: string;
-  url: string; // Base64 encoded
+  url: string;
   name: string;
-  timestamp: number; // For sorting or internal use
-}
-
-interface WallpaperSlot extends WallpaperData {
+  timestamp: number;
+  isSelected?: boolean;
   isBuiltIn?: boolean;
 }
 
 export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundManagerProps) {
+  const { isAuthenticated } = useAuth();
   const [dragOver, setDragOver] = useState(false);
-  const [wallpapers, setWallpapers] = useState<WallpaperSlot[]>([]);
+  const [localWallpapers, setLocalWallpapers] = useState<WallpaperSlot[]>([]);
   const [selectedWallpaper, setSelectedWallpaper] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLocalLoading, setIsLocalLoading] = useState(true);
 
-  // Load wallpapers from IndexedDB and localStorage on mount
+  // Server wallpapers query (only for authenticated users)
+  const { data: serverWallpapers = [], isLoading: isServerLoading } = useQuery<Wallpaper[]>({
+    queryKey: ['/api/wallpapers'],
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  // Create wallpaper mutation
+  const createWallpaperMutation = useMutation({
+    mutationFn: async (data: { name: string; dataUrl: string }) => {
+      const response = await apiRequest('POST', '/api/wallpapers', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/wallpapers'] });
+    },
+  });
+
+  // Delete wallpaper mutation
+  const deleteWallpaperMutation = useMutation({
+    mutationFn: async (wallpaperId: string) => {
+      const response = await apiRequest('DELETE', `/api/wallpapers/${wallpaperId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/wallpapers'] });
+    },
+  });
+
+  // Select wallpaper mutation
+  const selectWallpaperMutation = useMutation({
+    mutationFn: async (wallpaperId: string) => {
+      const response = await apiRequest('POST', `/api/wallpapers/${wallpaperId}/select`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/wallpapers'] });
+    },
+  });
+
+  // Clear selection mutation
+  const clearSelectionMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/wallpapers/clear-selection');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/wallpapers'] });
+    },
+  });
+
+  // Convert server wallpapers to display format
+  const wallpapers: WallpaperSlot[] = isAuthenticated
+    ? serverWallpapers.map(w => ({
+        id: w.id,
+        url: w.dataUrl || '',
+        name: w.name,
+        timestamp: new Date(w.timestamp).getTime(),
+        isSelected: w.isSelected,
+      }))
+    : localWallpapers;
+
+  const isLoading = isAuthenticated ? isServerLoading : isLocalLoading;
+
+  // Load local wallpapers for unauthenticated users
   useEffect(() => {
-    async function loadWallpapers() {
-      setIsLoading(true);
-      try {
-        const dbWallpapers = await getWallpapersFromDB();
-        // Sort by timestamp, newest first
-        dbWallpapers.sort((a, b) => b.timestamp - a.timestamp);
+    if (isAuthenticated) {
+      setIsLocalLoading(false);
+      return;
+    }
 
-        // Load current background from localStorage
-        const currentBg = localStorage.getItem('terminal-background-url');
-        if (currentBg) {
-          // Check if the current background is one of the loaded DB wallpapers
-          const foundWallpaper = dbWallpapers.find(w => w.url === currentBg);
-          if (foundWallpaper) {
-            setSelectedWallpaper(currentBg);
-          } else {
-            // If the saved URL is no longer in DB, clear it
-            localStorage.removeItem('terminal-background-url');
-            setSelectedWallpaper('');
-          }
-        } else {
-          setSelectedWallpaper('');
-        }
-        setWallpapers(dbWallpapers);
+    async function loadLocalWallpapers() {
+      setIsLocalLoading(true);
+      try {
+        const dbWallpapers = await getWallpapersFromLocalDB();
+        dbWallpapers.sort((a, b) => b.timestamp - a.timestamp);
+        setLocalWallpapers(dbWallpapers);
       } catch (error) {
-        console.error('Failed to load wallpapers from DB:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error('Wallpaper loading error details:', errorMessage);
-        // Fallback to localStorage if DB fails (though we're moving away from it)
-        const stored = localStorage.getItem('terminal-wallpapers');
-        let userWallpapers: WallpaperSlot[] = [];
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            userWallpapers = parsed.filter((w: WallpaperSlot) => !w.isBuiltIn);
-            // Convert to WallpaperData for consistency if needed, or just use as is if structure matches
-          } catch (e) {
-            console.error('Failed to load wallpapers from localStorage:', e);
-          }
-        }
-        // If DB load failed, use whatever was in localStorage as a fallback
-        setWallpapers(userWallpapers);
-        alert('Could not load wallpapers from database. Some features might be limited.');
+        console.error('Failed to load local wallpapers:', error);
       } finally {
-        setIsLoading(false);
+        setIsLocalLoading(false);
       }
     }
-    loadWallpapers();
-  }, []);
+    loadLocalWallpapers();
+  }, [isAuthenticated]);
+
+  // Sync selected wallpaper from server or localStorage
+  useEffect(() => {
+    if (isAuthenticated) {
+      const selected = serverWallpapers.find(w => w.isSelected);
+      if (selected?.dataUrl) {
+        setSelectedWallpaper(selected.dataUrl);
+        localStorage.setItem('terminal-background-url', selected.dataUrl);
+      } else {
+        const storedBg = localStorage.getItem('terminal-background-url');
+        setSelectedWallpaper(storedBg || '');
+      }
+    } else {
+      const storedBg = localStorage.getItem('terminal-background-url');
+      setSelectedWallpaper(storedBg || '');
+    }
+  }, [isAuthenticated, serverWallpapers]);
+
+  const processFile = useCallback(async (file: File) => {
+    return new Promise<void>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const imageUrl = event.target?.result as string;
+
+        const size = getBase64Size(imageUrl);
+        if (size > MAX_FILE_SIZE) {
+          alert(`File "${file.name}" is too large (${formatFileSize(size)}). Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`);
+          reject(new Error('File too large'));
+          return;
+        }
+
+        try {
+          if (isAuthenticated) {
+            await createWallpaperMutation.mutateAsync({
+              name: file.name,
+              dataUrl: imageUrl,
+            });
+          } else {
+            const newWallpaper: LocalWallpaperData = {
+              id: `wallpaper-${Date.now()}-${Math.random()}`,
+              url: imageUrl,
+              name: file.name,
+              timestamp: Date.now()
+            };
+            await saveWallpaperToLocalDB(newWallpaper);
+            setLocalWallpapers(prev => [newWallpaper, ...prev]);
+          }
+          console.log(`Wallpaper "${file.name}" saved successfully (${formatFileSize(size)})`);
+          resolve();
+        } catch (error) {
+          console.error('Failed to save wallpaper:', error);
+          alert(`Failed to save wallpaper "${file.name}". Please try again.`);
+          reject(error);
+        }
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  }, [isAuthenticated, createWallpaperMutation]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -208,49 +289,15 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
       return;
     }
 
-    const userWallpapers = wallpapers.filter(w => !w.isBuiltIn);
-    const availableSlots = MAX_WALLPAPERS - userWallpapers.length;
+    const availableSlots = MAX_WALLPAPERS - wallpapers.length;
     if (availableSlots === 0) {
-      alert(`Maximum ${MAX_WALLPAPERS} custom wallpapers allowed. Please delete some to add new ones.`);
+      alert(`Maximum ${MAX_WALLPAPERS} wallpapers allowed. Please delete some to add new ones.`);
       return;
     }
 
     const filesToAdd = imageFiles.slice(0, availableSlots);
-
-    filesToAdd.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const imageUrl = event.target?.result as string;
-
-        // Check file size
-        const size = getBase64Size(imageUrl);
-        if (size > MAX_FILE_SIZE) {
-          alert(`File "${file.name}" is too large (${formatFileSize(size)}). Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`);
-          return;
-        }
-
-        const newWallpaper: WallpaperData = {
-          id: `wallpaper-${Date.now()}-${Math.random()}`,
-          url: imageUrl,
-          name: file.name,
-          timestamp: Date.now()
-        };
-
-        try {
-          // Save to backend
-          await saveWallpaperToBackend(newWallpaper);
-
-          // Update UI
-          setWallpapers(prev => [...prev, newWallpaper]);
-          console.log(`Wallpaper "${file.name}" saved successfully (${formatFileSize(size)})`);
-        } catch (error) {
-          console.error('Failed to save wallpaper:', error);
-          alert(`Failed to save wallpaper "${file.name}". Please try again.`);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  }, [wallpapers.length]); // Dependency on wallpapers.length to re-evaluate availableSlots
+    filesToAdd.forEach(file => processFile(file));
+  }, [wallpapers.length, processFile]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -263,50 +310,14 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
       return;
     }
 
-    const userWallpapers = wallpapers.filter(w => !w.isBuiltIn);
-    const availableSlots = MAX_WALLPAPERS - userWallpapers.length;
+    const availableSlots = MAX_WALLPAPERS - wallpapers.length;
     if (availableSlots === 0) {
-      alert(`Maximum ${MAX_WALLPAPERS} custom wallpapers allowed. Please delete some to add new ones.`);
+      alert(`Maximum ${MAX_WALLPAPERS} wallpapers allowed. Please delete some to add new ones.`);
       return;
     }
 
     const filesToAdd = imageFiles.slice(0, availableSlots);
-
-    filesToAdd.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const imageUrl = event.target?.result as string;
-
-        // Check file size
-        const size = getBase64Size(imageUrl);
-        if (size > MAX_FILE_SIZE) {
-          alert(`File "${file.name}" is too large (${formatFileSize(size)}). Maximum size is ${formatFileSize(MAX_FILE_SIZE)}.`);
-          return;
-        }
-
-        const newWallpaper: WallpaperData = {
-          id: `wallpaper-${Date.now()}-${Math.random()}`,
-          url: imageUrl,
-          name: file.name,
-          timestamp: Date.now()
-        };
-
-        try {
-          // Save to backend
-          await saveWallpaperToBackend(newWallpaper);
-
-          // Update UI
-          setWallpapers(prev => [...prev, newWallpaper]);
-          console.log(`Wallpaper "${file.name}" saved successfully (${formatFileSize(size)})`);
-        } catch (error) {
-          console.error('Failed to save wallpaper:', error);
-          alert(`Failed to save wallpaper "${file.name}". Please try again.`);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-
-    // Reset input
+    filesToAdd.forEach(file => processFile(file));
     e.target.value = '';
   };
 
@@ -314,66 +325,48 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
     console.log('Selecting wallpaper:', wallpaper.name);
     const imageUrl = wallpaper.url;
 
-    // Update local state
     setSelectedWallpaper(imageUrl);
+    localStorage.setItem('terminal-background-url', imageUrl);
 
-    // Save to localStorage
-    try {
-      localStorage.setItem('terminal-background-url', imageUrl);
-      console.log('Saved to localStorage successfully');
-    } catch (e) {
-      console.error('Failed to save to localStorage:', e);
-      alert('Could not save selected wallpaper. Browser storage might be full.');
+    if (isAuthenticated) {
+      try {
+        await selectWallpaperMutation.mutateAsync(wallpaper.id);
+      } catch (error) {
+        console.error('Failed to save selection to server:', error);
+      }
     }
 
-    // Dispatch event to update background immediately
     const event = new CustomEvent('terminal-background-change', {
       detail: imageUrl,
       bubbles: true
     });
     window.dispatchEvent(event);
-    console.log('Dispatched terminal-background-change event');
-
-    // Call the callback
     onBackgroundChange(imageUrl);
-
-    console.log('Wallpaper set successfully, URL preview:', imageUrl.substring(0, 100) + '...');
   };
 
   const deleteWallpaper = async (id: string) => {
     const wallpaperToDelete = wallpapers.find(w => w.id === id);
-    if (!wallpaperToDelete) return;
-
-    // Prevent deleting built-in wallpaper
-    if (wallpaperToDelete.isBuiltIn) {
-      return;
-    }
+    if (!wallpaperToDelete || wallpaperToDelete.isBuiltIn) return;
 
     try {
-      // Delete from IndexedDB first
-      await deleteWallpaperFromDB(id);
+      if (isAuthenticated) {
+        await deleteWallpaperMutation.mutateAsync(id);
+      } else {
+        await deleteWallpaperFromLocalDB(id);
+        setLocalWallpapers(prev => prev.filter(w => w.id !== id));
+      }
 
-      // TODO: Add backend deletion call here
+      if (wallpaperToDelete.url === selectedWallpaper) {
+        setSelectedWallpaper('');
+        localStorage.removeItem('terminal-background-url');
+        onBackgroundChange('');
 
-      // Update UI
-      setWallpapers(prev => {
-        const updated = prev.filter(w => w.id !== id);
-
-        // If we deleted the currently selected wallpaper, clear the background
-        if (wallpaperToDelete.url === selectedWallpaper) {
-          setSelectedWallpaper('');
-          localStorage.removeItem('terminal-background-url');
-          onBackgroundChange('');
-
-          // Dispatch event to clear background immediately
-          const event = new CustomEvent('terminal-background-change', {
-            detail: '',
-            bubbles: true
-          });
-          window.dispatchEvent(event);
-        }
-        return updated;
-      });
+        const event = new CustomEvent('terminal-background-change', {
+          detail: '',
+          bubbles: true
+        });
+        window.dispatchEvent(event);
+      }
       console.log(`Wallpaper "${wallpaperToDelete.name}" deleted successfully.`);
     } catch (error) {
       console.error('Failed to delete wallpaper:', error);
@@ -381,23 +374,26 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
     }
   };
 
-  const clearBackground = () => {
+  const clearBackground = async () => {
     setSelectedWallpaper('');
     localStorage.removeItem('terminal-background-url');
 
-    // Dispatch event to clear background immediately
+    if (isAuthenticated) {
+      try {
+        await clearSelectionMutation.mutateAsync();
+      } catch (error) {
+        console.error('Failed to clear selection on server:', error);
+      }
+    }
+
     const event = new CustomEvent('terminal-background-change', {
       detail: '',
       bubbles: true
     });
     window.dispatchEvent(event);
-
     onBackgroundChange('');
     console.log('Background cleared');
   };
-
-  // All wallpapers are user-uploaded now
-  const customWallpapers = wallpapers;
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -423,6 +419,15 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
             <X className="w-6 h-6" />
           </Button>
         </div>
+
+        {/* Auth status indicator */}
+        {!isAuthenticated && (
+          <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: 'rgba(255, 200, 0, 0.1)', border: '1px solid rgba(255, 200, 0, 0.3)' }}>
+            <p className="text-sm" style={{ color: 'var(--terminal-text)' }}>
+              Log in to save your wallpapers permanently across devices and sessions.
+            </p>
+          </div>
+        )}
 
         {/* Upload Area */}
         <div
@@ -462,8 +467,9 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
               backgroundColor: 'var(--terminal-highlight)',
               color: 'var(--terminal-bg)'
             }}
+            disabled={createWallpaperMutation.isPending}
           >
-            Browse Files
+            {createWallpaperMutation.isPending ? 'Uploading...' : 'Browse Files'}
           </Button>
           <p className="text-xs mt-4" style={{ color: 'var(--terminal-subtle)' }}>
             {wallpapers.length}/{MAX_WALLPAPERS} wallpapers uploaded
@@ -501,6 +507,7 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
                 borderColor: '#ef4444',
                 color: '#ef4444'
               }}
+              disabled={clearSelectionMutation.isPending}
               data-testid="button-remove-background"
             >
               <ImageOff className="w-4 h-4" />
@@ -517,13 +524,13 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
 
           {isLoading ? (
             <p className="text-center py-8" style={{ color: 'var(--terminal-subtle)' }}>Loading wallpapers...</p>
-          ) : customWallpapers.length === 0 ? (
+          ) : wallpapers.length === 0 ? (
             <p className="text-center py-8" style={{ color: 'var(--terminal-subtle)' }}>
               No wallpapers uploaded yet. Drop some images above to get started!
             </p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {customWallpapers.map((wallpaper) => (
+              {wallpapers.map((wallpaper) => (
                 <div
                   key={wallpaper.id}
                   className="relative group cursor-pointer"
@@ -544,7 +551,6 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
                     }}
                   />
 
-                  {/* Delete button - positioned in corner, doesn't block clicks - hidden for built-in */}
                   {!wallpaper.isBuiltIn && (
                     <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
@@ -555,16 +561,13 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
                         size="sm"
                         variant="destructive"
                         className="bg-red-600 hover:bg-red-700 w-6 h-6 p-0"
+                        disabled={deleteWallpaperMutation.isPending}
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
                   )}
 
-                  {/* Built-in badge - not needed as we explicitly render built-in slot */}
-                  {/* {wallpaper.isBuiltIn && ( ... )} */}
-
-                  {/* Name label */}
                   <div
                     className="p-2 text-xs truncate"
                     style={{
@@ -575,7 +578,6 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
                     {wallpaper.name}
                   </div>
 
-                  {/* Selected indicator */}
                   {selectedWallpaper === wallpaper.url && (
                     <div
                       className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center"
@@ -585,7 +587,6 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
                     </div>
                   )}
 
-                  {/* Click-to-select overlay hint */}
                   <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
                     <span className="text-white text-xs font-medium bg-black/50 px-2 py-1 rounded">Click to select</span>
                   </div>
@@ -605,7 +606,11 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
             <li>• Click a wallpaper to set it as your terminal background</li>
             <li>• Images automatically fit to screen while maintaining aspect ratio</li>
             <li>• Hover over wallpapers and click trash icon to delete</li>
-            <li>• Your wallpapers persist with your account via backend storage</li>
+            {isAuthenticated ? (
+              <li>• Your wallpapers are saved to your account and sync across devices</li>
+            ) : (
+              <li>• Log in to save wallpapers permanently across sessions</li>
+            )}
           </ul>
         </div>
       </div>
