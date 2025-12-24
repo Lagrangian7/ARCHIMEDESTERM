@@ -153,8 +153,7 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
   // Delete wallpaper mutation
   const deleteWallpaperMutation = useMutation({
     mutationFn: async (wallpaperId: string) => {
-      const response = await apiRequest('DELETE', `/api/wallpapers/${wallpaperId}`);
-      return response.json();
+      await apiRequest('DELETE', `/api/wallpapers/${wallpaperId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/wallpapers'] });
@@ -164,8 +163,7 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
   // Select wallpaper mutation
   const selectWallpaperMutation = useMutation({
     mutationFn: async (wallpaperId: string) => {
-      const response = await apiRequest('POST', `/api/wallpapers/${wallpaperId}/select`);
-      return response.json();
+      await apiRequest('POST', `/api/wallpapers/${wallpaperId}/select`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/wallpapers'] });
@@ -175,8 +173,7 @@ export function BackgroundManager({ onClose, onBackgroundChange }: BackgroundMan
   // Clear selection mutation
   const clearSelectionMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/wallpapers/clear-selection');
-      return response.json();
+      await apiRequest('POST', '/api/wallpapers/clear-selection');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/wallpapers'] });

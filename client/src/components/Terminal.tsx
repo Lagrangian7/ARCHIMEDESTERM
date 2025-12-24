@@ -32,6 +32,8 @@ import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
+import { useQuery } from '@tanstack/react-query';
+import type { Wallpaper } from '@shared/schema';
 import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape, Clock, X } from 'lucide-react';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
@@ -626,10 +628,31 @@ export function Terminal() {
   // Check if user has set a custom background (from Background Manager)
   // const hasCustomBackground = customBackgroundUrl && customBackgroundUrl.length > 0; // This line seems redundant with the state variable
 
-  // Initialize background from localStorage on mount
+  // Query for server-stored wallpapers (authenticated users only)
+  const { data: serverWallpapers = [] } = useQuery<Wallpaper[]>({
+    queryKey: ['/api/wallpapers'],
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  // Initialize background from server (authenticated) or localStorage (anonymous)
   useEffect(() => {
-    const savedBg = localStorage.getItem('terminal-background-url');
     const defaultWallpaper = '/default-wallpaper.png';
+    
+    if (isAuthenticated && serverWallpapers.length > 0) {
+      // Check for a selected wallpaper from the server
+      const selectedWallpaper = serverWallpapers.find(w => w.isSelected);
+      if (selectedWallpaper?.dataUrl) {
+        console.log('Loading selected background from server');
+        setCustomBackgroundUrl(selectedWallpaper.dataUrl);
+        localStorage.setItem('terminal-background-url', selectedWallpaper.dataUrl);
+        setHasCustomBackground(true);
+        return;
+      }
+    }
+    
+    // Fallback to localStorage
+    const savedBg = localStorage.getItem('terminal-background-url');
     
     if (savedBg && savedBg !== 'null' && savedBg !== '' && savedBg !== 'none') {
       console.log('Loading saved background:', savedBg);
@@ -640,7 +663,7 @@ export function Terminal() {
       localStorage.setItem('terminal-background-url', defaultWallpaper);
     }
     setHasCustomBackground(true);
-  }, []);
+  }, [isAuthenticated, serverWallpapers]);
 
   return (
     <div className={`h-screen flex flex-col bg-terminal-bg text-terminal-text font-mono theme-${currentTheme}`}>
