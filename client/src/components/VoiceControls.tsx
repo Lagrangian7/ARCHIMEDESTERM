@@ -309,7 +309,7 @@ export function VoiceControls({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110 animate-pulse"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110 animate-pulse text-[12px]"
                   style={{
                     borderColor: getMemoryColor(memoryUsage.percentage),
                     backgroundColor: `${getMemoryColor(memoryUsage.percentage)}35`,
