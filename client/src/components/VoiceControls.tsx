@@ -309,28 +309,24 @@ export function VoiceControls({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110 animate-pulse text-[12px]"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110 text-[12px]"
                   style={{
                     borderColor: getMemoryColor(memoryUsage.percentage),
-                    backgroundColor: `${getMemoryColor(memoryUsage.percentage)}35`,
-                    boxShadow: `0 0 20px ${getMemoryColor(memoryUsage.percentage)}80, 0 0 40px ${getMemoryColor(memoryUsage.percentage)}40`,
+                    backgroundColor: `${getMemoryColor(memoryUsage.percentage)}20`,
                     minWidth: '140px'
                   }}
                 >
                   <Activity
                     size={18}
-                    className="animate-spin"
                     style={{ 
-                      color: getMemoryColor(memoryUsage.percentage),
-                      filter: `drop-shadow(0 0 4px ${getMemoryColor(memoryUsage.percentage)})`
+                      color: getMemoryColor(memoryUsage.percentage)
                     }}
                   />
                   <div className="flex flex-col items-start">
                     <span
                       className="text-base font-mono font-bold leading-tight"
                       style={{ 
-                        color: getMemoryColor(memoryUsage.percentage),
-                        textShadow: `0 0 8px ${getMemoryColor(memoryUsage.percentage)}`
+                        color: getMemoryColor(memoryUsage.percentage)
                       }}
                     >
                       {formatBytes(memoryUsage.usedJSHeapSize)}
@@ -365,28 +361,24 @@ export function VoiceControls({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110 animate-pulse"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110"
                   style={{
                     borderColor: getMemoryColor(storageUsage.percentage),
-                    backgroundColor: `${getMemoryColor(storageUsage.percentage)}35`,
-                    boxShadow: `0 0 20px ${getMemoryColor(storageUsage.percentage)}80, 0 0 40px ${getMemoryColor(storageUsage.percentage)}40`,
+                    backgroundColor: `${getMemoryColor(storageUsage.percentage)}20`,
                     minWidth: '140px'
                   }}
                 >
                   <Activity
                     size={18}
-                    className="animate-spin"
                     style={{ 
-                      color: getMemoryColor(storageUsage.percentage),
-                      filter: `drop-shadow(0 0 4px ${getMemoryColor(storageUsage.percentage)})`
+                      color: getMemoryColor(storageUsage.percentage)
                     }}
                   />
                   <div className="flex flex-col items-start">
                     <span
                       className="text-base font-mono font-bold leading-tight"
                       style={{ 
-                        color: getMemoryColor(storageUsage.percentage),
-                        textShadow: `0 0 8px ${getMemoryColor(storageUsage.percentage)}`
+                        color: getMemoryColor(storageUsage.percentage)
                       }}
                     >
                       {formatBytes(storageUsage.used)}
@@ -421,28 +413,24 @@ export function VoiceControls({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110 animate-pulse"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110"
                   style={{
                     borderColor: getMemoryColor(cpuUsage.percentage),
-                    backgroundColor: `${getMemoryColor(cpuUsage.percentage)}35`,
-                    boxShadow: `0 0 20px ${getMemoryColor(cpuUsage.percentage)}80, 0 0 40px ${getMemoryColor(cpuUsage.percentage)}40`,
+                    backgroundColor: `${getMemoryColor(cpuUsage.percentage)}20`,
                     minWidth: '140px'
                   }}
                 >
                   <Activity
                     size={18}
-                    className="animate-spin"
                     style={{ 
-                      color: getMemoryColor(cpuUsage.percentage),
-                      filter: `drop-shadow(0 0 4px ${getMemoryColor(cpuUsage.percentage)})`
+                      color: getMemoryColor(cpuUsage.percentage)
                     }}
                   />
                   <div className="flex flex-col items-start">
                     <span
                       className="text-base font-mono font-bold leading-tight"
                       style={{ 
-                        color: getMemoryColor(cpuUsage.percentage),
-                        textShadow: `0 0 8px ${getMemoryColor(cpuUsage.percentage)}`
+                        color: getMemoryColor(cpuUsage.percentage)
                       }}
                     >
                       {cpuUsage.percentage.toFixed(1)}%
