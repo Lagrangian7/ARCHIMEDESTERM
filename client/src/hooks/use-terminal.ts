@@ -872,6 +872,17 @@ Code Execution:
         }, 50);
         return;
 
+      case 'resources':
+        const toggleResources = (window as any).toggleResources;
+        if (toggleResources) {
+          toggleResources();
+          // Read current state after toggle (will be inverse of what it was)
+          addEntry('system', '💻 Resource monitors toggled. Use "resources" again to toggle visibility.');
+        } else {
+          addEntry('error', 'Resource toggle not available.');
+        }
+        return;
+
       case 'xx':
         addEntry('system', 'Activating screensaver...');
         const activateScreensaver = (window as any).activateScreensaver;
@@ -1758,7 +1769,6 @@ Examples:
   books search dickens year:1800-1870
   books author "Mark Twain"
   books topic children
-  books info 1342
 
 Over 70,000 free ebooks from Project Gutenberg available!
 Download formats: Plain text, EPUB, HTML, and more.`);

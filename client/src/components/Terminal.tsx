@@ -113,7 +113,13 @@ export function Terminal() {
     (window as any).openPythonIDE = () => setShowPythonIDE(true);
     (window as any).openBackgroundManager = () => setShowBackgroundManager(true);
     (window as any).openWebSynth = () => setShowWebSynth(true);
-    (window as any).toggleResources = () => setShowResources(prev => !prev);
+    (window as any).toggleResources = () => {
+      setShowResources(prev => {
+        const newValue = !prev;
+        console.log('Resources visibility toggled:', newValue);
+        return newValue;
+      });
+    };
 
     // Listen for background change events
     const handleBackgroundChange = (event: Event) => {
