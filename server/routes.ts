@@ -1505,8 +1505,9 @@ if _virtual_display_started:
           
           // Add editor context if provided (helps AI understand existing code)
           if (editorContext && typeof editorContext === 'string' && editorContext.trim()) {
-            const truncatedContext = editorContext.length > 2000 
-              ? editorContext.substring(0, 2000) + '\n... (truncated)'
+            // TOKEN OPTIMIZATION: Reduced context limit from 2000 to 1000 chars
+            const truncatedContext = editorContext.length > 1000 
+              ? editorContext.substring(0, 1000) + '\n...[truncated]'
               : editorContext;
             contextParts.push(`[Current Editor Content - integrate with this code if relevant]:\n\`\`\`\n${truncatedContext}\n\`\`\``);
           }

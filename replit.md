@@ -93,6 +93,14 @@ Preferred communication style: Simple, everyday language.
   - **Natural Mode**: Groq Llama 3.1 8B (PRIMARY) - fast, free, excellent for conversational chat
   - **Technical/Freestyle/Health Modes**: OpenRouter via Replit AI Integrations (PRIMARY) - Llama 3.3 70B for complex tasks
   - **Fallback Chain**: Primary → Groq → OpenRouter → Mistral API → HuggingFace → Static response
+- **Token Optimization System** (December 2025):
+  - Compact system prompts (~80% token savings vs verbose prompts)
+  - Response caching for common queries (greetings, help, etc.) with 5-minute TTL
+  - Token-aware conversation history (mode-specific limits: natural=4, technical/health=6, freestyle=4 messages)
+  - Reduced max_tokens per mode: natural=800, technical=2000, freestyle=3000, health=1500
+  - Editor context truncation at 1000 chars
+  - Personality context truncation at 500 tokens
+  - Individual message truncation at 500 tokens
 - **Code Completion** (Monaco Copilot/Codeium optimized):
   - Mistral Codestral (PRIMARY) - specialized code completion model, fastest and most accurate
   - OpenRouter DeepSeek Coder (FALLBACK 1) - excellent code model

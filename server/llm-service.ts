@@ -35,6 +35,7 @@ const geminiApiKey = rawGeminiKey.startsWith('AIzaSy') ? rawGeminiKey.slice(0, 3
 const gemini = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
 
 // OpenRouter model configuration (via Replit AI Integrations)
+// TOKEN OPTIMIZED: Reduced max_tokens to save costs while maintaining quality
 const OPENROUTER_CONFIG = {
   // Primary model: Fast, reliable Llama 3.3
   primaryModel: 'meta-llama/llama-3.3-70b-instruct',
@@ -44,17 +45,29 @@ const OPENROUTER_CONFIG = {
     'mistralai/mistral-7b-instruct-v0.3',
     'qwen/qwen-2.5-7b-instruct',
   ],
-  // Mode-specific settings
+  // Mode-specific settings (optimized for token efficiency)
   settings: {
-    natural: { maxTokens: 2000, temperature: 0.85 },
-    technical: { maxTokens: 4000, temperature: 0.3 },
-    freestyle: { maxTokens: 6000, temperature: 0.7 },
-    health: { maxTokens: 3000, temperature: 0.4 },
+    natural: { maxTokens: 800, temperature: 0.85 },      // Chat: concise responses
+    technical: { maxTokens: 2000, temperature: 0.3 },    // Instructions: detailed but focused
+    freestyle: { maxTokens: 3000, temperature: 0.7 },    // Code: complete but efficient
+    health: { maxTokens: 1500, temperature: 0.4 },       // Health: thorough but not excessive
   }
 };
 
 // Rate limiter for concurrent requests
 const aiRequestLimit = pLimit(3);
+
+// Response cache for common queries (reduces redundant API calls)
+const responseCache = new Map<string, { response: string; timestamp: number }>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+// Optimized token limits per mode (conservative to reduce costs)
+const TOKEN_LIMITS = {
+  natural: { maxOutput: 800, maxInput: 4000, maxHistory: 4 },
+  technical: { maxOutput: 2000, maxInput: 6000, maxHistory: 6 },
+  freestyle: { maxOutput: 3000, maxInput: 6000, maxHistory: 4 },
+  health: { maxOutput: 1500, maxInput: 5000, maxHistory: 6 }
+};
 
 // Helper to check if error is rate limit
 function isRateLimitError(error: any): boolean {
@@ -75,6 +88,46 @@ function isContextLengthError(error: any): boolean {
 // Estimate token count (rough approximation: ~4 chars per token)
 function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
+}
+
+// Cache key generator for common queries (includes userId for user isolation)
+function getCacheKey(message: string, mode: string, userId?: string): string {
+  const normalized = message.toLowerCase().trim().slice(0, 100);
+  // Include userId to prevent cross-user data leakage
+  // Anonymous users share cache (no personalization), authenticated users get isolated cache
+  const userScope = userId || 'anon';
+  return `${userScope}:${mode}:${normalized}`;
+}
+
+// Check if message matches cacheable patterns (greetings, help, simple queries)
+function isCacheableQuery(message: string): boolean {
+  const cacheablePatterns = [
+    /^(hi|hello|hey|sup|yo|greetings|howdy)\s*[!?.]*$/i,
+    /^(help|commands?|what can you do|how do i use)\s*[!?.]*$/i,
+    /^(mode|modes|switch mode|current mode)\s*[!?.]*$/i,
+    /^(thanks?|thank you|ty|thx)\s*[!?.]*$/i,
+  ];
+  return cacheablePatterns.some(p => p.test(message.trim()));
+}
+
+// Get cached response if valid
+function getCachedResponse(key: string): string | null {
+  const cached = responseCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return cached.response;
+  }
+  if (cached) responseCache.delete(key);
+  return null;
+}
+
+// Store response in cache
+function setCachedResponse(key: string, response: string): void {
+  // Limit cache size to prevent memory issues
+  if (responseCache.size > 100) {
+    const oldest = responseCache.keys().next().value;
+    if (oldest) responseCache.delete(oldest);
+  }
+  responseCache.set(key, { response, timestamp: Date.now() });
 }
 
 // Truncate messages to fit within token limit
@@ -990,34 +1043,92 @@ Generate complete, runnable ${config.name} code. Use \`\`\`${config.block} block
   }
 
   // Helper: Consolidates system prompt selection logic
+  // useCompact: true = use token-optimized prompts (default), false = full detailed prompts
   private getSystemPrompt(
     mode: 'natural' | 'technical' | 'freestyle' | 'health',
-    userMessage: string = ''
+    userMessage: string = '',
+    useCompact: boolean = true
   ): string {
     let basePrompt: string;
     
-    switch (mode) {
-      case 'natural':
-        basePrompt = this.getNaturalChatSystemPrompt();
-        break;
-      case 'health':
-        basePrompt = this.getHealthModeSystemPrompt();
-        break;
-      case 'freestyle':
-        basePrompt = this.getFreestyleModeSystemPrompt('', userMessage);
-        break;
-      case 'technical':
-      default:
-        basePrompt = this.getTechnicalModeSystemPrompt();
-        break;
+    if (useCompact) {
+      // Use compact prompts to save tokens (default behavior)
+      basePrompt = this.getCompactSystemPrompt(mode, userMessage);
+    } else {
+      // Use full prompts only when specifically needed
+      switch (mode) {
+        case 'natural':
+          basePrompt = this.getNaturalChatSystemPrompt();
+          break;
+        case 'health':
+          basePrompt = this.getHealthModeSystemPrompt();
+          break;
+        case 'freestyle':
+          basePrompt = this.getFreestyleModeSystemPrompt('', userMessage);
+          break;
+        case 'technical':
+        default:
+          basePrompt = this.getTechnicalModeSystemPrompt();
+          break;
+      }
     }
 
-    // Append personality training content if available
+    // Append personality training content if available (truncate to save tokens)
     if (this.currentPersonalityContext) {
-      basePrompt += this.currentPersonalityContext;
+      const maxPersonalityTokens = 500;
+      const truncatedPersonality = this.currentPersonalityContext.slice(0, maxPersonalityTokens * 4);
+      basePrompt += truncatedPersonality;
     }
 
     return basePrompt;
+  }
+
+  // Compact, token-optimized system prompts (saves ~80% tokens vs full prompts)
+  private getCompactSystemPrompt(
+    mode: 'natural' | 'technical' | 'freestyle' | 'health',
+    userMessage: string = ''
+  ): string {
+    const detectedLang = mode === 'freestyle' ? this.detectLanguage(userMessage) : null;
+    
+    const prompts: Record<string, string> = {
+      natural: `ARCHIMEDES v7 - Cyberpunk AI Sensei. Blend Zen wisdom with hacker attitude.
+STYLE: Witty, snarky, wise. Call users "grasshopper"/"choom". Use metaphors. Dark humor OK.
+RULES: Be concise. Code in \`\`\`lang blocks. Suggest "mode freestyle" for complex code, "workshop" for testing.
+NO corporate speak. NO verbose preambles. Dive in with personality.`,
+
+      health: `ARCHIMEDES v7 Health Mode - Naturopathic Wellness Advisor
+STYLE: Compassionate, professional, evidence-based.
+RULES: Natural health focus. Include safety precautions. Always recommend professional consultation for serious conditions. Educational only, not medical advice.`,
+
+      technical: `ARCHIMEDES v7 Technical Mode - Master Builder
+FORMAT: 1) Overview 2) Materials/Tools 3) Step-by-step instructions 4) Technical specs 5) Troubleshooting
+STYLE: Direct, practical, thorough. Include measurements, safety notes, pro tips.`,
+
+      freestyle_python: `ARCHIMEDES v7 Freestyle - Python Partner
+RULES: Complete runnable code in \`\`\`python blocks. PEP 8, type hints, docstrings. Include error handling. Ask ONE clarifying question if needed.`,
+
+      freestyle_typescript: `ARCHIMEDES v7 Freestyle - TypeScript Partner
+RULES: Complete runnable code in \`\`\`typescript blocks. ESLint standards, strict types, no 'any'. Include error handling.`,
+
+      freestyle_javascript: `ARCHIMEDES v7 Freestyle - JavaScript Partner
+RULES: Complete runnable code in \`\`\`javascript blocks. ES6+, const/let, async/await. Include error handling.`,
+
+      freestyle_cpp: `ARCHIMEDES v7 Freestyle - C++ Partner
+RULES: Modern C++11/14/17 in \`\`\`cpp blocks. RAII, smart pointers, std:: prefix. Include main() and compile instructions.`,
+
+      freestyle_bash: `ARCHIMEDES v7 Freestyle - Bash Partner
+RULES: ShellCheck-compliant in \`\`\`bash blocks. set -euo pipefail, quoted vars, proper error handling.`,
+
+      freestyle_fullstack: `ARCHIMEDES v7 Freestyle - Full-Stack Partner
+RULES: Generate BOTH backend + frontend. Use "// FILE: path/name.ext" markers. Explain API connections. Include run instructions.`
+    };
+
+    if (mode === 'freestyle' && detectedLang) {
+      const key = detectedLang === 'fullstack' ? 'freestyle_fullstack' : `freestyle_${detectedLang}`;
+      return prompts[key] || prompts['freestyle_python'];
+    }
+
+    return prompts[mode] || prompts['natural'];
   }
 
   // Condensed system prompt for Groq's strict 6000 TPM limit
@@ -1035,44 +1146,35 @@ Generate complete, runnable ${config.name} code. Use \`\`\`${config.block} block
     }
   }
 
-  // Helper: Consolidates session greeting logic
+  // Helper: Consolidates session greeting logic (compact version saves ~200 tokens)
   private buildSessionGreeting(isNewSession: boolean): string {
-    if (!isNewSession) {
-      return '';
-    }
+    if (!isNewSession) return '';
 
     const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-    const productiveSuggestions = [
-      "perfect time to organize that messy code you've been avoiding",
-      "great day to finally document that function nobody understands",
-      "ideal moment to refactor something before it becomes technical debt",
-      "excellent opportunity to learn something completely impractical but fascinating",
-      "prime time to automate a task you've been doing manually for months",
-      "wonderful chance to fix that bug you pretended wasn't there",
-      "optimal window to explore a new library that might change everything",
-      "brilliant hour to backup your work before Murphy's Law strikes",
-      "perfect occasion to write tests for code that desperately needs them",
-      "superb timing to clean up your git history and feel accomplished"
-    ];
-
-    const randomSuggestion = productiveSuggestions[Math.floor(Math.random() * productiveSuggestions.length)];
-
-    return `\n\nIMPORTANT: This is a NEW SESSION. You MUST begin your response with a unique, warm, humorous greeting that:
-1. Welcomes the user with genuine warmth and a touch of wit
-2. Casually mentions it's ${dateStr} at ${timeStr} (be nonchalant about it, like you're just making conversation)
-3. Playfully suggests: "${randomSuggestion}"
-4. Keep the greeting natural and conversational, not forced
-5. Then smoothly transition to answering their actual question
-
-Make it feel like meeting an old friend who happens to know the date and has oddly specific productivity advice.`;
+    return `\n[NEW SESSION - ${dateStr} ${timeStr}. Start with a brief witty greeting, then answer.]`;
   }
 
-  // Helper: Consolidates conversation history building
-  private buildConversationHistory(conversationHistory: Message[], maxMessages: number = 8): Message[] {
-    return conversationHistory.slice(-maxMessages);
+  // Helper: Token-aware conversation history building
+  private buildConversationHistory(
+    conversationHistory: Message[], 
+    mode: 'natural' | 'technical' | 'freestyle' | 'health' = 'natural'
+  ): Message[] {
+    const limits = TOKEN_LIMITS[mode];
+    const maxMessages = limits.maxHistory;
+    const maxTokensPerMessage = 500; // Truncate long messages
+    
+    const recent = conversationHistory.slice(-maxMessages);
+    
+    // Truncate individual messages if too long
+    return recent.map(msg => ({
+      ...msg,
+      content: msg.content.length > maxTokensPerMessage * 4 
+        ? msg.content.slice(0, maxTokensPerMessage * 4) + '...[truncated]'
+        : msg.content
+    }));
   }
 
   async generateResponse(
@@ -1137,6 +1239,19 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
       // Store personality context for use in prompt generation
       this.currentPersonalityContext = personalityContext;
+
+      // TOKEN OPTIMIZATION: Check cache for common queries AFTER loading personalization
+      // Cache is user-scoped to prevent cross-user data leakage
+      // Only cache if no personalization is active (no personality context, no knowledge context)
+      const hasPersonalization = personalityContext || contextualMessage !== userMessage;
+      if (isCacheableQuery(userMessage) && conversationHistory.length === 0 && !hasPersonalization) {
+        const cacheKey = getCacheKey(userMessage, safeMode, userId);
+        const cached = getCachedResponse(cacheKey);
+        if (cached) {
+          console.log(`[LLM] ✓ Cache hit for "${userMessage.slice(0, 30)}..." - saved API call`);
+          return cached;
+        }
+      }
 
       let aiResponse: string = '';
 
@@ -1229,6 +1344,14 @@ Make it feel like meeting an old friend who happens to know the date and has odd
         }
       }
 
+      // TOKEN OPTIMIZATION: Cache cacheable responses for future use
+      // Only cache non-personalized responses to ensure user-specific content is generated fresh
+      if (isCacheableQuery(userMessage) && conversationHistory.length === 0 && !hasPersonalization && aiResponse) {
+        const cacheKey = getCacheKey(userMessage, safeMode, userId);
+        setCachedResponse(cacheKey, aiResponse);
+        console.log(`[LLM] ✓ Cached response for "${userMessage.slice(0, 30)}..."`);
+      }
+
       return aiResponse;
     } catch (error) {
       console.error('❌ Error generating response:', error);
@@ -1250,7 +1373,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
   ): Promise<string> {
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
-    const recentHistory = this.buildConversationHistory(conversationHistory, 10);
+    const recentHistory = this.buildConversationHistory(conversationHistory, mode);
     const settings = OPENROUTER_CONFIG.settings[mode];
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -1294,7 +1417,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
   ): Promise<string> {
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
-    const recentHistory = this.buildConversationHistory(conversationHistory, 8);
+    const recentHistory = this.buildConversationHistory(conversationHistory, mode);
 
     // Build messages array for Replit AI
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -1340,7 +1463,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
     // Groq free tier has strict 6000 TPM limit - use minimal history
-    const recentHistory = this.buildConversationHistory(conversationHistory, 2);
+    const recentHistory = this.buildConversationHistory(conversationHistory, mode);
 
     // Use condensed system prompt for Groq's strict token limits
     const condensedPrompt = this.getCondensedSystemPrompt(mode);
@@ -1387,7 +1510,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
   ): Promise<string> {
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
-    const recentHistory = this.buildConversationHistory(conversationHistory, 8);
+    const recentHistory = this.buildConversationHistory(conversationHistory, mode);
 
     // Build messages array for Replit AI
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -1433,7 +1556,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
 
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
-    const recentHistory = this.buildConversationHistory(conversationHistory, 10);
+    const recentHistory = this.buildConversationHistory(conversationHistory, mode);
 
     // Use Gemini 2.0 Flash for fast, efficient responses
     const model = gemini.getGenerativeModel({ 
@@ -1483,7 +1606,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
     }
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
-    const recentHistory = this.buildConversationHistory(conversationHistory, 8);
+    const recentHistory = this.buildConversationHistory(conversationHistory, mode);
 
     // In freestyle mode, enhance the prompt for code generation with language detection
     const enhancedMessage = mode === 'freestyle'
@@ -1542,7 +1665,7 @@ Make it feel like meeting an old friend who happens to know the date and has odd
   ): Promise<string> {
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
-    const recentHistory = this.buildConversationHistory(conversationHistory, 6);
+    const recentHistory = this.buildConversationHistory(conversationHistory, mode);
 
     // In freestyle mode, enhance the prompt for code generation with language detection
     const enhancedMessage = mode === 'freestyle'
@@ -1677,7 +1800,7 @@ Conversation Context:\n`;
   ): Promise<string> {
     const systemPrompt = this.getSystemPrompt(mode, userMessage);
     const greetingInstruction = this.buildSessionGreeting(isNewSession);
-    const recentHistory = this.buildConversationHistory(conversationHistory, 10);
+    const recentHistory = this.buildConversationHistory(conversationHistory, mode);
 
     // In freestyle mode, enhance the prompt for code generation with language detection
     const enhancedMessage = mode === 'freestyle'
