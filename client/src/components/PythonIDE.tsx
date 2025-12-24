@@ -16,6 +16,9 @@ import { Notepad } from './Notepad';
 import { WebContainerTerminal, createNodeProjectFiles } from './WebContainerTerminal';
 import { defineAndApplyMonacoTheme, createThemeChangeListener } from '@/lib/monacoThemeSync';
 
+// Module-level flag to prevent duplicate Codeium registrations across component remounts
+let codeiumRegistered = false;
+
 interface PythonIDEProps {
   onClose: () => void;
 }
@@ -1937,12 +1940,17 @@ calculator()
   const hasGreetedRef = useRef(false); // Track if Archimedes has greeted
   const themeListenerCleanupRef = useRef<(() => void) | null>(null);
 
-  // Cleanup theme listener on unmount
+  // Cleanup theme listener and editor on unmount
   useEffect(() => {
     return () => {
       if (themeListenerCleanupRef.current) {
         themeListenerCleanupRef.current();
         themeListenerCleanupRef.current = null;
+      }
+      // Properly dispose Monaco editor to prevent memory leaks
+      if (editorRef.current) {
+        editorRef.current.dispose();
+        editorRef.current = null;
       }
     };
   }, []);
@@ -2261,15 +2269,19 @@ calculator()
       }, 100);
 
       // Setup Codeium AI code completions (FREE, unlimited, no API key needed)
+      // Only register once to prevent duplicate providers on component remount
       setTimeout(() => {
         try {
-          if (typeof registerCodeiumProvider === 'function') {
+          if (!codeiumRegistered && typeof registerCodeiumProvider === 'function') {
             registerCodeiumProvider(monaco, {
               onAutocomplete: (acceptedText: string) => {
                 console.debug('Codeium completion accepted:', acceptedText.substring(0, 50) + '...');
               }
             });
+            codeiumRegistered = true;
             console.log('✓ Codeium AI code completions enabled (FREE, unlimited)');
+          } else if (codeiumRegistered) {
+            console.debug('Codeium already registered, skipping duplicate registration');
           }
         } catch (codeiumError) {
           console.warn('Codeium registration failed:', codeiumError);

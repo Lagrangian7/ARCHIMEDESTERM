@@ -1032,12 +1032,17 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
   const monacoRef = useRef<any>(null);
   const themeListenerCleanupRef = useRef<(() => void) | null>(null);
 
-  // Cleanup theme listener on unmount
+  // Cleanup theme listener and editor on unmount
   useEffect(() => {
     return () => {
       if (themeListenerCleanupRef.current) {
         themeListenerCleanupRef.current();
         themeListenerCleanupRef.current = null;
+      }
+      // Properly dispose Monaco editor to prevent memory leaks
+      if (editorRef.current) {
+        editorRef.current.dispose();
+        editorRef.current = null;
       }
     };
   }, []);
