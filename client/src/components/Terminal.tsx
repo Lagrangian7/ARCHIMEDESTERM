@@ -865,7 +865,6 @@ export function Terminal() {
               data-testid="button-history-toggle"
             >
               <History className="w-4 h-4" />
-              <span className="hidden md:inline">HISTORY</span>
             </Button>
 
             <button
