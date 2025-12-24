@@ -238,14 +238,13 @@ export function VoiceControls({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 cursor-pointer transition-all hover:scale-110 animate-pulse"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all hover:scale-110 animate-pulse"
                   style={{
                     borderColor: getMemoryColor(memoryUsage.percentage),
                     backgroundColor: `${getMemoryColor(memoryUsage.percentage)}35`,
                     boxShadow: `0 0 20px ${getMemoryColor(memoryUsage.percentage)}80, 0 0 40px ${getMemoryColor(memoryUsage.percentage)}40`,
                     minWidth: '140px'
                   }}
-                  onClick={() => setShowMemory(false)}
                 >
                   <Activity
                     size={18}
@@ -283,7 +282,6 @@ export function VoiceControls({
                   <p>Used: {formatBytes(memoryUsage.usedJSHeapSize)}</p>
                   <p>Total: {formatBytes(memoryUsage.totalJSHeapSize)}</p>
                   <p>Limit: {formatBytes(memoryUsage.jsHeapSizeLimit)}</p>
-                  <p className="text-terminal-subtle mt-2 italic">Click to hide</p>
                 </div>
               </TooltipContent>
             </Tooltip>
