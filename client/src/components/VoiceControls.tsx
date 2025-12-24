@@ -124,10 +124,6 @@ export function VoiceControls({
   const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
   const [showSshwifty, setShowSshwiftyLocal] = useState(false);
   const [memoryUsage, setMemoryUsage] = useState<MemoryUsage | null>(null);
-  const [showMemory, setShowMemory] = useState(() => {
-    const saved = localStorage.getItem('show-memory-indicator');
-    return saved === null ? true : saved !== 'false';
-  });
 
   // Poll memory usage every 3 seconds
   useEffect(() => {
@@ -148,11 +144,6 @@ export function VoiceControls({
     const interval = setInterval(updateMemory, 3000);
     return () => clearInterval(interval);
   }, []);
-
-  // Persist memory visibility preference
-  useEffect(() => {
-    localStorage.setItem('show-memory-indicator', JSON.stringify(showMemory));
-  }, [showMemory]);
 
   const getMemoryColor = (percentage: number) => {
     if (percentage < 50) return 'var(--terminal-highlight)'; // green
@@ -232,8 +223,8 @@ export function VoiceControls({
           <span className="text-xs text-terminal-subtle min-w-[3ch]">{Math.round(speechVolume * 100)}%</span>
         </div>
 
-        {/* Memory Usage Indicator - HIGHLY VISIBLE */}
-        {showMemory && memoryUsage && (
+        {/* Memory Usage Indicator - ALWAYS VISIBLE */}
+        {memoryUsage && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

@@ -220,22 +220,11 @@ export function UserProfile({ onClose }: UserProfileProps) {
                 <h4 className="font-semibold">Memory Monitor</h4>
               </div>
               <div className="space-y-2">
-                <Button
-                  onClick={() => {
-                    const newValue = !localStorage.getItem('show-memory-indicator') || localStorage.getItem('show-memory-indicator') === 'false';
-                    localStorage.setItem('show-memory-indicator', JSON.stringify(newValue));
-                    window.location.reload();
-                  }}
-                  variant={localStorage.getItem('show-memory-indicator') !== 'false' ? "default" : "outline"}
-                  style={localStorage.getItem('show-memory-indicator') !== 'false'
-                    ? { backgroundColor: 'var(--terminal-highlight)', color: 'var(--terminal-bg)' }
-                    : { borderColor: 'rgba(var(--terminal-subtle-rgb), 0.3)', color: 'var(--terminal-text)' }
-                  }
-                >
-                  {localStorage.getItem('show-memory-indicator') !== 'false' ? "Showing Memory" : "Hidden"}
-                </Button>
+                <p className="text-sm" style={{ color: 'var(--terminal-text)' }}>
+                  Memory usage is always visible in the voice controls area
+                </p>
                 <p className="text-xs" style={{ color: 'var(--terminal-subtle)' }}>
-                  Display real-time memory usage indicator
+                  Real-time memory monitoring is permanently enabled
                 </p>
               </div>
             </div>
