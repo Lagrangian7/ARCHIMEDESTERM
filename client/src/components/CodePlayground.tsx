@@ -11,6 +11,7 @@ import Editor from '@monaco-editor/react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { defineAndApplyMonacoTheme, createThemeChangeListener } from '@/lib/monacoThemeSync';
 import playIcon from '../../../attached_assets/play icon.png';
 
 // Project Templates
@@ -1028,8 +1029,22 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
     });
   }, [activeFile, runMutation, stdinInput]);
 
+  const monacoRef = useRef<any>(null);
+  const themeListenerCleanupRef = useRef<(() => void) | null>(null);
+
+  // Cleanup theme listener on unmount
+  useEffect(() => {
+    return () => {
+      if (themeListenerCleanupRef.current) {
+        themeListenerCleanupRef.current();
+        themeListenerCleanupRef.current = null;
+      }
+    };
+  }, []);
+
   const handleEditorMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
 
     // Listen for all content changes including AI-generated suggestions
     const model = editor.getModel();
@@ -1051,69 +1066,14 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       }
     }, 100);
 
-    // Get theme colors from CSS variables and convert HSL to hex
-    const computedStyle = getComputedStyle(document.documentElement);
-    const terminalBg = computedStyle.getPropertyValue('--terminal-bg').trim() || '#0D1117';
-    const terminalText = computedStyle.getPropertyValue('--terminal-text').trim() || '#00FF41';
-    const terminalHighlight = computedStyle.getPropertyValue('--terminal-highlight').trim() || '#00FF41';
-    const terminalSubtle = computedStyle.getPropertyValue('--terminal-subtle').trim() || '#1a2332';
+    // Apply dynamic theme based on terminal CSS variables
+    defineAndApplyMonacoTheme(monaco, 'archimedes-playground');
 
-    // Convert HSL to hex
-    const hslToHex = (hslString: string): string => {
-      if (hslString.startsWith('#')) return hslString.replace('#', '');
-
-      const hslMatch = hslString.match(/hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/);
-      if (!hslMatch) return '00FF41'; // fallback
-
-      const h = parseInt(hslMatch[1]);
-      const s = parseInt(hslMatch[2]) / 100;
-      const l = parseInt(hslMatch[3]) / 100;
-
-      const c = (1 - Math.abs(2 * l - 1)) * s;
-      const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-      const m = l - c / 2;
-
-      let r = 0, g = 0, b = 0;
-      if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
-      else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
-      else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
-      else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
-      else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
-      else if (h >= 300 && h < 360) { r = c; g = 0; b = x; }
-
-      const toHex = (n: number) => {
-        const hex = Math.round((n + m) * 255).toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-      };
-
-      return toHex(r) + toHex(g) + toHex(b);
-    };
-
-    const getHexColor = (color: string) => hslToHex(color);
-
-    monaco.editor.defineTheme('archimedes-dynamic', {
-      base: 'vs-dark',
-      inherit: true,
-      rules: [
-        { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
-        { token: 'keyword', foreground: getHexColor(terminalHighlight) },
-        { token: 'string', foreground: 'CE9178' },
-        { token: 'number', foreground: 'B5CEA8' },
-        { token: 'function', foreground: 'DCDCAA' },
-        { token: 'variable', foreground: '9CDCFE' },
-        { token: 'type', foreground: '4EC9B0' },
-      ],
-      colors: {
-        'editor.background': terminalBg.startsWith('#') ? terminalBg : '#0D1117',
-        'editor.foreground': terminalText.startsWith('#') ? terminalText : '#00FF41',
-        'editor.lineHighlightBackground': terminalSubtle.startsWith('#') ? terminalSubtle : '#1a2332',
-        'editorCursor.foreground': terminalHighlight.startsWith('#') ? terminalHighlight : '#00FF41',
-        'editor.selectionBackground': (terminalHighlight.startsWith('#') ? terminalHighlight : '#00FF41') + '33',
-        'editorLineNumber.foreground': (terminalHighlight.startsWith('#') ? terminalHighlight : '#00FF41') + '66',
-        'editorLineNumber.activeForeground': terminalHighlight.startsWith('#') ? terminalHighlight : '#00FF41',
-      }
-    });
-    monaco.editor.setTheme('archimedes-dynamic');
+    // Register theme change listener (cleanup previous if any)
+    if (themeListenerCleanupRef.current) {
+      themeListenerCleanupRef.current();
+    }
+    themeListenerCleanupRef.current = createThemeChangeListener(monaco, 'archimedes-playground');
   };
 
   return (

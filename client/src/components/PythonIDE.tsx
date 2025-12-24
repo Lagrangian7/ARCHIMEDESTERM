@@ -14,6 +14,7 @@ import { CodePlayground } from './CodePlayground';
 import { CodeSnippets } from './CodeSnippets';
 import { Notepad } from './Notepad';
 import { WebContainerTerminal, createNodeProjectFiles } from './WebContainerTerminal';
+import { defineAndApplyMonacoTheme, createThemeChangeListener } from '@/lib/monacoThemeSync';
 
 interface PythonIDEProps {
   onClose: () => void;
@@ -1934,6 +1935,17 @@ calculator()
   const monacoRef = useRef<any>(null);
   const executionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasGreetedRef = useRef(false); // Track if Archimedes has greeted
+  const themeListenerCleanupRef = useRef<(() => void) | null>(null);
+
+  // Cleanup theme listener on unmount
+  useEffect(() => {
+    return () => {
+      if (themeListenerCleanupRef.current) {
+        themeListenerCleanupRef.current();
+        themeListenerCleanupRef.current = null;
+      }
+    };
+  }, []);
 
   // Mutation for saving notepad
   const saveNotepadMutation = useMutation({
@@ -2301,6 +2313,15 @@ calculator()
         keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Minus],
         run: () => setFontSize(prev => Math.max(prev - 1, 8))
       });
+
+      // Apply dynamic theme based on terminal CSS variables
+      defineAndApplyMonacoTheme(monaco, 'archimedes-workshop');
+
+      // Register theme change listener (cleanup previous if any)
+      if (themeListenerCleanupRef.current) {
+        themeListenerCleanupRef.current();
+      }
+      themeListenerCleanupRef.current = createThemeChangeListener(monaco, 'archimedes-workshop');
     } catch (error) {
       console.error('Editor initialization error:', error);
       console.warn('IDE will work without AI completions');
