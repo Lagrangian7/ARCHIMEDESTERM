@@ -377,8 +377,6 @@ function setup() {
   // Initialize Web Audio API
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-  // Start background music
-  startBackgroundMusic();
   for (let i = 0; i < numStars; i++) {
     stars.push({
       x: random(-width, width),
@@ -587,12 +585,6 @@ function spawnUfo() {
     speed: startLeft ? ufoSpeed : -ufoSpeed,
     active: true
   };
-
-  // Start UFO humming sound
-  startUfoHum();
-
-  // Start UFO sound effect (new WAV file)
-  startUfoSound();
 }
 
 function spawnNyanCat() {
@@ -604,9 +596,6 @@ function spawnNyanCat() {
     speed: startLeft ? nyanCatSpeed : -nyanCatSpeed,
     active: true
   };
-
-  // Play Nyan Cat sound
-  playNyanCatSound();
 }
 
 function getLevelModifiers() {
@@ -993,9 +982,6 @@ function draw() {
           });
         }
 
-        // Play explosion sound
-        playExplosionSound();
-
         invaders.splice(j, 1);
         nyanCatBombs.splice(i, 1);
         score += pointsPerHit;
@@ -1007,8 +993,6 @@ function draw() {
   if (ufo && ufo.active) {
     ufo.x += ufo.speed;
     if (ufo.x < -width / 2 - 50 || ufo.x > width / 2 + 50) {
-      stopUfoHum();
-      stopUfoSound();
       ufo = null;
     } else {
       if (random() < ufoFireProbability) {
@@ -1019,7 +1003,6 @@ function draw() {
           vx: cos(angle) * ufoLaserSpeed,
           vy: sin(angle) * ufoLaserSpeed
         });
-        playUfoLaserSound();
       }
       push();
       translate(ufo.x, ufo.y);
@@ -1197,13 +1180,6 @@ function mousePressed() {
   let leftVy = (leftDy / leftDistance) * speed;
   let rightVx = (rightDx / rightDistance) * speed;
   let rightVy = (rightDy / rightDistance) * speed;
-
-  // Create muzzle blast effects at turret positions
-  createMuzzleBlast(leftTurretX, cannonY);
-  createMuzzleBlast(rightTurretX, cannonY);
-
-  // Play laser firing sound
-  playLaserSound();
 
   // Create two high-visibility lasers from turret cannons
   playerLasers.push({
