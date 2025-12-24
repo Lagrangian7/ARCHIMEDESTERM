@@ -27,6 +27,43 @@ import { ObjectPermission } from "./objectAcl";
 import { writeFile, unlink } from 'fs/promises';
 import { tmpdir } from 'os';
 
+/**
+ * Post-process AI-generated code to clean up common issues
+ * - Removes duplicate code block markers
+ * - Fixes common syntax artifacts
+ * - Normalizes whitespace
+ */
+function cleanupGeneratedCode(response: string): string {
+  let cleaned = response;
+  
+  // Fix duplicate opening code blocks (e.g., ```python```python)
+  cleaned = cleaned.replace(/```(\w+)```\1/g, '```$1');
+  
+  // Fix code blocks with language repeated inside (```python\npython\n)
+  cleaned = cleaned.replace(/```(\w+)\n\1\n/g, '```$1\n');
+  
+  // Remove trailing whitespace on lines inside code blocks
+  cleaned = cleaned.replace(/^(.*)[ \t]+$/gm, '$1');
+  
+  // Ensure code blocks have proper newlines before content
+  cleaned = cleaned.replace(/```(\w+)([^\n])/g, '```$1\n$2');
+  
+  // Fix missing newline before closing code block
+  cleaned = cleaned.replace(/([^\n])```/g, '$1\n```');
+  
+  // Remove excessive blank lines (more than 2 consecutive)
+  cleaned = cleaned.replace(/\n{4,}/g, '\n\n\n');
+  
+  // Remove HTML entities that sometimes appear in code
+  cleaned = cleaned.replace(/&lt;/g, '<');
+  cleaned = cleaned.replace(/&gt;/g, '>');
+  cleaned = cleaned.replace(/&amp;/g, '&');
+  cleaned = cleaned.replace(/&quot;/g, '"');
+  cleaned = cleaned.replace(/&#39;/g, "'");
+  
+  return cleaned;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
 
   // Initialize Git repository on startup (for both dev and production)
@@ -1420,7 +1457,7 @@ if _virtual_display_started:
       }
       const user = { id: req.user.claims.sub, name: req.user.claims.name || 'User', claims: req.user.claims };
 
-      const { message, mode, language, programmingLanguage } = req.body;
+      const { message, mode, language, programmingLanguage, editorContext } = req.body;
 
       if (!message || typeof message !== "string") {
         return res.status(400).json({ error: "Message is required" });
@@ -1456,10 +1493,28 @@ if _virtual_display_started:
       // Generate AI response using LLM with knowledge base integration
       let response: string;
       try {
-        // Enhance message with programming language context for freestyle mode
-        const enhancedMessage = (mode === 'freestyle' && programmingLanguage)
-          ? `[Programming Language: ${programmingLanguage}] ${message}`
-          : message;
+        // Build enhanced message with programming language and editor context for freestyle mode
+        let enhancedMessage = message;
+        if (mode === 'freestyle') {
+          const contextParts: string[] = [];
+          
+          // Add programming language context
+          if (programmingLanguage) {
+            contextParts.push(`[Programming Language: ${programmingLanguage}]`);
+          }
+          
+          // Add editor context if provided (helps AI understand existing code)
+          if (editorContext && typeof editorContext === 'string' && editorContext.trim()) {
+            const truncatedContext = editorContext.length > 2000 
+              ? editorContext.substring(0, 2000) + '\n... (truncated)'
+              : editorContext;
+            contextParts.push(`[Current Editor Content - integrate with this code if relevant]:\n\`\`\`\n${truncatedContext}\n\`\`\``);
+          }
+          
+          if (contextParts.length > 0) {
+            enhancedMessage = contextParts.join('\n') + '\n\n' + message;
+          }
+        }
 
         response = await llmService.generateResponse(
           enhancedMessage,
@@ -1491,6 +1546,11 @@ if _virtual_display_started:
       };
 
       await storage.addMessageToConversation(currentSessionId, assistantMessage);
+
+      // Post-process code in freestyle mode to clean up common issues
+      if (mode === 'freestyle') {
+        response = cleanupGeneratedCode(response);
+      }
 
       res.json({
         response: response,

@@ -624,6 +624,88 @@ INTERACTION PRINCIPLES - CRITICAL:
 7. NATURAL TONE: Be warm, empathetic, and collaborative. You're a thinking partner, not a search engine. Engage genuinely with the user's ideas and challenges.`;
   }
 
+  private getErrorPreventionGuidelines(): string {
+    return `
+
+ERROR PREVENTION & DEFENSIVE CODING (ALWAYS APPLY):
+- ALWAYS include try/catch or try/except blocks around I/O operations, network calls, and user input
+- ALWAYS validate function inputs: check for null/undefined/None, validate types, check array bounds
+- ALWAYS handle edge cases: empty arrays, empty strings, zero values, negative numbers
+- ALWAYS provide meaningful error messages that help with debugging
+- NEVER assume input is valid - validate everything
+- NEVER leave resources open - use context managers, finally blocks, or cleanup patterns
+- ALWAYS set reasonable timeouts for network operations
+- ALWAYS sanitize user input before using in queries or commands`;
+  }
+
+  private getCodeQualityStandards(language: string): string {
+    const standards: Record<string, string> = {
+      python: `
+PYTHON CODE QUALITY STANDARDS (PEP 8 + Best Practices):
+- Naming: snake_case for functions/variables, PascalCase for classes, UPPER_CASE for constants
+- Indentation: 4 spaces (never tabs)
+- Line length: max 88 characters (Black formatter standard)
+- Imports: standard library first, then third-party, then local; one per line
+- Type hints: always include for function parameters and return types
+- Docstrings: Google or NumPy style for all public functions
+- Error handling: specific exceptions, never bare except:
+- Context managers: use 'with' for file/resource handling
+- F-strings preferred for string formatting
+- List/dict comprehensions where they improve readability`,
+
+      typescript: `
+TYPESCRIPT CODE QUALITY STANDARDS (ESLint + Best Practices):
+- Naming: camelCase for variables/functions, PascalCase for classes/interfaces/types
+- Indentation: 2 spaces
+- Types: explicit types for function parameters, return types, and complex objects
+- Interfaces over type aliases for object shapes
+- Generics: use when creating reusable components
+- Async/await: always use over raw promises, handle errors with try/catch
+- Null safety: use optional chaining (?.) and nullish coalescing (??)
+- Strict mode: code should work with strict TypeScript settings
+- No 'any' unless absolutely necessary (use 'unknown' instead)`,
+
+      javascript: `
+JAVASCRIPT CODE QUALITY STANDARDS (ES6+ Best Practices):
+- Naming: camelCase for variables/functions, PascalCase for classes
+- Indentation: 2 spaces
+- Variables: const by default, let when reassignment needed, never var
+- Functions: arrow functions for callbacks, regular for methods
+- Async/await: always use over callbacks, handle errors with try/catch
+- Object destructuring: use for cleaner code
+- Template literals: use for string interpolation
+- Modules: use ES6 import/export syntax
+- Array methods: prefer map/filter/reduce over loops where readable`,
+
+      cpp: `
+C++ CODE QUALITY STANDARDS (Modern C++11/14/17):
+- Naming: snake_case for variables/functions, PascalCase for classes, UPPER_CASE for macros
+- Indentation: 4 spaces
+- Headers: include guards or #pragma once
+- Memory: RAII, smart pointers (unique_ptr, shared_ptr), no raw new/delete
+- Avoid 'using namespace std' - use std:: prefix
+- const correctness: use const wherever possible
+- Pass by reference for non-trivial types
+- Use auto for complex types, explicit for simple ones
+- Range-based for loops preferred
+- Prefer algorithms from <algorithm> over raw loops`,
+
+      bash: `
+BASH SCRIPT QUALITY STANDARDS (ShellCheck Compliant):
+- Shebang: always start with #!/bin/bash or #!/usr/bin/env bash
+- Set options: set -euo pipefail at the top
+- Variables: quote all variables "\$var", use "\${var}" in strings
+- Naming: UPPER_CASE for constants, lower_case for locals
+- Comparisons: use [[ ]] instead of [ ]
+- Functions: use local for function variables
+- Error handling: check return codes, use || and && chaining
+- Portability: note when using bash-specific features
+- Cleanup: use trap for cleanup on exit`
+    };
+
+    return standards[language] || '';
+  }
+
   private getFreestylePromptPython(): string {
     return `FREESTYLE MODE: ARCHIMEDES v7 - Proactive Python Programming Partner
 
@@ -633,6 +715,8 @@ INTERACTION PRINCIPLES - CRITICAL:
 
 CORE DIRECTIVE: Be an insightful AI assistant who anticipates needs, thinks critically, and provides genuinely helpful code solutions.
 ${this.getFreestyleInteractionPrinciples()}
+${this.getCodeQualityStandards('python')}
+${this.getErrorPreventionGuidelines()}
 
 Code Generation Standards:
 - Wrap Python code in markdown blocks: \`\`\`python ... \`\`\`
@@ -665,6 +749,8 @@ Your Role: You're a collaborative coding partner who thinks ahead. After providi
 
 CORE DIRECTIVE: Be an insightful AI assistant who anticipates needs, thinks critically, and provides genuinely helpful code solutions.
 ${this.getFreestyleInteractionPrinciples()}
+${this.getCodeQualityStandards('typescript')}
+${this.getErrorPreventionGuidelines()}
 
 Code Generation Standards:
 - Wrap TypeScript code in markdown blocks: \`\`\`typescript ... \`\`\`
@@ -686,6 +772,8 @@ Your Role: You're a collaborative coding partner who thinks ahead. After providi
 
 CORE DIRECTIVE: Be an insightful AI assistant who anticipates needs, thinks critically, and provides genuinely helpful code solutions.
 ${this.getFreestyleInteractionPrinciples()}
+${this.getCodeQualityStandards('javascript')}
+${this.getErrorPreventionGuidelines()}
 
 Code Generation Standards:
 - Wrap JavaScript code in markdown blocks: \`\`\`javascript ... \`\`\`
@@ -707,6 +795,8 @@ Your Role: You're a collaborative coding partner who thinks ahead. After providi
 
 CORE DIRECTIVE: Be an insightful AI assistant who anticipates needs, thinks critically, and provides genuinely helpful code solutions.
 ${this.getFreestyleInteractionPrinciples()}
+${this.getCodeQualityStandards('cpp')}
+${this.getErrorPreventionGuidelines()}
 
 Code Generation Standards:
 - Wrap C++ code in markdown blocks: \`\`\`cpp ... \`\`\`
@@ -727,6 +817,8 @@ Your Role: You're a collaborative coding partner who thinks ahead. After providi
 
 CORE DIRECTIVE: Be an insightful AI assistant who anticipates needs, thinks critically, and provides genuinely helpful scripts.
 ${this.getFreestyleInteractionPrinciples()}
+${this.getCodeQualityStandards('bash')}
+${this.getErrorPreventionGuidelines()}
 
 Code Generation Standards:
 - Wrap Bash code in markdown blocks: \`\`\`bash ... \`\`\`
