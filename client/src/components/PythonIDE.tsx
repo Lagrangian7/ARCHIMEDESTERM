@@ -2419,11 +2419,28 @@ calculator()
       // Trim
       .trim();
     
-    // Insert cleaned code
+    // Insert cleaned code into Monaco editor
     if (showMultiFileMode && activeFile) {
       updateFileContent(activeFile.id, cleanedCode);
     } else {
       setCode(cleanedCode);
+    }
+    
+    // Force Monaco editor to update its value
+    if (editorRef.current && monacoRef.current) {
+      const model = editorRef.current.getModel();
+      if (model) {
+        // Replace entire content with cleaned code
+        model.setValue(cleanedCode);
+        
+        // Format the document after insertion
+        editorRef.current.getAction('editor.action.formatDocument')?.run();
+        
+        // Move cursor to end of document
+        const lineCount = model.getLineCount();
+        const lastLineLength = model.getLineLength(lineCount);
+        editorRef.current.setPosition({ lineNumber: lineCount, column: lastLineLength + 1 });
+      }
     }
     
     toast({
@@ -2436,7 +2453,7 @@ calculator()
       if (editorRef.current && typeof editorRef.current.focus === 'function') {
         editorRef.current.focus();
       }
-    }, 100);
+    }, 150);
   };
 
   const handleChatSubmit = (e: React.FormEvent) => {
