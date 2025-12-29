@@ -1016,9 +1016,15 @@ Code Execution:
 
       case 'code':
       case 'playground':
+      case 'workshop':
+        setShowPythonIDE(true);
+        addEntry('response', 'Opening Archimedes Workshop...', 'technical');
+        break;
+
       case 'codeplayground':
       case 'code-playground':
-      case 'editor':
+      case 'playground':
+      case 'code':
         setShowCodePlayground(true);
         addEntry('response', 'Opening Code Playground...', 'technical');
         break;
