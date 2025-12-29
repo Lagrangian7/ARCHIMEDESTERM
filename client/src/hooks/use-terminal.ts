@@ -1011,21 +1011,21 @@ Code Execution:
 
       case 'python lessons':
         setShowPythonLessons(true);
-        addEntry('response', 'Opening Python Lessons Guide...', 'technical');
-        break;
+        addEntry('system', 'Opening Python Lessons Guide...');
+        return;
 
       case 'workshop':
         setShowPythonIDE(true);
-        addEntry('response', 'Opening Archimedes Workshop...', 'technical');
-        break;
+        addEntry('system', 'Opening Archimedes Workshop...');
+        return;
 
       case 'code':
       case 'playground':
       case 'codeplayground':
       case 'code-playground':
         setShowCodePlayground(true);
-        addEntry('response', 'Opening Code Playground...', 'technical');
-        break;
+        addEntry('system', 'Opening Code Playground...');
+        return;
 
       case 'synth':
       case 'synthesizer':
