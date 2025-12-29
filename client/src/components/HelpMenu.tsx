@@ -450,6 +450,15 @@ const helpMenuItems: HelpMenuItem[] = [
     example: 'workshop',
     icon: <TerminalIcon size={16} />
   },
+  {
+    id: 'playground',
+    category: 'Tools',
+    title: 'Code Playground',
+    description: 'Multi-file code editor with live preview, template support, and execution for multiple languages',
+    command: 'playground',
+    example: 'playground',
+    icon: <Code size={16} />
+  },
 
   // Session & Productivity
   {

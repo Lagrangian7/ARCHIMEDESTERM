@@ -638,7 +638,7 @@ export function Terminal() {
   // Initialize background from server (authenticated) or localStorage (anonymous)
   useEffect(() => {
     const defaultWallpaper = '/default-wallpaper.png';
-    
+
     if (isAuthenticated && serverWallpapers.length > 0) {
       // Check for a selected wallpaper from the server
       const selectedWallpaper = serverWallpapers.find(w => w.isSelected);
@@ -650,10 +650,10 @@ export function Terminal() {
         return;
       }
     }
-    
+
     // Fallback to localStorage
     const savedBg = localStorage.getItem('terminal-background-url');
-    
+
     if (savedBg && savedBg !== 'null' && savedBg !== '' && savedBg !== 'none') {
       console.log('Loading saved background:', savedBg);
       setCustomBackgroundUrl(savedBg);

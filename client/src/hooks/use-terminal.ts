@@ -1019,8 +1019,8 @@ Code Execution:
       case 'codeplayground':
       case 'code-playground':
       case 'editor':
-        setShowPythonIDE(true);
-        addEntry('response', 'Opening Archimedes Workshop...', 'technical');
+        setShowCodePlayground(true);
+        addEntry('response', 'Opening Code Playground...', 'technical');
         break;
 
       case 'synth':
