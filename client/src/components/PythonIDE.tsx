@@ -1847,7 +1847,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   // AI processing visual feedback
   const [aiProcessingLines, setAiProcessingLines] = useState<number[]>([]);
   const decorationsCollectionRef = useRef<any>(null);
-  
+
   // Enhanced code quality features
   const [codeQualityHints, setCodeQualityHints] = useState<Array<{ line: number; message: string; severity: 'warning' | 'error' | 'info' }>>([]);
   const [showCodeMetrics, setShowCodeMetrics] = useState(false);
@@ -1958,7 +1958,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       // Basic inline quality checks
       const hints: Array<{ line: number; message: string; severity: 'warning' | 'error' | 'info' }> = [];
       const lines = currentCode.split('\n');
-      
+
       lines.forEach((line, index) => {
         // Check for common issues
         if (line.length > 120) {
@@ -1971,7 +1971,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
           hints.push({ line: index + 1, message: 'Bare except clause - specify exception type', severity: 'warning' });
         }
       });
-      
+
       setCodeQualityHints(hints);
       analyzeCodeQualityMutation.mutate(currentCode);
     } else {
@@ -2068,7 +2068,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const startCollaborativeReview = useCallback(() => {
     const currentActiveFile = files.find(f => f.id === activeFileId);
     const currentCode = showMultiFileMode && currentActiveFile ? currentActiveFile.content : code;
-    const currentLang = showMultiFileMode && currentActiveFile ? currentActiveFile.language : currentLanguage;
+    const currentLang = showMultiFileMode && activeFile ? activeFile.language : currentLanguage;
 
     if (currentCode.trim()) {
       speak("Initiating collaborative code review with satellite AI systems.");
@@ -2214,10 +2214,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
           console.warn('Codeium registration failed:', codeiumError);
         }
 
-        // Archimedes v7 Introduction - Add to chat history ONCE per browser session
-        if (!hasGreetedRef.current && sessionStorage.getItem('workshop-greeted') !== 'true') {
+        // Archimedes v7 Introduction - Add to chat history on component mount
+        if (!hasGreetedRef.current) {
           hasGreetedRef.current = true;
-          sessionStorage.setItem('workshop-greeted', 'true');
 
           const introMessage = "Greetings! Archimedes version 7 AI assistant now online with Codeium-powered code completions. I'm your friendly programming mentor and cyberpunk coding companion. Whether you need help with basics or advanced techniques, I'm here to guide you through any programming language. Let's create something amazing together!";
 
@@ -2282,14 +2281,14 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const extractCodeFromResponse = (content: string): string | null => {
     // Normalize line endings first (handle Windows \r\n and old Mac \r)
     const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    
+
     // Extract code from markdown code blocks and clean it thoroughly
     // Primary regex: ``` followed by optional language, then newline, then code, then ```
     let codeBlockMatch = normalizedContent.match(/```(\w*)\n([\s\S]*?)```/);
-    
+
     console.log('[IDE] Extracting code from response, length:', content.length);
     console.log('[IDE] Code block found:', !!codeBlockMatch);
-    
+
     // Fallback: try matching with just whitespace separator (no strict newline requirement)
     if (!codeBlockMatch) {
       const fallbackMatch = normalizedContent.match(/```\w*\s+([\s\S]*?)```/);
@@ -2309,13 +2308,13 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       }
       return null;
     }
-    
+
     if (codeBlockMatch) {
       // codeBlockMatch[1] is the language, codeBlockMatch[2] is the code
       let code = codeBlockMatch[2];
       console.log('[IDE] Language detected:', codeBlockMatch[1] || 'none');
       console.log('[IDE] Extracted code length:', code.length);
-      
+
       // Comprehensive AI artifact removal
       code = code
         // Remove code fence markers that may have leaked through
@@ -2323,29 +2322,29 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         .replace(/```\s*$/gm, '')
         .replace(/^~~~[\w]*\s*/gm, '')
         .replace(/~~~\s*$/gm, '')
-        
+
         // Remove file path markers
         .replace(/^\/\/\s*FILE:\s*.*$/gm, '')
         .replace(/^#\s*FILE:\s*.*$/gm, '')
         .replace(/^\/\/\s*Path:\s*.*$/gmi, '')
         .replace(/^#\s*Path:\s*.*$/gmi, '')
-        
+
         // Remove conversational AI text
         .replace(/^Here'?s?\s+(the|a|your)\s+code.*?:?\s*$/gmi, '')
         .replace(/^I'?ve?\s+(created|written|made|generated).*?:?\s*$/gmi, '')
         .replace(/^This\s+(code|script|program|function).*?:?\s*$/gmi, '')
         .replace(/^Let'?s?\s+(create|write|build).*?:?\s*$/gmi, '')
         .replace(/^Now\s+(let'?s?|we'?ll?|I'?ll?).*?:?\s*$/gmi, '')
-        
+
         // Remove explanation markers
         .replace(/^\/\/\s*Explanation:.*$/gmi, '')
         .replace(/^#\s*Explanation:.*$/gmi, '')
         .replace(/^\/\/\s*Note:.*$/gmi, '')
         .replace(/^#\s*Note:.*$/gmi, '')
-        
+
         // Trim whitespace
         .trim();
-      
+
       // Remove leading/trailing empty lines
       const lines = code.split('\n');
       while (lines.length > 0 && !lines[0].trim()) {
@@ -2354,7 +2353,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       while (lines.length > 0 && !lines[lines.length - 1].trim()) {
         lines.pop();
       }
-      
+
       return lines.join('\n');
     }
     return null;
@@ -2362,25 +2361,25 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   const insertCodeIntoEditor = (code: string) => {
     console.log('[IDE] insertCodeIntoEditor called with', code.length, 'chars');
-    
+
     // Additional cleaning pass before insertion to catch any remaining artifacts
     let cleanedCode = code
       // Remove any remaining markdown artifacts
       .replace(/^```[\w]*\s*/gm, '')
       .replace(/```\s*$/gm, '')
-      
+
       // Remove common AI response patterns
       .replace(/^Here is the (?:updated |modified |complete )?code:?\s*$/gmi, '')
       .replace(/^I've (?:added|updated|modified|created) the code:?\s*$/gmi, '')
-      
+
       // Normalize line endings
       .replace(/\r\n/g, '\n')
-      
+
       // Trim
       .trim();
-    
+
     console.log('[IDE] Cleaned code length:', cleanedCode.length);
-    
+
     // Insert cleaned code into Monaco editor
     if (showMultiFileMode && activeFile) {
       console.log('[IDE] Inserting into multi-file mode, file:', activeFile.name);
@@ -2389,29 +2388,29 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       console.log('[IDE] Inserting into single-file mode');
       setCode(cleanedCode);
     }
-    
+
     // Force Monaco editor to update its value
     if (editorRef.current && monacoRef.current) {
       const model = editorRef.current.getModel();
       if (model) {
         // Replace entire content with cleaned code
         model.setValue(cleanedCode);
-        
+
         // Format the document after insertion
         editorRef.current.getAction('editor.action.formatDocument')?.run();
-        
+
         // Move cursor to end of document
         const lineCount = model.getLineCount();
         const lastLineLength = model.getLineLength(lineCount);
         editorRef.current.setPosition({ lineNumber: lineCount, column: lastLineLength + 1 });
       }
     }
-    
+
     toast({
       title: "Code Inserted",
       description: "AI-generated code has been inserted into the editor",
     });
-    
+
     // Focus editor after insertion
     setTimeout(() => {
       if (editorRef.current && typeof editorRef.current.focus === 'function') {
@@ -4888,7 +4887,7 @@ server.listen(PORT, '0.0.0.0', () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 px-4 py-2 rounded" style={{ backgroundColor: currentPythonTheme.bg }}>
-                  <Star className="w-5 h-5" style={{ color: '#ffd700' }} />
+                  <Star className="w-5 h-5" style={{ color: '#ffd7700' }} />
                   <span className="font-mono text-xl font-bold" style={{ color: currentPythonTheme.highlight }}>
                     {collaborativeReviewResult.overallRating}/10
                   </span>
@@ -4974,6 +4973,7 @@ server.listen(PORT, '0.0.0.0', () => {
                             const reviewText = `${review.provider} (${review.model})\nRating: ${review.rating}/10\n\n${review.feedback}`;
                             navigator.clipboard.writeText(reviewText).then(() => {
                               toast({ title: "Copied!", description: `${review.provider} review copied` });
+                              speak("Review feedback copied to clipboard");
                             });
                           }}
                           className="h-7 w-7 p-0"
@@ -5078,7 +5078,7 @@ function getTheme(themeName: string): ThemeColors {
     // Business Professional Themes with gradients
     'executive-dark': { bg: 'radial-gradient(ellipse at top left, hsl(210 65% 28%) 0%, hsl(195 55% 22%) 25%, hsl(215 50% 16%) 50%, hsl(235 45% 12%) 75%, hsl(220 35% 6%) 100%)', text: '#d4d8de', highlight: '#4a9eff', border: '#242832', subtle: '#242832', gradient: true },
     'corporate-blue': { bg: 'conic-gradient(from 45deg at 30% 70%, hsl(215 75% 32%) 0%, hsl(200 68% 26%) 25%, hsl(220 62% 20%) 50%, hsl(205 55% 16%) 75%, hsl(210 48% 10%) 100%)', text: '#e4e7ed', highlight: '#5b9ff5', border: '#2b3346', subtle: '#2b3346', gradient: true },
-    'finance-green': { bg: 'linear-gradient(135deg, hsl(150 65% 26%) 0%, hsl(165 58% 20%) 20%, hsl(145 52% 16%) 40%, hsl(130 45% 12%) 60%, hsl(155 38% 8%) 80%, hsl(145 32% 5%) 100%)', text: '#dfe5e1', highlight: '#40d97a', border: '#25382f', subtle: '#25382f', gradient: true },
+    'finance-green': { bg: 'linear-gradient(135deg, hsl(150 65% 26%) 0%, hsl(165 58% 20%) 20%, hsl(145 52% 16%) 40%, hsl(130 45% 12%) 60%, hsl(155 38% 8%) 80%, hsl(145 32% 5%) 100%)', text: '#dfe5e1', highlight: '#40d2c8', border: '#25382f', subtle: '#25382f', gradient: true },
     'professional-grey': { bg: 'radial-gradient(ellipse at bottom right, hsl(220 40% 26%) 0%, hsl(210 35% 20%) 30%, hsl(215 30% 16%) 60%, hsl(205 25% 12%) 80%, hsl(220 20% 7%) 100%)', text: '#e0e2e5', highlight: '#6ba3ff', border: '#2d3138', subtle: '#2d3138', gradient: true },
     'banking-teal': { bg: 'conic-gradient(from 90deg at 50% 50%, hsl(185 70% 24%) 0%, hsl(175 62% 18%) 25%, hsl(180 55% 14%) 50%, hsl(190 48% 10%) 75%, hsl(185 42% 6%) 100%)', text: '#e6eceb', highlight: '#40d2c8', border: '#1c3438', subtle: '#1c3438', gradient: true },
     'consulting-navy': { bg: 'radial-gradient(ellipse at center, hsl(220 80% 22%) 0%, hsl(235 70% 18%) 25%, hsl(215 65% 14%) 50%, hsl(230 58% 10%) 75%, hsl(220 50% 6%) 100%)', text: '#e0e3e8', highlight: '#5b9ff5', border: '#1a2440', subtle: '#1a2440', gradient: true },
