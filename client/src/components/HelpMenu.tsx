@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, ArrowRight, Terminal as TerminalIcon, Radio, Book, TrendingUp, Wifi, Gamepad2, Upload, Mic, MessageSquare } from 'lucide-react';
+import { X, ArrowRight, Terminal as TerminalIcon, Radio, Book, TrendingUp, Wifi, Gamepad2, Upload, Mic, MessageSquare, Code } from 'lucide-react';
 
 interface HelpMenuItem {
   id: string;
