@@ -2354,9 +2354,15 @@ calculator()
 
   const extractCodeFromResponse = (content: string): string | null => {
     // Extract code from markdown code blocks and clean it thoroughly
-    const codeBlockMatch = content.match(/```(?:python|javascript|typescript|html|css|java|cpp|c|bash|sql|json|yaml|markdown|rust|go|php|ruby|swift|kotlin)?\n([\s\S]*?)```/);
+    // Updated regex: allows optional whitespace/newline after language specifier
+    const codeBlockMatch = content.match(/```(?:python|javascript|typescript|html|css|java|cpp|c|bash|sql|json|yaml|markdown|rust|go|php|ruby|swift|kotlin)?[\s\n]*([\s\S]*?)```/);
+    
+    console.log('[IDE] Extracting code from response, length:', content.length);
+    console.log('[IDE] Code block found:', !!codeBlockMatch);
+    
     if (codeBlockMatch) {
       let code = codeBlockMatch[1];
+      console.log('[IDE] Extracted code length:', code.length);
       
       // Comprehensive AI artifact removal
       code = code
@@ -2403,6 +2409,8 @@ calculator()
   };
 
   const insertCodeIntoEditor = (code: string) => {
+    console.log('[IDE] insertCodeIntoEditor called with', code.length, 'chars');
+    
     // Additional cleaning pass before insertion to catch any remaining artifacts
     let cleanedCode = code
       // Remove any remaining markdown artifacts
@@ -2419,10 +2427,14 @@ calculator()
       // Trim
       .trim();
     
+    console.log('[IDE] Cleaned code length:', cleanedCode.length);
+    
     // Insert cleaned code into Monaco editor
     if (showMultiFileMode && activeFile) {
+      console.log('[IDE] Inserting into multi-file mode, file:', activeFile.name);
       updateFileContent(activeFile.id, cleanedCode);
     } else {
+      console.log('[IDE] Inserting into single-file mode');
       setCode(cleanedCode);
     }
     
@@ -3055,13 +3067,19 @@ calculator()
       setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
 
       // Auto-insert code if detected in response (works in all modes now)
+      console.log('[IDE] AI Response received, checking for code...');
+      console.log('[IDE] Response preview:', data.response.substring(0, 200));
       const extractedCode = extractCodeFromResponse(data.response);
+      console.log('[IDE] Extracted code:', extractedCode ? `${extractedCode.length} chars` : 'null');
       if (extractedCode) {
+        console.log('[IDE] Inserting code into editor...');
         insertCodeIntoEditor(extractedCode);
         toast({
           title: "Code Ready",
           description: "AI-generated code has been inserted into the editor",
         });
+      } else {
+        console.log('[IDE] No code block detected in response');
       }
     },
     onError: (error) => {
