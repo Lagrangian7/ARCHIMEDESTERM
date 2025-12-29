@@ -424,8 +424,21 @@ function detectLanguage(code: string, filename?: string): string {
 }
 
 export function cleanCodeFormatting(code: string): string {
+  // Remove common AI response artifacts
+  let cleaned = code
+    .replace(/^```[\w]*\s*/gm, '') // Remove opening code fences
+    .replace(/```\s*$/gm, '')      // Remove closing code fences
+    .replace(/^~~~[\w]*\s*/gm, '') // Remove ~~~ fences
+    .replace(/~~~\s*$/gm, '')
+    .replace(/^Here'?s?\s+(the|a|your)\s+code.*?:?\s*$/gmi, '') // Remove "Here's the code:" lines
+    .replace(/^I'?ve?\s+(created|written|made).*?:?\s*$/gmi, '') // Remove "I've created..." lines
+    .replace(/^This\s+(code|script|program).*?:?\s*$/gmi, '') // Remove "This code..." lines
+    .replace(/^\/\/\s*FILE:\s*.*$/gm, '') // Remove // FILE: markers
+    .replace(/^#\s*FILE:\s*.*$/gm, '')    // Remove # FILE: markers
+    .trim();
+
   // Split into lines and remove empty lines from start/end
-  let lines = code.split(/\r?\n/);
+  let lines = cleaned.split(/\r?\n/);
 
   // Remove leading and trailing empty lines
   while (lines.length > 0 && !lines[0].trim()) {

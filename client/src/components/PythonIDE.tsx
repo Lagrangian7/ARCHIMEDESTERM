@@ -2353,10 +2353,20 @@ calculator()
   const resetFontSize = () => setFontSize(13);
 
   const extractCodeFromResponse = (content: string): string | null => {
-    // Extract code from markdown code blocks
+    // Extract code from markdown code blocks and clean it
     const codeBlockMatch = content.match(/```(?:python|javascript|typescript|html|css|java|cpp|c|bash|sql|json|yaml|markdown|rust|go|php|ruby|swift|kotlin)?\n([\s\S]*?)```/);
     if (codeBlockMatch) {
-      return codeBlockMatch[1].trim();
+      let code = codeBlockMatch[1];
+      
+      // Clean AI artifacts
+      code = code
+        .replace(/^\/\/\s*FILE:\s*.*$/gm, '') // Remove // FILE: markers
+        .replace(/^#\s*FILE:\s*.*$/gm, '')    // Remove # FILE: markers
+        .replace(/^Here'?s?\s+(the|a|your)\s+code.*?:?\s*$/gmi, '') // Remove "Here's the code:" lines
+        .replace(/^I'?ve?\s+(created|written|made).*?:?\s*$/gmi, '') // Remove "I've created..." lines
+        .trim();
+      
+      return code;
     }
     return null;
   };
