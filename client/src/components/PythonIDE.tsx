@@ -2353,34 +2353,90 @@ calculator()
   const resetFontSize = () => setFontSize(13);
 
   const extractCodeFromResponse = (content: string): string | null => {
-    // Extract code from markdown code blocks and clean it
+    // Extract code from markdown code blocks and clean it thoroughly
     const codeBlockMatch = content.match(/```(?:python|javascript|typescript|html|css|java|cpp|c|bash|sql|json|yaml|markdown|rust|go|php|ruby|swift|kotlin)?\n([\s\S]*?)```/);
     if (codeBlockMatch) {
       let code = codeBlockMatch[1];
       
-      // Clean AI artifacts
+      // Comprehensive AI artifact removal
       code = code
-        .replace(/^\/\/\s*FILE:\s*.*$/gm, '') // Remove // FILE: markers
-        .replace(/^#\s*FILE:\s*.*$/gm, '')    // Remove # FILE: markers
-        .replace(/^Here'?s?\s+(the|a|your)\s+code.*?:?\s*$/gmi, '') // Remove "Here's the code:" lines
-        .replace(/^I'?ve?\s+(created|written|made).*?:?\s*$/gmi, '') // Remove "I've created..." lines
+        // Remove code fence markers that may have leaked through
+        .replace(/^```[\w]*\s*/gm, '')
+        .replace(/```\s*$/gm, '')
+        .replace(/^~~~[\w]*\s*/gm, '')
+        .replace(/~~~\s*$/gm, '')
+        
+        // Remove file path markers
+        .replace(/^\/\/\s*FILE:\s*.*$/gm, '')
+        .replace(/^#\s*FILE:\s*.*$/gm, '')
+        .replace(/^\/\/\s*Path:\s*.*$/gmi, '')
+        .replace(/^#\s*Path:\s*.*$/gmi, '')
+        
+        // Remove conversational AI text
+        .replace(/^Here'?s?\s+(the|a|your)\s+code.*?:?\s*$/gmi, '')
+        .replace(/^I'?ve?\s+(created|written|made|generated).*?:?\s*$/gmi, '')
+        .replace(/^This\s+(code|script|program|function).*?:?\s*$/gmi, '')
+        .replace(/^Let'?s?\s+(create|write|build).*?:?\s*$/gmi, '')
+        .replace(/^Now\s+(let'?s?|we'?ll?|I'?ll?).*?:?\s*$/gmi, '')
+        
+        // Remove explanation markers
+        .replace(/^\/\/\s*Explanation:.*$/gmi, '')
+        .replace(/^#\s*Explanation:.*$/gmi, '')
+        .replace(/^\/\/\s*Note:.*$/gmi, '')
+        .replace(/^#\s*Note:.*$/gmi, '')
+        
+        // Trim whitespace
         .trim();
       
-      return code;
+      // Remove leading/trailing empty lines
+      const lines = code.split('\n');
+      while (lines.length > 0 && !lines[0].trim()) {
+        lines.shift();
+      }
+      while (lines.length > 0 && !lines[lines.length - 1].trim()) {
+        lines.pop();
+      }
+      
+      return lines.join('\n');
     }
     return null;
   };
 
   const insertCodeIntoEditor = (code: string) => {
+    // Additional cleaning pass before insertion to catch any remaining artifacts
+    let cleanedCode = code
+      // Remove any remaining markdown artifacts
+      .replace(/^```[\w]*\s*/gm, '')
+      .replace(/```\s*$/gm, '')
+      
+      // Remove common AI response patterns
+      .replace(/^Here is the (?:updated |modified |complete )?code:?\s*$/gmi, '')
+      .replace(/^I've (?:added|updated|modified|created) the code:?\s*$/gmi, '')
+      
+      // Normalize line endings
+      .replace(/\r\n/g, '\n')
+      
+      // Trim
+      .trim();
+    
+    // Insert cleaned code
     if (showMultiFileMode && activeFile) {
-      updateFileContent(activeFile.id, code);
+      updateFileContent(activeFile.id, cleanedCode);
     } else {
-      setCode(code);
+      setCode(cleanedCode);
     }
+    
     toast({
       title: "Code Inserted",
       description: "AI-generated code has been inserted into the editor",
     });
+    
+    // Focus editor after insertion
+    setTimeout(() => {
+      if (editorRef.current && typeof editorRef.current.focus === 'function') {
+        editorRef.current.focus();
+      }
+    }, 100);
   };
 
   const handleChatSubmit = (e: React.FormEvent) => {
