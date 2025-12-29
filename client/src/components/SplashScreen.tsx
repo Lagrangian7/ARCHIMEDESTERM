@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import archyEngraving from '@assets/archi engraved 4_1762290512438.png';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -24,11 +23,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       onTouchStart={handleInteraction}
       data-testid="splash-screen"
     >
-      <img
-        src={archyEngraving}
-        alt="ARCHIMEDES Logo"
-        className="absolute inset-0 w-full h-full object-contain opacity-40"
-      />
       <div className="absolute inset-0 flex items-center justify-center">
         <h1 
           className="text-8xl font-bold text-red-600 animate-pulse opacity-70 text-center"
