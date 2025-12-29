@@ -2353,15 +2353,40 @@ calculator()
   const resetFontSize = () => setFontSize(13);
 
   const extractCodeFromResponse = (content: string): string | null => {
+    // Normalize line endings first (handle Windows \r\n and old Mac \r)
+    const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    
     // Extract code from markdown code blocks and clean it thoroughly
-    // Updated regex: allows optional whitespace/newline after language specifier
-    const codeBlockMatch = content.match(/```(?:python|javascript|typescript|html|css|java|cpp|c|bash|sql|json|yaml|markdown|rust|go|php|ruby|swift|kotlin)?[\s\n]*([\s\S]*?)```/);
+    // Primary regex: ``` followed by optional language, then newline, then code, then ```
+    let codeBlockMatch = normalizedContent.match(/```(\w*)\n([\s\S]*?)```/);
     
     console.log('[IDE] Extracting code from response, length:', content.length);
     console.log('[IDE] Code block found:', !!codeBlockMatch);
     
+    // Fallback: try matching with just whitespace separator (no strict newline requirement)
+    if (!codeBlockMatch) {
+      const fallbackMatch = normalizedContent.match(/```\w*\s+([\s\S]*?)```/);
+      if (fallbackMatch) {
+        console.log('[IDE] Using fallback regex match');
+        // For fallback, code is in group 1 - strip any language prefix from first line
+        let code = fallbackMatch[1];
+        const firstLineEnd = code.indexOf('\n');
+        if (firstLineEnd > 0) {
+          const firstLine = code.substring(0, firstLineEnd).trim();
+          // Check if first line looks like a language name (no spaces, short)
+          if (/^[a-z]+$/i.test(firstLine) && firstLine.length < 15) {
+            code = code.substring(firstLineEnd + 1);
+          }
+        }
+        return code.trim();
+      }
+      return null;
+    }
+    
     if (codeBlockMatch) {
-      let code = codeBlockMatch[1];
+      // codeBlockMatch[1] is the language, codeBlockMatch[2] is the code
+      let code = codeBlockMatch[2];
+      console.log('[IDE] Language detected:', codeBlockMatch[1] || 'none');
       console.log('[IDE] Extracted code length:', code.length);
       
       // Comprehensive AI artifact removal
