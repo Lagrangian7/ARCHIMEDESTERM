@@ -1014,17 +1014,15 @@ Code Execution:
         addEntry('response', 'Opening Python Lessons Guide...', 'technical');
         break;
 
-      case 'code':
-      case 'playground':
       case 'workshop':
         setShowPythonIDE(true);
         addEntry('response', 'Opening Archimedes Workshop...', 'technical');
         break;
 
+      case 'code':
+      case 'playground':
       case 'codeplayground':
       case 'code-playground':
-      case 'playground':
-      case 'code':
         setShowCodePlayground(true);
         addEntry('response', 'Opening Code Playground...', 'technical');
         break;
