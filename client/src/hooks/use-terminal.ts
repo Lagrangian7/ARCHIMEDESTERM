@@ -1006,8 +1006,8 @@ Code Execution:
 
       case 'workshop':
         setShowPythonIDE(true);
-        addEntry('response', 'Opening Archimedes Workshop...', 'technical');
-        break;
+        addEntry('system', 'Opening Archimedes Workshop...');
+        return;
 
       case 'python lessons':
         setShowPythonLessons(true);
