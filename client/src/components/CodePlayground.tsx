@@ -1104,7 +1104,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
         width: `${dimensions.width}px`,
         height: `${dimensions.height}px`,
         zIndex: 40,
-        backgroundColor: 'var(--terminal-bg)',
+        backgroundColor: '#000000',
         borderColor: 'var(--terminal-highlight)',
       }}
       data-testid="code-playground"
@@ -1113,7 +1113,7 @@ export function CodePlayground({ onClose, initialCode, initialLanguage, currentT
       <div 
         className="flex items-center justify-between px-4 py-3 cursor-move"
         style={{
-          backgroundColor: 'var(--terminal-bg)',
+          backgroundColor: '#000000',
           borderBottom: '1px solid var(--terminal-subtle)',
         }}
         onMouseDown={(e) => {
