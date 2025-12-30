@@ -90,6 +90,8 @@ export function Terminal() {
     setShowWebSynth,
     showCodePlayground,
     setShowCodePlayground,
+    showPythonIDE,
+    setShowPythonIDE,
   } = useTerminal(() => {
     if (isAuthenticated) {
       setShowUpload(true);
@@ -168,7 +170,6 @@ export function Terminal() {
   const [showAJ2Video, setShowAJ2Video] = useState(false);
   const [isWebampOpen, setIsWebampOpen] = useState(false); // State to track if Webamp is open
   const [notepads, setNotepads] = useState<Array<{ id: string }>>([]);
-  const [showPythonIDE, setShowPythonIDE] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [showBackgroundManager, setShowBackgroundManager] = useState(false);
   const [customBackgroundUrl, setCustomBackgroundUrl] = useState<string>('/default-wallpaper.png');
