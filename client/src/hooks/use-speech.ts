@@ -317,7 +317,7 @@ export function useSpeechSynthesis() {
           console.log('Using system default voice');
         } else if (currentVoice === 1) {
           // HAL 9000 voice simulation - deep, calm, male voice
-          utterance.pitch = 0.3; // Very low pitch for deeper male voice
+          utterance.pitch = 0.25; // Very low pitch for deeper male voice
           utterance.rate = currentRate * technicalSlowdown; // Apply slowdown for technical content
           // Volume already set from currentVolume above
           console.log('Using HAL 9000 voice simulation (deep male voice)', isDenseTechnical ? '(technical slowdown applied)' : '');
