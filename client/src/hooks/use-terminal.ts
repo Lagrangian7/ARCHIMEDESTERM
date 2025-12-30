@@ -1014,11 +1014,6 @@ Code Execution:
         addEntry('system', 'Opening Python Lessons Guide...');
         return;
 
-      case 'workshop':
-        setShowPythonIDE(true);
-        addEntry('system', 'Opening Archimedes Workshop...');
-        return;
-
       case 'code':
       case 'playground':
       case 'codeplayground':
