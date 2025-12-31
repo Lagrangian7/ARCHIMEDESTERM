@@ -2282,22 +2282,19 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const extractCodeFromResponse = (response: string): string | null => {
     console.log('[IDE] Extracting code from response, length:', response.length);
 
-    // Match code blocks with language identifier (```python, ```javascript, etc.)
-    // More comprehensive pattern that handles various formats
-    const codeBlockMatch = response.match(/```(?:python|py|javascript|js|typescript|ts|java|cpp|c\+\+|c|go|golang|rust|rs|ruby|rb|php|html|css|sql|bash|shell|sh|r|perl|scala|kotlin|swift|dart)\s*\n([\s\S]*?)```/i);
-    console.log('[IDE] Code block found:', !!codeBlockMatch);
-
+    // Single comprehensive regex that handles all code block formats
+    // Matches: ```lang\ncode``` or ```\ncode``` or ~~~lang\ncode~~~
+    const codeBlockPattern = /(?:```|~~~)(?:python|py|javascript|js|typescript|ts|java|cpp|c\+\+|c|go|golang|rust|rs|ruby|rb|php|html|css|sql|bash|shell|sh|r|perl|scala|kotlin|swift|dart)?\s*\n([\s\S]*?)(?:```|~~~)/i;
+    const codeBlockMatch = response.match(codeBlockPattern);
+    
     if (codeBlockMatch) {
+      console.log('[IDE] Code block found');
       return codeBlockMatch[1].trim();
     }
 
-    // Fallback: match any code block without language identifier
-    const genericCodeMatch = response.match(/```\s*\n([\s\S]*?)```/);
-    if (genericCodeMatch) {
-      return genericCodeMatch[1].trim();
-    }
+    console.log('[IDE] No code block found');
 
-    // Last resort: detect code-like patterns (indented blocks, function definitions)
+    // Fallback: detect code-like patterns only if no fenced code blocks
     const codePatterns = [
       /(?:def|class|function|const|let|var|import|from)\s+\w+[\s\S]{20,}/,
       /^\s{2,}[\w\s\(\)\{\}\[\],:=\+\-\*\/]+$/m
