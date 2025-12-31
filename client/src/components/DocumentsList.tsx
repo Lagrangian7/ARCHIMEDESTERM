@@ -187,24 +187,22 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
 
       const data = await res.json();
 
-      // Display the formatted document content in a toast or modal
-      toast({
-        title: `📖 ${filename}`,
-        description: data.formatted || data.document.content.substring(0, 200) + '...',
-        duration: 10000,
-      });
-
-      // Also log to console for terminal integration
-      console.log('Document content:', data.formatted);
-
-      // Dispatch event for terminal to pick up
+      // Dispatch event for terminal to pick up - this will trigger AI response bubble and TTS
       window.dispatchEvent(new CustomEvent('document-read', { 
         detail: { 
           filename, 
           content: data.formatted || data.document.content,
-          document: data.document
+          document: data.document,
+          triggerAIResponse: true // Flag to trigger AI bubble response
         } 
       }));
+
+      // Show brief confirmation toast
+      toast({
+        title: `📖 Reading ${filename}`,
+        description: "Archimedes is presenting the document...",
+        duration: 3000,
+      });
     } catch (error) {
       toast({
         title: 'Read failed',

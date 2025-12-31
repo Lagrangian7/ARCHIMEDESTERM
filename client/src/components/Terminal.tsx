@@ -248,7 +248,7 @@ export function Terminal() {
   useEffect(() => {
     const handleDocumentRead = (event: Event) => {
       const customEvent = event as CustomEvent;
-      const { content } = customEvent.detail;
+      const { content, triggerAIResponse } = customEvent.detail;
       
       // Add the document content to terminal output
       if (content) {
@@ -258,10 +258,32 @@ export function Terminal() {
           type: 'response' as const,
           content,
           timestamp: new Date().toISOString(),
+          mode: currentMode,
         };
         
         // Add to terminal entries
         entries.push(newEntry);
+        
+        // If this should trigger AI response (from knowledge base read button)
+        // then trigger TTS and bubble animation
+        if (triggerAIResponse) {
+          // The useEffect that monitors entries will automatically:
+          // 1. Add the entry to typing animations (bubble)
+          // 2. Trigger speech synthesis via useSpeech
+          // So we just need to make sure the entry is marked properly
+          setTypingEntries(prev => new Set(prev).add(entryId));
+          
+          // Remove typing animation after content is "typed"
+          const contentLength = content.length;
+          const typingDuration = Math.min(3000, Math.max(800, contentLength * 30));
+          setTimeout(() => {
+            setTypingEntries(prev => {
+              const next = new Set(prev);
+              next.delete(entryId);
+              return next;
+            });
+          }, typingDuration + 500);
+        }
         
         // Trigger scroll to bottom
         setTimeout(() => {
@@ -274,7 +296,7 @@ export function Terminal() {
     return () => {
       window.removeEventListener('document-read', handleDocumentRead);
     };
-  }, [entries, scrollToBottom]);
+  }, [entries, scrollToBottom, currentMode]);
 
   // Switch theme function
   const switchTheme = useCallback(() => {
