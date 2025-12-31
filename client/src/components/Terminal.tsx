@@ -228,6 +228,38 @@ export function Terminal() {
     };
   }, []);
 
+  // Listen for document-read events from Knowledge Base
+  useEffect(() => {
+    const handleDocumentRead = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { content } = customEvent.detail;
+      
+      // Add the document content to terminal output
+      if (content) {
+        const entryId = `read-${Date.now()}`;
+        const newEntry = {
+          id: entryId,
+          type: 'response' as const,
+          content,
+          timestamp: new Date().toISOString(),
+        };
+        
+        // Add to terminal entries
+        entries.push(newEntry);
+        
+        // Trigger scroll to bottom
+        setTimeout(() => {
+          scrollToBottom();
+        }, 100);
+      }
+    };
+
+    window.addEventListener('document-read', handleDocumentRead);
+    return () => {
+      window.removeEventListener('document-read', handleDocumentRead);
+    };
+  }, [entries, scrollToBottom]);
+
   // Switch theme function
   const switchTheme = useCallback(() => {
     const currentIndex = themes.indexOf(currentTheme);

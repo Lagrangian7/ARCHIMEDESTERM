@@ -16,7 +16,8 @@ import {
   X,
   Upload,
   Brain,
-  Sparkles
+  Sparkles,
+  BookOpen // Added BookOpen for the read button
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -175,6 +176,43 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
       });
     },
   });
+
+  // Read document mutation
+  const readDocument = async (filename: string) => {
+    try {
+      const res = await fetch(`/api/documents/read/${encodeURIComponent(filename)}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to read document');
+
+      const data = await res.json();
+
+      // Display the formatted document content in a toast or modal
+      toast({
+        title: `📖 ${filename}`,
+        description: data.formatted || data.document.content.substring(0, 200) + '...',
+        duration: 10000,
+      });
+
+      // Also log to console for terminal integration
+      console.log('Document content:', data.formatted);
+
+      // Dispatch event for terminal to pick up
+      window.dispatchEvent(new CustomEvent('document-read', { 
+        detail: { 
+          filename, 
+          content: data.formatted || data.document.content,
+          document: data.document
+        } 
+      }));
+    } catch (error) {
+      toast({
+        title: 'Read failed',
+        description: error instanceof Error ? error.message : 'Failed to read document',
+        variant: 'destructive',
+      });
+    }
+  };
 
   // Rename document mutation
   const renameMutation = useMutation({
@@ -364,6 +402,40 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
   const handleRenameCancel = () => {
     setRenamingId(null);
     setNewName('');
+  };
+
+  // Placeholder for downloadDocument function if it exists elsewhere or needs to be defined
+  const downloadDocument = async (document: Document) => {
+    // This is a placeholder. You should implement the actual download logic.
+    console.log(`Downloading document: ${document.originalName}`);
+    toast({
+      title: "Download initiated",
+      description: `Initiating download for ${document.originalName}...`,
+    });
+    // Example: Fetch the file and trigger download
+    try {
+      const response = await fetch(`/api/documents/download/${encodeURIComponent(document.originalName)}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to download ${document.originalName}`);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = document.originalName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: error instanceof Error ? error.message : `Failed to download ${document.originalName}.`,
+        variant: "destructive",
+      });
+    }
   };
 
   if (error) {
@@ -686,6 +758,34 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                   {/* Action buttons row - always visible */}
                   <div className="flex items-center gap-2 pl-8 flex-wrap">
                     <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => readDocument(document.originalName)}
+                      className="text-terminal-highlight hover:bg-terminal-subtle"
+                      title="Read document"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => downloadDocument(document)}
+                      className="text-terminal-highlight hover:bg-terminal-subtle"
+                      title="Download document"
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(document.id, document.originalName)}
+                      disabled={deleteMutation.isPending || renamingId !== null}
+                      className="text-red-400 hover:bg-red-950/20"
+                      title="Delete document"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                    <Button
                       onClick={() => personalityMutation.mutate({ 
                         documentId: document.id, 
                         isPersonality: !document.isPersonality 
@@ -734,23 +834,6 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                     >
                       <Edit2 size={12} className="mr-1" />
                       Rename
-                    </Button>
-                    <Button
-                      onClick={() => handleDelete(document.id, document.originalName)}
-                      variant="outline"
-                      size="sm"
-                      title="Delete document"
-                      className="h-7 px-2 font-mono hover:bg-opacity-20 text-[10px]"
-                      style={{ 
-                        backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                        borderColor: 'rgba(239, 68, 68, 0.5)',
-                        color: '#ff6b6b'
-                      }}
-                      disabled={deleteMutation.isPending || renamingId !== null}
-                      data-testid={`button-delete-${document.id}`}
-                    >
-                      <Trash2 size={12} className="mr-1" />
-                      Delete
                     </Button>
                   </div>
                 </div>
