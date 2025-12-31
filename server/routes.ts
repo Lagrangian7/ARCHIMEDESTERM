@@ -1512,6 +1512,9 @@ if _virtual_display_started:
             contextParts.push(`[Current Editor Content - integrate with this code if relevant]:\n\`\`\`\n${truncatedContext}\n\`\`\``);
           }
           
+          // Add project-wide context hints
+          contextParts.push(`[Project Context]: This is part of the ARCHIMEDES AI Terminal - a full-stack web application with Python/Node.js backend and React frontend. The user's code should integrate seamlessly with existing patterns.`);
+          
           if (contextParts.length > 0) {
             enhancedMessage = contextParts.join('\n') + '\n\n' + message;
           }
