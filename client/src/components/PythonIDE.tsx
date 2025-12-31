@@ -2287,9 +2287,116 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     const codeBlockPattern = /(?:```|~~~)(?:python|py|javascript|js|typescript|ts|java|cpp|c\+\+|c|go|golang|rust|rs|ruby|rb|php|html|css|sql|bash|shell|sh|r|perl|scala|kotlin|swift|dart)?\s*\n([\s\S]*?)(?:```|~~~)/i;
     const codeBlockMatch = response.match(codeBlockPattern);
     
-    if (codeBlockMatch) {
-      console.log('[IDE] Code block found');
+    if (codeBlockMatch && codeBlockMatch[1]) {
+      console.log('[IDE] Code block found:', true);
       return codeBlockMatch[1].trim();
+    }
+    
+    console.log('[IDE] No code block found');
+    return null;
+  };
+
+  // Insert code into editor with language detection
+  const insertCodeIntoEditor = (code: string) => {
+    if (!code || code.trim().length === 0) {
+      console.log('[IDE] No code to insert');
+      return;
+    }
+
+    console.log('[IDE] insertCodeIntoEditor called with', code.length, 'chars');
+    
+    // Clean the code - remove markdown artifacts
+    let cleanedCode = code
+      .replace(/^```[\w]*\n?/gm, '')
+      .replace(/```$/gm, '')
+      .trim();
+    
+    console.log('[IDE] Cleaned code length:', cleanedCode.length);
+    
+    if (showMultiFileMode && activeFile) {
+      console.log('[IDE] Inserting into multi-file mode, file:', activeFile.name);
+      updateFileContent(activeFile.id, cleanedCode);
+    } else {
+      console.log('[IDE] Inserting into single-file mode');
+      setCode(cleanedCode);
+    }
+
+    toast({
+      title: "Code Inserted",
+      description: "AI-generated code has been added to the editor",
+    });
+  };
+
+  const handleExtractAndInsert = (response: string) => {
+    const extractedCode = extractCodeFromResponse(response);
+    
+    if (extractedCode) {
+      console.log('[IDE] Extracted code length:', extractedCode.length);
+      
+      // Detect language from the code block marker if present
+      const langMatch = response.match(/```(python|py|javascript|js|typescript|ts|java|cpp|c\+\+|c|go|rust|ruby|php|html|css|sql|bash|shell)/i);
+      if (langMatch) {
+        const detectedLang = langMatch[1].toLowerCase();
+        console.log('[IDE] Language detected:', detectedLang);
+        
+        // Map language aliases to primary language
+        const langMap: Record<string, string> = {
+          'py': 'python',
+          'js': 'javascript',
+          'ts': 'typescript',
+          'c++': 'cpp',
+          'shell': 'bash',
+          'sh': 'bash'
+        };
+        
+        const normalizedLang = langMap[detectedLang] || detectedLang;
+        
+        if (showMultiFileMode && activeFile && normalizedLang !== activeFile.language) {
+          // Create new file with detected language
+          const extension = LANGUAGE_CONFIG[normalizedLang]?.extension || '.txt';
+          const newFileName = `code_${Date.now()}${extension}`;
+          const newFile: CodeFile = {
+            id: `file_${Date.now()}`,
+            name: newFileName,
+            language: normalizedLang,
+            content: extractedCode
+          };
+          setFiles(prev => [...prev, newFile]);
+          setActiveFileId(newFile.id);
+          toast({
+            title: "New File Created",
+            description: `${newFileName} created with AI-generated ${normalizedLang} code`,
+          });
+          return;
+        }
+      }
+      
+      console.log('[IDE] Extracted code:', extractedCode.slice(0, 300) + '...');
+      console.log('[IDE] Inserting code into editor...');
+      insertCodeIntoEditor(extractedCode);
+    } else {
+      console.log('[IDE] No code extracted from response');
+    }
+  };
+
+  // Process AI responses for code extraction
+  useEffect(() => {
+    if (!chatMessages || chatMessages.length === 0) return;
+    
+    const lastMessage = chatMessages[chatMessages.length - 1];
+    
+    if (lastMessage?.role === 'assistant' && lastMessage?.content) {
+      console.log('[IDE] AI Response received, checking for code...');
+      console.log('[IDE] Response preview:', lastMessage.content.slice(0, 200));
+      
+      // Only try to extract if the response contains code block markers
+      if (lastMessage.content.includes('```')) {
+        handleExtractAndInsert(lastMessage.content);
+      }
+    }
+  }, [chatMessages, showMultiFileMode, activeFile]);
+
+  // Removed duplicate extractCodeFromResponse function below[1].trim();
     }
 
     console.log('[IDE] No code block found');
