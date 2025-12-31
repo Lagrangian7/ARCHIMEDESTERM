@@ -1766,7 +1766,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     const saved = localStorage.getItem(MULTI_FILE_SESSION_KEY);
     if (saved) {
       try {
-        const parsed = JSON.JSON.parse(saved);
+        const parsed = JSON.parse(saved);
         if (parsed.files && Array.isArray(parsed.files) && parsed.files.length > 0) {
           return parsed;
         }
@@ -1889,7 +1889,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.JSON.stringify({ title: notepadTitle, content: notepadContent }),
+        body: JSON.stringify({ title: notepadTitle, content: notepadContent }),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -1921,7 +1921,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.JSON.stringify({ code: codeToAnalyze }),
+        body: JSON.stringify({ code: codeToAnalyze }),
       });
 
       if (!response.ok) {
@@ -2008,7 +2008,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.JSON.stringify({ 
+        body: JSON.stringify({ 
           code: codeToReview, 
           language, 
           projectName, 
@@ -2098,7 +2098,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.JSON.stringify({ code, inputs }),
+        body: JSON.stringify({ code, inputs }),
       });
 
       if (!response.ok) {
@@ -2381,9 +2381,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   // Process AI responses for code extraction
   useEffect(() => {
-    if (!chatMessages || chatMessages.length === 0) return;
+    if (!chatHistory || chatHistory.length === 0) return;
     
-    const lastMessage = chatMessages[chatMessages.length - 1];
+    const lastMessage = chatHistory[chatHistory.length - 1];
     
     if (lastMessage?.role === 'assistant' && lastMessage?.content) {
       console.log('[IDE] AI Response received, checking for code...');
@@ -2394,67 +2394,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         handleExtractAndInsert(lastMessage.content);
       }
     }
-  }, [chatMessages, showMultiFileMode, activeFile]);
-
-  const insertCodeIntoEditor = (code: string) => {
-    console.log('[IDE] insertCodeIntoEditor called with', code.length, 'chars');
-
-    // Additional cleaning pass before insertion to catch any remaining artifacts
-    let cleanedCode = code
-      // Remove any remaining markdown artifacts
-      .replace(/^```[\w]*\s*/gm, '')
-      .replace(/```\s*$/gm, '')
-
-      // Remove common AI response patterns
-      .replace(/^Here is the (?:updated |modified |complete )?code:?\s*$/gmi, '')
-      .replace(/^I've (?:added|updated|modified|created) the code:?\s*$/gmi, '')
-
-      // Normalize line endings
-      .replace(/\r\n/g, '\n')
-
-      // Trim
-      .trim();
-
-    console.log('[IDE] Cleaned code length:', cleanedCode.length);
-
-    // Insert cleaned code into Monaco editor
-    if (showMultiFileMode && activeFile) {
-      console.log('[IDE] Inserting into multi-file mode, file:', activeFile.name);
-      updateFileContent(activeFile.id, cleanedCode);
-    } else {
-      console.log('[IDE] Inserting into single-file mode');
-      setCode(cleanedCode);
-    }
-
-    // Force Monaco editor to update its value
-    if (editorRef.current && monacoRef.current) {
-      const model = editorRef.current.getModel();
-      if (model) {
-        // Replace entire content with cleaned code
-        model.setValue(cleanedCode);
-
-        // Format the document after insertion
-        editorRef.current.getAction('editor.action.formatDocument')?.run();
-
-        // Move cursor to end of document
-        const lineCount = model.getLineCount();
-        const lastLineLength = model.getLineLength(lineCount);
-        editorRef.current.setPosition({ lineNumber: lineCount, column: lastLineLength + 1 });
-      }
-    }
-
-    toast({
-      title: "Code Inserted",
-      description: "AI-generated code has been inserted into the editor",
-    });
-
-    // Focus editor after insertion
-    setTimeout(() => {
-      if (editorRef.current && typeof editorRef.current.focus === 'function') {
-        editorRef.current.focus();
-      }
-    }, 150);
-  };
+  }, [chatHistory, showMultiFileMode]);
 
   const handleChatSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -2745,7 +2685,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       const response = await fetch('/api/execute/python', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.JSON.stringify({ code: codeToRun })
+        body: JSON.stringify({ code: codeToRun })
       });
 
       const data = await response.json();
@@ -2771,7 +2711,6 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       } else {
         const errorMessage = data.error || 'Code execution failed';
         setOutput(`Error:\n${errorMessage}`);
-        setExecutionTime(data.executionTime || '0');
 
         // Feed error back to AI for learning/debugging
         setChatHistory(prev => [...prev, {
@@ -3053,7 +2992,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.JSON.stringify({
+        body: JSON.stringify({
           message: contextualMessage,
           mode: isFreestyleMode ? 'freestyle' : 'technical',
           language: 'english', // Human language (English/Spanish/Japanese)
@@ -3537,9 +3476,9 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                     notepadContent: notepadContent, // Save notepad content
                     notepadTitle: notepadTitle, // Save notepad title
                   };
-                  localStorage.setItem(PYTHON_SESSION_KEY, JSON.JSON.stringify(sessionData));
+                  localStorage.setItem(PYTHON_SESSION_KEY, JSON.stringify(sessionData));
                   if (showMultiFileMode) {
-                    localStorage.setItem(MULTI_FILE_SESSION_KEY, JSON.JSON.stringify({ files, activeFileId }));
+                    localStorage.setItem(MULTI_FILE_SESSION_KEY, JSON.stringify({ files, activeFileId }));
                   } else {
                     localStorage.removeItem(MULTI_FILE_SESSION_KEY);
                   }

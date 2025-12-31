@@ -111,7 +111,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
     // Filter by search query
     const filtered = debouncedSearchQuery
       ? documents.filter((doc) =>
-          doc.originalName.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          (document as any).originalName.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
           doc.summary?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
           doc.keywords?.some((kw: string) => kw.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
         )
@@ -308,13 +308,13 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
       }
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = window.document.createElement('a');
       a.href = url;
       a.download = `archimedes-documents-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
+      window.document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      window.document.body.removeChild(a);
       toast({
         title: "Export Complete",
         description: `Exported ${documents.length} documents to JSON file.`,
@@ -405,34 +405,34 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
   };
 
   // Placeholder for downloadDocument function if it exists elsewhere or needs to be defined
-  const downloadDocument = async (document: Document) => {
+  const downloadDocument = async (doc: Document) => {
     // This is a placeholder. You should implement the actual download logic.
-    console.log(`Downloading document: ${document.originalName}`);
+    console.log(`Downloading document: ${(document as any).originalName}`);
     toast({
       title: "Download initiated",
-      description: `Initiating download for ${document.originalName}...`,
+      description: `Initiating download for ${(document as any).originalName}...`,
     });
     // Example: Fetch the file and trigger download
     try {
-      const response = await fetch(`/api/documents/download/${encodeURIComponent(document.originalName)}`, {
+      const response = await fetch(`/api/documents/download/${encodeURIComponent((document as any).originalName)}`, {
         credentials: 'include',
       });
       if (!response.ok) {
-        throw new Error(`Failed to download ${document.originalName}`);
+        throw new Error(`Failed to download ${(document as any).originalName}`);
       }
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = window.document.createElement('a');
       a.href = url;
-      a.download = document.originalName;
-      document.body.appendChild(a);
+      a.download = (document as any).originalName;
+      window.document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      window.document.body.removeChild(a);
     } catch (error) {
       toast({
         title: "Download Failed",
-        description: error instanceof Error ? error.message : `Failed to download ${document.originalName}.`,
+        description: error instanceof Error ? error.message : `Failed to download ${(document as any).originalName}.`,
         variant: "destructive",
       });
     }
@@ -720,7 +720,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
                         <>
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-mono font-semibold truncate text-xs" style={{ color: 'var(--terminal-text)' }}>
-                              {document.originalName}
+                              {(document as any).originalName}
                             </p>
                             {document.isNote && (
                               <span 
