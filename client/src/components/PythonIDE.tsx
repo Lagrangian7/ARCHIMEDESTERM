@@ -2966,9 +2966,18 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       // Get current programming language from active file or selected language
       const progLang = showMultiFileMode && activeFile ? activeFile.language : currentLanguage;
 
+      // Build context-aware message with current editor code
+      const currentActiveFile = files.find(f => f.id === activeFileId);
+      const currentCode = showMultiFileMode && currentActiveFile ? currentActiveFile.content : code;
+      
+      // Include code context in the message for AI awareness
+      let contextualMessage = message;
+      if (currentCode.trim() && currentCode !== '# ARCHIMEDES Workshop - Freestyle Mode\n# Chat with ARCHIMEDES to generate code, or write your own!\n\n') {
+        contextualMessage = `Current code in editor (${progLang}):\n\`\`\`${progLang}\n${currentCode}\n\`\`\`\n\nUser query: ${message}`;
+      }
+
       // Visual feedback: highlight code being analyzed
       if (editorRef.current && decorationsCollectionRef.current && monacoRef.current) {
-        const currentCode = showMultiFileMode && activeFile ? activeFile.content : code;
         const lineCount = currentCode.split('\n').length;
         const lines: number[] = [];
 
@@ -2996,7 +3005,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          message,
+          message: contextualMessage,
           mode: isFreestyleMode ? 'freestyle' : 'technical',
           language: 'english', // Human language (English/Spanish/Japanese)
           programmingLanguage: language || progLang // Programming language for code generation
