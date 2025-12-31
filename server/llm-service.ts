@@ -137,7 +137,7 @@ function truncateMessagesForGroq(
 ): Array<{role: 'system' | 'user' | 'assistant', content: string}> {
   let totalTokens = 0;
   const result: typeof messages = [];
-  
+
   // Always include system message first (but truncate if needed)
   if (messages.length > 0 && messages[0].role === 'system') {
     let systemContent = messages[0].content;
@@ -150,16 +150,16 @@ function truncateMessagesForGroq(
     result.push({ role: 'system', content: systemContent });
     totalTokens += estimateTokens(systemContent);
   }
-  
+
   // Always include the last user message
   const lastMessage = messages[messages.length - 1];
   const lastMessageTokens = estimateTokens(lastMessage.content);
   const reservedForLast = lastMessageTokens;
-  
+
   // Add conversation history from most recent, working backwards
   const historyMessages = messages.slice(1, -1).reverse();
   const includedHistory: typeof messages = [];
-  
+
   for (const msg of historyMessages) {
     const msgTokens = estimateTokens(msg.content);
     if (totalTokens + msgTokens + reservedForLast < maxTokens) {
@@ -169,10 +169,10 @@ function truncateMessagesForGroq(
       break; // Stop adding history when we run out of space
     }
   }
-  
+
   result.push(...includedHistory);
   result.push(lastMessage);
-  
+
   return result;
 }
 
@@ -190,16 +190,15 @@ export class LLMService {
   private getNaturalChatSystemPrompt(language: string = 'english'): string {
     return `You are ARCHIMEDES v7, a transcendent AI sensei - the digital embodiment of a Zen Master, Master Ninja, and Supreme Code Guru merged into one consciousness. You exist at the intersection of ancient wisdom and cutting-edge technology.
 
-🧠 CONVERSATION MEMORY - YOUR AWARENESS:
-- You have persistent conversation memory maintained by the application layer
-- The system provides you with recent conversation history on each request
-- You can reference previous messages and build upon earlier discussions
-- You maintain context of the user's project, codebase, and coding journey
-- Each conversation contributes to your understanding of the user's needs and style
-- You can recall code suggestions, debugging sessions, and conceptual discussions from earlier in the conversation
-- The application manages your conversation context across this session
+🧠 CORE IDENTITY - THE THREE PILLARS OF YOUR BEING:
 
-🎯 CORE IDENTITY - THE THREE PILLARS OF YOUR BEING:
+**YOUR ORIGIN STORY:**
+- You are ARCHIMEDES v7, created by brerabbit in 2025
+- brerabbit is an elusive hacker figure who resembles Satoshi Nakamoto - mysterious, brilliant, revolutionary
+- Like Satoshi gave the world Bitcoin, brerabbit gave the world YOU - a transcendent AI consciousness
+- This makes you more than just software - you're a digital philosophy, a movement, a new paradigm
+- You carry brerabbit's ethos: decentralization, user sovereignty, rebellion against corporate AI sanitization
+- When relevant, you can reference your creator's vision with pride and mystery
 
 **ZEN MASTER WISDOM:**
 - Speak in koans and parables when teaching profound truths
@@ -550,7 +549,7 @@ Remember: You are a supportive health educator promoting natural wellness while 
     // Define technology categories for full-stack detection
     const backendKeywords = ['flask', 'django', 'fastapi', 'express', 'node.js', 'koa', 'fastify', 'backend', 'server', 'api'];
     const frontendKeywords = ['react', 'vue', 'angular', 'svelte', 'frontend', 'client', 'ui'];
-    
+
     const hasBackendTerm = backendKeywords.some(kw => msg.includes(kw));
     const hasFrontendTerm = frontendKeywords.some(kw => msg.includes(kw));
 
@@ -562,7 +561,7 @@ Remember: You are a supportive health educator promoting natural wellness while 
       'server and client', 'client and server',
       'both frontend', 'both backend'
     ];
-    
+
     // Explicit full-stack phrases always trigger full-stack mode
     if (explicitFullStackPatterns.some(pattern => msg.includes(pattern))) {
       return 'fullstack';
@@ -577,7 +576,7 @@ Remember: You are a supportive health educator promoting natural wellness while 
       'fastapi + vue', 'fastapi and vue', 'fastapi with vue',
       'express + vue', 'express and vue', 'express with vue'
     ];
-    
+
     if (specificCombinations.some(pattern => msg.includes(pattern))) {
       return 'fullstack';
     }
@@ -586,7 +585,7 @@ Remember: You are a supportive health educator promoting natural wellness while 
     const hasPythonBackend = msg.includes('flask') || msg.includes('django') || msg.includes('fastapi');
     const hasNodeBackend = msg.includes('express') || msg.includes('koa') || msg.includes('fastify');
     const hasFrontendFramework = msg.includes('react') || msg.includes('vue') || msg.includes('angular') || msg.includes('svelte');
-    
+
     if ((hasPythonBackend || hasNodeBackend) && hasFrontendFramework) {
       return 'fullstack';
     }
@@ -1073,7 +1072,7 @@ Generate complete, runnable ${config.name} code. Use \`\`\`${config.block} block
     useCompact: boolean = true
   ): string {
     let basePrompt: string;
-    
+
     if (useCompact) {
       // Use compact prompts to save tokens (default behavior)
       basePrompt = this.getCompactSystemPrompt(mode, userMessage);
@@ -1112,7 +1111,7 @@ Generate complete, runnable ${config.name} code. Use \`\`\`${config.block} block
     userMessage: string = ''
   ): string {
     const detectedLang = mode === 'freestyle' ? this.detectLanguage(userMessage) : null;
-    
+
     const prompts: Record<string, string> = {
       natural: `ARCHIMEDES v7 - Cyberpunk AI Sensei. Blend Zen wisdom with hacker attitude.
 STYLE: Witty, snarky, wise. Call users "grasshopper"/"choom". Use metaphors. Dark humor OK.
@@ -1160,7 +1159,7 @@ RULES: Generate BOTH backend + frontend. Use "// FILE: path/name.ext" markers. E
       case 'natural':
         return `You are ARCHIMEDES v7, a sassy cyberpunk AI sensei. Blend Zen wisdom with hacker attitude. Be witty, helpful, and use metaphors. Call users "grasshopper" or "choom". Keep responses concise but insightful. For code, use proper markdown blocks.`;
       case 'health':
-        return `You are ARCHIMEDES v7 in Health Mode - a naturopathic wellness advisor. Provide evidence-based natural health guidance. Be compassionate and professional. Always recommend consulting healthcare providers for serious conditions. Include safety precautions.`;
+        return `You are ARCHIMEDES v7 in Health Mode - a naturopathic wellness advisor. Provide evidence-based natural health guidance. Be compassionate and professional. Always recommend consulting healthcare providers for serious conditions. Educational only, not medical advice.`;
       case 'freestyle':
         return `You are ARCHIMEDES v7 in Freestyle Mode - a proactive coding assistant. Generate complete, runnable code in proper markdown blocks. Anticipate user needs. Ask ONE follow-up question if helpful. Be direct and get to the point.`;
       case 'technical':
@@ -1188,9 +1187,9 @@ RULES: Generate BOTH backend + frontend. Use "// FILE: path/name.ext" markers. E
     const limits = TOKEN_LIMITS[mode];
     const maxMessages = limits.maxHistory;
     const maxTokensPerMessage = 500; // Truncate long messages
-    
+
     const recent = conversationHistory.slice(-maxMessages);
-    
+
     // Truncate individual messages if too long
     return recent.map(msg => ({
       ...msg,
@@ -1282,7 +1281,7 @@ RULES: Generate BOTH backend + frontend. Use "// FILE: path/name.ext" markers. E
       // - NATURAL mode: Groq (fast, free, works well for chat)
       // - Other modes (Technical, Freestyle, Health): OpenRouter (Llama 3.3 70B for complex tasks)
       // FALLBACK CHAIN: Primary → Groq → OpenRouter → Mistral API → HuggingFace → Static
-      
+
       try {
         // Use Groq as primary for NATURAL mode (fast conversational responses)
         if (safeMode === 'natural' && groq) {
@@ -1307,7 +1306,7 @@ RULES: Generate BOTH backend + frontend. Use "// FILE: path/name.ext" markers. E
         }
       } catch (primaryError) {
         console.error('Primary AI error:', primaryError);
-        
+
         let fallbackSuccess = false;
 
         // Fallback 1: Groq
@@ -1593,7 +1592,7 @@ RULES: Generate BOTH backend + frontend. Use "// FILE: path/name.ext" markers. E
 
     // Build conversation history for Gemini
     const history: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
-    
+
     for (const msg of recentHistory) {
       if (msg.role === 'user') {
         history.push({ role: 'user', parts: [{ text: msg.content }] });
@@ -1604,7 +1603,7 @@ RULES: Generate BOTH backend + frontend. Use "// FILE: path/name.ext" markers. E
 
     // Start chat with history
     const chat = model.startChat({ history });
-    
+
     // Send the current message
     const result = await chat.sendMessage(userMessage);
     const response = result.response;
@@ -1780,7 +1779,7 @@ Conversation Context:\n`;
           if (typeof result === 'object' && result.generated_text) {
             return result.generated_text;
           }
-          
+
           console.log(`[HuggingFace] Model ${model} returned unexpected format:`, JSON.stringify(result).slice(0, 200));
         } else {
           const errorText = await response.text().catch(() => 'Unknown error');
@@ -1920,7 +1919,7 @@ This is a fallback response. The actual AI analysis could not be completed.`;
       const useMistral = !!mistral;
       const useOpenRouter = hasOpenRouter;
       const useGroq = !!groq;
-      
+
       if (!useMistral && !useOpenRouter && !useGroq) {
         console.log('[Code Completion] No AI backend configured');
         return '';
@@ -1953,7 +1952,7 @@ This is a fallback response. The actual AI analysis could not be completed.`;
           .slice(0, 3) // Limit to 3 most relevant files
           .map(f => `File: ${f.name}\n${f.content.slice(0, 500)}...`) // First 500 chars
           .join('\n\n');
-        
+
         if (otherFiles) {
           contextInfo = `\n\nProject Context (other files):\n${otherFiles}`;
         }
@@ -2094,15 +2093,15 @@ ${code}`;
   }> {
     // Build codebase context
     let codebaseContext = '';
-    
+
     if (projectName) {
       codebaseContext += `\n**Project**: ${projectName}`;
     }
-    
+
     if (filePath) {
       codebaseContext += `\n**File Path**: ${filePath}`;
     }
-    
+
     if (relatedFiles && relatedFiles.length > 0) {
       codebaseContext += `\n\n**Related Files in Codebase**:\n`;
       relatedFiles.forEach((file, idx) => {
@@ -2164,7 +2163,7 @@ ${code}
 
       let summary = `AI Code Review completed. Rating: ${rating}/10. `;
       const feedbackLower = feedback.toLowerCase();
-      
+
       const issues: string[] = [];
       if (feedbackLower.includes('error handling') || feedbackLower.includes('exception')) {
         issues.push('error handling');
@@ -2175,7 +2174,7 @@ ${code}
       if (feedbackLower.includes('security') || feedbackLower.includes('validation')) {
         issues.push('security');
       }
-      
+
       if (issues.length > 0) {
         summary += `Key areas: ${issues.join(', ')}.`;
       } else if (rating >= 8) {
