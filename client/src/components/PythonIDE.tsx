@@ -2396,28 +2396,6 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     }
   }, [chatMessages, showMultiFileMode, activeFile]);
 
-  // Removed duplicate extractCodeFromResponse function below[1].trim();
-    }
-
-    console.log('[IDE] No code block found');
-
-    // Fallback: detect code-like patterns only if no fenced code blocks
-    const codePatterns = [
-      /(?:def|class|function|const|let|var|import|from)\s+\w+[\s\S]{20,}/,
-      /^\s{2,}[\w\s\(\)\{\}\[\],:=\+\-\*\/]+$/m
-    ];
-
-    for (const pattern of codePatterns) {
-      const match = response.match(pattern);
-      if (match) {
-        console.log('[IDE] Code pattern detected');
-        return match[0].trim();
-      }
-    }
-
-    return null;
-  };
-
   const insertCodeIntoEditor = (code: string) => {
     console.log('[IDE] insertCodeIntoEditor called with', code.length, 'chars');
 
