@@ -203,6 +203,22 @@ export function Terminal() {
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>('hacker');
 
+  // Enhanced auto-scroll terminal output to last line with carriage return
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      // Scroll both the output div and the ScrollArea viewport
+      if (outputRef.current) {
+        outputRef.current.scrollTop = outputRef.current.scrollHeight;
+      }
+
+      // Also scroll the ScrollArea viewport to ensure proper positioning
+      const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
+    });
+  }, []);
+
   // Update theme when preferences change or on mount
   useEffect(() => {
     // Only update if preferences are loaded and have a theme
@@ -304,22 +320,6 @@ export function Terminal() {
       }
     }
   }, [entries, isTyping, visibleEntries]);
-
-  // Enhanced auto-scroll terminal output to last line with carriage return
-  const scrollToBottom = useCallback(() => {
-    requestAnimationFrame(() => {
-      // Scroll both the output div and the ScrollArea viewport
-      if (outputRef.current) {
-        outputRef.current.scrollTop = outputRef.current.scrollHeight;
-      }
-
-      // Also scroll the ScrollArea viewport to ensure proper positioning
-      const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-      if (viewport) {
-        viewport.scrollTop = viewport.scrollHeight;
-      }
-    });
-  }, []);
 
   // Auto-scroll when entries change, during typing, or when pagination changes
   useEffect(() => {
