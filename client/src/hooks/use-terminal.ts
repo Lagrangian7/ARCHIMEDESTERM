@@ -2997,5 +2997,6 @@ Powered by Wolfram Alpha Full Results API`);
     setShowWebSynth,
     showCodePlayground,
     setShowCodePlayground,
+    addEntry,
   };
 }

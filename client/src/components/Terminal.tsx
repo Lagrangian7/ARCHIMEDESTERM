@@ -92,6 +92,7 @@ export function Terminal() {
     setShowCodePlayground,
     showPythonIDE,
     setShowPythonIDE,
+    addEntry,
   } = useTerminal(() => {
     if (isAuthenticated) {
       setShowUpload(true);
@@ -250,40 +251,13 @@ export function Terminal() {
       const customEvent = event as CustomEvent;
       const { content, triggerAIResponse } = customEvent.detail;
       
-      // Add the document content to terminal output
+      // Always add the document content to terminal output using proper state update
+      // The triggerAIResponse flag controls whether TTS and bubble animation are triggered
       if (content) {
-        const entryId = `read-${Date.now()}`;
-        const newEntry = {
-          id: entryId,
-          type: 'response' as const,
-          content,
-          timestamp: new Date().toISOString(),
-          mode: currentMode,
-        };
-        
-        // Add to terminal entries
-        entries.push(newEntry);
-        
-        // If this should trigger AI response (from knowledge base read button)
-        // then trigger TTS and bubble animation
-        if (triggerAIResponse) {
-          // The useEffect that monitors entries will automatically:
-          // 1. Add the entry to typing animations (bubble)
-          // 2. Trigger speech synthesis via useSpeech
-          // So we just need to make sure the entry is marked properly
-          setTypingEntries(prev => new Set(prev).add(entryId));
-          
-          // Remove typing animation after content is "typed"
-          const contentLength = content.length;
-          const typingDuration = Math.min(3000, Math.max(800, contentLength * 30));
-          setTimeout(() => {
-            setTypingEntries(prev => {
-              const next = new Set(prev);
-              next.delete(entryId);
-              return next;
-            });
-          }, typingDuration + 500);
-        }
+        // Using 'response' type triggers auto-speak and bubble animation automatically
+        // Using 'system' type adds content silently without TTS
+        const entryType = triggerAIResponse ? 'response' : 'system';
+        addEntry(entryType, content, currentMode);
         
         // Trigger scroll to bottom
         setTimeout(() => {
@@ -296,7 +270,7 @@ export function Terminal() {
     return () => {
       window.removeEventListener('document-read', handleDocumentRead);
     };
-  }, [entries, scrollToBottom, currentMode]);
+  }, [addEntry, scrollToBottom, currentMode]);
 
   // Switch theme function
   const switchTheme = useCallback(() => {
