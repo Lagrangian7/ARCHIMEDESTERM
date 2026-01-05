@@ -1574,11 +1574,6 @@ if _virtual_display_started:
     }
   });
 
-  // Debug test endpoint to check route registration
-  app.get("/api/chat/stream-test", (_req, res) => {
-    res.json({ status: 'streaming endpoint area is reachable' });
-  });
-
   // Streaming chat endpoint using Server-Sent Events (SSE)
   app.post("/api/chat/stream", async (req, res) => {
     try {

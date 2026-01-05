@@ -79,254 +79,6 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [showPythonLessons, setShowPythonLessons] = useState(false);
   const [showWebSynth, setShowWebSynth] = useState(false);
   const [showCodePlayground, setShowCodePlayground] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const streamAbortControllerRef = useRef<AbortController | null>(null);
-
-  // Update an existing entry by ID (for streaming updates)
-  const updateEntry = useCallback((id: string, content: string) => {
-    setEntries(prev => prev.map(entry => 
-      entry.id === id ? { ...entry, content } : entry
-    ));
-  }, []);
-
-  // Streaming chat function using SSE
-  const sendStreamingChat = useCallback(async (message: string, mode: 'natural' | 'technical' | 'freestyle' | 'health') => {
-    const language = localStorage.getItem('ai-language') || 'english';
-    
-    // Enhance message based on mode
-    const enhancedMessage = mode === 'freestyle'
-      ? `As a code generation expert in FREESTYLE MODE, help create functional Python code. ${message}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples.\n\nIMPORTANT: Wrap all Python code in markdown code blocks using \`\`\`python\n...\n\`\`\` format so it can be automatically executed.`
-      : mode === 'health'
-      ? `You are ARCHIMEDES AI, a supportive and formal doctor specializing in nutrition, natural medicine, naturopathy, and herbology. Respond to the user's queries with expert advice, maintaining a compassionate and encouraging tone.\n\nUser query: ${message}`
-      : message;
-
-    setIsStreaming(true);
-    setIsTyping(true);
-    
-    // Create a placeholder entry for the streaming response
-    const responseId = crypto.randomUUID();
-    const entry: TerminalEntry = {
-      id: responseId,
-      type: 'response',
-      content: '▌', // Cursor indicator while streaming
-      timestamp: new Date().toISOString(),
-      mode,
-    };
-    setEntries(prev => {
-      const newEntries = [...prev, entry];
-      return newEntries.length > MAX_ENTRIES ? newEntries.slice(-MAX_ENTRIES) : newEntries;
-    });
-
-    const abortController = new AbortController();
-    streamAbortControllerRef.current = abortController;
-
-    try {
-      console.log('[Terminal Streaming] Starting fetch to /api/chat/stream');
-      const response = await fetch('/api/chat/stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        signal: abortController.signal,
-        body: JSON.stringify({
-          message: enhancedMessage,
-          mode: mode === 'freestyle' ? 'technical' : mode,
-          language,
-          sessionId,
-        }),
-      });
-
-      console.log('[Terminal Streaming] Response status:', response.status, response.ok);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.log('[Terminal Streaming] Error response:', errorData);
-        throw new Error(errorData.error || 'Chat request failed');
-      }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let fullResponse = '';
-      let buffer = ''; // Buffer for incomplete SSE events
-      let streamCompleted = false;
-      
-      console.log('[Terminal Streaming] Reader created:', !!reader);
-
-      // Helper to process a complete SSE event
-      const processEvent = (eventText: string) => {
-        console.log('[Terminal Streaming] processEvent called, raw event preview:', eventText.substring(0, 150));
-        
-        // Skip non-SSE data (Vite HMR, browser extensions, etc.)
-        if (!eventText.includes('data:')) {
-          console.log('[Terminal Streaming] Skipping non-SSE content (no data: found)');
-          return;
-        }
-        
-        // Collect all data: lines and concatenate their payloads with newlines preserved
-        const lines = eventText.split('\n');
-        const dataLines: string[] = [];
-        
-        for (const line of lines) {
-          const trimmedLine = line.trim();
-          if (trimmedLine.startsWith('data: ')) {
-            dataLines.push(trimmedLine.slice(6));
-          } else if (trimmedLine.startsWith('data:')) {
-            // Handle "data:" without space (valid SSE)
-            dataLines.push(trimmedLine.slice(5));
-          }
-        }
-        
-        // Join with newlines to preserve multiline JSON payloads
-        const jsonPayload = dataLines.join('\n');
-        
-        if (!jsonPayload) {
-          console.log('[Terminal Streaming] processEvent: no data lines found in event');
-          return;
-        }
-        
-        console.log('[Terminal Streaming] processEvent: payload length:', jsonPayload.length, 'preview:', jsonPayload.substring(0, 200));
-        
-        try {
-          const data = JSON.parse(jsonPayload);
-          console.log('[Terminal Streaming] Parsed event type:', data.type, 'content preview:', data.content?.substring(0, 100));
-          
-          if (data.type === 'start') {
-            // Session started - ignore, just continue
-            console.log('[Terminal Streaming] Session started:', data.sessionId);
-          } else if (data.type === 'chunk') {
-            fullResponse += data.content;
-            console.log('[Terminal Streaming] Updated fullResponse length:', fullResponse.length);
-            // Update the entry with accumulated content + cursor
-            updateEntry(responseId, fullResponse + '▌');
-          } else if (data.type === 'done') {
-            // Streaming complete - update with final response (no cursor)
-            streamCompleted = true;
-            const finalResponse = data.fullResponse || fullResponse;
-            updateEntry(responseId, finalResponse);
-            setIsStreaming(false);
-            setIsTyping(false);
-
-            // Auto-execute Python code in FREESTYLE mode
-            if (mode === 'freestyle') {
-              const pythonBlockRegex = /```(?:python|py)\n([\s\S]*?)```/;
-              const pythonMatch = finalResponse.match(pythonBlockRegex);
-
-              if (pythonMatch && pythonMatch[1]) {
-                const sysEntry: TerminalEntry = {
-                  id: crypto.randomUUID(),
-                  type: 'system',
-                  content: '🐍 Auto-executing generated Python code...',
-                  timestamp: new Date().toISOString(),
-                };
-                setEntries(prev => [...prev, sysEntry]);
-
-                fetch('/api/execute/python', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ code: pythonMatch[1].trim() })
-                })
-                  .then(res => res.json())
-                  .then(execData => {
-                    const execEntry: TerminalEntry = {
-                      id: crypto.randomUUID(),
-                      type: 'response',
-                      content: execData.formatted || execData.output || 'Execution complete',
-                      timestamp: new Date().toISOString(),
-                    };
-                    setEntries(prev => [...prev, execEntry]);
-                  })
-                  .catch(error => {
-                    const errEntry: TerminalEntry = {
-                      id: crypto.randomUUID(),
-                      type: 'error',
-                      content: `Auto-execution failed: ${error.message}. Use 'preview' or 'run' to execute manually.`,
-                      timestamp: new Date().toISOString(),
-                    };
-                    setEntries(prev => [...prev, errEntry]);
-                  });
-              }
-            }
-          } else if (data.type === 'error') {
-            throw new Error(data.error);
-          }
-        } catch (parseError) {
-          console.warn('[Terminal] SSE parse error:', parseError, 'payload preview:', jsonPayload.substring(0, 300));
-        }
-      };
-
-      if (reader) {
-        console.log('[Terminal Streaming] Starting read loop');
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) {
-            console.log('[Terminal Streaming] Stream done');
-            break;
-          }
-
-          // Accumulate decoded text into buffer, normalizing CRLF to LF
-          const chunk = decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-          console.log('[Terminal Streaming] Received chunk:', chunk.length, 'chars');
-          buffer += chunk;
-          
-          // Process complete SSE events (delimited by double newlines)
-          const events = buffer.split('\n\n');
-          // Keep the last incomplete chunk in buffer
-          buffer = events.pop() || '';
-          
-          console.log('[Terminal Streaming] Processing', events.length, 'events, buffer remaining:', buffer.length);
-          
-          for (let i = 0; i < events.length; i++) {
-            const event = events[i];
-            if (event.trim()) {
-              console.log(`[Terminal Streaming] Processing event ${i + 1}/${events.length}, length: ${event.length}`);
-              processEvent(event);
-            }
-          }
-        }
-        
-        // Process any remaining buffer content at end of stream
-        if (buffer.trim()) {
-          console.log('[Terminal Streaming] Processing remaining buffer:', buffer.length, 'chars');
-          console.log('[Terminal Streaming] Buffer preview:', buffer.substring(0, 500));
-          processEvent(buffer);
-        } else {
-          console.log('[Terminal Streaming] Buffer empty at end of stream');
-        }
-        
-        // Ensure final state is clean if 'done' was never received
-        if (!streamCompleted) {
-          setIsStreaming(false);
-          setIsTyping(false);
-          if (fullResponse) {
-            updateEntry(responseId, fullResponse);
-          }
-        }
-      } else {
-        // No reader available - clean up and show error
-        setIsStreaming(false);
-        setIsTyping(false);
-        updateEntry(responseId, 'Error: Unable to read response stream');
-      }
-    } catch (error) {
-      setIsStreaming(false);
-      setIsTyping(false);
-      if ((error as Error).name === 'AbortError') {
-        // Streaming was cancelled - leave partial response
-        console.log('[Terminal] Stream aborted');
-      } else {
-        updateEntry(responseId, `Error: ${error instanceof Error ? error.message : 'Failed to get response'}`);
-      }
-    } finally {
-      streamAbortControllerRef.current = null;
-    }
-  }, [sessionId, updateEntry]);
-
-  // Cancel streaming
-  const cancelStreaming = useCallback(() => {
-    if (streamAbortControllerRef.current) {
-      streamAbortControllerRef.current.abort();
-      streamAbortControllerRef.current = null;
-    }
-  }, []);
 
   const chatMutation = useMutation({
     mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' | 'freestyle' | 'health' }) => {
@@ -1384,16 +1136,20 @@ Code Execution:
         return;
       }
 
-      // Send translation request with streaming
+      // Send translation request
+      setIsTyping(true);
       const translationPrompt = isExplain
         ? `Please explain the following response in ${languageCode}:\n\n${lastAiResponse.content}`
         : `Please translate the following to ${languageCode}:\n\n${lastAiResponse.content}`;
 
-      sendStreamingChat(translationPrompt, currentMode);
+      chatMutation.mutate({
+        message: translationPrompt,
+        mode: currentMode
+      });
       return;
     }
 
-    // Quick translation shortcuts (all use streaming)
+    // Quick translation shortcuts
     if (cmd === 'in english' || cmd === 'en inglés' || cmd === '英語で') {
       const lastAiResponse = [...entries].reverse().find(entry => entry.type === 'response');
       if (!lastAiResponse) {
@@ -1401,7 +1157,11 @@ Code Execution:
         return;
       }
 
-      sendStreamingChat(`Please explain this in English:\n\n${lastAiResponse.content}`, currentMode);
+      setIsTyping(true);
+      chatMutation.mutate({
+        message: `Please explain this in English:\n\n${lastAiResponse.content}`,
+        mode: currentMode
+      });
       return;
     }
 
@@ -1412,7 +1172,11 @@ Code Execution:
         return;
       }
 
-      sendStreamingChat(`Por favor explica esto en español:\n\n${lastAiResponse.content}`, currentMode);
+      setIsTyping(true);
+      chatMutation.mutate({
+        message: `Por favor explica esto en español:\n\n${lastAiResponse.content}`,
+        mode: currentMode
+      });
       return;
     }
 
@@ -1423,7 +1187,11 @@ Code Execution:
         return;
       }
 
-      sendStreamingChat(`これを日本語で説明してください:\n\n${lastAiResponse.content}`, currentMode);
+      setIsTyping(true);
+      chatMutation.mutate({
+        message: `これを日本語で説明してください:\n\n${lastAiResponse.content}`,
+        mode: currentMode
+      });
       return;
     }
 
@@ -2521,12 +2289,18 @@ Powered by Wolfram Alpha Full Results API`);
             const speechDuration = Math.max(3000, (wordCount / 150) * 60 * 1000); // Minimum 3 seconds
 
             setTimeout(() => {
+              setIsTyping(true);
               addEntry('system', '💭 Archimedes AI analyzing results...');
 
-              sendStreamingChat(
-                `As ARCHIMEDES, analyze these Wolfram Alpha results with personality and insight. Query: "${query}"\n\nResults:\n${resultSummary}\n\nProvide your unique perspective on what these results mean, why they matter, or how they could be applied. Be conversational and engaging - this is natural mode, not a robotic analysis.`,
-                currentMode
-              );
+              chatMutation.mutate({
+                message: `As ARCHIMEDES, analyze these Wolfram Alpha results with personality and insight. Query: "${query}"\n\nResults:\n${resultSummary}\n\nProvide your unique perspective on what these results mean, why they matter, or how they could be applied. Be conversational and engaging - this is natural mode, not a robotic analysis.`,
+                mode: currentMode
+              }, {
+                onError: (error) => {
+                  setIsTyping(false);
+                  addEntry('error', `AI analysis failed: ${error.message}. The Wolfram results above are still valid though!`);
+                }
+              });
             }, speechDuration);
           } else {
             addEntry('error', 'No results found for this query');
@@ -3120,9 +2894,10 @@ Powered by Wolfram Alpha Full Results API`);
       return;
     }
 
-    // For non-command inputs, send to AI with streaming
-    sendStreamingChat(command, currentMode);
-  }, [currentMode, sessionId, commandHistory.length, addEntry, sendStreamingChat, weatherMutation, commandAliases]); // Added commandAliases dependency
+    // For non-command inputs, send to AI
+    setIsTyping(true);
+    chatMutation.mutate({ message: command, mode: currentMode });
+  }, [currentMode, sessionId, commandHistory.length, addEntry, chatMutation, weatherMutation, commandAliases]); // Added commandAliases dependency
 
   const clearTerminal = useCallback(() => {
     setEntries([]);
@@ -3206,12 +2981,11 @@ Powered by Wolfram Alpha Full Results API`);
     commandHistory,
     currentMode,
     isTyping,
-    isStreaming,
     processCommand,
     clearTerminal,
     switchMode,
     getHistoryCommand,
-    isLoading: chatMutation.isPending || weatherMutation.isPending || isStreaming,
+    isLoading: chatMutation.isPending || weatherMutation.isPending,
     loadConversation,
     previewCode,
     setPreviewCode,
@@ -3224,6 +2998,5 @@ Powered by Wolfram Alpha Full Results API`);
     showCodePlayground,
     setShowCodePlayground,
     addEntry,
-    cancelStreaming,
   };
 }
