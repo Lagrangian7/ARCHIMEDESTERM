@@ -3164,6 +3164,182 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       // Language enforcement instruction - mandatory, not advisory
       const langDisplayName = LANGUAGE_CONFIG[progLang]?.displayName || progLang;
       
+      // Language-specific coding standards for all supported languages
+      const languageStandards: Record<string, string> = {
+        python: `
+**PEP 8 Standards (MANDATORY for Python):**
+- Use 4-space indentation (never tabs)
+- snake_case for functions/variables, PascalCase for classes
+- Maximum line length: 79 characters (99 for code, 72 for docstrings)
+- Two blank lines before top-level definitions, one blank line inside classes
+- Imports order: standard library → third-party → local (separated by blank lines)
+- Use docstrings for all public modules, functions, classes, methods
+- Spaces around operators (=, ==, <, >, +, -, etc.) and after commas
+- Use f-strings for string formatting (Python 3.6+)
+- Type hints recommended for function parameters and return values`,
+        javascript: `
+**ESLint/Prettier Standards (MANDATORY for JavaScript):**
+- Use 2-space indentation
+- camelCase for variables/functions, PascalCase for classes
+- Use const by default, let when reassignment needed, never var
+- Semicolons required at end of statements
+- Single quotes for strings
+- Arrow functions for callbacks and short functions
+- Async/await over raw promises
+- Destructuring for object/array extraction
+- Template literals for string interpolation`,
+        typescript: `
+**TypeScript Standards (MANDATORY):**
+- Use 2-space indentation
+- camelCase for variables/functions, PascalCase for classes/interfaces/types
+- Use const by default, let when reassignment needed, never var
+- Semicolons required at end of statements
+- Single quotes for strings
+- Explicit type annotations for function parameters and return types
+- Use interfaces for object shapes, types for unions/intersections
+- Prefer readonly for immutable properties
+- Avoid any - use unknown or proper typing`,
+        html: `
+**HTML Standards (MANDATORY):**
+- Use 2-space indentation
+- Lowercase tag names and attributes
+- Double quotes for attribute values
+- Semantic elements (header, nav, main, section, article, aside, footer)
+- Alt text for images
+- Proper nesting and closing tags`,
+        css: `
+**CSS Standards (MANDATORY):**
+- Use 2-space indentation
+- Lowercase property names
+- BEM naming convention for classes (block__element--modifier)
+- Group related properties together
+- Use CSS custom properties (variables) for reusable values
+- Mobile-first responsive design with min-width media queries`,
+        java: `
+**Java Code Conventions (MANDATORY):**
+- Use 4-space indentation
+- camelCase for methods/variables, PascalCase for classes
+- Opening brace on same line as declaration
+- One class per file, filename matches class name
+- Use final for immutable variables
+- Javadoc comments for public API
+- Handle exceptions properly (no empty catch blocks)
+- Use StringBuilder for string concatenation in loops`,
+        cpp: `
+**C++ Standards (MANDATORY):**
+- Use 2 or 4-space indentation (be consistent)
+- snake_case or camelCase for functions/variables, PascalCase for classes
+- Use smart pointers (unique_ptr, shared_ptr) over raw pointers
+- RAII for resource management
+- Const correctness - mark non-mutating methods const
+- Use nullptr instead of NULL
+- Prefer references over pointers when possible
+- Initialize all variables at declaration`,
+        c: `
+**C Standards (MANDATORY):**
+- Use 4-space indentation
+- snake_case for functions and variables
+- UPPER_CASE for constants and macros
+- Always check return values
+- Free allocated memory (no leaks)
+- Use sizeof(*ptr) for allocation sizes
+- Initialize all variables
+- Use const for read-only parameters`,
+        bash: `
+**Shell/Bash Standards (MANDATORY):**
+- Use 2-space indentation
+- snake_case for variable names
+- UPPER_CASE for exported/environment variables
+- Quote all variables: "$variable"
+- Use [[ ]] for conditionals (not [ ])
+- Use $(command) for command substitution (not backticks)
+- Add shebang: #!/bin/bash or #!/usr/bin/env bash
+- Use set -euo pipefail for safety`,
+        sql: `
+**SQL Standards (MANDATORY):**
+- Use UPPERCASE for SQL keywords (SELECT, FROM, WHERE)
+- Use lowercase for table/column names
+- Use snake_case for identifiers
+- One statement per line for complex queries
+- Explicit column lists (avoid SELECT *)
+- Use meaningful aliases
+- Proper indentation for subqueries`,
+        json: `
+**JSON Standards (MANDATORY):**
+- Use 2-space indentation
+- camelCase for property names
+- No trailing commas
+- Double quotes for strings
+- Consistent ordering of properties`,
+        yaml: `
+**YAML Standards (MANDATORY):**
+- Use 2-space indentation
+- No tabs
+- Consistent quoting (prefer unquoted when possible)
+- Use anchors and aliases to avoid repetition`,
+        markdown: `
+**Markdown Standards (MANDATORY):**
+- One blank line before headings
+- Use ATX-style headings (# instead of underlines)
+- Use fenced code blocks with language identifiers
+- Consistent list marker style
+- Alt text for images`,
+        rust: `
+**Rust Standards (MANDATORY - rustfmt):**
+- Use 4-space indentation
+- snake_case for functions/variables, PascalCase for types/traits
+- SCREAMING_SNAKE_CASE for constants
+- Use Result/Option for error handling
+- Prefer iterators over loops
+- Use derives for common traits
+- Document with /// doc comments`,
+        go: `
+**Go Standards (MANDATORY - gofmt):**
+- Use tabs for indentation
+- camelCase for private, PascalCase for exported
+- Short variable names in limited scope
+- Handle all errors explicitly
+- Use interfaces for abstraction
+- Godoc comments for exported items`,
+        php: `
+**PHP Standards (PSR-12 MANDATORY):**
+- Use 4-space indentation
+- camelCase for methods, PascalCase for classes
+- Opening brace on new line for classes, same line for methods
+- Use strict types: declare(strict_types=1);
+- Type declarations for parameters and returns`,
+        ruby: `
+**Ruby Standards (MANDATORY):**
+- Use 2-space indentation
+- snake_case for methods/variables, PascalCase for classes
+- Use symbols instead of strings for identifiers
+- Prefer single quotes unless interpolation needed
+- Use blocks with do/end for multi-line, {} for single-line`,
+        swift: `
+**Swift Standards (MANDATORY):**
+- Use 4-space indentation
+- camelCase for everything, PascalCase for types
+- Use guard for early returns
+- Prefer let over var
+- Use optionals properly (avoid force unwrapping)`,
+        kotlin: `
+**Kotlin Standards (MANDATORY):**
+- Use 4-space indentation
+- camelCase for functions/properties, PascalCase for classes
+- Use val over var when possible
+- Use data classes for DTOs
+- Prefer expression bodies for simple functions
+- Use null-safe operators (?., ?:, !!)`,
+      };
+      
+      // Get standards for current language, or use a generic fallback
+      const currentStandards = languageStandards[progLang] || `
+**General Coding Standards:**
+- Use consistent indentation
+- Use meaningful variable and function names
+- Handle errors gracefully
+- Follow the language's established conventions`;
+      
       // Comprehensive AI behavior guidelines
       const aiGuidelines = `
 
@@ -3179,12 +3355,13 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 ${isInsertMode ? `- INSERT MODE: Output ONLY the code snippet to insert at cursor (line ${cursorLine}). Do NOT output the entire file.` : ''}
 ${isReplaceMode ? '- REPLACE MODE: Output the complete file with all code.' : ''}
 ${!isInsertMode && !isReplaceMode ? '- If modifying existing code, output only the changed functions/sections. If creating new, output complete code.' : ''}
+${currentStandards}
 
-**Code Quality Requirements:**
+**General Code Quality:**
 - Handle errors gracefully with try/except or try/catch
 - Avoid unnecessary complexity - prioritize readability over cleverness
-- Follow consistent style (proper indentation, clear naming)
-- Optimize only when needed
+- Meaningful variable/function names (no single letters except loop counters)
+- Keep functions focused and small (<20 lines ideal)
 - Add brief comments only for complex logic
 
 **Context Awareness (CRITICAL):**

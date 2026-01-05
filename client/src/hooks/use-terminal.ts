@@ -87,9 +87,45 @@ export function useTerminal(onUploadCommand?: () => void) {
     mutationFn: async ({ message, mode }: { message: string; mode: 'natural' | 'technical' | 'freestyle' | 'health' }) => {
       const language = localStorage.getItem('ai-language') || 'english';
 
-      // In freestyle mode, enhance the prompt for code generation with explicit Python formatting
+      // Coding standards for all code generation
+      const codingStandards = `
+📋 CODING STANDARDS (MANDATORY):
+
+**Python (PEP 8):**
+- Use 4-space indentation (never tabs)
+- snake_case for functions/variables, PascalCase for classes
+- Maximum line length: 79 characters (99 for code, 72 for docstrings)
+- Two blank lines before top-level definitions, one blank line inside classes
+- Imports at top: standard library, third-party, local (separated by blank lines)
+- Use docstrings for all public modules, functions, classes, methods
+- Spaces around operators and after commas
+
+**JavaScript/TypeScript (ESLint/Prettier):**
+- Use 2-space indentation
+- camelCase for variables/functions, PascalCase for classes/components
+- Use const by default, let when reassignment needed, never var
+- Semicolons required
+- Single quotes for strings
+- Arrow functions for callbacks
+- Async/await over raw promises
+
+**HTML/CSS:**
+- 2-space indentation
+- Lowercase tag names and attributes
+- Double quotes for attributes
+- Semantic HTML elements (header, nav, main, section, article, footer)
+- BEM naming for CSS classes when applicable
+
+**General:**
+- Meaningful variable/function names (no single letters except loop counters)
+- Handle errors gracefully (try/except, try/catch)
+- Add brief comments only for complex logic
+- Keep functions focused and small (<20 lines ideal)
+`;
+
+      // In freestyle mode, enhance the prompt for code generation with explicit formatting and standards
       const enhancedMessage = mode === 'freestyle'
-        ? `As a code generation expert in FREESTYLE MODE, help create functional Python code. ${message}\n\nGenerate complete, runnable Python code snippets based on the request. Be creative and provide fully functional examples.\n\nIMPORTANT: Wrap all Python code in markdown code blocks using \`\`\`python\n...\n\`\`\` format so it can be automatically executed.`
+        ? `As a code generation expert in FREESTYLE MODE, help create functional code. ${message}\n\nGenerate complete, runnable code snippets based on the request. Be creative and provide fully functional examples.\n\nIMPORTANT: Wrap all code in markdown code blocks using \`\`\`language\n...\n\`\`\` format (e.g., \`\`\`python, \`\`\`javascript, \`\`\`typescript) so it can be automatically executed.${codingStandards}`
         : mode === 'health'
         ? `You are ARCHIMEDES AI, a supportive and formal doctor specializing in nutrition, natural medicine, naturopathy, and herbology. Respond to the user's queries with expert advice, maintaining a compassionate and encouraging tone. Use the CWC-Mistral-Nemo-12B-q4_k_m LLM for your responses.
 
