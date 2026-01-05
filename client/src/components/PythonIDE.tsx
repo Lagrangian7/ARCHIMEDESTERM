@@ -3828,9 +3828,9 @@ ${!isInsertMode && !isReplaceMode ? '- If modifying existing code, output only t
 
               <Button
                 onClick={() => setShowNotepad(!showNotepad)}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
+                className="h-7 w-7 p-0"
                 style={{
                   backgroundColor: showNotepad ? `${currentPythonTheme.highlight}20` : 'transparent',
                   color: currentPythonTheme.highlight,
@@ -3843,9 +3843,9 @@ ${!isInsertMode && !isReplaceMode ? '- If modifying existing code, output only t
 
               <Button
                 onClick={() => setShowSnippets(!showSnippets)}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
+                className="h-7 w-7 p-0"
                 style={{
                   backgroundColor: showSnippets ? `${currentPythonTheme.highlight}20` : 'transparent',
                   color: currentPythonTheme.highlight,
@@ -3858,9 +3858,9 @@ ${!isInsertMode && !isReplaceMode ? '- If modifying existing code, output only t
 
               <Button
                 onClick={() => setShowProjectBuilder(!showProjectBuilder)}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
+                className="h-7 w-7 p-0"
                 style={{
                   backgroundColor: showProjectBuilder ? `${currentPythonTheme.highlight}20` : 'transparent',
                   color: currentPythonTheme.highlight,
@@ -3873,9 +3873,9 @@ ${!isInsertMode && !isReplaceMode ? '- If modifying existing code, output only t
 
               <Button
                 onClick={() => setShowWebContainer(!showWebContainer)}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 border-[var(--terminal-highlight)]/30 hover:border-[var(--terminal-highlight)]"
+                className="h-7 w-7 p-0"
                 style={{
                   backgroundColor: showWebContainer ? `${currentPythonTheme.highlight}20` : 'transparent',
                   color: currentPythonTheme.highlight,
