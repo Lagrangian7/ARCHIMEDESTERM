@@ -80,6 +80,7 @@ interface TerminalEntry {
   timestamp: string;
   mode?: 'natural' | 'technical' | 'freestyle' | 'health';
   action?: string;
+  isHTML?: boolean;
 }
 
 export function Terminal() {
@@ -273,7 +274,9 @@ export function Terminal() {
                   '--type-dur': `${Math.min(3000, Math.max(800, entry.content.length * 30))}ms`
                 } as React.CSSProperties : undefined}
               >
-                {latexMatch ? (
+                {entry.isHTML ? (
+                  <div dangerouslySetInnerHTML={{ __html: entry.content }} />
+                ) : latexMatch ? (
                   <KatexRenderer 
                     displayMode={entry.content.startsWith('$$')} 
                   >

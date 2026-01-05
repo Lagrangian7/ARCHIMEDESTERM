@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { Message } from '@shared/schema';
+import katex from 'katex';
+import DOMPurify from 'dompurify';
 
 // Static path to audio file in public directory
 const lagrangianSong = '/lagrangian-25.mp3';
@@ -11,8 +13,9 @@ interface TerminalEntry {
   type: 'command' | 'response' | 'system' | 'error';
   content: string;
   timestamp: string;
-  mode?: 'natural' | 'technical' | 'freestyle' | 'health'
+  mode?: 'natural' | 'technical' | 'freestyle' | 'health';
   action?: string;
+  isHTML?: boolean;
 }
 
 export function useTerminal(onUploadCommand?: () => void) {
@@ -375,13 +378,14 @@ Use the URLs above to access the full articles and information.`;
     };
   }, [backgroundAudio]);
 
-  const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical' | 'freestyle' | 'health') => {
+  const addEntry = useCallback((type: TerminalEntry['type'], content: string, mode?: 'natural' | 'technical' | 'freestyle' | 'health', isHTML?: boolean) => {
     const entry: TerminalEntry = {
       id: crypto.randomUUID(),
       type,
       content,
       timestamp: new Date().toISOString(),
       mode,
+      isHTML,
     };
     setEntries(prev => {
       const newEntries = [...prev, entry];
@@ -2215,14 +2219,19 @@ Powered by Wolfram Alpha Full Results API`);
                       formatted += `</div>`;
                     }
 
-                    // Render MathML if available
-                    if (subpod.mathml) {
-                      formatted += `<div class="mathml-content">${subpod.mathml}</div>`;
-                    }
-
-                    // Render LaTeX if available
+                    // Render LaTeX if available using KaTeX
                     if (subpod.latex) {
-                      formatted += `<div class="latex-content">$$${subpod.latex}$$</div>`;
+                      try {
+                        const renderedLatex = katex.renderToString(subpod.latex, {
+                          displayMode: true,
+                          throwOnError: false,
+                          strict: false,
+                        });
+                        formatted += `<div class="latex-content" style="margin: 10px 0; overflow-x: auto;">${renderedLatex}</div>`;
+                      } catch (e) {
+                        // Fallback to plaintext if KaTeX fails
+                        formatted += `<div class="latex-content">${subpod.latex}</div>`;
+                      }
                     }
 
                     // Render plaintext
@@ -2254,14 +2263,13 @@ Powered by Wolfram Alpha Full Results API`);
 
             formatted += '<div style="margin-top: 20px; text-align: center; color: var(--terminal-subtle); font-size: 12px;">Powered by Wolfram Alpha</div>';
             formatted += '</div>';
-            addEntry('response', formatted);
-
-            // Trigger MathJax to typeset the new content after a brief delay
-            setTimeout(() => {
-              if (window.MathJax && window.MathJax.typesetPromise) {
-                window.MathJax.typesetPromise().catch((err: any) => console.error('MathJax typeset error:', err));
-              }
-            }, 100);
+            // Sanitize HTML to prevent XSS while preserving safe elements
+            const sanitizedFormatted = DOMPurify.sanitize(formatted, {
+              ALLOWED_TAGS: ['div', 'span', 'img', 'br', 'p', 'math', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'mfrac', 'msqrt', 'mroot', 'semantics', 'annotation'],
+              ALLOWED_ATTR: ['style', 'class', 'src', 'alt', 'title', 'width', 'height'],
+              ALLOW_DATA_ATTR: false,
+            });
+            addEntry('response', sanitizedFormatted, undefined, true);
 
             // Extract text summary from pods for speech and AI analysis
             const resultSummary = data.pods
