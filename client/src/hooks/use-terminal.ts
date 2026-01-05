@@ -108,18 +108,24 @@ export function useTerminal(onUploadCommand?: () => void) {
       setIsTyping(false);
       addEntry('response', data.response, data.mode);
 
-      // Auto-execute Python code in FREESTYLE mode
+      // Auto-execute Python code in FREESTYLE mode and open Code Playground
       if (data.mode === 'freestyle' || currentMode === 'freestyle') {
         const pythonBlockRegex = /```(?:python|py)\n([\s\S]*?)```/;
         const pythonMatch = data.response.match(pythonBlockRegex);
 
         if (pythonMatch && pythonMatch[1]) {
+          const codeContent = pythonMatch[1].trim();
+          
+          // Open Code Playground with the generated code (same as natural mode)
+          setPreviewCode(codeContent);
+          setShowCodePlayground(true);
+          
           addEntry('system', '🐍 Auto-executing generated Python code...');
 
           fetch('/api/execute/python', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: pythonMatch[1].trim() })
+            body: JSON.stringify({ code: codeContent })
           })
             .then(res => res.json())
             .then(execData => {
@@ -128,6 +134,14 @@ export function useTerminal(onUploadCommand?: () => void) {
             .catch(error => {
               addEntry('error', `Auto-execution failed: ${error.message}. Use 'preview' or 'run' to execute manually.`);
             });
+        } else {
+          // Check for other code blocks (JS, HTML, etc.) and open Code Playground
+          const codeBlockRegex = /```(?:\w+)?\n([\s\S]*?)```/;
+          const codeMatch = data.response.match(codeBlockRegex);
+          if (codeMatch && codeMatch[1]) {
+            setPreviewCode(codeMatch[1].trim());
+            setShowCodePlayground(true);
+          }
         }
       }
 
