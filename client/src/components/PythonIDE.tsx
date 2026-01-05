@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Copy, Check, Undo2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Copy, Check, Undo2, ArrowRightLeft } from 'lucide-react';
 import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -1839,6 +1840,10 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const [htmlPreviewState, setHtmlPreview] = useState(''); // State to hold HTML preview content
   const [showCodePlayground, setShowCodePlayground] = useState(false); // State for Code Playground toggle
   const [showWebContainer, setShowWebContainer] = useState(false);
+  
+  // Language mismatch handling state
+  const [pendingCodeInsert, setPendingCodeInsert] = useState<{ code: string; detectedLang: string } | null>(null);
+  const [showLanguageMismatchDialog, setShowLanguageMismatchDialog] = useState(false);
   const [webContainerFiles, setWebContainerFiles] = useState<Record<string, any>>({});
   const [webContainerPreviewUrl, setWebContainerPreviewUrl] = useState<string | null>(null);
   const [showSnippets, setShowSnippets] = useState(false);
@@ -3019,16 +3024,20 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       const isDefaultCode = currentCode.trim() === '' || 
         currentCode === '# ARCHIMEDES Workshop - Freestyle Mode\n# Chat with ARCHIMEDES to generate code, or write your own!\n\n';
       
+      // Language enforcement instruction - mandatory, not advisory
+      const langDisplayName = LANGUAGE_CONFIG[progLang]?.displayName || progLang;
+      const langEnforcement = `\n\n⚠️ MANDATORY: You MUST generate ${langDisplayName} code ONLY. The editor is set to ${langDisplayName} mode. Always wrap code in \`\`\`${progLang} blocks. Do NOT generate code in any other language unless the user explicitly requests a different language by name.`;
+
       if (!isDefaultCode && currentCode.trim()) {
-        contextualMessage = `Current code in editor (${progLang}):\n\`\`\`${progLang}\n${currentCode}\n\`\`\`\n\n`;
+        contextualMessage = `Current code in editor (${langDisplayName}):\n\`\`\`${progLang}\n${currentCode}\n\`\`\`\n\n`;
         if (conversationContext) {
           contextualMessage += `Recent conversation:\n${conversationContext}\n\n`;
         }
-        contextualMessage += `User query: ${message}\n\nIMPORTANT: When providing code, always wrap it in a proper code block with the language tag (e.g., \`\`\`${progLang}). The code will be automatically applied to the editor.`;
+        contextualMessage += `User query: ${message}${langEnforcement}`;
       } else if (conversationContext) {
-        contextualMessage = `Recent conversation:\n${conversationContext}\n\nUser query: ${message}\n\nIMPORTANT: When providing code, always wrap it in a proper code block with the language tag (e.g., \`\`\`${progLang}). Default to Python unless another language is specified.`;
+        contextualMessage = `Recent conversation:\n${conversationContext}\n\nUser query: ${message}${langEnforcement}`;
       } else {
-        contextualMessage = `${message}\n\nIMPORTANT: When providing code, always wrap it in a proper code block with the language tag (e.g., \`\`\`${progLang}). Default to Python unless another language is specified.`;
+        contextualMessage = `${message}${langEnforcement}`;
       }
 
       // Visual feedback: highlight code being analyzed
@@ -3081,18 +3090,49 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
       setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
 
-      // Auto-insert code if detected in response (works in all modes now)
+      // Auto-insert code if detected in response with LANGUAGE VALIDATION
       console.log('[IDE] AI Response received, checking for code...');
       console.log('[IDE] Response preview:', data.response.substring(0, 200));
       const extractedCode = extractCodeFromResponse(data.response);
       console.log('[IDE] Extracted code:', extractedCode ? `${extractedCode.length} chars` : 'null');
+      
       if (extractedCode) {
-        console.log('[IDE] Inserting code into editor...');
-        insertCodeIntoEditor(extractedCode);
-        toast({
-          title: "Code Ready",
-          description: "AI-generated code has been inserted into the editor",
-        });
+        // Detect language from response code block
+        const detectedLang = extractLanguageFromResponse(data.response);
+        const editorLang = showMultiFileMode && activeFile ? activeFile.language : currentLanguage;
+        
+        console.log('[IDE] Detected language:', detectedLang, '| Editor language:', editorLang);
+        
+        // Only trigger mismatch dialog if:
+        // 1. The AI explicitly specified a language (not using default fallback)
+        // 2. Detected language is a known language in LANGUAGE_CONFIG
+        // 3. Detected language is explicitly different from editor language
+        // Short-circuit: if no explicit tag, always allow insert (prevents false positives)
+        const hasExplicitLanguageTag = Boolean(data.response.match(/```(python|py|javascript|js|typescript|ts|java|cpp|c\+\+|c|go|rust|ruby|php|html|css|sql|bash|shell)/i));
+        const isKnownLanguage = detectedLang in LANGUAGE_CONFIG;
+        
+        // Short-circuit early if no explicit language tag or unknown language
+        if (!hasExplicitLanguageTag || !isKnownLanguage) {
+          console.log('[IDE] No explicit language tag or unknown language, inserting directly...');
+          insertCodeIntoEditor(extractedCode);
+          toast({
+            title: "Code Ready",
+            description: "AI-generated code has been inserted into the editor",
+          });
+        } else if (detectedLang !== editorLang) {
+          console.log('[IDE] Language mismatch detected! Showing dialog...');
+          // Store pending code and show mismatch dialog
+          setPendingCodeInsert({ code: extractedCode, detectedLang });
+          setShowLanguageMismatchDialog(true);
+        } else {
+          // Languages match or no explicit language tag - insert directly
+          console.log('[IDE] Languages match or implicit default, inserting code...');
+          insertCodeIntoEditor(extractedCode);
+          toast({
+            title: "Code Ready",
+            description: "AI-generated code has been inserted into the editor",
+          });
+        }
       } else {
         console.log('[IDE] No code block detected in response');
       }
@@ -3137,6 +3177,85 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       });
     }
   }, [showMultiFileMode, activeFile, toast]);
+
+  // Handle language mismatch - insert anyway (ignores mismatch)
+  const handleInsertAnyway = useCallback(() => {
+    if (pendingCodeInsert) {
+      insertCodeIntoEditor(pendingCodeInsert.code);
+      toast({
+        title: "Code Inserted",
+        description: `${LANGUAGE_CONFIG[pendingCodeInsert.detectedLang]?.displayName || pendingCodeInsert.detectedLang} code inserted into ${LANGUAGE_CONFIG[currentLanguage]?.displayName || currentLanguage} editor`,
+        variant: "default",
+      });
+    }
+    setPendingCodeInsert(null);
+    setShowLanguageMismatchDialog(false);
+  }, [pendingCodeInsert, currentLanguage, toast]);
+
+  // Handle language mismatch - switch editor language and insert
+  const handleSwitchLanguageAndInsert = useCallback(() => {
+    if (pendingCodeInsert) {
+      const newLang = pendingCodeInsert.detectedLang;
+      const langConfig = LANGUAGE_CONFIG[newLang];
+      
+      // Guard: Only switch if the language is a valid LANGUAGE_CONFIG key
+      if (!langConfig || !newLang) {
+        console.warn('[IDE] Invalid language for switch:', newLang);
+        // Fallback: just insert the code without switching
+        insertCodeIntoEditor(pendingCodeInsert.code);
+        toast({
+          title: "Code Inserted",
+          description: "Code inserted (language switch skipped - unknown language)",
+          variant: "default",
+        });
+        setPendingCodeInsert(null);
+        setShowLanguageMismatchDialog(false);
+        return;
+      }
+      
+      // Update editor language
+      setCurrentLanguage(newLang);
+      
+      // If in multi-file mode, update the active file's language and extension
+      if (showMultiFileMode && activeFile) {
+        setFiles(prevFiles => 
+          prevFiles.map(f => {
+            if (f.id !== activeFile.id) return f;
+            // Get base name without extension, or use whole name if no extension
+            const baseName = f.name.includes('.') 
+              ? f.name.substring(0, f.name.lastIndexOf('.'))
+              : f.name;
+            return { 
+              ...f, 
+              language: newLang, 
+              name: `${baseName}${langConfig.extension}` 
+            };
+          })
+        );
+      }
+      
+      // Insert the code
+      insertCodeIntoEditor(pendingCodeInsert.code);
+      
+      toast({
+        title: "Language Switched",
+        description: `Editor switched to ${langConfig.displayName} and code inserted`,
+      });
+    }
+    setPendingCodeInsert(null);
+    setShowLanguageMismatchDialog(false);
+  }, [pendingCodeInsert, showMultiFileMode, activeFile, toast]);
+
+  // Handle language mismatch - cancel insertion
+  const handleCancelInsert = useCallback(() => {
+    toast({
+      title: "Insertion Cancelled",
+      description: "Code was not inserted. You can copy it from the chat instead.",
+      variant: "default",
+    });
+    setPendingCodeInsert(null);
+    setShowLanguageMismatchDialog(false);
+  }, [toast]);
 
   const updateFileName = (fileId: string, name: string) => {
     setFiles(prevFiles =>
@@ -3214,6 +3333,62 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
 
   return (
     <>
+      {/* Language Mismatch Dialog */}
+      <AlertDialog open={showLanguageMismatchDialog} onOpenChange={setShowLanguageMismatchDialog}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-amber-400">
+              <ArrowRightLeft className="w-5 h-5" />
+              Language Mismatch Detected
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-300">
+              {pendingCodeInsert && pendingCodeInsert.detectedLang && LANGUAGE_CONFIG[pendingCodeInsert.detectedLang] ? (
+                <>
+                  The AI generated <strong className="text-cyan-400">{LANGUAGE_CONFIG[pendingCodeInsert.detectedLang].displayName}</strong> code, 
+                  but your editor is set to <strong className="text-emerald-400">{LANGUAGE_CONFIG[currentLanguage]?.displayName || currentLanguage}</strong>.
+                  <div className="mt-3 p-3 rounded bg-zinc-800 border border-zinc-600 text-sm">
+                    <p className="mb-2 font-semibold text-zinc-200">What would you like to do?</p>
+                    <ul className="space-y-1 text-zinc-400">
+                      <li>• <strong>Switch Language</strong> - Change editor to {LANGUAGE_CONFIG[pendingCodeInsert.detectedLang].displayName} and insert code</li>
+                      <li>• <strong>Insert Anyway</strong> - Keep editor as {LANGUAGE_CONFIG[currentLanguage]?.displayName || currentLanguage} (may cause syntax errors)</li>
+                      <li>• <strong>Cancel</strong> - Don't insert, copy from chat instead</li>
+                    </ul>
+                  </div>
+                </>
+              ) : (
+                <span>Language mismatch detected. Please choose an action.</span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2">
+            <AlertDialogCancel 
+              onClick={handleCancelInsert}
+              className="bg-zinc-700 hover:bg-zinc-600 text-zinc-200 border-zinc-600"
+              data-testid="button-cancel-insert"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <Button 
+              variant="outline" 
+              onClick={handleInsertAnyway}
+              className="bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border-amber-600"
+              data-testid="button-insert-anyway"
+            >
+              Insert Anyway
+            </Button>
+            <AlertDialogAction 
+              onClick={handleSwitchLanguageAndInsert}
+              className="bg-cyan-600 hover:bg-cyan-700 text-white"
+              data-testid="button-switch-and-insert"
+              disabled={!pendingCodeInsert || !LANGUAGE_CONFIG[pendingCodeInsert?.detectedLang || '']}
+            >
+              <ArrowRightLeft className="w-4 h-4 mr-2" />
+              Switch to {pendingCodeInsert && LANGUAGE_CONFIG[pendingCodeInsert.detectedLang]?.displayName || 'detected language'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {showAITests && (
         <MonacoAITests
           code={showMultiFileMode && activeFile ? activeFile.content : code}
