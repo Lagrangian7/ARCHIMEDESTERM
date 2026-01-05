@@ -2279,21 +2279,47 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const resetFontSize = () => setFontSize(13);
 
   // Extract code from AI response (looks for markdown code blocks)
+  // Returns the LAST code block (usually the final/complete version in iterative coding)
   const extractCodeFromResponse = (response: string): string | null => {
     console.log('[IDE] Extracting code from response, length:', response.length);
 
-    // Single comprehensive regex that handles all code block formats
-    // Matches: ```lang\ncode``` or ```\ncode``` or ~~~lang\ncode~~~
-    const codeBlockPattern = /(?:```|~~~)(?:python|py|javascript|js|typescript|ts|java|cpp|c\+\+|c|go|golang|rust|rs|ruby|rb|php|html|css|sql|bash|shell|sh|r|perl|scala|kotlin|swift|dart)?\s*\n([\s\S]*?)(?:```|~~~)/i;
-    const codeBlockMatch = response.match(codeBlockPattern);
+    // Global regex to find ALL code blocks - we'll take the last one (usually the complete version)
+    const codeBlockPattern = /(?:```|~~~)(python|py|javascript|js|typescript|ts|java|cpp|c\+\+|c|go|golang|rust|rs|ruby|rb|php|html|css|sql|bash|shell|sh|r|perl|scala|kotlin|swift|dart)?\s*\n([\s\S]*?)(?:```|~~~)/gi;
     
-    if (codeBlockMatch && codeBlockMatch[1]) {
-      console.log('[IDE] Code block found:', true);
-      return codeBlockMatch[1].trim();
+    const matches: Array<{lang: string, code: string}> = [];
+    let match;
+    
+    while ((match = codeBlockPattern.exec(response)) !== null) {
+      const lang = match[1] || 'python'; // Default to python if no language specified
+      const code = match[2].trim();
+      if (code.length > 0) {
+        matches.push({ lang, code });
+      }
+    }
+    
+    if (matches.length > 0) {
+      // Return the last code block (usually the complete/final version)
+      const lastMatch = matches[matches.length - 1];
+      console.log('[IDE] Found', matches.length, 'code blocks, using last one with language:', lastMatch.lang);
+      return lastMatch.code;
     }
     
     console.log('[IDE] No code block found');
     return null;
+  };
+
+  // Extract language from response for proper syntax highlighting
+  const extractLanguageFromResponse = (response: string): string => {
+    const langMatch = response.match(/```(python|py|javascript|js|typescript|ts|java|cpp|c\+\+|c|go|rust|ruby|php|html|css|sql|bash|shell)/i);
+    if (langMatch) {
+      const detected = langMatch[1].toLowerCase();
+      const langMap: Record<string, string> = {
+        'py': 'python', 'js': 'javascript', 'ts': 'typescript',
+        'c++': 'cpp', 'shell': 'bash', 'sh': 'bash'
+      };
+      return langMap[detected] || detected;
+    }
+    return 'python'; // Default to Python
   };
 
   // Insert code into editor with language detection
@@ -2951,17 +2977,34 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   // Mutation for chat requests
   const chatMutation = useMutation({
     mutationFn: async ({ message, language }: { message: string; language?: string }) => {
-      // Get current programming language from active file or selected language
-      const progLang = showMultiFileMode && activeFile ? activeFile.language : currentLanguage;
+      // Get current programming language from active file or selected language (default to python)
+      const progLang = showMultiFileMode && activeFile ? activeFile.language : (currentLanguage || 'python');
 
       // Build context-aware message with current editor code
       const currentActiveFile = files.find(f => f.id === activeFileId);
       const currentCode = showMultiFileMode && currentActiveFile ? currentActiveFile.content : code;
 
-      // Include code context in the message for AI awareness
+      // Build conversation context from recent chat history (last 6 messages for continuity)
+      const recentHistory = chatHistory.slice(-6);
+      const conversationContext = recentHistory.length > 0 
+        ? recentHistory.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content.substring(0, 500)}`).join('\n\n')
+        : '';
+
+      // Include code context and conversation history for conversational coding
       let contextualMessage = message;
-      if (currentCode.trim() && currentCode !== '# ARCHIMEDES Workshop - Freestyle Mode\n# Chat with ARCHIMEDES to generate code, or write your own!\n\n') {
-        contextualMessage = `Current code in editor (${progLang}):\n\`\`\`${progLang}\n${currentCode}\n\`\`\`\n\nUser query: ${message}`;
+      const isDefaultCode = currentCode.trim() === '' || 
+        currentCode === '# ARCHIMEDES Workshop - Freestyle Mode\n# Chat with ARCHIMEDES to generate code, or write your own!\n\n';
+      
+      if (!isDefaultCode && currentCode.trim()) {
+        contextualMessage = `Current code in editor (${progLang}):\n\`\`\`${progLang}\n${currentCode}\n\`\`\`\n\n`;
+        if (conversationContext) {
+          contextualMessage += `Recent conversation:\n${conversationContext}\n\n`;
+        }
+        contextualMessage += `User query: ${message}\n\nIMPORTANT: When providing code, always wrap it in a proper code block with the language tag (e.g., \`\`\`${progLang}). The code will be automatically applied to the editor.`;
+      } else if (conversationContext) {
+        contextualMessage = `Recent conversation:\n${conversationContext}\n\nUser query: ${message}\n\nIMPORTANT: When providing code, always wrap it in a proper code block with the language tag (e.g., \`\`\`${progLang}). Default to Python unless another language is specified.`;
+      } else {
+        contextualMessage = `${message}\n\nIMPORTANT: When providing code, always wrap it in a proper code block with the language tag (e.g., \`\`\`${progLang}). Default to Python unless another language is specified.`;
       }
 
       // Visual feedback: highlight code being analyzed
@@ -3675,6 +3718,7 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                   )}
                   {chatHistory.map((msg, idx) => {
                     const hasCode = msg.role === 'assistant' && extractCodeFromResponse(msg.content);
+                    const detectedLang = msg.role === 'assistant' ? extractLanguageFromResponse(msg.content) : 'python';
                     return (
                       <div key={idx} className={`${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
                         <div 
@@ -3688,33 +3732,43 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                           <div className="font-bold text-[10px] mb-1 opacity-70 flex items-center justify-between gap-2">
                             <span>{msg.role === 'user' ? 'YOU' : 'ARCHIMEDES'}</span>
                             {msg.role === 'assistant' && (
-                              <div className="flex gap-1">
-                                {hasCode && (
-                                  <button
-                                    onClick={() => insertCodeIntoEditor(hasCode)}
-                                    className="text-[var(--workshop-highlight)]/70 hover:text-[var(--workshop-highlight)] transition-colors"
-                                    title="Insert code into editor"
-                                  >
-                                    ⬇️
-                                  </button>
-                                )}
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(msg.content).then(() => {
-                                      speak('Code copied to clipboard');
-                                    }).catch(err => {
-                                      console.error('Failed to copy:', err);
-                                    });
-                                  }}
-                                  className="text-[var(--workshop-highlight)]/70 hover:text-[var(--workshop-highlight)] transition-colors"
-                                  title="Copy code to clipboard"
-                                >
-                                  📋
-                                </button>
-                              </div>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(msg.content).then(() => {
+                                    speak('Copied');
+                                  }).catch(err => {
+                                    console.error('Failed to copy:', err);
+                                  });
+                                }}
+                                className="text-[var(--workshop-highlight)]/70 hover:text-[var(--workshop-highlight)] transition-colors"
+                                title="Copy response"
+                              >
+                                📋
+                              </button>
                             )}
                           </div>
                           <div className="whitespace-pre-wrap">{msg.content}</div>
+                          {hasCode && (
+                            <div className="mt-2 pt-2" style={{ borderTop: `1px solid ${currentPythonTheme.border}` }}>
+                              <button
+                                onClick={() => {
+                                  insertCodeIntoEditor(hasCode);
+                                  toast({
+                                    title: "Code Applied",
+                                    description: `${detectedLang.toUpperCase()} code inserted into editor - ready to run!`,
+                                  });
+                                }}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded text-[11px] font-bold transition-all hover:scale-105"
+                                style={{
+                                  backgroundColor: currentPythonTheme.highlight,
+                                  color: currentPythonTheme.bg,
+                                }}
+                              >
+                                <Code className="w-3 h-3" />
+                                Apply {detectedLang.toUpperCase()} Code to Editor
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
