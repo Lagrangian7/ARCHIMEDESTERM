@@ -2313,6 +2313,78 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       return lastMatch.code;
     }
     
+    // FALLBACK: Try to extract code even without proper backtick blocks
+    // Look for code patterns like function definitions, imports, class declarations
+    console.log('[IDE] No backtick blocks found, trying fallback extraction...');
+    
+    // Check for common code indicators in the response
+    const codeIndicators = [
+      /^(def |class |import |from |async def |function |const |let |var |export |#include|package |public class)/m,
+      /^(if __name__|print\(|console\.log|return |for |while |try:|except:|catch\s*\()/m,
+      /^#!/m,  // shebang
+    ];
+    
+    const hasCodeIndicators = codeIndicators.some(pattern => pattern.test(response));
+    
+    if (hasCodeIndicators) {
+      // Try to find code after common prefixes like "// FILE:" or "Here's the code:"
+      const codeStartPatterns = [
+        /(?:\/\/\s*FILE:.*?\n)([\s\S]+)/i,
+        /(?:here'?s?\s+(?:the\s+)?(?:your\s+)?code[:\s]*\n)([\s\S]+)/i,
+        /(?:```\w*\s*\n?)([\s\S]+?)(?:```|$)/i,
+      ];
+      
+      for (const pattern of codeStartPatterns) {
+        const patternMatch = response.match(pattern);
+        if (patternMatch && patternMatch[1]) {
+          // Clean up: remove markdown headers and explanatory text
+          let extractedCode = patternMatch[1]
+            .replace(/^#+\s+\*?\*?[^*\n]+\*?\*?\s*$/gm, '') // Remove markdown headers
+            .replace(/^\s*\n/gm, '\n') // Normalize empty lines
+            .trim();
+          
+          // Find where actual code starts (first line with code-like content)
+          const lines = extractedCode.split('\n');
+          let codeStartIndex = 0;
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line.match(/^(def |class |import |from |async |function |const |let |var |export |#|\/\/|print|console|if |for |while )/)) {
+              codeStartIndex = i;
+              break;
+            }
+          }
+          
+          extractedCode = lines.slice(codeStartIndex).join('\n').trim();
+          
+          if (extractedCode.length > 20) {
+            console.log('[IDE] Fallback extraction found code:', extractedCode.length, 'chars');
+            return extractedCode;
+          }
+        }
+      }
+      
+      // Last resort: Try to extract everything that looks like code
+      // Find the first line that looks like code and take from there
+      const lines = response.split('\n');
+      let codeStartIndex = -1;
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.match(/^(def |class |import |from |async def |function |const |let |var |export |#!|#\s*\w|\/\/|print\(|console\.)/)) {
+          codeStartIndex = i;
+          break;
+        }
+      }
+      
+      if (codeStartIndex >= 0) {
+        const extractedCode = lines.slice(codeStartIndex).join('\n').trim();
+        if (extractedCode.length > 20) {
+          console.log('[IDE] Last-resort extraction found code:', extractedCode.length, 'chars');
+          return extractedCode;
+        }
+      }
+    }
+    
     console.log('[IDE] No code block found');
     return null;
   };
