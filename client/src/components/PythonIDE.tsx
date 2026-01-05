@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Copy, Check } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Copy, Check, Undo2 } from 'lucide-react';
 import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -2322,34 +2322,58 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     return 'python'; // Default to Python
   };
 
-  // Insert code into editor with language detection
-  const insertCodeIntoEditor = (code: string) => {
-    if (!code || code.trim().length === 0) {
+  // Track previous code for undo functionality
+  const previousCodeRef = useRef<string>('');
+  const [canUndo, setCanUndo] = useState(false);
+  const [codeInsertAnimation, setCodeInsertAnimation] = useState(false);
+
+  // Insert code into editor with language detection and professional features
+  const insertCodeIntoEditor = (incomingCode: string) => {
+    if (!incomingCode || incomingCode.trim().length === 0) {
       console.log('[IDE] No code to insert');
       return;
     }
 
-    console.log('[IDE] insertCodeIntoEditor called with', code.length, 'chars');
+    console.log('[IDE] insertCodeIntoEditor called with', incomingCode.length, 'chars');
     
     // Clean the code - remove markdown artifacts
-    let cleanedCode = code
+    let cleanedCode = incomingCode
       .replace(/^```[\w]*\n?/gm, '')
       .replace(/```$/gm, '')
       .trim();
     
     console.log('[IDE] Cleaned code length:', cleanedCode.length);
     
-    if (showMultiFileMode && activeFile) {
-      console.log('[IDE] Inserting into multi-file mode, file:', activeFile.name);
-      updateFileContent(activeFile.id, cleanedCode);
+    // Store CURRENT code before overwriting (for undo) - must capture BEFORE the update
+    // Use the existing editor state (code), not the incoming code
+    const currentCodeToSave = showMultiFileMode && files.find(f => f.id === activeFileId)?.content 
+      ? files.find(f => f.id === activeFileId)!.content 
+      : code; // This is the state variable `code`, not the parameter
+    previousCodeRef.current = currentCodeToSave;
+    setCanUndo(true);
+    
+    // Trigger visual insertion animation via editor flash
+    setCodeInsertAnimation(true);
+    setTimeout(() => setCodeInsertAnimation(false), 600);
+    
+    if (showMultiFileMode && files.find(f => f.id === activeFileId)) {
+      console.log('[IDE] Inserting into multi-file mode, file:', files.find(f => f.id === activeFileId)?.name);
+      setFiles(prevFiles =>
+        prevFiles.map(f => (f.id === activeFileId ? { ...f, content: cleanedCode } : f))
+      );
     } else {
       console.log('[IDE] Inserting into single-file mode');
       setCode(cleanedCode);
     }
 
+    // Auto-scroll editor to top to show new code
+    if (editorRef.current) {
+      editorRef.current.revealLine(1);
+    }
+
     toast({
-      title: "Code Inserted",
-      description: "AI-generated code has been added to the editor",
+      title: "✨ Code Applied",
+      description: "AI code inserted and ready to run. Click Undo in chat to restore.",
     });
   };
 
@@ -3097,6 +3121,23 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     );
   };
 
+  // Undo last AI code insertion - restores previous code state
+  const undoCodeInsert = useCallback(() => {
+    if (previousCodeRef.current) {
+      if (showMultiFileMode && activeFile) {
+        updateFileContent(activeFile.id, previousCodeRef.current);
+      } else {
+        setCode(previousCodeRef.current);
+      }
+      setCanUndo(false);
+      previousCodeRef.current = '';
+      toast({
+        title: "↩️ Code Restored",
+        description: "Previous code has been restored",
+      });
+    }
+  }, [showMultiFileMode, activeFile, toast]);
+
   const updateFileName = (fileId: string, name: string) => {
     setFiles(prevFiles =>
       prevFiles.map(f => (f.id === fileId ? { ...f, name } : f))
@@ -3685,20 +3726,38 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
                     }
                   </span>
                 </div>
-                <Button
-                  onClick={() => setChatHistory([])}
-                  variant="ghost"
-                  size="sm"
-                  className="font-mono text-xs h-7 px-2"
-                  style={{
-                    color: currentPythonTheme.text,
-                    opacity: chatHistory.length > 0 ? 1 : 0.5,
-                  }}
-                  disabled={chatHistory.length === 0}
-                  title="Clear chat history"
-                >
-                  Clear
-                </Button>
+                <div className="flex items-center gap-1">
+                  {canUndo && (
+                    <Button
+                      onClick={undoCodeInsert}
+                      variant="ghost"
+                      size="sm"
+                      className="font-mono text-xs h-7 px-2 animate-pulse"
+                      style={{
+                        color: currentPythonTheme.highlight,
+                        backgroundColor: `${currentPythonTheme.highlight}20`,
+                      }}
+                      title="Undo last code insertion"
+                    >
+                      <Undo2 className="w-3 h-3 mr-1" />
+                      Undo
+                    </Button>
+                  )}
+                  <Button
+                    onClick={() => setChatHistory([])}
+                    variant="ghost"
+                    size="sm"
+                    className="font-mono text-xs h-7 px-2"
+                    style={{
+                      color: currentPythonTheme.text,
+                      opacity: chatHistory.length > 0 ? 1 : 0.5,
+                    }}
+                    disabled={chatHistory.length === 0}
+                    title="Clear chat history"
+                  >
+                    Clear
+                  </Button>
+                </div>
               </div>
 
               {/* Chat History */}
@@ -4190,7 +4249,7 @@ server.listen(PORT, '0.0.0.0', () => {
               <PanelGroup direction="horizontal" autoSaveId="python-ide-html-preview">
                 {/* Editor Panel */}
                 <Panel defaultSize={50} minSize={30}>
-                  <div className="h-full w-full relative">
+                  <div className={`h-full w-full relative transition-all duration-300 ${codeInsertAnimation ? 'ring-2 ring-[var(--workshop-highlight)] ring-opacity-75 animate-pulse' : ''}`}>
                     {/* Copy Code Button */}
                     <button
                       onClick={() => {
@@ -4328,7 +4387,7 @@ server.listen(PORT, '0.0.0.0', () => {
               <PanelGroup direction="horizontal" autoSaveId="python-ide-preview">
                 {/* Editor Panel */}
                 <Panel defaultSize={60} minSize={30}>
-                  <div className="h-full w-full relative">
+                  <div className={`h-full w-full relative transition-all duration-300 ${codeInsertAnimation ? 'ring-2 ring-[var(--workshop-highlight)] ring-opacity-75 animate-pulse' : ''}`}>
                     {/* Copy Code Button */}
                     <button
                       onClick={() => {
@@ -4592,7 +4651,7 @@ server.listen(PORT, '0.0.0.0', () => {
                 </Panel>
               </PanelGroup>
             ) : (
-              <div className="h-full w-full relative">
+              <div className={`h-full w-full relative transition-all duration-300 ${codeInsertAnimation ? 'ring-2 ring-[var(--workshop-highlight)] ring-opacity-75 animate-pulse' : ''}`}>
                 {/* Copy Code Button */}
                 <button
                   onClick={() => {
