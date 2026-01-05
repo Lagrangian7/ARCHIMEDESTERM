@@ -1403,7 +1403,8 @@ if _virtual_display_started:
           voiceEnabled: false,
           selectedVoice: "default",
           voiceRate: "1",
-          terminalTheme: "hacker"
+          terminalTheme: "hacker",
+          pythonIdeTheme: "terminal-green"
         });
         return res.json(defaultPrefs);
       }

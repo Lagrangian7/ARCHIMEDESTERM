@@ -125,7 +125,8 @@ export class MemStorage implements IStorage {
         voiceEnabled: false,
         selectedVoice: "default",
         voiceRate: "1",
-        terminalTheme: "hacker"
+        terminalTheme: "hacker",
+        pythonIdeTheme: "terminal-green"
       });
 
       return user;
@@ -149,6 +150,7 @@ export class MemStorage implements IStorage {
       selectedVoice: preferences.selectedVoice || null,
       voiceRate: preferences.voiceRate || null,
       terminalTheme: preferences.terminalTheme || "hacker",
+      pythonIdeTheme: preferences.pythonIdeTheme || "terminal-green",
       createdAt: now,
       updatedAt: now
     };
@@ -502,7 +504,8 @@ export class DatabaseStorage implements IStorage {
           voiceEnabled: false,
           selectedVoice: "default",
           voiceRate: "1",
-          terminalTheme: "hacker"
+          terminalTheme: "hacker",
+          pythonIdeTheme: "terminal-green"
         });
       }
 
