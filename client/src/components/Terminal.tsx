@@ -1,3 +1,4 @@
+import { KatexRenderer } from './KatexRenderer';
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -204,21 +205,40 @@ export function Terminal() {
   ], []);
   const [currentTheme, setCurrentTheme] = useState<string>('hacker');
 
-  // Enhanced auto-scroll terminal output to last line with carriage return
-  const scrollToBottom = useCallback(() => {
-    requestAnimationFrame(() => {
-      // Scroll both the output div and the ScrollArea viewport
-      if (outputRef.current) {
-        outputRef.current.scrollTop = outputRef.current.scrollHeight;
-      }
+  // Render an entry based on its type
+  const renderEntry = (entry: TerminalEntry, index: number) => {
+    // Check for LaTeX patterns in response or system messages
+    const latexMatch = entry.content.match(/\$\$(.*?)\$\$|\$(.*?)\$/);
+    
+    return (
+      <div key={entry.id} className="mb-2">
+        {entry.type === 'command' && (
+          <div className="flex gap-2 text-terminal-highlight">
+            <span className="opacity-50">$</span>
+            <span>{entry.content}</span>
+          </div>
+        )}
+        {(entry.type === 'response' || entry.type === 'system') && (
+          <div className="flex flex-col gap-2">
+            {latexMatch ? (
+              <KatexRenderer 
+                content={entry.content} 
+                displayMode={entry.content.startsWith('$$')} 
+              />
+            ) : (
+              <LinkifiedText content={entry.content} />
+            )}
+          </div>
+        )}
+        {entry.type === 'error' && (
+          <div className="text-red-500 font-mono italic">
+            {entry.content}
+          </div>
+        )}
+      </div>
+    );
+  };
 
-      // Also scroll the ScrollArea viewport to ensure proper positioning
-      const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-      if (viewport) {
-        viewport.scrollTop = viewport.scrollHeight;
-      }
-    });
-  }, []);
 
   // Update theme when preferences change or on mount
   useEffect(() => {
@@ -348,6 +368,7 @@ export function Terminal() {
     }
 
     // Trigger MathJax typesetting for any new mathematical content
+    // We'll keep this as a fallback for now, but Katex is preferred for new components
     if (window.MathJax && window.MathJax.typesetPromise) {
       window.MathJax.typesetPromise().catch((err: any) => {
         console.error('MathJax typesetting error:', err);
