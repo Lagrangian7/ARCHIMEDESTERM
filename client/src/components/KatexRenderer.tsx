@@ -3,27 +3,32 @@ import katex from 'katex';
 import { useEffect, useRef } from 'react';
 
 interface KatexRendererProps {
-  content: string;
+  children: string;
   displayMode?: boolean;
 }
 
-export const KatexRenderer = ({ content, displayMode = false }: KatexRendererProps) => {
+export const KatexRenderer = ({ children, displayMode = false }: KatexRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (containerRef.current) {
       try {
-        katex.render(content, containerRef.current, {
+        // Find math content within $ or $$ delimiters
+        const mathContent = children.match(/\$\$(.*?)\$\$|\$(.*?)\$/)?.[1] || 
+                           children.match(/\$\$(.*?)\$\$|\$(.*?)\$/)?.[2] || 
+                           children;
+
+        katex.render(mathContent, containerRef.current, {
           displayMode,
           throwOnError: false,
           strict: false,
         });
       } catch (error) {
         console.error('KaTeX rendering error:', error);
-        containerRef.current.textContent = content;
+        containerRef.current.textContent = children;
       }
     }
-  }, [content, displayMode]);
+  }, [children, displayMode]);
 
-  return <div ref={containerRef} className="katex-output" />;
+  return <div ref={containerRef} className="katex-output inline-block" />;
 };

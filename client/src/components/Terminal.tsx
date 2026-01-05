@@ -73,6 +73,15 @@ const CSTClock = memo(() => {
   );
 });
 
+interface TerminalEntry {
+  id: string;
+  type: 'command' | 'response' | 'system' | 'error';
+  content: string;
+  timestamp: string;
+  mode?: 'natural' | 'technical' | 'freestyle' | 'health';
+  action?: string;
+}
+
 export function Terminal() {
   const {
     entries,
@@ -180,6 +189,23 @@ export function Terminal() {
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
 
+  // Enhanced auto-scroll terminal output to last line with carriage return
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      // Scroll both the output div and the ScrollArea viewport
+      if (outputRef.current) {
+        outputRef.current.scrollTop = outputRef.current.scrollHeight;
+      }
+
+      // Also scroll the ScrollArea viewport to ensure proper positioning
+      const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
+    });
+  }, []);
+
+
   // State for the Knowledge Base modal
   const [kbModalState, setKbModalState] = useState({
     position: { x: 0, y: 0 },
@@ -206,33 +232,71 @@ export function Terminal() {
   const [currentTheme, setCurrentTheme] = useState<string>('hacker');
 
   // Render an entry based on its type
-  const renderEntry = (entry: TerminalEntry, index: number) => {
+  const renderEntry = (entry: TerminalEntry) => {
     // Check for LaTeX patterns in response or system messages
     const latexMatch = entry.content.match(/\$\$(.*?)\$\$|\$(.*?)\$/);
-    
+    const isAnimating = typingEntries.has(entry.id);
+    const typingEntriesSet = typingEntries; // Ensure typingEntriesSet is available in this scope
+
     return (
-      <div key={entry.id} className="mb-2">
+      <div key={entry.id} className={`mb-2 ${getEntryClassName(entry.type, entry.mode)}`} data-testid={`terminal-entry-${entry.type}`}>
         {entry.type === 'command' && (
-          <div className="flex gap-2 text-terminal-highlight">
-            <span className="opacity-50">$</span>
-            <span>{entry.content}</span>
+          <div>
+            <span className="text-terminal-highlight">[{formatTimestamp(entry.timestamp)}]</span>
+            <span className="text-terminal-subtle"> $ </span>
+            {entry.content}
           </div>
         )}
-        {(entry.type === 'response' || entry.type === 'system') && (
-          <div className="flex flex-col gap-2">
+        {entry.type === 'response' && (
+          <div className="mt-2">
+            <div className="text-terminal-highlight flex items-center gap-2">
+              <span>ARCHIMEDES v7 {currentMode === 'technical' ? 'PROTOCOL' : currentMode === 'health' ? 'HEALTH' : 'TERMINAL'}</span>
+              {isAnimating && (
+                <span className="ai-processing-glyph text-xs">ANALYZING</span>
+              )}
+            </div>
+            <MemoizedDraggableResponse
+              isTyping={isAnimating}
+              entryId={entry.id}
+              onBubbleRendered={() => {
+                if (entry.id === entries[entries.length - 1]?.id) {
+                  setBubbleRendered(true);
+                }
+              }}
+            >
+              <div
+                className={`ml-4 mt-1 transition-all duration-300 ${
+                  isAnimating ? 'typing ai-processing-line' : 'whitespace-pre-wrap'
+                }`}
+                style={isAnimating ? {
+                  '--steps': entry.content.length,
+                  '--type-dur': `${Math.min(3000, Math.max(800, entry.content.length * 30))}ms`
+                } as React.CSSProperties : undefined}
+              >
+                {latexMatch ? (
+                  <KatexRenderer 
+                    displayMode={entry.content.startsWith('$$')} 
+                  >
+                    {entry.content}
+                  </KatexRenderer>
+                ) : (
+                  <LinkifiedText content={entry.content} />
+                )}
+              </div>
+            </MemoizedDraggableResponse>
+          </div>
+        )}
+        {(entry.type === 'system' || entry.type === 'error') && (
+          <div className="whitespace-pre-wrap">
             {latexMatch ? (
               <KatexRenderer 
-                content={entry.content} 
                 displayMode={entry.content.startsWith('$$')} 
-              />
+              >
+                {entry.content}
+              </KatexRenderer>
             ) : (
-              <LinkifiedText content={entry.content} />
+              <div dangerouslySetInnerHTML={{ __html: entry.content }} />
             )}
-          </div>
-        )}
-        {entry.type === 'error' && (
-          <div className="text-red-500 font-mono italic">
-            {entry.content}
           </div>
         )}
       </div>
@@ -807,58 +871,7 @@ export function Terminal() {
                 className="terminal-output p-2 md:p-4 font-mono text-xs md:text-sm leading-relaxed relative z-10"
                 data-testid="terminal-output"
               >
-              {entries.slice(0, visibleEntries).map((entry) => (
-                <div
-                  key={entry.id}
-                  className={`mb-2 ${getEntryClassName(entry.type, entry.mode)}`}
-                  data-testid={`terminal-entry-${entry.type}`}
-                >
-                  {entry.type === 'command' && (
-                    <div>
-                      <span className="text-terminal-highlight">[{formatTimestamp(entry.timestamp)}]</span>
-                      <span className="text-terminal-subtle"> $ </span>
-                      {entry.content}
-                    </div>
-                  )}
-                  {entry.type === 'response' && (
-                    <div className="mt-2">
-                      <div className="text-terminal-highlight flex items-center gap-2">
-                        <span>ARCHIMEDES v7 {currentMode === 'technical' ? 'PROTOCOL' : currentMode === 'health' ? 'HEALTH' : 'TERMINAL'}</span>
-                        {typingEntriesSet.has(entry.id) && (
-                          <span className="ai-processing-glyph text-xs">ANALYZING</span>
-                        )}
-                      </div>
-                      <MemoizedDraggableResponse
-                        isTyping={typingEntriesSet.has(entry.id)}
-                        entryId={entry.id}
-                        onBubbleRendered={() => {
-                          // Only set for the latest entry
-                          if (entry.id === entries[entries.length - 1]?.id) {
-                            setBubbleRendered(true);
-                          }
-                        }}
-                      >
-                        <div
-                          className={`ml-4 mt-1 transition-all duration-300 ${
-                            typingEntriesSet.has(entry.id) ? 'typing ai-processing-line' : 'whitespace-pre-wrap'
-                          }`}
-                          style={typingEntriesSet.has(entry.id) ? {
-                            '--steps': entry.content.length,
-                            '--type-dur': `${Math.min(3000, Math.max(800, entry.content.length * 30))}ms`
-                          } as React.CSSProperties : undefined}
-                          dangerouslySetInnerHTML={{ __html: entry.content }}
-                        />
-                      </MemoizedDraggableResponse>
-                    </div>
-                  )}
-                  {(entry.type === 'system' || entry.type === 'error') && (
-                    <div
-                      className="whitespace-pre-wrap"
-                      dangerouslySetInnerHTML={{ __html: entry.content }}
-                    />
-                  )}
-                </div>
-              ))}
+              {entries.slice(0, visibleEntries).map((entry) => renderEntry(entry))}
 
               {isTyping && (
                 <div className="typing-indicator text-terminal-highlight opacity-70" data-testid="typing-indicator">
