@@ -153,6 +153,14 @@ export function useTerminal(onUploadCommand?: () => void) {
 
       // Helper to process a complete SSE event
       const processEvent = (eventText: string) => {
+        console.log('[Terminal Streaming] processEvent called, raw event preview:', eventText.substring(0, 150));
+        
+        // Skip non-SSE data (Vite HMR, browser extensions, etc.)
+        if (!eventText.includes('data:')) {
+          console.log('[Terminal Streaming] Skipping non-SSE content (no data: found)');
+          return;
+        }
+        
         // Collect all data: lines and concatenate their payloads with newlines preserved
         const lines = eventText.split('\n');
         const dataLines: string[] = [];
