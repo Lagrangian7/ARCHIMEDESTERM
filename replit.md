@@ -33,7 +33,9 @@ Preferred communication style: Simple, everyday language.
   - **Utility animations**: Fade, slide, scale, bounce animations with staggered delay utilities
   - **Accessibility**: All animations respect `prefers-reduced-motion` media query
 - **Code Playground**: Multi-language code editor with Monaco supporting 15+ languages (Python, JavaScript, TypeScript, Java, C++, Rust, Go, Ruby, PHP, C#, Swift, Kotlin, Bash, SQL, HTML/CSS). Features include:
+  - **Python as Default Language** - Code Playground defaults to Python unless another language is explicitly detected or specified
   - Automatic language detection from code content and fenced blocks
+  - **Language Sync Workflow**: Terminal chat extracts code blocks with fences intact → passes to CodePlayground with detected language → CodePlayground re-extracts all blocks preserving language tags → each file tab shows correct language with selector for switching
   - Multi-file extraction from AI responses (separates HTML, JS, Python, etc. into individual files)
   - Download buttons for individual code files with proper extensions
   - Local preview/run instructions for each language type
