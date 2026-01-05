@@ -35,6 +35,7 @@ export const userPreferences = pgTable("user_preferences", {
   selectedVoice: text("selected_voice").default("default"),
   voiceRate: text("voice_rate").default("1"),
   terminalTheme: text("terminal_theme").default("hacker").notNull(), // Default theme is "hacker"
+  pythonIdeTheme: text("python_ide_theme").default("terminal-green").notNull(), // Python IDE theme
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
