@@ -179,10 +179,14 @@ export function useTerminal(onUploadCommand?: () => void) {
         
         try {
           const data = JSON.parse(jsonPayload);
-          console.log('[Terminal Streaming] Parsed event type:', data.type);
+          console.log('[Terminal Streaming] Parsed event type:', data.type, 'content preview:', data.content?.substring(0, 100));
           
-          if (data.type === 'chunk') {
+          if (data.type === 'start') {
+            // Session started - ignore, just continue
+            console.log('[Terminal Streaming] Session started:', data.sessionId);
+          } else if (data.type === 'chunk') {
             fullResponse += data.content;
+            console.log('[Terminal Streaming] Updated fullResponse length:', fullResponse.length);
             // Update the entry with accumulated content + cursor
             updateEntry(responseId, fullResponse + '▌');
           } else if (data.type === 'done') {
@@ -237,7 +241,7 @@ export function useTerminal(onUploadCommand?: () => void) {
             throw new Error(data.error);
           }
         } catch (parseError) {
-          console.warn('[Terminal] SSE parse error:', parseError);
+          console.warn('[Terminal] SSE parse error:', parseError, 'payload preview:', jsonPayload.substring(0, 300));
         }
       };
 
@@ -262,8 +266,10 @@ export function useTerminal(onUploadCommand?: () => void) {
           
           console.log('[Terminal Streaming] Processing', events.length, 'events, buffer remaining:', buffer.length);
           
-          for (const event of events) {
+          for (let i = 0; i < events.length; i++) {
+            const event = events[i];
             if (event.trim()) {
+              console.log(`[Terminal Streaming] Processing event ${i + 1}/${events.length}, length: ${event.length}`);
               processEvent(event);
             }
           }
