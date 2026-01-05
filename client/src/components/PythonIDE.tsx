@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, Check, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Copy, Undo2, ArrowRightLeft, Wrench, BookOpenCheck, Sparkles, FlaskConical } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, Check, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Copy, Undo2, ArrowRightLeft } from 'lucide-react';
 import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -1860,16 +1860,6 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   // AI processing visual feedback
   const [aiProcessingLines, setAiProcessingLines] = useState<number[]>([]);
   const decorationsCollectionRef = useRef<any>(null);
-  
-  // Auto-fix error state
-  const [lastExecutionError, setLastExecutionError] = useState<string | null>(null);
-  const [isAutoFixing, setIsAutoFixing] = useState(false);
-  
-  // Quick actions menu state
-  const [showQuickActions, setShowQuickActions] = useState(false);
-  const [quickActionsPosition, setQuickActionsPosition] = useState({ x: 0, y: 0 });
-  const [selectedCode, setSelectedCode] = useState<string>('');
-  const [isExplaining, setIsExplaining] = useState(false);
 
   // Enhanced code quality features
   const [codeQualityHints, setCodeQualityHints] = useState<Array<{ line: number; message: string; severity: 'warning' | 'error' | 'info' }>>([]);
@@ -2273,58 +2263,6 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
         label: 'Decrease Font Size',
         keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Minus],
         run: () => setFontSize(prev => Math.max(prev - 1, 8))
-      });
-
-      // Explain Code shortcut (Ctrl+E)
-      editor.addAction({
-        id: 'explain-code',
-        label: 'Explain Selected Code',
-        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyE],
-        run: () => {
-          const selection = editor.getSelection();
-          if (selection && !selection.isEmpty()) {
-            const selectedText = editor.getModel()?.getValueInRange(selection);
-            if (selectedText) {
-              explainCode(selectedText);
-            }
-          } else {
-            toast({
-              title: "No Selection",
-              description: "Select some code first to explain it (Ctrl+E)",
-            });
-          }
-        }
-      });
-
-      // Selection change listener for quick actions menu
-      editor.onDidChangeCursorSelection((e: any) => {
-        const selection = e.selection;
-        if (selection && !selection.isEmpty()) {
-          const selectedText = editor.getModel()?.getValueInRange(selection);
-          if (selectedText && selectedText.trim().length > 0) {
-            setSelectedCode(selectedText);
-            // Get position for quick actions menu
-            const endPosition = selection.getEndPosition();
-            const coords = editor.getScrolledVisiblePosition(endPosition);
-            if (coords) {
-              const editorDom = editor.getDomNode();
-              if (editorDom) {
-                const rect = editorDom.getBoundingClientRect();
-                setQuickActionsPosition({
-                  x: rect.left + coords.left,
-                  y: rect.top + coords.top + 20
-                });
-                setShowQuickActions(true);
-              }
-            }
-          } else {
-            setShowQuickActions(false);
-            setSelectedCode('');
-          }
-        } else {
-          setShowQuickActions(false);
-          setSelectedCode('');
-        }
       });
 
       // Apply dynamic theme based on terminal CSS variables
@@ -2937,7 +2875,6 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       if (data.success) {
         const timeInfo = data.executionTime ? ` ✓ Completed in ${data.executionTime}s\n\n` : '\n';
         setOutput(timeInfo + (data.output || '(No output)'));
-        setLastExecutionError(null); // Clear any previous error
 
         // Check if GUI output was generated
         if (data.guiOutput) {
@@ -2951,17 +2888,16 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       } else {
         const errorMessage = data.error || 'Code execution failed';
         setOutput(`Error:\n${errorMessage}`);
-        setLastExecutionError(errorMessage); // Store for auto-fix
 
         // Feed error back to AI for learning/debugging
         setChatHistory(prev => [...prev, {
           role: 'assistant',
-          content: `⚠️ Execution Error Detected:\n\`\`\`\n${errorMessage}\n\`\`\`\n\nI can help debug this. Click "Auto-Fix" or ask me for help!`
+          content: `⚠️ Execution Error Detected:\n\`\`\`\n${errorMessage}\n\`\`\`\n\nI can help debug this. What would you like to try?`
         }]);
 
         toast({
           title: "Execution Failed",
-          description: "Click 'Auto-Fix' in the output panel to let AI fix this error.",
+          description: errorMessage,
           variant: "destructive",
         });
         return;
@@ -3015,197 +2951,6 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     setShowGuidance(false);
     setShowChat(true);
     setShowNotepad(false); // Hide notepad when activating freestyle
-  };
-
-  // Auto-fix error function - sends error to AI for automatic fixing
-  const autoFixError = async () => {
-    if (!lastExecutionError || isAutoFixing) return;
-    
-    setIsAutoFixing(true);
-    const currentCode = showMultiFileMode && files.find(f => f.id === activeFileId)?.content || code;
-    const activeLang = showMultiFileMode && files.find(f => f.id === activeFileId)?.language || currentLanguage || 'python';
-    const langDisplayName = LANGUAGE_CONFIG[activeLang]?.displayName || activeLang;
-    
-    const fixPrompt = `The following ${langDisplayName} code has an error. Please fix it and return ONLY the corrected code.
-
-**Current Code:**
-\`\`\`${activeLang}
-${currentCode}
-\`\`\`
-
-**Error Message:**
-\`\`\`
-${lastExecutionError}
-\`\`\`
-
-Analyze the error, identify the bug, and provide the fixed code. Output ONLY the corrected code in a code block.`;
-
-    try {
-      setChatHistory(prev => [...prev, { role: 'user', content: '🔧 Auto-Fix: Please fix this error automatically' }]);
-      
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          message: fixPrompt,
-          mode: 'technical',
-          language: 'english',
-          programmingLanguage: activeLang
-        }),
-      });
-      
-      if (!response.ok) throw new Error('Failed to get fix from AI');
-      
-      const data = await response.json();
-      const fixedCode = extractCodeFromResponse(data.response);
-      
-      if (fixedCode) {
-        // Apply the fix
-        if (showMultiFileMode) {
-          setFiles(prev => prev.map(f => 
-            f.id === activeFileId ? { ...f, content: fixedCode } : f
-          ));
-        } else {
-          setCode(fixedCode);
-        }
-        
-        setLastExecutionError(null);
-        setChatHistory(prev => [...prev, { role: 'assistant', content: `✅ **Auto-Fix Applied!**\n\n${data.response}\n\nThe code has been updated. Try running it again!` }]);
-        
-        toast({
-          title: "Auto-Fix Applied",
-          description: "The error has been fixed. Try running the code again!",
-        });
-      } else {
-        setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
-      }
-    } catch (error) {
-      toast({
-        title: "Auto-Fix Failed",
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: "destructive",
-      });
-    } finally {
-      setIsAutoFixing(false);
-    }
-  };
-
-  // Explain selected code in plain English
-  const explainCode = async (codeToExplain?: string) => {
-    const targetCode = codeToExplain || selectedCode;
-    if (!targetCode.trim() || isExplaining) return;
-    
-    setIsExplaining(true);
-    setShowQuickActions(false);
-    const activeLang = showMultiFileMode && files.find(f => f.id === activeFileId)?.language || currentLanguage || 'python';
-    const langDisplayName = LANGUAGE_CONFIG[activeLang]?.displayName || activeLang;
-    
-    const explainPrompt = `Explain the following ${langDisplayName} code in simple, plain English. Be concise but thorough. Explain what each part does and the overall purpose.
-
-\`\`\`${activeLang}
-${targetCode}
-\`\`\``;
-
-    try {
-      setChatHistory(prev => [...prev, { role: 'user', content: `📖 Explain this code:\n\`\`\`${activeLang}\n${targetCode.substring(0, 200)}${targetCode.length > 200 ? '...' : ''}\n\`\`\`` }]);
-      
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          message: explainPrompt,
-          mode: 'natural',
-          language: 'english',
-        }),
-      });
-      
-      if (!response.ok) throw new Error('Failed to get explanation');
-      
-      const data = await response.json();
-      setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
-      setShowChat(true); // Ensure chat is visible
-      
-    } catch (error) {
-      toast({
-        title: "Explain Failed",
-        description: error instanceof Error ? error.message : 'Unknown error',
-        variant: "destructive",
-      });
-    } finally {
-      setIsExplaining(false);
-    }
-  };
-
-  // Quick action: Add tests for selected code
-  const addTestsForCode = async () => {
-    if (!selectedCode.trim()) return;
-    
-    setShowQuickActions(false);
-    const activeLang = showMultiFileMode && files.find(f => f.id === activeFileId)?.language || currentLanguage || 'python';
-    const langDisplayName = LANGUAGE_CONFIG[activeLang]?.displayName || activeLang;
-    
-    const testPrompt = `Generate unit tests for the following ${langDisplayName} code. Use the appropriate testing framework (pytest for Python, Jest for JavaScript/TypeScript, etc.).
-
-\`\`\`${activeLang}
-${selectedCode}
-\`\`\`
-
-Create comprehensive tests covering normal cases, edge cases, and error handling.`;
-
-    setChatHistory(prev => [...prev, { role: 'user', content: `🧪 Generate tests for this code` }]);
-    setChatInput(testPrompt);
-    setShowChat(true);
-  };
-
-  // Quick action: Add documentation to selected code
-  const addDocsForCode = async () => {
-    if (!selectedCode.trim()) return;
-    
-    setShowQuickActions(false);
-    const activeLang = showMultiFileMode && files.find(f => f.id === activeFileId)?.language || currentLanguage || 'python';
-    const langDisplayName = LANGUAGE_CONFIG[activeLang]?.displayName || activeLang;
-    
-    const docsPrompt = `Add comprehensive documentation to the following ${langDisplayName} code. Include:
-- Docstrings/JSDoc comments for functions/classes
-- Inline comments for complex logic
-- Type hints if applicable
-
-Return the code with documentation added.
-
-\`\`\`${activeLang}
-${selectedCode}
-\`\`\``;
-
-    setChatHistory(prev => [...prev, { role: 'user', content: `📝 Add documentation to this code` }]);
-    setChatInput(docsPrompt);
-    setShowChat(true);
-  };
-
-  // Quick action: Refactor selected code
-  const refactorCode = async () => {
-    if (!selectedCode.trim()) return;
-    
-    setShowQuickActions(false);
-    const activeLang = showMultiFileMode && files.find(f => f.id === activeFileId)?.language || currentLanguage || 'python';
-    const langDisplayName = LANGUAGE_CONFIG[activeLang]?.displayName || activeLang;
-    
-    const refactorPrompt = `Refactor the following ${langDisplayName} code to improve:
-- Readability and clarity
-- Performance where possible
-- Following best practices and coding standards
-- Reducing complexity
-
-Explain what improvements you made.
-
-\`\`\`${activeLang}
-${selectedCode}
-\`\`\``;
-
-    setChatHistory(prev => [...prev, { role: 'user', content: `🔄 Refactor this code` }]);
-    setChatInput(refactorPrompt);
-    setShowChat(true);
   };
 
   const toggleTask = (task: string) => {
@@ -5728,47 +5473,8 @@ server.listen(PORT, '0.0.0.0', () => {
           </div>
 
           {/* Output */}
-          <div className="flex-1 overflow-hidden flex flex-col" style={{ backgroundColor: currentPythonTheme.subtle }}>
-            {/* Auto-Fix Error Button */}
-            {lastExecutionError && (
-              <div 
-                className="px-4 py-2 flex items-center gap-2" 
-                style={{ 
-                  backgroundColor: 'rgba(255, 107, 107, 0.1)', 
-                  borderBottom: `1px solid ${currentPythonTheme.border}` 
-                }}
-              >
-                <span className="font-mono text-xs" style={{ color: '#ff6b6b' }}>
-                  Error detected
-                </span>
-                <Button
-                  onClick={autoFixError}
-                  disabled={isAutoFixing}
-                  size="sm"
-                  variant="outline"
-                  className="font-mono text-xs h-7"
-                  data-testid="button-auto-fix"
-                  style={{
-                    backgroundColor: currentPythonTheme.bg,
-                    color: '#4ade80',
-                    border: '1px solid #4ade80',
-                  }}
-                >
-                  {isAutoFixing ? (
-                    <>
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      Fixing...
-                    </>
-                  ) : (
-                    <>
-                      <Wrench className="w-3 h-3 mr-1" />
-                      Auto-Fix
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-            <ScrollArea className="flex-1 w-full">
+          <div className="flex-1 overflow-hidden" style={{ backgroundColor: currentPythonTheme.subtle }}>
+            <ScrollArea className="h-full w-full">
               <div className="p-4">
                 <pre className="font-mono text-xs whitespace-pre-wrap" style={{ color: currentPythonTheme.text }}>
                   {output || '// Run code to see output here...'}
@@ -5994,82 +5700,6 @@ server.listen(PORT, '0.0.0.0', () => {
               }}
             />
           </div>
-        </div>
-      )}
-
-      {/* Quick Actions Floating Menu */}
-      {showQuickActions && selectedCode && (
-        <div
-          className="fixed z-[60] flex items-center gap-1 p-1 rounded-lg shadow-xl"
-          style={{
-            left: `${Math.min(quickActionsPosition.x, window.innerWidth - 300)}px`,
-            top: `${Math.min(quickActionsPosition.y, window.innerHeight - 50)}px`,
-            backgroundColor: currentPythonTheme.bg,
-            border: `1px solid ${currentPythonTheme.border}`,
-            boxShadow: `0 4px 20px rgba(0,0,0,0.3)`,
-          }}
-          data-testid="quick-actions-menu"
-        >
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => explainCode()}
-            disabled={isExplaining}
-            className="h-7 px-2 text-xs font-mono"
-            style={{ color: currentPythonTheme.highlight }}
-            title="Explain this code (Ctrl+E)"
-            data-testid="button-explain-code"
-          >
-            {isExplaining ? <Loader2 className="w-3 h-3 animate-spin" /> : <BookOpenCheck className="w-3 h-3 mr-1" />}
-            Explain
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={refactorCode}
-            className="h-7 px-2 text-xs font-mono"
-            style={{ color: currentPythonTheme.highlight }}
-            title="Refactor this code"
-            data-testid="button-refactor-code"
-          >
-            <Sparkles className="w-3 h-3 mr-1" />
-            Refactor
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={addTestsForCode}
-            className="h-7 px-2 text-xs font-mono"
-            style={{ color: currentPythonTheme.highlight }}
-            title="Generate tests for this code"
-            data-testid="button-add-tests"
-          >
-            <FlaskConical className="w-3 h-3 mr-1" />
-            Tests
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={addDocsForCode}
-            className="h-7 px-2 text-xs font-mono"
-            style={{ color: currentPythonTheme.highlight }}
-            title="Add documentation to this code"
-            data-testid="button-add-docs"
-          >
-            <FileText className="w-3 h-3 mr-1" />
-            Docs
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setShowQuickActions(false)}
-            className="h-7 w-7 p-0"
-            style={{ color: currentPythonTheme.text }}
-            title="Close"
-            data-testid="button-close-quick-actions"
-          >
-            <X className="w-3 h-3" />
-          </Button>
         </div>
       )}
     </>
