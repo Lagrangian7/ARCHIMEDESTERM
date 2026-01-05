@@ -285,28 +285,28 @@ export function Terminal() {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ terminalTheme: nextTheme }),
+    }).then(response => {
+      if (response.ok) {
+        // Invalidate React Query cache to keep preferences in sync
+        import('@/lib/queryClient').then(({ queryClient }) => {
+          queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
+        });
+      }
     }).catch(() => {
       // Silently fail for unauthenticated users or network errors
     });
   }, [themes, currentTheme]);
 
-  // Listen for theme change events from commands
+  // Listen for theme change events from commands (synced from user preferences)
   useEffect(() => {
     const handleThemeChange = (event: CustomEvent) => {
-      const newTheme = event.detail?.theme || event.detail;
-      if (newTheme && newTheme !== currentTheme) {
+      // Handle both object format { theme: string } and string format
+      const newTheme = typeof event.detail === 'object' ? event.detail?.theme : event.detail;
+      if (newTheme && typeof newTheme === 'string' && newTheme !== currentTheme) {
         setCurrentTheme(newTheme);
         localStorage.setItem('terminal-theme', newTheme);
-        
-        // Persist to user preferences on server (if authenticated)
-        fetch('/api/user/preferences', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ terminalTheme: newTheme }),
-        }).catch(() => {
-          // Silently fail for unauthenticated users or network errors
-        });
+        // Note: Don't save to server here - this event is dispatched FROM server sync
+        // to avoid circular updates. Direct user changes use switchTheme instead.
       }
     };
 

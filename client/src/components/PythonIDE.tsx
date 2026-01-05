@@ -3476,6 +3476,9 @@ ${!isInsertMode && !isReplaceMode ? '- If modifying existing code, output only t
     return LANGUAGE_CONFIG[language]?.monacoLang || 'python';
   };
 
+  // Track initial render to avoid saving on mount
+  const isInitialRenderRef = useRef(true);
+
   // Dispatch theme change event when Workshop theme changes and persist to server
   useEffect(() => {
     localStorage.setItem('python-ide-theme', pythonTheme);
@@ -3484,22 +3487,38 @@ ${!isInsertMode && !isReplaceMode ? '- If modifying existing code, output only t
     const event = new CustomEvent('workshop-theme-change', { detail: pythonTheme });
     window.dispatchEvent(event);
 
+    // Skip saving on initial render (theme was just loaded)
+    if (isInitialRenderRef.current) {
+      isInitialRenderRef.current = false;
+      return;
+    }
+
     // Save to user preferences on server (if authenticated)
     fetch('/api/user/preferences', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ pythonIdeTheme: pythonTheme }),
+    }).then(response => {
+      if (response.ok) {
+        // Invalidate React Query cache to keep preferences in sync
+        import('@/lib/queryClient').then(({ queryClient }) => {
+          queryClient.invalidateQueries({ queryKey: ['/api/user/preferences'] });
+        });
+      }
     }).catch(() => {
       // Silently fail for unauthenticated users or network errors
     });
   }, [pythonTheme]);
 
-  // Listen for theme changes from user preferences sync
+  // Listen for theme changes from user preferences sync (from server)
   useEffect(() => {
     const handleThemeChange = (e: CustomEvent<{ theme: string }>) => {
-      if (e.detail.theme && e.detail.theme !== pythonTheme) {
-        setPythonTheme(e.detail.theme);
+      // Handle both object format { theme: string } and legacy string format
+      const newTheme = typeof e.detail === 'object' ? e.detail?.theme : e.detail;
+      if (newTheme && typeof newTheme === 'string' && newTheme !== pythonTheme) {
+        isInitialRenderRef.current = true; // Prevent re-saving what we just received from server
+        setPythonTheme(newTheme);
       }
     };
     window.addEventListener('python-ide-theme-change', handleThemeChange as EventListener);
