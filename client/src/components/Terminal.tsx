@@ -278,19 +278,43 @@ export function Terminal() {
     const nextTheme = themes[(currentIndex + 1) % themes.length];
     setCurrentTheme(nextTheme);
     localStorage.setItem('terminal-theme', nextTheme);
+    
+    // Persist to user preferences on server (if authenticated)
+    fetch('/api/user/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ terminalTheme: nextTheme }),
+    }).catch(() => {
+      // Silently fail for unauthenticated users or network errors
+    });
   }, [themes, currentTheme]);
 
   // Listen for theme change events from commands
   useEffect(() => {
     const handleThemeChange = (event: CustomEvent) => {
-      setCurrentTheme(event.detail);
+      const newTheme = event.detail?.theme || event.detail;
+      if (newTheme && newTheme !== currentTheme) {
+        setCurrentTheme(newTheme);
+        localStorage.setItem('terminal-theme', newTheme);
+        
+        // Persist to user preferences on server (if authenticated)
+        fetch('/api/user/preferences', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ terminalTheme: newTheme }),
+        }).catch(() => {
+          // Silently fail for unauthenticated users or network errors
+        });
+      }
     };
 
     window.addEventListener('terminal-theme-change', handleThemeChange as EventListener);
     return () => {
       window.removeEventListener('terminal-theme-change', handleThemeChange as EventListener);
     };
-  }, []);
+  }, [currentTheme]);
 
   // Radio character is now controlled by Webamp state
   // No separate radio audio functionality
