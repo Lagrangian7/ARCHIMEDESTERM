@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Copy, Check, Undo2, Redo2, ArrowRightLeft, Wrench } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Copy, Check, Undo2, ArrowRightLeft } from 'lucide-react';
 import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -1848,12 +1848,6 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   // Insert mode tracking - determines if code should insert at cursor or replace file
   const [lastInsertMode, setLastInsertMode] = useState<'insert' | 'replace' | 'auto'>('auto');
   const lastCursorPositionRef = useRef<{ line: number; column: number }>({ line: 1, column: 1 });
-  
-  // Streaming response state - shows AI response as it generates
-  const [streamingResponse, setStreamingResponse] = useState<string>('');
-  const [isStreaming, setIsStreaming] = useState(false);
-  const streamAbortControllerRef = useRef<AbortController | null>(null);
-  
   const [webContainerFiles, setWebContainerFiles] = useState<Record<string, any>>({});
   const [webContainerPreviewUrl, setWebContainerPreviewUrl] = useState<string | null>(null);
   const [showSnippets, setShowSnippets] = useState(false);
@@ -2409,16 +2403,10 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     return 'python'; // Default to Python
   };
 
-  // Multi-level undo/redo functionality (10 levels)
-  const undoStackRef = useRef<string[]>([]);
-  const redoStackRef = useRef<string[]>([]);
-  const MAX_UNDO_LEVELS = 10;
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
-  const [codeInsertAnimation, setCodeInsertAnimation] = useState(false);
-  
-  // Legacy compatibility - still used by some code paths
+  // Track previous code for undo functionality
   const previousCodeRef = useRef<string>('');
+  const [canUndo, setCanUndo] = useState(false);
+  const [codeInsertAnimation, setCodeInsertAnimation] = useState(false);
 
   // Insert code into editor with language detection and professional features
   // Supports INSERT mode (at cursor) and REPLACE mode (full file replacement)
@@ -2438,17 +2426,13 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     
     console.log('[IDE] Cleaned code length:', cleanedCode.length);
     
-    // Store CURRENT code in undo stack before overwriting - multi-level undo support
+    // Store CURRENT code before overwriting (for undo) - must capture BEFORE the update
+    // Use the existing editor state (code), not the incoming code
     const currentCodeToSave = showMultiFileMode && files.find(f => f.id === activeFileId)?.content 
       ? files.find(f => f.id === activeFileId)!.content 
-      : code;
-    
-    // Push to undo stack (limit to MAX_UNDO_LEVELS)
-    undoStackRef.current = [...undoStackRef.current.slice(-(MAX_UNDO_LEVELS - 1)), currentCodeToSave];
-    redoStackRef.current = []; // Clear redo stack on new action
-    previousCodeRef.current = currentCodeToSave; // Legacy compatibility
+      : code; // This is the state variable `code`, not the parameter
+    previousCodeRef.current = currentCodeToSave;
     setCanUndo(true);
-    setCanRedo(false);
     
     // Trigger visual insertion animation via editor flash
     setCodeInsertAnimation(true);
@@ -2585,73 +2569,12 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     }
   }, [chatHistory, showMultiFileMode]);
 
-  // Clear chat history - reset conversation
-  const clearChatHistory = useCallback(() => {
-    setChatHistory([]);
-    toast({
-      title: "💬 Chat Cleared",
-      description: "Conversation history has been reset",
-    });
-  }, [toast]);
-
-  // Refactor commands - quick actions for common code transformations
-  const REFACTOR_COMMANDS: Record<string, { prompt: string; description: string }> = {
-    '/optimize': { 
-      prompt: 'Optimize this code for better performance while maintaining readability.',
-      description: 'Optimize code performance'
-    },
-    '/simplify': { 
-      prompt: 'Simplify this code by reducing complexity and improving clarity. Remove unnecessary abstractions.',
-      description: 'Simplify and clarify code'
-    },
-    '/addtypes': { 
-      prompt: 'Add proper type annotations/hints to this code for better type safety.',
-      description: 'Add type annotations'
-    },
-    '/document': { 
-      prompt: 'Add comprehensive documentation, docstrings, and comments to explain this code.',
-      description: 'Add documentation'
-    },
-    '/test': { 
-      prompt: 'Generate unit tests for this code with good test coverage.',
-      description: 'Generate unit tests'
-    },
-    '/refactor': { 
-      prompt: 'Refactor this code to follow best practices and improve structure without changing behavior.',
-      description: 'General refactoring'
-    },
-  };
-
   const handleChatSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim() || chatMutation.isPending || isStreaming) return;
+    if (!chatInput.trim() || chatMutation.isPending) return;
 
     // Get current programming language from active file or selected language
     const progLang = showMultiFileMode && activeFile ? activeFile.language : currentLanguage;
-    const trimmedInput = chatInput.trim();
-    
-    // Check for refactor commands
-    const commandMatch = Object.keys(REFACTOR_COMMANDS).find(cmd => 
-      trimmedInput.toLowerCase().startsWith(cmd)
-    );
-    
-    if (commandMatch) {
-      const command = REFACTOR_COMMANDS[commandMatch];
-      const currentCodeForRefactor = showMultiFileMode && activeFile ? activeFile.content : code;
-      
-      // Build refactor message with current code context
-      const refactorMessage = `${command.prompt}
-
-Current code:
-\`\`\`${progLang}
-${currentCodeForRefactor}
-\`\`\``;
-      
-      setChatHistory(prev => [...prev, { role: 'user', content: `${commandMatch} - ${command.description}` }]);
-      sendStreamingChat(refactorMessage, progLang);
-      setChatInput('');
-      return;
-    }
 
     setChatHistory(prev => [...prev, { role: 'user', content: chatInput }]);
     chatMutation.mutate({ message: chatInput, language: progLang });
@@ -3198,47 +3121,47 @@ ${currentCodeForRefactor}
   // Get current lesson for guidance display
   const currentLesson = LESSONS[selectedLesson];
 
-  // Streaming chat function - shows AI response as it generates in real-time
-  const sendStreamingChat = useCallback(async (message: string, language?: string) => {
-    // Get current programming language from active file or selected language (default to python)
-    const currentActiveFileForLang = files.find(f => f.id === activeFileId);
-    const progLang = showMultiFileMode && currentActiveFileForLang ? currentActiveFileForLang.language : (currentLanguage || 'python');
+  // Mutation for chat requests
+  const chatMutation = useMutation({
+    mutationFn: async ({ message, language }: { message: string; language?: string }) => {
+      // Get current programming language from active file or selected language (default to python)
+      const progLang = showMultiFileMode && activeFile ? activeFile.language : (currentLanguage || 'python');
 
-    // Build context-aware message with current editor code
-    const currentActiveFile = files.find(f => f.id === activeFileId);
-    const currentCode = showMultiFileMode && currentActiveFile ? currentActiveFile.content : code;
+      // Build context-aware message with current editor code
+      const currentActiveFile = files.find(f => f.id === activeFileId);
+      const currentCode = showMultiFileMode && currentActiveFile ? currentActiveFile.content : code;
 
-    // Build conversation context from recent chat history (last 6 messages for continuity)
-    const recentHistory = chatHistory.slice(-6);
-    const conversationContext = recentHistory.length > 0 
-      ? recentHistory.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content.substring(0, 500)}`).join('\n\n')
-      : '';
+      // Build conversation context from recent chat history (last 6 messages for continuity)
+      const recentHistory = chatHistory.slice(-6);
+      const conversationContext = recentHistory.length > 0 
+        ? recentHistory.map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content.substring(0, 500)}`).join('\n\n')
+        : '';
 
-    // Include code context and conversation history for conversational coding
-    let contextualMessage = message;
-    const isDefaultCode = currentCode.trim() === '' || 
-      currentCode === '# ARCHIMEDES Workshop - Freestyle Mode\n# Chat with ARCHIMEDES to generate code, or write your own!\n\n';
-    
-    // Intent detection: determine if user wants full replacement or insertion
-    const insertKeywords = /\b(add|insert|append|include|put|place|inject|extend|augment)\b/i;
-    const replaceKeywords = /\b(write|create|make|build|generate|rewrite|replace|redo|start fresh|new file|from scratch)\b/i;
-    const isInsertMode = insertKeywords.test(message) && !replaceKeywords.test(message);
-    const isReplaceMode = replaceKeywords.test(message) || isDefaultCode;
-    
-    // Get cursor position for insert mode context
-    const cursorPosition = editorRef.current?.getPosition();
-    const cursorLine = cursorPosition?.lineNumber || 1;
-    const cursorColumn = cursorPosition?.column || 1;
-    
-    // Store mode and cursor for use in completion handler
-    setLastInsertMode(isInsertMode ? 'insert' : (isReplaceMode ? 'replace' : 'auto'));
-    lastCursorPositionRef.current = { line: cursorLine, column: cursorColumn };
-    
-    // Language enforcement instruction - mandatory, not advisory
-    const langDisplayName = LANGUAGE_CONFIG[progLang]?.displayName || progLang;
-    
-    // Comprehensive AI behavior guidelines
-    const aiGuidelines = `
+      // Include code context and conversation history for conversational coding
+      let contextualMessage = message;
+      const isDefaultCode = currentCode.trim() === '' || 
+        currentCode === '# ARCHIMEDES Workshop - Freestyle Mode\n# Chat with ARCHIMEDES to generate code, or write your own!\n\n';
+      
+      // Intent detection: determine if user wants full replacement or insertion
+      const insertKeywords = /\b(add|insert|append|include|put|place|inject|extend|augment)\b/i;
+      const replaceKeywords = /\b(write|create|make|build|generate|rewrite|replace|redo|start fresh|new file|from scratch)\b/i;
+      const isInsertMode = insertKeywords.test(message) && !replaceKeywords.test(message);
+      const isReplaceMode = replaceKeywords.test(message) || isDefaultCode;
+      
+      // Get cursor position for insert mode context
+      const cursorPosition = editorRef.current?.getPosition();
+      const cursorLine = cursorPosition?.lineNumber || 1;
+      const cursorColumn = cursorPosition?.column || 1;
+      
+      // Store mode and cursor for use in onSuccess handler
+      setLastInsertMode(isInsertMode ? 'insert' : (isReplaceMode ? 'replace' : 'auto'));
+      lastCursorPositionRef.current = { line: cursorLine, column: cursorColumn };
+      
+      // Language enforcement instruction - mandatory, not advisory
+      const langDisplayName = LANGUAGE_CONFIG[progLang]?.displayName || progLang;
+      
+      // Comprehensive AI behavior guidelines
+      const aiGuidelines = `
 
 📋 AI CODING ASSISTANT GUIDELINES:
 
@@ -3269,208 +3192,132 @@ ${!isInsertMode && !isReplaceMode ? '- If modifying existing code, output only t
 **Language Requirement:**
 ⚠️ MANDATORY: Generate ${langDisplayName} code ONLY. Wrap code in \`\`\`${progLang} blocks.`;
 
-    if (!isDefaultCode && currentCode.trim()) {
-      contextualMessage = `Current code in editor (${langDisplayName}, cursor at line ${cursorLine}):\n\`\`\`${progLang}\n${currentCode}\n\`\`\`\n\n`;
-      if (conversationContext) {
-        contextualMessage += `Recent conversation:\n${conversationContext}\n\n`;
-      }
-      contextualMessage += `User query: ${message}${aiGuidelines}`;
-    } else if (conversationContext) {
-      contextualMessage = `Recent conversation:\n${conversationContext}\n\nUser query: ${message}${aiGuidelines}`;
-    } else {
-      contextualMessage = `${message}${aiGuidelines}`;
-    }
-
-    // Visual feedback: highlight code being analyzed
-    if (editorRef.current && decorationsCollectionRef.current && monacoRef.current) {
-      const lineCount = currentCode.split('\n').length;
-      const lines: number[] = [];
-      for (let i = 1; i <= Math.min(lineCount, 50); i++) {
-        lines.push(i);
-      }
-      setAiProcessingLines(lines);
-      const decorations = lines.map(line => ({
-        range: new monacoRef.current.Range(line, 1, line, 1),
-        options: {
-          isWholeLine: true,
-          className: 'ai-processing-line',
-          glyphMarginClassName: 'ai-processing-glyph'
+      if (!isDefaultCode && currentCode.trim()) {
+        contextualMessage = `Current code in editor (${langDisplayName}, cursor at line ${cursorLine}):\n\`\`\`${progLang}\n${currentCode}\n\`\`\`\n\n`;
+        if (conversationContext) {
+          contextualMessage += `Recent conversation:\n${conversationContext}\n\n`;
         }
-      }));
-      decorationsCollectionRef.current.set(decorations);
-    }
+        contextualMessage += `User query: ${message}${aiGuidelines}`;
+      } else if (conversationContext) {
+        contextualMessage = `Recent conversation:\n${conversationContext}\n\nUser query: ${message}${aiGuidelines}`;
+      } else {
+        contextualMessage = `${message}${aiGuidelines}`;
+      }
 
-    // Start streaming
-    setIsStreaming(true);
-    setStreamingResponse('');
-    
-    // Add placeholder for streaming response in chat
-    setChatHistory(prev => [...prev, { role: 'assistant', content: '' }]);
-    
-    const abortController = new AbortController();
-    streamAbortControllerRef.current = abortController;
+      // Visual feedback: highlight code being analyzed
+      if (editorRef.current && decorationsCollectionRef.current && monacoRef.current) {
+        const lineCount = currentCode.split('\n').length;
+        const lines: number[] = [];
 
-    try {
-      const response = await fetch('/api/chat/stream', {
+        // Animate through lines to show AI is reading
+        for (let i = 1; i <= Math.min(lineCount, 50); i++) {
+          lines.push(i);
+        }
+        setAiProcessingLines(lines);
+
+        // Apply decorations with pulsing effect
+        const decorations = lines.map(line => ({
+          range: new monacoRef.current.Range(line, 1, line, 1),
+          options: {
+            isWholeLine: true,
+            className: 'ai-processing-line',
+            glyphMarginClassName: 'ai-processing-glyph'
+          }
+        }));
+
+        decorationsCollectionRef.current.set(decorations);
+      }
+
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        signal: abortController.signal,
         body: JSON.stringify({
           message: contextualMessage,
           mode: isFreestyleMode ? 'freestyle' : 'technical',
-          language: 'english',
-          programmingLanguage: language || progLang
+          language: 'english', // Human language (English/Spanish/Japanese)
+          programmingLanguage: language || progLang // Programming language for code generation
         }),
       });
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Chat request failed');
       }
-
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let fullResponse = '';
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                
-                if (data.type === 'chunk') {
-                  fullResponse += data.content;
-                  setStreamingResponse(fullResponse);
-                  // Update the last chat message with streaming content
-                  setChatHistory(prev => {
-                    const updated = [...prev];
-                    if (updated.length > 0) {
-                      updated[updated.length - 1] = { role: 'assistant', content: fullResponse };
-                    }
-                    return updated;
-                  });
-                } else if (data.type === 'done') {
-                  // Streaming complete - process the full response
-                  const finalResponse = data.fullResponse || fullResponse;
-                  
-                  // Clear decorations
-                  if (decorationsCollectionRef.current) {
-                    decorationsCollectionRef.current.clear();
-                  }
-                  setAiProcessingLines([]);
-                  setIsStreaming(false);
-                  setStreamingResponse('');
-                  
-                  // Update final chat message
-                  setChatHistory(prev => {
-                    const updated = [...prev];
-                    if (updated.length > 0) {
-                      updated[updated.length - 1] = { role: 'assistant', content: finalResponse };
-                    }
-                    return updated;
-                  });
-
-                  // Auto-insert code if detected
-                  console.log('[IDE] Streaming complete, checking for code...');
-                  const extractedCode = extractCodeFromResponse(finalResponse);
-                  
-                  if (extractedCode) {
-                    const detectedLang = extractLanguageFromResponse(finalResponse);
-                    const currentActiveFileCheck = files.find(f => f.id === activeFileId);
-                    const editorLang = showMultiFileMode && currentActiveFileCheck ? currentActiveFileCheck.language : currentLanguage;
-                    
-                    const hasExplicitLanguageTag = Boolean(finalResponse.match(/```(python|py|javascript|js|typescript|ts|java|cpp|c\+\+|c|go|rust|ruby|php|html|css|sql|bash|shell)/i));
-                    const isKnownLanguage = detectedLang in LANGUAGE_CONFIG;
-                    
-                    if (!hasExplicitLanguageTag || !isKnownLanguage) {
-                      insertCodeIntoEditor(extractedCode);
-                      toast({ title: "Code Ready", description: "AI-generated code has been inserted into the editor" });
-                    } else if (detectedLang !== editorLang) {
-                      setPendingCodeInsert({ code: extractedCode, detectedLang });
-                      setShowLanguageMismatchDialog(true);
-                    } else {
-                      insertCodeIntoEditor(extractedCode);
-                      toast({ title: "Code Ready", description: "AI-generated code has been inserted into the editor" });
-                    }
-                  }
-                } else if (data.type === 'error') {
-                  throw new Error(data.error);
-                }
-              } catch (parseError) {
-                // Ignore JSON parse errors for incomplete chunks
-              }
-            }
-          }
-        }
-      }
-    } catch (error) {
-      if ((error as Error).name === 'AbortError') {
-        console.log('[IDE] Stream aborted');
-      } else {
-        console.error('Streaming chat error:', error);
-        setChatHistory(prev => {
-          const updated = [...prev];
-          if (updated.length > 0) {
-            updated[updated.length - 1] = { 
-              role: 'assistant', 
-              content: `Error: ${error instanceof Error ? error.message : 'Failed to get response. Please try again.'}` 
-            };
-          }
-          return updated;
-        });
-      }
-    } finally {
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Clear AI processing decorations
       if (decorationsCollectionRef.current) {
         decorationsCollectionRef.current.clear();
       }
       setAiProcessingLines([]);
-      setIsStreaming(false);
-      setStreamingResponse('');
-      streamAbortControllerRef.current = null;
-    }
-  }, [showMultiFileMode, currentLanguage, files, activeFileId, code, chatHistory, isFreestyleMode, toast, extractCodeFromResponse, extractLanguageFromResponse, insertCodeIntoEditor]);
 
-  // Legacy mutation wrapper for compatibility (uses streaming internally)
-  const chatMutation = useMutation({
-    mutationFn: async ({ message, language }: { message: string; language?: string }) => {
-      await sendStreamingChat(message, language);
-      return { response: 'Streaming complete' };
+      setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
+
+      // Auto-insert code if detected in response with LANGUAGE VALIDATION
+      console.log('[IDE] AI Response received, checking for code...');
+      console.log('[IDE] Response preview:', data.response.substring(0, 200));
+      const extractedCode = extractCodeFromResponse(data.response);
+      console.log('[IDE] Extracted code:', extractedCode ? `${extractedCode.length} chars` : 'null');
+      
+      if (extractedCode) {
+        // Detect language from response code block
+        const detectedLang = extractLanguageFromResponse(data.response);
+        const editorLang = showMultiFileMode && activeFile ? activeFile.language : currentLanguage;
+        
+        console.log('[IDE] Detected language:', detectedLang, '| Editor language:', editorLang);
+        
+        // Only trigger mismatch dialog if:
+        // 1. The AI explicitly specified a language (not using default fallback)
+        // 2. Detected language is a known language in LANGUAGE_CONFIG
+        // 3. Detected language is explicitly different from editor language
+        // Short-circuit: if no explicit tag, always allow insert (prevents false positives)
+        const hasExplicitLanguageTag = Boolean(data.response.match(/```(python|py|javascript|js|typescript|ts|java|cpp|c\+\+|c|go|rust|ruby|php|html|css|sql|bash|shell)/i));
+        const isKnownLanguage = detectedLang in LANGUAGE_CONFIG;
+        
+        // Short-circuit early if no explicit language tag or unknown language
+        if (!hasExplicitLanguageTag || !isKnownLanguage) {
+          console.log('[IDE] No explicit language tag or unknown language, inserting directly...');
+          insertCodeIntoEditor(extractedCode);
+          toast({
+            title: "Code Ready",
+            description: "AI-generated code has been inserted into the editor",
+          });
+        } else if (detectedLang !== editorLang) {
+          console.log('[IDE] Language mismatch detected! Showing dialog...');
+          // Store pending code and show mismatch dialog
+          setPendingCodeInsert({ code: extractedCode, detectedLang });
+          setShowLanguageMismatchDialog(true);
+        } else {
+          // Languages match or no explicit language tag - insert directly
+          console.log('[IDE] Languages match or implicit default, inserting code...');
+          insertCodeIntoEditor(extractedCode);
+          toast({
+            title: "Code Ready",
+            description: "AI-generated code has been inserted into the editor",
+          });
+        }
+      } else {
+        console.log('[IDE] No code block detected in response');
+      }
+    },
+    onError: (error) => {
+      // Clear AI processing decorations on error
+      if (decorationsCollectionRef.current) {
+        decorationsCollectionRef.current.clear();
+      }
+      setAiProcessingLines([]);
+
+      console.error('Chat error:', error);
+      setChatHistory(prev => [...prev, { 
+        role: 'assistant', 
+        content: `Error: ${error instanceof Error ? error.message : 'Failed to get response. Please try again.'}` 
+      }]);
     },
   });
 
   // Helper functions for multi-file operations
   const activeFile = files.find(f => f.id === activeFileId);
-
-  // Fix This Error - sends the error output to AI for fixing
-  const handleFixError = useCallback((errorOutput: string) => {
-    const currentActiveFileForFix = files.find(f => f.id === activeFileId);
-    const progLang = showMultiFileMode && currentActiveFileForFix ? currentActiveFileForFix.language : currentLanguage;
-    const currentCodeForFix = showMultiFileMode && currentActiveFileForFix ? currentActiveFileForFix.content : code;
-    
-    const fixMessage = `My code is producing this error:
-
-\`\`\`
-${errorOutput}
-\`\`\`
-
-Here's my current code:
-\`\`\`${progLang}
-${currentCodeForFix}
-\`\`\`
-
-Please fix this error and provide the corrected code.`;
-    
-    setChatHistory(prev => [...prev, { role: 'user', content: 'Fix this error in my code' }]);
-    sendStreamingChat(fixMessage, progLang);
-  }, [showMultiFileMode, files, activeFileId, currentLanguage, code, sendStreamingChat]);
 
   const updateFileContent = (fileId: string, content: string) => {
     setFiles(prevFiles =>
@@ -3478,71 +3325,22 @@ Please fix this error and provide the corrected code.`;
     );
   };
 
-  // Multi-level undo - restores previous code state from stack
+  // Undo last AI code insertion - restores previous code state
   const undoCodeInsert = useCallback(() => {
-    if (undoStackRef.current.length > 0) {
-      // Get current code to push to redo stack
-      const currentCode = showMultiFileMode && activeFile
-        ? activeFile.content
-        : code;
-      
-      // Pop from undo stack
-      const previousCode = undoStackRef.current.pop()!;
-      
-      // Push current to redo stack
-      redoStackRef.current.push(currentCode);
-      
-      // Apply the undo
+    if (previousCodeRef.current) {
       if (showMultiFileMode && activeFile) {
-        updateFileContent(activeFile.id, previousCode);
+        updateFileContent(activeFile.id, previousCodeRef.current);
       } else {
-        setCode(previousCode);
+        setCode(previousCodeRef.current);
       }
-      
-      // Update undo/redo states
-      setCanUndo(undoStackRef.current.length > 0);
-      setCanRedo(true);
-      previousCodeRef.current = undoStackRef.current[undoStackRef.current.length - 1] || '';
-      
+      setCanUndo(false);
+      previousCodeRef.current = '';
       toast({
-        title: `↩️ Undo (${undoStackRef.current.length} left)`,
-        description: "Previous code state restored",
+        title: "↩️ Code Restored",
+        description: "Previous code has been restored",
       });
     }
-  }, [showMultiFileMode, activeFile, code, toast]);
-
-  // Multi-level redo - re-applies undone code changes
-  const redoCodeInsert = useCallback(() => {
-    if (redoStackRef.current.length > 0) {
-      // Get current code to push to undo stack
-      const currentCode = showMultiFileMode && activeFile
-        ? activeFile.content
-        : code;
-      
-      // Pop from redo stack
-      const nextCode = redoStackRef.current.pop()!;
-      
-      // Push current to undo stack
-      undoStackRef.current.push(currentCode);
-      
-      // Apply the redo
-      if (showMultiFileMode && activeFile) {
-        updateFileContent(activeFile.id, nextCode);
-      } else {
-        setCode(nextCode);
-      }
-      
-      // Update undo/redo states
-      setCanUndo(true);
-      setCanRedo(redoStackRef.current.length > 0);
-      previousCodeRef.current = currentCode;
-      
-      toast({
-        title: `↪️ Redo (${redoStackRef.current.length} left)`,
-        description: "Code change re-applied",
-      });
-    }
-  }, [showMultiFileMode, activeFile, code, toast]);
+  }, [showMultiFileMode, activeFile, toast]);
 
   // Handle language mismatch - insert anyway (ignores mismatch)
   const handleInsertAnyway = useCallback(() => {
@@ -4279,31 +4077,13 @@ Please fix this error and provide the corrected code.`;
                         backgroundColor: `${currentPythonTheme.highlight}20`,
                       }}
                       title="Undo last code insertion"
-                      data-testid="button-undo-code"
                     >
                       <Undo2 className="w-3 h-3 mr-1" />
                       Undo
                     </Button>
                   )}
-                  {canRedo && (
-                    <Button
-                      onClick={redoCodeInsert}
-                      variant="ghost"
-                      size="sm"
-                      className="font-mono text-xs h-7 px-2"
-                      style={{
-                        color: currentPythonTheme.highlight,
-                        backgroundColor: `${currentPythonTheme.highlight}15`,
-                      }}
-                      title="Redo code insertion"
-                      data-testid="button-redo-code"
-                    >
-                      <Redo2 className="w-3 h-3 mr-1" />
-                      Redo
-                    </Button>
-                  )}
                   <Button
-                    onClick={clearChatHistory}
+                    onClick={() => setChatHistory([])}
                     variant="ghost"
                     size="sm"
                     className="font-mono text-xs h-7 px-2"
@@ -4313,7 +4093,6 @@ Please fix this error and provide the corrected code.`;
                     }}
                     disabled={chatHistory.length === 0}
                     title="Clear chat history"
-                    data-testid="button-clear-chat"
                   >
                     Clear
                   </Button>
@@ -5479,25 +5258,6 @@ server.listen(PORT, '0.0.0.0', () => {
                 <pre className="font-mono text-xs whitespace-pre-wrap" style={{ color: currentPythonTheme.text }}>
                   {output || '// Run code to see output here...'}
                 </pre>
-                {/* Fix This Error button - shown when output contains error patterns */}
-                {output && (output.toLowerCase().includes('error') || output.toLowerCase().includes('traceback') || output.toLowerCase().includes('exception')) && (
-                  <Button
-                    onClick={() => handleFixError(output)}
-                    variant="outline"
-                    size="sm"
-                    className="mt-3 font-mono text-xs"
-                    style={{
-                      backgroundColor: `${currentPythonTheme.highlight}15`,
-                      color: currentPythonTheme.highlight,
-                      border: `1px solid ${currentPythonTheme.highlight}50`,
-                    }}
-                    disabled={isStreaming || chatMutation.isPending}
-                    data-testid="button-fix-error"
-                  >
-                    <Wrench className="w-3 h-3 mr-1" />
-                    Fix This Error
-                  </Button>
-                )}
               </div>
             </ScrollArea>
           </div>
