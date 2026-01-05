@@ -22,6 +22,28 @@ export function useUserPreferences() {
     }
   }, [preferences?.defaultMode]);
 
+  // Sync pythonIdeTheme preference with localStorage and dispatch event for same-tab listeners
+  useEffect(() => {
+    if (preferences?.pythonIdeTheme) {
+      localStorage.setItem('python-ide-theme', preferences.pythonIdeTheme);
+      // Dispatch custom event for Python IDE theme sync
+      window.dispatchEvent(new CustomEvent('python-ide-theme-change', { 
+        detail: { theme: preferences.pythonIdeTheme } 
+      }));
+    }
+  }, [preferences?.pythonIdeTheme]);
+
+  // Sync terminalTheme preference with localStorage and dispatch event for same-tab listeners
+  useEffect(() => {
+    if (preferences?.terminalTheme) {
+      localStorage.setItem('terminal-theme', preferences.terminalTheme);
+      // Dispatch custom event for terminal theme sync
+      window.dispatchEvent(new CustomEvent('terminal-theme-change', { 
+        detail: { theme: preferences.terminalTheme } 
+      }));
+    }
+  }, [preferences?.terminalTheme]);
+
   const updatePreferencesMutation = useMutation({
     mutationFn: async (updates: Partial<InsertUserPreferences>) => {
       const response = await fetch("/api/user/preferences", {

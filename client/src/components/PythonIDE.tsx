@@ -1830,7 +1830,11 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const [currentLanguage, setCurrentLanguage] = useState('python');
   const [showAITests, setShowAITests] = useState(false);
   const [isFreestyleMode, setIsFreestyleMode] = useState(true); // Default to Freestyle Mode
-  const [pythonTheme, setPythonTheme] = useState('terminal-green'); // Default theme
+  const [pythonTheme, setPythonTheme] = useState(() => {
+    // Initialize from localStorage if available (synced from user preferences)
+    const savedTheme = localStorage.getItem('python-ide-theme');
+    return savedTheme || 'terminal-green';
+  });
   const currentPythonTheme = getTheme(pythonTheme);
   const [fontSize, setFontSize] = useState(13);
   const [isFormatting, setIsFormatting] = useState(false);
@@ -3472,13 +3476,34 @@ ${!isInsertMode && !isReplaceMode ? '- If modifying existing code, output only t
     return LANGUAGE_CONFIG[language]?.monacoLang || 'python';
   };
 
-  // Dispatch theme change event when Workshop theme changes
+  // Dispatch theme change event when Workshop theme changes and persist to server
   useEffect(() => {
     localStorage.setItem('python-ide-theme', pythonTheme);
 
     // Notify Code Playground about theme change
     const event = new CustomEvent('workshop-theme-change', { detail: pythonTheme });
     window.dispatchEvent(event);
+
+    // Save to user preferences on server (if authenticated)
+    fetch('/api/user/preferences', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ pythonIdeTheme: pythonTheme }),
+    }).catch(() => {
+      // Silently fail for unauthenticated users or network errors
+    });
+  }, [pythonTheme]);
+
+  // Listen for theme changes from user preferences sync
+  useEffect(() => {
+    const handleThemeChange = (e: CustomEvent<{ theme: string }>) => {
+      if (e.detail.theme && e.detail.theme !== pythonTheme) {
+        setPythonTheme(e.detail.theme);
+      }
+    };
+    window.addEventListener('python-ide-theme-change', handleThemeChange as EventListener);
+    return () => window.removeEventListener('python-ide-theme-change', handleThemeChange as EventListener);
   }, [pythonTheme]);
 
   // Handler to insert tests into the editor
