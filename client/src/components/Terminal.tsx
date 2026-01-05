@@ -97,6 +97,8 @@ export function Terminal() {
     loadConversation,
     previewCode,
     setPreviewCode,
+    previewLanguage,
+    setPreviewLanguage,
     showWebSynth,
     setShowWebSynth,
     showCodePlayground,
@@ -599,8 +601,12 @@ export function Terminal() {
       const codeFiles = extractCodeBlocksFromText(lastEntry.content);
 
       if (codeFiles.length > 0) {
-        // Found fenced code blocks - use the first one
-        setPreviewCode(codeFiles[0].content);
+        // Found fenced code blocks - pass the full content with fences so CodePlayground can extract all blocks with languages
+        // Extract the code blocks section from the response to preserve language tags
+        const codeBlockRegex = /```[\s\S]*?```/g;
+        const codeBlocksText = lastEntry.content.match(codeBlockRegex)?.join('\n\n') || lastEntry.content;
+        setPreviewCode(codeBlocksText);
+        setPreviewLanguage(codeFiles[0].language || 'python');
         setShowCodePlayground(true);
       } else {
         // No fenced blocks - try to detect unfenced code in the response
@@ -634,12 +640,14 @@ export function Terminal() {
 
           if (codeLines.length > 0) {
             setPreviewCode(codeLines.join('\n'));
+            // Detect language from unfenced code - default to Python
+            setPreviewLanguage('python');
             setShowCodePlayground(true);
           }
         }
       }
     }
-  }, [entries, isTyping, setPreviewCode]);
+  }, [entries, isTyping, setPreviewCode, setPreviewLanguage]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     // F1 key opens help menu
@@ -1126,6 +1134,7 @@ export function Terminal() {
             setPreviewCode(null);
           }}
           initialCode={previewCode || undefined}
+          initialLanguage={previewLanguage}
           currentTheme={currentTheme}
         />
       )}

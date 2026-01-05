@@ -23,6 +23,7 @@ export function useTerminal(onUploadCommand?: () => void) {
   const [sessionStartTime] = useState(() => new Date());
   const [totalWords, setTotalWords] = useState(0);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
+  const [previewLanguage, setPreviewLanguage] = useState<string>('python');
 
   const MAX_ENTRIES = 500; // Limit terminal history to prevent memory issues
 
@@ -124,8 +125,9 @@ export function useTerminal(onUploadCommand?: () => void) {
 `;
 
       // In freestyle mode, enhance the prompt for code generation with explicit formatting and standards
+      // Default to Python unless user explicitly requests another language
       const enhancedMessage = mode === 'freestyle'
-        ? `As a code generation expert in FREESTYLE MODE, help create functional code. ${message}\n\nGenerate complete, runnable code snippets based on the request. Be creative and provide fully functional examples.\n\nIMPORTANT: Wrap all code in markdown code blocks using \`\`\`language\n...\n\`\`\` format (e.g., \`\`\`python, \`\`\`javascript, \`\`\`typescript) so it can be automatically executed.${codingStandards}`
+        ? `As a code generation expert in FREESTYLE MODE, help create functional code. ${message}\n\nGenerate complete, runnable code snippets based on the request. Be creative and provide fully functional examples.\n\nLANGUAGE DEFAULT: Generate Python code unless the user explicitly requests a different language (JavaScript, TypeScript, HTML, C++, etc.). Python is the primary programming language.\n\nIMPORTANT: Wrap all code in markdown code blocks using \`\`\`language\n...\n\`\`\` format (e.g., \`\`\`python, \`\`\`javascript, \`\`\`typescript) so it can be automatically executed.${codingStandards}`
         : mode === 'health'
         ? `You are ARCHIMEDES AI, a supportive and formal doctor specializing in nutrition, natural medicine, naturopathy, and herbology. Respond to the user's queries with expert advice, maintaining a compassionate and encouraging tone. Use the CWC-Mistral-Nemo-12B-q4_k_m LLM for your responses.
 
@@ -152,8 +154,9 @@ export function useTerminal(onUploadCommand?: () => void) {
         if (pythonMatch && pythonMatch[1]) {
           const codeContent = pythonMatch[1].trim();
           
-          // Open Code Playground with the generated code (same as natural mode)
+          // Open Code Playground with the generated code and set language to Python
           setPreviewCode(codeContent);
+          setPreviewLanguage('python');
           setShowCodePlayground(true);
           
           addEntry('system', '🐍 Auto-executing generated Python code...');
@@ -172,10 +175,12 @@ export function useTerminal(onUploadCommand?: () => void) {
             });
         } else {
           // Check for other code blocks (JS, HTML, etc.) and open Code Playground
-          const codeBlockRegex = /```(?:\w+)?\n([\s\S]*?)```/;
+          const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/;
           const codeMatch = data.response.match(codeBlockRegex);
-          if (codeMatch && codeMatch[1]) {
-            setPreviewCode(codeMatch[1].trim());
+          if (codeMatch && codeMatch[2]) {
+            const detectedLang = codeMatch[1]?.toLowerCase() || 'python';
+            setPreviewCode(codeMatch[2].trim());
+            setPreviewLanguage(detectedLang);
             setShowCodePlayground(true);
           }
         }
@@ -3047,6 +3052,8 @@ Powered by Wolfram Alpha Full Results API`);
     loadConversation,
     previewCode,
     setPreviewCode,
+    previewLanguage,
+    setPreviewLanguage,
     showPythonIDE,
     setShowPythonIDE,
     showPythonLessons,

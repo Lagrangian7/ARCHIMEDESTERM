@@ -420,7 +420,8 @@ function detectLanguage(code: string, filename?: string): string {
     if (pattern.test(code)) return lang;
   }
 
-  return 'javascript';
+  // Default to Python as the primary language
+  return 'python';
 }
 
 export function cleanCodeFormatting(code: string): string {
@@ -489,7 +490,7 @@ export function extractCodeBlocksFromText(text: string): CodeFile[] {
       language = detectLanguage(content);
     }
 
-    const config = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.javascript;
+    const config = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.python;
     const baseName = getDefaultFilename(language, index);
 
     files.push({
@@ -507,7 +508,7 @@ export function extractCodeBlocksFromText(text: string): CodeFile[] {
 export type { CodeFile };
 
 function getDefaultFilename(language: string, index: number): string {
-  const config = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.javascript;
+  const config = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.python;
   const names: Record<string, string[]> = {
     python: ['main.py', 'app.py', 'script.py', 'utils.py'],
     javascript: ['index.js', 'app.js', 'script.js', 'utils.js'],
