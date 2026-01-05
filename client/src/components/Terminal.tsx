@@ -280,7 +280,7 @@ export function Terminal() {
                     {entry.content}
                   </KatexRenderer>
                 ) : (
-                  <LinkifiedText content={entry.content} />
+                  <LinkifiedText>{entry.content}</LinkifiedText>
                 )}
               </div>
             </MemoizedDraggableResponse>
