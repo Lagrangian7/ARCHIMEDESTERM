@@ -1844,6 +1844,10 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   // Language mismatch handling state
   const [pendingCodeInsert, setPendingCodeInsert] = useState<{ code: string; detectedLang: string } | null>(null);
   const [showLanguageMismatchDialog, setShowLanguageMismatchDialog] = useState(false);
+  
+  // Insert mode tracking - determines if code should insert at cursor or replace file
+  const [lastInsertMode, setLastInsertMode] = useState<'insert' | 'replace' | 'auto'>('auto');
+  const lastCursorPositionRef = useRef<{ line: number; column: number }>({ line: 1, column: 1 });
   const [webContainerFiles, setWebContainerFiles] = useState<Record<string, any>>({});
   const [webContainerPreviewUrl, setWebContainerPreviewUrl] = useState<string | null>(null);
   const [showSnippets, setShowSnippets] = useState(false);
@@ -2333,13 +2337,14 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
   const [codeInsertAnimation, setCodeInsertAnimation] = useState(false);
 
   // Insert code into editor with language detection and professional features
+  // Supports INSERT mode (at cursor) and REPLACE mode (full file replacement)
   const insertCodeIntoEditor = (incomingCode: string) => {
     if (!incomingCode || incomingCode.trim().length === 0) {
       console.log('[IDE] No code to insert');
       return;
     }
 
-    console.log('[IDE] insertCodeIntoEditor called with', incomingCode.length, 'chars');
+    console.log('[IDE] insertCodeIntoEditor called with', incomingCode.length, 'chars, mode:', lastInsertMode);
     
     // Clean the code - remove markdown artifacts
     let cleanedCode = incomingCode
@@ -2361,25 +2366,66 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
     setCodeInsertAnimation(true);
     setTimeout(() => setCodeInsertAnimation(false), 600);
     
-    if (showMultiFileMode && files.find(f => f.id === activeFileId)) {
-      console.log('[IDE] Inserting into multi-file mode, file:', files.find(f => f.id === activeFileId)?.name);
-      setFiles(prevFiles =>
-        prevFiles.map(f => (f.id === activeFileId ? { ...f, content: cleanedCode } : f))
-      );
+    // Handle INSERT mode: insert at cursor position instead of replacing entire file
+    if (lastInsertMode === 'insert' && editorRef.current) {
+      console.log('[IDE] INSERT MODE: Inserting at cursor position', lastCursorPositionRef.current);
+      
+      const editor = editorRef.current;
+      const position = lastCursorPositionRef.current;
+      
+      // Use Monaco's edit operation to insert at cursor
+      editor.executeEdits('ai-insert', [{
+        range: {
+          startLineNumber: position.line,
+          startColumn: position.column,
+          endLineNumber: position.line,
+          endColumn: position.column
+        },
+        text: cleanedCode + '\n',
+        forceMoveMarkers: true
+      }]);
+      
+      // Reveal the inserted code
+      editor.revealLineInCenter(position.line);
+      
+      // Update state to match editor content
+      const newContent = editor.getValue();
+      if (showMultiFileMode && files.find(f => f.id === activeFileId)) {
+        setFiles(prevFiles =>
+          prevFiles.map(f => (f.id === activeFileId ? { ...f, content: newContent } : f))
+        );
+      } else {
+        setCode(newContent);
+      }
+      
+      toast({
+        title: "✨ Code Inserted",
+        description: `Snippet inserted at line ${position.line}. Click Undo to restore.`,
+      });
     } else {
-      console.log('[IDE] Inserting into single-file mode');
-      setCode(cleanedCode);
-    }
+      // REPLACE mode: replace entire file content
+      console.log('[IDE] REPLACE MODE: Replacing file content');
+      
+      if (showMultiFileMode && files.find(f => f.id === activeFileId)) {
+        console.log('[IDE] Inserting into multi-file mode, file:', files.find(f => f.id === activeFileId)?.name);
+        setFiles(prevFiles =>
+          prevFiles.map(f => (f.id === activeFileId ? { ...f, content: cleanedCode } : f))
+        );
+      } else {
+        console.log('[IDE] Inserting into single-file mode');
+        setCode(cleanedCode);
+      }
 
-    // Auto-scroll editor to top to show new code
-    if (editorRef.current) {
-      editorRef.current.revealLine(1);
-    }
+      // Auto-scroll editor to top to show new code
+      if (editorRef.current) {
+        editorRef.current.revealLine(1);
+      }
 
-    toast({
-      title: "✨ Code Applied",
-      description: "AI code inserted and ready to run. Click Undo in chat to restore.",
-    });
+      toast({
+        title: "✨ Code Applied",
+        description: "AI code replaced file content. Click Undo to restore.",
+      });
+    }
   };
 
   const handleExtractAndInsert = (response: string) => {
@@ -3024,20 +3070,66 @@ export function PythonIDE({ onClose }: PythonIDEProps) {
       const isDefaultCode = currentCode.trim() === '' || 
         currentCode === '# ARCHIMEDES Workshop - Freestyle Mode\n# Chat with ARCHIMEDES to generate code, or write your own!\n\n';
       
+      // Intent detection: determine if user wants full replacement or insertion
+      const insertKeywords = /\b(add|insert|append|include|put|place|inject|extend|augment)\b/i;
+      const replaceKeywords = /\b(write|create|make|build|generate|rewrite|replace|redo|start fresh|new file|from scratch)\b/i;
+      const isInsertMode = insertKeywords.test(message) && !replaceKeywords.test(message);
+      const isReplaceMode = replaceKeywords.test(message) || isDefaultCode;
+      
+      // Get cursor position for insert mode context
+      const cursorPosition = editorRef.current?.getPosition();
+      const cursorLine = cursorPosition?.lineNumber || 1;
+      const cursorColumn = cursorPosition?.column || 1;
+      
+      // Store mode and cursor for use in onSuccess handler
+      setLastInsertMode(isInsertMode ? 'insert' : (isReplaceMode ? 'replace' : 'auto'));
+      lastCursorPositionRef.current = { line: cursorLine, column: cursorColumn };
+      
       // Language enforcement instruction - mandatory, not advisory
       const langDisplayName = LANGUAGE_CONFIG[progLang]?.displayName || progLang;
-      const langEnforcement = `\n\n⚠️ MANDATORY: You MUST generate ${langDisplayName} code ONLY. The editor is set to ${langDisplayName} mode. Always wrap code in \`\`\`${progLang} blocks. Do NOT generate code in any other language unless the user explicitly requests a different language by name.`;
+      
+      // Comprehensive AI behavior guidelines
+      const aiGuidelines = `
+
+📋 AI CODING ASSISTANT GUIDELINES:
+
+**Step-by-Step Reasoning (REQUIRED):**
+1. First, fully understand the request and current code context
+2. Identify the best approach, potential edge cases, and readability trade-offs
+3. Plan imports, structure, naming, and error handling
+4. Only AFTER reasoning: output code
+
+**Output Format:**
+${isInsertMode ? `- INSERT MODE: Output ONLY the code snippet to insert at cursor (line ${cursorLine}). Do NOT output the entire file.` : ''}
+${isReplaceMode ? '- REPLACE MODE: Output the complete file with all code.' : ''}
+${!isInsertMode && !isReplaceMode ? '- If modifying existing code, output only the changed functions/sections. If creating new, output complete code.' : ''}
+
+**Code Quality Requirements:**
+- Handle errors gracefully with try/except or try/catch
+- Avoid unnecessary complexity - prioritize readability over cleverness
+- Follow consistent style (proper indentation, clear naming)
+- Optimize only when needed
+- Add brief comments only for complex logic
+
+**Context Awareness (CRITICAL):**
+- Remember previous changes in this conversation
+- Respect existing architecture, naming conventions, and patterns
+- NEVER break working code unless explicitly fixing a bug
+- When refactoring, preserve behavior exactly
+
+**Language Requirement:**
+⚠️ MANDATORY: Generate ${langDisplayName} code ONLY. Wrap code in \`\`\`${progLang} blocks.`;
 
       if (!isDefaultCode && currentCode.trim()) {
-        contextualMessage = `Current code in editor (${langDisplayName}):\n\`\`\`${progLang}\n${currentCode}\n\`\`\`\n\n`;
+        contextualMessage = `Current code in editor (${langDisplayName}, cursor at line ${cursorLine}):\n\`\`\`${progLang}\n${currentCode}\n\`\`\`\n\n`;
         if (conversationContext) {
           contextualMessage += `Recent conversation:\n${conversationContext}\n\n`;
         }
-        contextualMessage += `User query: ${message}${langEnforcement}`;
+        contextualMessage += `User query: ${message}${aiGuidelines}`;
       } else if (conversationContext) {
-        contextualMessage = `Recent conversation:\n${conversationContext}\n\nUser query: ${message}${langEnforcement}`;
+        contextualMessage = `Recent conversation:\n${conversationContext}\n\nUser query: ${message}${aiGuidelines}`;
       } else {
-        contextualMessage = `${message}${langEnforcement}`;
+        contextualMessage = `${message}${aiGuidelines}`;
       }
 
       // Visual feedback: highlight code being analyzed
