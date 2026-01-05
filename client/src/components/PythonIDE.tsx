@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Play, X, BookOpen, Code, Loader2, Lightbulb, CheckCircle2, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Copy, Check, Undo2, ArrowRightLeft } from 'lucide-react';
+import { Play, X, BookOpen, Code, Loader2, Lightbulb, Check, MessageSquare, Send, Maximize2, Minimize2, Eye, EyeOff, Download, Plus, Trash2, FileCode, Info, TestTube, FileText, Bot, Users, Star, AlertCircle, Terminal, Copy, Undo2, ArrowRightLeft } from 'lucide-react';
 import { MonacoAITests } from './MonacoAITests';
 import Editor from '@monaco-editor/react';
 import { useMutation } from '@tanstack/react-query';
@@ -4320,7 +4320,7 @@ ${!isInsertMode && !isReplaceMode ? '- If modifying existing code, output only t
                             onClick={() => toggleTask(task)}
                             className="flex-shrink-0 mt-0.5"
                           >
-                            <CheckCircle2
+                            <Check
                               className="w-4 h-4"
                               style={{
                                 color: completedTasks.has(task) ? currentPythonTheme.highlight : `${currentPythonTheme.highlight}50`
@@ -5437,7 +5437,7 @@ server.listen(PORT, '0.0.0.0', () => {
                     >
                       <div className="flex items-center gap-3">
                         {review.status === 'success' ? (
-                          <CheckCircle2 className="w-5 h-5" style={{ color: '#4ade80' }} />
+                          <Check className="w-5 h-5" style={{ color: '#4ade80' }} />
                         ) : (
                           <AlertCircle className="w-5 h-5" style={{ color: '#ff6b6b' }} />
                         )}
