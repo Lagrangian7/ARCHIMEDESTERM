@@ -121,6 +121,7 @@ export function useTerminal(onUploadCommand?: () => void) {
     streamAbortControllerRef.current = abortController;
 
     try {
+      console.log('[Terminal Streaming] Starting fetch to /api/chat/stream');
       const response = await fetch('/api/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -134,8 +135,11 @@ export function useTerminal(onUploadCommand?: () => void) {
         }),
       });
 
+      console.log('[Terminal Streaming] Response status:', response.status, response.ok);
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.log('[Terminal Streaming] Error response:', errorData);
         throw new Error(errorData.error || 'Chat request failed');
       }
 
@@ -144,6 +148,8 @@ export function useTerminal(onUploadCommand?: () => void) {
       let fullResponse = '';
       let buffer = ''; // Buffer for incomplete SSE events
       let streamCompleted = false;
+      
+      console.log('[Terminal Streaming] Reader created:', !!reader);
 
       // Helper to process a complete SSE event
       const processEvent = (eventText: string) => {
@@ -164,10 +170,16 @@ export function useTerminal(onUploadCommand?: () => void) {
         // Join with newlines to preserve multiline JSON payloads
         const jsonPayload = dataLines.join('\n');
         
-        if (!jsonPayload) return;
+        if (!jsonPayload) {
+          console.log('[Terminal Streaming] processEvent: no data lines found in event');
+          return;
+        }
+        
+        console.log('[Terminal Streaming] processEvent: payload length:', jsonPayload.length, 'preview:', jsonPayload.substring(0, 200));
         
         try {
           const data = JSON.parse(jsonPayload);
+          console.log('[Terminal Streaming] Parsed event type:', data.type);
           
           if (data.type === 'chunk') {
             fullResponse += data.content;
@@ -230,17 +242,25 @@ export function useTerminal(onUploadCommand?: () => void) {
       };
 
       if (reader) {
+        console.log('[Terminal Streaming] Starting read loop');
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {
+            console.log('[Terminal Streaming] Stream done');
+            break;
+          }
 
           // Accumulate decoded text into buffer, normalizing CRLF to LF
-          buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+          const chunk = decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+          console.log('[Terminal Streaming] Received chunk:', chunk.length, 'chars');
+          buffer += chunk;
           
           // Process complete SSE events (delimited by double newlines)
           const events = buffer.split('\n\n');
           // Keep the last incomplete chunk in buffer
           buffer = events.pop() || '';
+          
+          console.log('[Terminal Streaming] Processing', events.length, 'events, buffer remaining:', buffer.length);
           
           for (const event of events) {
             if (event.trim()) {
@@ -251,7 +271,11 @@ export function useTerminal(onUploadCommand?: () => void) {
         
         // Process any remaining buffer content at end of stream
         if (buffer.trim()) {
+          console.log('[Terminal Streaming] Processing remaining buffer:', buffer.length, 'chars');
+          console.log('[Terminal Streaming] Buffer preview:', buffer.substring(0, 500));
           processEvent(buffer);
+        } else {
+          console.log('[Terminal Streaming] Buffer empty at end of stream');
         }
         
         // Ensure final state is clean if 'done' was never received
