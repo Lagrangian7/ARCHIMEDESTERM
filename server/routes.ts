@@ -27,6 +27,56 @@ import { ObjectPermission } from "./objectAcl";
 import { writeFile, unlink } from 'fs/promises';
 import { tmpdir } from 'os';
 
+// Rate limiter for code execution endpoints (prevents abuse)
+// Limits: 10 requests per minute per IP
+const executeRateLimiter = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10;
+
+function checkExecuteRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const entry = executeRateLimiter.get(ip);
+  
+  // Clean up expired entries periodically (every 100th check)
+  if (Math.random() < 0.01) {
+    for (const [key, val] of Array.from(executeRateLimiter.entries())) {
+      if (now >= val.resetAt) executeRateLimiter.delete(key);
+    }
+  }
+  
+  if (!entry || now >= entry.resetAt) {
+    // New window - reset counter
+    executeRateLimiter.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true };
+  }
+  
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    // Rate limit exceeded
+    const retryAfter = Math.ceil((entry.resetAt - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+  
+  // Increment counter
+  entry.count++;
+  return { allowed: true };
+}
+
+// Middleware to apply rate limiting to execute endpoints
+function executeRateLimitMiddleware(req: any, res: any, next: any) {
+  const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+  const { allowed, retryAfter } = checkExecuteRateLimit(ip);
+  
+  if (!allowed) {
+    res.setHeader('Retry-After', retryAfter);
+    return res.status(429).json({
+      success: false,
+      error: `Rate limit exceeded. Try again in ${retryAfter} seconds.`
+    });
+  }
+  
+  next();
+}
+
 /**
  * Post-process AI-generated code to clean up common issues
  * - Removes duplicate code block markers
@@ -480,7 +530,7 @@ ONLY output the code, no explanations.`;
   });
 
   // Execute Python code with GUI support
-  app.post('/api/execute/python', async (req, res) => {
+  app.post('/api/execute/python', executeRateLimitMiddleware, async (req, res) => {
     try {
       const { code } = req.body;
 
@@ -601,7 +651,7 @@ except:
   });
 
   // Multi-language code execution endpoints
-  app.post('/api/execute/javascript', isAuthenticated, async (req, res) => {
+  app.post('/api/execute/javascript', executeRateLimitMiddleware, isAuthenticated, async (req, res) => {
     const { code } = req.body;
 
     if (!code || typeof code !== 'string') {
@@ -638,7 +688,7 @@ except:
     }
   });
 
-  app.post('/api/execute/typescript', isAuthenticated, async (req, res) => {
+  app.post('/api/execute/typescript', executeRateLimitMiddleware, isAuthenticated, async (req, res) => {
     const { code } = req.body;
 
     if (!code || typeof code !== 'string') {
@@ -690,7 +740,7 @@ except:
     }
   });
 
-  app.post('/api/execute/bash', isAuthenticated, async (req, res) => {
+  app.post('/api/execute/bash', executeRateLimitMiddleware, isAuthenticated, async (req, res) => {
     const { code } = req.body;
 
     if (!code || typeof code !== 'string') {
@@ -728,7 +778,7 @@ except:
     }
   });
 
-  app.post('/api/execute/cpp', isAuthenticated, async (req, res) => {
+  app.post('/api/execute/cpp', executeRateLimitMiddleware, isAuthenticated, async (req, res) => {
     const { code } = req.body;
 
     if (!code || typeof code !== 'string') {
@@ -786,7 +836,7 @@ except:
   });
 
   // Unified code execution endpoint - uses spawn with array args for security
-  app.post('/api/execute', async (req, res) => {
+  app.post('/api/execute', executeRateLimitMiddleware, async (req, res) => {
     const { code, language, stdin } = req.body;
 
     if (!code || typeof code !== 'string') {
@@ -1611,6 +1661,59 @@ if _virtual_display_started:
     }
   });
 
+  // Helper to validate file content (detect binary masquerading as text, malicious patterns)
+  function validateFileContent(buffer: Buffer, mimeType: string, originalName: string): { valid: boolean; error?: string } {
+    // Skip validation for audio files
+    if (mimeType.startsWith('audio/') || originalName.match(/\.(mp3|wav|ogg|m4a)$/i)) {
+      return { valid: true };
+    }
+    
+    // For text files, check for binary content
+    const textContent = buffer.toString('utf8');
+    
+    // Check for null bytes (strong indicator of binary content)
+    if (textContent.includes('\0')) {
+      return { valid: false, error: 'File appears to be binary, not text' };
+    }
+    
+    // Check for control characters (except common ones like tab, newline, carriage return)
+    // This allows UTF-8 international text (Japanese, Chinese, emoji, etc.)
+    // Only reject files with excessive control characters (0x00-0x08, 0x0B-0x0C, 0x0E-0x1F)
+    const controlChars = textContent.match(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g);
+    const controlCharCount = controlChars ? controlChars.length : 0;
+    if (textContent.length > 100 && (controlCharCount / textContent.length) > 0.01) {
+      return { valid: false, error: 'File contains too many control characters' };
+    }
+    
+    // Sanitize check: detect potential script injection in HTML files
+    if (mimeType === 'text/html' || originalName.endsWith('.html')) {
+      // Check for dangerous patterns (event handlers, javascript: URLs)
+      const dangerousPatterns = [
+        /<script[^>]*>[\s\S]*?<\/script>/gi,
+        /javascript:/gi,
+        /on\w+\s*=/gi,
+      ];
+      for (const pattern of dangerousPatterns) {
+        if (pattern.test(textContent)) {
+          console.warn(`⚠️ Potentially unsafe HTML content in ${originalName}`);
+          // Don't reject, just log - user may legitimately upload HTML with scripts
+          break;
+        }
+      }
+    }
+    
+    return { valid: true };
+  }
+  
+  // Helper to sanitize filename (remove path traversal, null bytes, etc.)
+  function sanitizeFilename(filename: string): string {
+    return filename
+      .replace(/[/\\:*?"<>|]/g, '_') // Replace unsafe path chars
+      .replace(/\0/g, '') // Remove null bytes
+      .replace(/\.\./g, '_') // Prevent path traversal
+      .slice(0, 255); // Limit length
+  }
+
   // Configure multer for file uploads (in-memory storage)
   const upload = multer({
     storage: multer.memoryStorage(),
@@ -1675,11 +1778,19 @@ if _virtual_display_started:
       // Process files in parallel for better performance
       const fileProcessingPromises = req.files.map(async (file: any) => {
         try {
-          console.log(`📤 Processing file: ${file.originalname}, size: ${file.size}, mimetype: ${file.mimetype}`);
+          // Sanitize the filename first
+          const safeOriginalName = sanitizeFilename(file.originalname);
+          console.log(`📤 Processing file: ${safeOriginalName}, size: ${file.size}, mimetype: ${file.mimetype}`);
+          
+          // Validate file content (check for binary masquerading as text, etc.)
+          const contentValidation = validateFileContent(file.buffer, file.mimetype, safeOriginalName);
+          if (!contentValidation.valid) {
+            return { type: 'error', file: safeOriginalName, error: contentValidation.error };
+          }
 
           // Determine if the file is an audio file (based on mimetype or extension)
           const isAudioFile = file.mimetype.startsWith('audio/') ||
-                              file.originalname.toLowerCase().match(/\.(mp3|wav|ogg|m4a)$/);
+                              safeOriginalName.toLowerCase().match(/\.(mp3|wav|ogg|m4a)$/);
 
           // If it's an audio file, create metadata record with proper mimeType
           if (isAudioFile) {
@@ -1687,7 +1798,7 @@ if _virtual_display_started:
             let mimeType = file.mimetype;
             if (!mimeType || mimeType === 'application/octet-stream') {
               // Fallback to extension-based detection
-              const ext = file.originalname.toLowerCase().split('.').pop();
+              const ext = safeOriginalName.toLowerCase().split('.').pop();
               if (ext === 'mp3') mimeType = 'audio/mpeg';
               else if (ext === 'wav') mimeType = 'audio/wav';
               else if (ext === 'ogg') mimeType = 'audio/ogg';
@@ -1695,13 +1806,13 @@ if _virtual_display_started:
               else mimeType = 'audio/mpeg'; // default
             }
 
-            console.log(`🎵 Creating audio document: ${file.originalname} with mimeType: ${mimeType}`);
+            console.log(`🎵 Creating audio document: ${safeOriginalName} with mimeType: ${mimeType}`);
 
             // Create document with metadata - mimeType is crucial for Webamp detection
             const document = await knowledgeService.processDocument(null, {
               userId,
-              fileName: `${randomUUID()}-${file.originalname}`,
-              originalName: file.originalname,
+              fileName: `${randomUUID()}-${safeOriginalName}`,
+              originalName: safeOriginalName,
               fileSize: file.size.toString(),
               mimeType: mimeType,
               objectPath: undefined // Will be set by separate PUT request
@@ -1727,19 +1838,19 @@ if _virtual_display_started:
             const content = file.buffer.toString('utf8');
 
             if (content.length === 0) {
-              return { type: 'error', file: file.originalname, error: "File is empty" };
+              return { type: 'error', file: safeOriginalName, error: "File is empty" };
             }
 
             if (content.length > 5000000) {
-              return { type: 'error', file: file.originalname, error: "File content is too large (max 5MB)" };
+              return { type: 'error', file: safeOriginalName, error: "File content is too large (max 5MB)" };
             }
 
-            console.log(`📄 Creating text document: ${file.originalname}`);
+            console.log(`📄 Creating text document: ${safeOriginalName}`);
 
             const document = await knowledgeService.processDocument(content, {
               userId,
-              fileName: `${randomUUID()}-${file.originalname}`,
-              originalName: file.originalname,
+              fileName: `${randomUUID()}-${safeOriginalName}`,
+              originalName: safeOriginalName,
               fileSize: file.size.toString(),
               mimeType: file.mimetype,
             });
@@ -1759,8 +1870,9 @@ if _virtual_display_started:
             };
           }
         } catch (fileError) {
-          console.error(`❌ Error processing file ${file.originalname}:`, fileError);
-          return { type: 'error', file: file.originalname, error: "Failed to process file" };
+          const safeName = sanitizeFilename(file.originalname);
+          console.error(`❌ Error processing file ${safeName}:`, fileError);
+          return { type: 'error', file: safeName, error: "Failed to process file" };
         }
       });
 
@@ -2802,8 +2914,8 @@ if _virtual_display_started:
     }
   });
 
-  // Python code execution endpoint
-  app.post('/api/execute/python', async (req, res) => {
+  // Python code execution endpoint (duplicate - for Workshop IDE)
+  app.post('/api/execute/python', executeRateLimitMiddleware, async (req, res) => {
     try {
       const { code } = req.body;
 

@@ -58,7 +58,9 @@ const OPENROUTER_CONFIG = {
 const aiRequestLimit = pLimit(3);
 
 // Response cache for common queries (reduces redundant API calls)
-const responseCache = new Map<string, { response: string; timestamp: number }>();
+// LRU-style cache with max 100 entries and TTL expiration
+const MAX_CACHE_SIZE = 100;
+const responseCache = new Map<string, { response: string; timestamp: number; lastAccess: number }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 // Optimized token limits per mode (conservative to reduce costs)
@@ -110,24 +112,57 @@ function isCacheableQuery(message: string): boolean {
   return cacheablePatterns.some(p => p.test(message.trim()));
 }
 
-// Get cached response if valid
+// Get cached response if valid (atomic get-and-update for LRU)
 function getCachedResponse(key: string): string | null {
   const cached = responseCache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return cached.response;
+  if (!cached) return null;
+  
+  const now = Date.now();
+  
+  // Check TTL expiration - delete atomically if expired
+  if (now - cached.timestamp >= CACHE_TTL_MS) {
+    responseCache.delete(key);
+    return null;
   }
-  if (cached) responseCache.delete(key);
-  return null;
+  
+  // Update last access time for LRU tracking (re-insert to move to end of Map)
+  responseCache.delete(key);
+  responseCache.set(key, { ...cached, lastAccess: now });
+  
+  return cached.response;
 }
 
-// Store response in cache
+// Store response in cache with LRU eviction
 function setCachedResponse(key: string, response: string): void {
-  // Limit cache size to prevent memory issues
-  if (responseCache.size > 100) {
-    const oldest = responseCache.keys().next().value;
-    if (oldest) responseCache.delete(oldest);
+  const now = Date.now();
+  
+  // Evict entries if at capacity (LRU: remove oldest accessed entries first)
+  while (responseCache.size >= MAX_CACHE_SIZE) {
+    // Find entry with oldest lastAccess time
+    let oldestKey: string | null = null;
+    let oldestAccess = Infinity;
+    
+    for (const [k, v] of Array.from(responseCache.entries())) {
+      // Also evict expired entries while we're at it
+      if (now - v.timestamp >= CACHE_TTL_MS) {
+        responseCache.delete(k);
+        continue;
+      }
+      if (v.lastAccess < oldestAccess) {
+        oldestAccess = v.lastAccess;
+        oldestKey = k;
+      }
+    }
+    
+    // If we still need to evict and found an oldest entry, delete it
+    if (responseCache.size >= MAX_CACHE_SIZE && oldestKey) {
+      responseCache.delete(oldestKey);
+    } else {
+      break; // Avoid infinite loop if cache is all expired entries
+    }
   }
-  responseCache.set(key, { response, timestamp: Date.now() });
+  
+  responseCache.set(key, { response, timestamp: now, lastAccess: now });
 }
 
 // Truncate messages to fit within token limit
