@@ -156,54 +156,86 @@ export function VoiceControls({
   }, []);
 
 
-  // Poll CPU usage every 3 seconds
+  // Measure real CPU usage using main thread blocking detection
   useEffect(() => {
-    let lastTime = performance.now();
-    let lastUsage = 0;
-
-    const updateCPU = () => {
-      const now = performance.now();
-      const deltaTime = now - lastTime;
-      
-      // Estimate CPU usage based on performance.now() jitter and task duration
-      if ('performance' in window && 'measure' in performance) {
-        try {
-          // Use performance timing to estimate CPU load
-          const entries = performance.getEntriesByType('measure');
-          const recentLoad = entries.slice(-10).reduce((sum, entry) => sum + entry.duration, 0) / 10;
-          
-          // Smooth the percentage to avoid jumps
-          const estimatedPercentage = Math.min(100, (recentLoad / deltaTime) * 100 * 0.5);
-          const smoothedPercentage = lastUsage * 0.7 + estimatedPercentage * 0.3;
-          
-          lastUsage = smoothedPercentage;
-          lastTime = now;
-          
-          setCpuUsage({
-            percentage: smoothedPercentage,
-            cores: navigator.hardwareConcurrency || 4
-          });
-        } catch (error) {
-          // Fallback: random-ish usage based on memory
-          const fallbackPercentage = Math.random() * 30 + 10;
-          setCpuUsage({
-            percentage: fallbackPercentage,
-            cores: navigator.hardwareConcurrency || 4
-          });
-        }
-      } else {
-        // Fallback for browsers without performance API
-        const fallbackPercentage = Math.random() * 30 + 10;
-        setCpuUsage({
-          percentage: fallbackPercentage,
-          cores: navigator.hardwareConcurrency || 4
+    let rafId: number;
+    let lastFrameTime = performance.now();
+    let frameTimes: number[] = [];
+    let longTaskCount = 0;
+    let smoothedPercentage = 0;
+    
+    // Use Long Tasks API if available for accurate blocking detection
+    let longTaskObserver: PerformanceObserver | null = null;
+    if ('PerformanceObserver' in window) {
+      try {
+        longTaskObserver = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            if (entry.duration > 50) { // Long task = >50ms blocking
+              longTaskCount++;
+            }
+          }
         });
+        longTaskObserver.observe({ entryTypes: ['longtask'] });
+      } catch (e) {
+        // longtask not supported in all browsers
       }
+    }
+    
+    // Measure frame timing to detect main thread load
+    const measureFrame = () => {
+      const now = performance.now();
+      const frameTime = now - lastFrameTime;
+      lastFrameTime = now;
+      
+      // Track frame times (ideal is ~16.67ms for 60fps)
+      frameTimes.push(frameTime);
+      if (frameTimes.length > 30) frameTimes.shift(); // Keep last 30 frames (~0.5s)
+      
+      rafId = requestAnimationFrame(measureFrame);
     };
-
-    updateCPU();
-    const interval = setInterval(updateCPU, 3000);
-    return () => clearInterval(interval);
+    
+    rafId = requestAnimationFrame(measureFrame);
+    
+    // Update CPU display every 2 seconds
+    const updateInterval = setInterval(() => {
+      if (frameTimes.length === 0) return;
+      
+      // Calculate average frame time and jank ratio
+      const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
+      const idealFrameTime = 16.67; // 60fps target
+      
+      // Count janky frames (>50ms = dropped frames)
+      const jankyFrames = frameTimes.filter(t => t > 50).length;
+      const jankRatio = jankyFrames / frameTimes.length;
+      
+      // Calculate CPU usage based on:
+      // 1. Frame time deviation from ideal (higher = more load)
+      // 2. Jank ratio (more janky frames = higher load)
+      // 3. Long task count (blocking tasks)
+      const frameDeviation = Math.max(0, (avgFrameTime - idealFrameTime) / idealFrameTime);
+      const frameLoadPercent = Math.min(frameDeviation * 50, 60); // Max 60% from frame timing
+      const jankPercent = jankRatio * 30; // Max 30% from jank
+      const longTaskPercent = Math.min(longTaskCount * 5, 20); // Max 20% from long tasks
+      
+      const rawPercentage = Math.min(100, frameLoadPercent + jankPercent + longTaskPercent + 5); // Base 5%
+      
+      // Smooth the value to avoid jumps
+      smoothedPercentage = smoothedPercentage * 0.6 + rawPercentage * 0.4;
+      
+      setCpuUsage({
+        percentage: smoothedPercentage,
+        cores: navigator.hardwareConcurrency || 4
+      });
+      
+      // Reset long task count for next interval
+      longTaskCount = 0;
+    }, 2000);
+    
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearInterval(updateInterval);
+      longTaskObserver?.disconnect();
+    };
   }, []);
 
   // Fetch knowledge base stats for authenticated users
