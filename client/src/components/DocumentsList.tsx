@@ -111,7 +111,7 @@ export function DocumentsList({ onClose }: DocumentsListProps = {}) {
     // Filter by search query
     const filtered = debouncedSearchQuery
       ? documents.filter((doc) =>
-          (document as any).originalName.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          doc.originalName.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
           doc.summary?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
           doc.keywords?.some((kw: string) => kw.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
         )
