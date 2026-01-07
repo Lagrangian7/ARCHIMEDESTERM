@@ -224,20 +224,26 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
   // Refresh token proactively if it will expire in the next 30 minutes
   const shouldRefresh = user.expires_at - now < 1800;
   
+  // Token is still valid and doesn't need refresh yet
   if (now <= user.expires_at && !shouldRefresh) {
     return next();
   }
 
+  // Token needs refresh - check if we have a refresh token
   const refreshToken = user.refresh_token;
   if (!refreshToken) {
-    console.warn('No refresh token available for user');
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+    // No refresh token but access token might still be valid
+    if (now <= user.expires_at) {
+      console.warn('No refresh token available, but access token still valid');
+      return next();
+    }
+    console.warn('No refresh token available and access token expired');
+    return res.status(401).json({ message: "Unauthorized", shouldReauth: true });
   }
 
   // Attempt token refresh with retry logic
   let retryCount = 0;
-  const maxRetries = 2;
+  const maxRetries = 3; // Increased from 2 to 3
   
   while (retryCount <= maxRetries) {
     try {
@@ -252,7 +258,10 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
         req.session.save((err) => {
           if (err) {
             console.error('Session save error:', err);
-            reject(err);
+            // Don't reject - the token was refreshed successfully, just session save failed
+            // Continue anyway to prevent unnecessary logouts
+            console.warn('Session save failed but continuing with refreshed token');
+            resolve(next());
           } else {
             console.log('✅ Token refreshed successfully');
             resolve(next());
@@ -261,6 +270,15 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
       });
     } catch (error: any) {
       retryCount++;
+      
+      // Categorize error types
+      const isNetworkError = error.code === 'ECONNREFUSED' || 
+                             error.code === 'ETIMEDOUT' || 
+                             error.code === 'ENOTFOUND' ||
+                             error.message?.includes('fetch failed');
+      
+      const isInvalidGrant = error.message?.includes('invalid_grant') ||
+                             error.cause?.error === 'invalid_grant';
       
       // Log detailed error information
       if (error.code === 'OAUTH_RESPONSE_BODY_ERROR') {
@@ -273,22 +291,45 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
         console.error(`❌ Token refresh error (attempt ${retryCount}/${maxRetries + 1}):`, error.message);
       }
       
-      // If max retries exceeded, force logout
-      if (retryCount > maxRetries) {
-        console.error('🔒 Max token refresh retries exceeded, forcing logout');
-        
-        // Clear the session
+      // For invalid_grant errors (refresh token expired/revoked), logout immediately
+      if (isInvalidGrant) {
+        console.error('🔒 Refresh token invalid/expired, forcing logout');
         req.logout(() => {
           res.status(401).json({ 
             message: "Session expired. Please log in again.",
-            shouldRedirect: true 
+            shouldReauth: true 
+          });
+        });
+        return;
+      }
+      
+      // For network errors, be more lenient - allow more retries
+      if (isNetworkError && retryCount <= maxRetries) {
+        console.warn(`⚠️ Network error during token refresh, will retry (${retryCount}/${maxRetries + 1})`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount - 1))); // Exponential backoff
+        continue;
+      }
+      
+      // If max retries exceeded for non-network errors
+      if (retryCount > maxRetries) {
+        // For network errors, don't force logout - the token might still be valid
+        if (isNetworkError && now <= user.expires_at) {
+          console.warn('⚠️ Token refresh failed due to network, but access token still valid - continuing');
+          return next();
+        }
+        
+        console.error('🔒 Max token refresh retries exceeded, forcing logout');
+        req.logout(() => {
+          res.status(401).json({ 
+            message: "Session expired. Please log in again.",
+            shouldReauth: true 
           });
         });
         return;
       }
       
       // Wait before retry (exponential backoff)
-      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount - 1)));
     }
   }
 };
