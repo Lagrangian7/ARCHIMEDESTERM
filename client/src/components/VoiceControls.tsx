@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, Upload, FileText, MessageSquare, Code, Terminal as TerminalIcon, Activity } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, CassetteTape, LogIn, LogOut, User, BookOpen, FileText, MessageSquare, Code, Terminal as TerminalIcon, Activity } from 'lucide-react';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useSpeechRecognition } from '@/hooks/use-speech';
 import { Button } from '@/components/ui/button';
@@ -126,14 +126,13 @@ export function VoiceControls({
   const [showPrivacyEncoder, setShowPrivacyEncoderLocal] = useState(false);
   const [showSshwifty, setShowSshwiftyLocal] = useState(false);
   const [memoryUsage, setMemoryUsage] = useState<MemoryUsage | null>(null);
-  const [storageUsage, setStorageUsage] = useState<{
-    used: number;
-    quota: number;
-    percentage: number;
-  } | null>(null);
   const [cpuUsage, setCpuUsage] = useState<{
     percentage: number;
     cores: number;
+  } | null>(null);
+  const [kbStats, setKbStats] = useState<{
+    totalDocs: number;
+    totalSizeBytes: number;
   } | null>(null);
 
   // Poll memory usage every 3 seconds
@@ -156,26 +155,6 @@ export function VoiceControls({
     return () => clearInterval(interval);
   }, []);
 
-  // Poll storage usage every 3 seconds
-  useEffect(() => {
-    const updateStorage = async () => {
-      if ('storage' in navigator && 'estimate' in navigator.storage) {
-        try {
-          const estimate = await navigator.storage.estimate();
-          const used = estimate.usage || 0;
-          const quota = estimate.quota || 0;
-          const percentage = quota > 0 ? (used / quota) * 100 : 0;
-          setStorageUsage({ used, quota, percentage });
-        } catch (error) {
-          console.error('Failed to get storage estimate:', error);
-        }
-      }
-    };
-
-    updateStorage();
-    const interval = setInterval(updateStorage, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Poll CPU usage every 3 seconds
   useEffect(() => {
@@ -226,6 +205,35 @@ export function VoiceControls({
     const interval = setInterval(updateCPU, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch knowledge base stats for authenticated users
+  useEffect(() => {
+    if (!isAuthenticated || !showResources) {
+      setKbStats(null);
+      return;
+    }
+
+    const fetchKbStats = async () => {
+      try {
+        const response = await fetch('/api/knowledge/stats', {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setKbStats({
+            totalDocs: data.totalDocuments || 0,
+            totalSizeBytes: data.totalSizeBytes || 0
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch KB stats:', error);
+      }
+    };
+
+    fetchKbStats();
+    const interval = setInterval(fetchKbStats, 10000); // Poll every 10 seconds
+    return () => clearInterval(interval);
+  }, [isAuthenticated, showResources]);
 
   const getMemoryColor = (percentage: number) => {
     if (percentage < 50) return 'var(--terminal-highlight)'; // green
@@ -356,51 +364,51 @@ export function VoiceControls({
           </TooltipProvider>
         )}
 
-        {/* Storage Usage Indicator */}
-        {showResources && storageUsage && (
+        {/* Knowledge Base Storage Indicator */}
+        {showResources && isAuthenticated && kbStats && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
                   className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:scale-110"
                   style={{
-                    backgroundColor: `${getMemoryColor(storageUsage.percentage)}20`,
+                    backgroundColor: 'rgba(var(--terminal-highlight-rgb), 0.1)',
                     minWidth: '140px'
                   }}
                 >
-                  <Activity
+                  <BookOpen
                     size={18}
                     style={{ 
-                      color: getMemoryColor(storageUsage.percentage)
+                      color: 'var(--terminal-highlight)'
                     }}
                   />
                   <div className="flex flex-col items-start">
                     <span
                       className="font-mono font-bold text-[12px]"
                       style={{ 
-                        color: getMemoryColor(storageUsage.percentage)
+                        color: 'var(--terminal-highlight)'
                       }}
                     >
-                      {formatBytes(storageUsage.used)}
+                      {formatBytes(kbStats.totalSizeBytes)}
                     </span>
                     <span
                       className="text-xs font-mono font-semibold"
                       style={{ 
-                        color: getMemoryColor(storageUsage.percentage),
+                        color: 'var(--terminal-highlight)',
                         opacity: 0.9
                       }}
                     >
-                      {storageUsage.percentage.toFixed(1)}% HD
+                      {kbStats.totalDocs} docs KB
                     </span>
                   </div>
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
                 <div className="space-y-1 text-xs">
-                  <p className="font-semibold text-terminal-highlight">Storage Usage: {storageUsage.percentage.toFixed(1)}%</p>
-                  <p>Used: {formatBytes(storageUsage.used)}</p>
-                  <p>Quota: {formatBytes(storageUsage.quota)}</p>
-                  <p className="text-terminal-subtle mt-2 italic">Session & Local Storage</p>
+                  <p className="font-semibold text-terminal-highlight">Knowledge Base Storage</p>
+                  <p>Documents: {kbStats.totalDocs}</p>
+                  <p>Used: {formatBytes(kbStats.totalSizeBytes)}</p>
+                  <p className="text-terminal-subtle mt-2 italic">Your personal knowledge base</p>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -492,7 +500,7 @@ export function VoiceControls({
                 </TooltipContent>
               </Tooltip>
 
-              {/* Upload Button */}
+              {/* Knowledge Base Button */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -500,14 +508,14 @@ export function VoiceControls({
                     variant="outline"
                     size="sm"
                     className="bg-terminal-bg border-terminal-highlight text-terminal-text hover:bg-terminal-highlight hover:text-terminal-bg transition-colors min-h-[32px] min-w-[32px] p-1.5"
-                    data-testid="button-upload"
-                    aria-label="Upload"
+                    data-testid="button-knowledge-base"
+                    aria-label="Knowledge Base"
                   >
-                    <Upload size={14} />
+                    <BookOpen size={14} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="bg-terminal-bg border-terminal-highlight text-terminal-text">
-                  <p>Upload</p>
+                  <p>Knowledge Base</p>
                 </TooltipContent>
               </Tooltip>
 
