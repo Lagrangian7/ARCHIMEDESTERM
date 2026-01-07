@@ -33,9 +33,11 @@ import { useTerminal } from '@/hooks/use-terminal';
 import { useSpeech } from '@/contexts/SpeechContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import type { Wallpaper } from '@shared/schema';
-import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape, Clock, X } from 'lucide-react';
+import { History, User, LogIn, Upload, Terminal as TerminalIcon, Radio, MessageSquare, Shield, Gamepad2, CassetteTape, Clock, X, Brain } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import logoImage from '@assets/5721242-200_1756549869080.png';
 import cubesIcon from '@assets/cubes_1758505065526.png';
 import invadersIcon from '@assets/invaders_1758659503566.png';
@@ -191,6 +193,36 @@ export function Terminal() {
   const [showResources, setShowResources] = useState(true);
   const lastSpokenIdRef = useRef<string>('');
   const [bubbleRendered, setBubbleRendered] = useState(false);
+  const { toast } = useToast();
+  const [trainedEntries, setTrainedEntries] = useState<Set<string>>(new Set());
+
+  // Mutation for saving AI responses to knowledge base with personality training
+  const trainAIMutation = useMutation({
+    mutationFn: async ({ content, title, entryId }: { content: string; title?: string; entryId: string }) => {
+      return apiRequest('POST', '/api/knowledge/train', { content, title });
+    },
+    onSuccess: (_, variables) => {
+      // Mark entry as trained after successful save
+      setTrainedEntries(prev => {
+        const newSet = new Set(prev);
+        newSet.add(variables.entryId);
+        return newSet;
+      });
+      toast({
+        title: "Response Saved for Training",
+        description: "This response will help shape Archimedes' personality and knowledge.",
+      });
+      // Invalidate documents cache so Knowledge Base reflects the new content
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Training Failed",
+        description: error.message || "Failed to save response for training.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Enhanced auto-scroll terminal output to last line with carriage return
   const scrollToBottom = useCallback(() => {
@@ -251,7 +283,7 @@ export function Terminal() {
           </div>
         )}
         {entry.type === 'response' && (
-          <div className="mt-2">
+          <div className="mt-2 group/response">
             <div className="text-terminal-highlight flex items-center gap-2">
               <span>ARCHIMEDES v7 {currentMode === 'technical' ? 'PROTOCOL' : currentMode === 'health' ? 'HEALTH' : 'TERMINAL'}</span>
               {isAnimating && (
@@ -289,6 +321,42 @@ export function Terminal() {
                 )}
               </div>
             </MemoizedDraggableResponse>
+            {/* Train AI button - appears on hover for authenticated users */}
+            {isAuthenticated && !isAnimating && (
+              <div className="ml-4 mt-2 opacity-0 group-hover/response:opacity-100 transition-opacity duration-200">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`h-7 px-2 text-xs gap-1 ${
+                          trainedEntries.has(entry.id)
+                            ? 'text-green-400 border-green-400/50 bg-green-400/10'
+                            : 'text-terminal-subtle hover:text-terminal-highlight hover:bg-terminal-bg/50 border-terminal-subtle/30'
+                        } border`}
+                        onClick={() => {
+                          if (!trainedEntries.has(entry.id) && !trainAIMutation.isPending) {
+                            const title = `AI Response - ${new Date(entry.timestamp).toLocaleString()}`;
+                            trainAIMutation.mutate({ content: entry.content, title, entryId: entry.id });
+                          }
+                        }}
+                        disabled={trainAIMutation.isPending || trainedEntries.has(entry.id)}
+                        data-testid={`button-train-ai-${entry.id}`}
+                      >
+                        <Brain className="w-3 h-3" />
+                        {trainedEntries.has(entry.id) ? 'Trained' : 'Train AI'}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>{trainedEntries.has(entry.id) 
+                        ? 'This response has been saved for AI training' 
+                        : 'Save this response to your knowledge base for AI personality training'}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
           </div>
         )}
         {(entry.type === 'system' || entry.type === 'error') && (

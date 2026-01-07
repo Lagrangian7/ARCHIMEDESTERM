@@ -2301,6 +2301,47 @@ if _virtual_display_started:
     }
   });
 
+  // Save AI response to knowledge base with personality training flag
+  app.post("/api/knowledge/train", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { content, title } = req.body;
+
+      const trimmedContent = content?.trim?.() || '';
+      if (!trimmedContent || typeof content !== 'string') {
+        return res.status(400).json({ error: "Content is required" });
+      }
+
+      // Generate title from content if not provided or empty
+      const trimmedTitle = title?.trim?.() || '';
+      const docTitle = trimmedTitle || `AI Training - ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`;
+      const fileName = `ai-training-${Date.now()}.txt`;
+
+      // Process and create document
+      const document = await knowledgeService.processDocument(content, {
+        userId,
+        fileName,
+        originalName: docTitle,
+        fileSize: Buffer.byteLength(content, 'utf8').toString(),
+        mimeType: 'text/plain',
+      });
+
+      // Mark as personality training content
+      await storage.updateDocument(document.id, { isPersonality: true });
+
+      console.log(`🧠 AI training content saved: ${document.id} for user ${userId}`);
+
+      res.json({
+        success: true,
+        document: { ...document, isPersonality: true },
+        message: "Response saved for AI training"
+      });
+    } catch (error) {
+      console.error("Save AI training error:", error);
+      res.status(500).json({ error: "Failed to save training content" });
+    }
+  });
+
   // Download a specific document (for audio files)
   app.get("/api/knowledge/documents/:documentId/download", isAuthenticated, async (req: any, res) => {
     try {

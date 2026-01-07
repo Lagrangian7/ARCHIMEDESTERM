@@ -306,7 +306,7 @@ export class MemStorage implements IStorage {
     return undefined;
   }
 
-  async updateDocument(id: string, updates: Partial<InsertDocument> & { isNote?: boolean }): Promise<Document> {
+  async updateDocument(id: string, updates: Partial<InsertDocument> & { isNote?: boolean; isPersonality?: boolean }): Promise<Document> {
     const existing = this.documents.get(id);
     if (!existing) {
       throw new Error("Document not found");
@@ -625,7 +625,7 @@ export class DatabaseStorage implements IStorage {
     return doc;
   }
 
-  async updateDocument(id: string, updates: Partial<InsertDocument> & { isNote?: boolean }): Promise<Document> {
+  async updateDocument(id: string, updates: Partial<InsertDocument> & { isNote?: boolean; isPersonality?: boolean }): Promise<Document> {
     const [doc] = await this.db.update(documents).set({ ...updates, lastAccessedAt: new Date() }).where(eq(documents.id, id)).returning();
     return doc;
   }

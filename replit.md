@@ -131,12 +131,20 @@ Preferred communication style: Simple, everyday language.
   - Zod for schema validation with Drizzle integration
 
 ## Key Design Patterns
+- **Knowledge Base Awareness System**:
+  - Archimedes automatically searches user's knowledge base when answering questions
+  - Relevant document content is injected into AI context for informed responses
+  - Document references appended to responses when KB context is used
+  - Terminal commands: `kb`, `kb search <query>`, `search <query>`, `docs`, `kb stats`
+  - **Train AI Button**: One-click button on AI response bubbles to save responses directly to KB with training flag
+  - Endpoint: `POST /api/knowledge/train` saves content with `isPersonality: true`
 - **Personality Training System**:
   - Users can mark any knowledge base document as "Personality Training" content
   - Documents marked with `isPersonality: true` are injected into AI system prompts
   - This allows users to customize Archimedes' humor style, tone, catchphrases, and response patterns
   - Personality content is automatically included in all AI modes (Natural, Technical, Health, Freestyle)
   - Toggle via Knowledge Base modal → "Train AI" button on each document
+  - One-click "Train AI" button on response bubbles in terminal chat
 - **Multi-Mode AI Operation** (English-only system): 
   - **Natural mode** (default): Sassy cyberpunk AI for fun conversations AND code generation
   - **Technical mode**: Master builder - step-by-step guides for construction, trades, engineering & sciences

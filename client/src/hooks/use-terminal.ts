@@ -1719,10 +1719,13 @@ Code Execution:
       return;
     }
 
-    if (cmd.startsWith('search ')) {
-      const query = command.substring(7).trim();
+    // Knowledge base search - supports both 'search' and 'kb search' commands
+    if (cmd.startsWith('search ') || cmd.startsWith('kb search ')) {
+      const query = cmd.startsWith('kb search ') 
+        ? command.substring(10).trim() 
+        : command.substring(7).trim();
       if (!query) {
-        addEntry('error', 'Please provide a search query. Usage: search [your query]');
+        addEntry('error', 'Please provide a search query. Usage: search [your query] or kb search [your query]');
         return;
       }
 
@@ -1759,6 +1762,36 @@ Documents: ${documents.map((doc: any) => doc.originalName).join(', ')}`;
           setIsTyping(false);
           addEntry('error', `Search error: ${error.message}`);
         });
+      return;
+    }
+
+    // Knowledge base help command
+    if (cmd === 'kb' || cmd === 'kb help' || cmd === 'knowledge') {
+      addEntry('system', `📚 KNOWLEDGE BASE COMMANDS
+
+🔍 Search & Browse:
+  search <query>     - Search your knowledge base for specific content
+  kb search <query>  - Same as above (alias)
+  docs               - List all documents in your knowledge base
+  read <filename>    - Read the content of a specific document
+
+📊 Statistics:
+  kb stats           - Show knowledge base statistics (document count, size)
+
+📝 Adding Content:
+  upload             - Open document upload interface
+  save               - Save the last AI response to knowledge base
+  save-response      - Same as above (alias)
+
+🧠 AI Training:
+  - Use the "Train AI" button on any AI response to save it for personality training
+  - Documents marked for training shape how Archimedes responds
+  - Check training status in the Knowledge Base modal
+
+💡 Tips:
+  - Ask Archimedes questions about your saved documents
+  - Archimedes automatically searches your KB when you ask relevant questions
+  - Personality training content affects Archimedes' tone and style`);
       return;
     }
 
