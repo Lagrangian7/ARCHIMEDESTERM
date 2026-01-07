@@ -1201,31 +1201,46 @@ RULES: Generate BOTH backend + frontend. Use "// FILE: path/name.ext" markers. E
       let personalityContext = '';
 
       // Get knowledge base context and personality training if user is authenticated
+      // Knowledge base context is ONLY used when user ends query with "(kb)"
+      const useKnowledgeBase = userMessage.trim().toLowerCase().endsWith('(kb)');
+      const cleanUserMessage = useKnowledgeBase 
+        ? userMessage.trim().slice(0, -4).trim() 
+        : userMessage;
+      
       if (userId) {
         try {
-          // Get personality training content to shape response style
+          // Get personality training content to shape response style (always loaded)
           personalityContext = await knowledgeService.getPersonalityContext(userId);
           if (personalityContext) {
             console.log(`[LLM] Loaded personality training content for user ${userId}`);
           }
 
-          const knowledgeContext = await knowledgeService.getContextualKnowledge(userId, userMessage);
-          if (knowledgeContext) {
-            contextualMessage = `${knowledgeContext}\n\nUser Query: ${userMessage}`;
-          }
+          // Only fetch knowledge context if user explicitly requested it with (kb)
+          if (useKnowledgeBase) {
+            console.log(`[LLM] User requested knowledge base context with (kb) suffix`);
+            const knowledgeContext = await knowledgeService.getContextualKnowledge(userId, cleanUserMessage);
+            if (knowledgeContext) {
+              contextualMessage = `${knowledgeContext}\n\nUser Query: ${cleanUserMessage}`;
+            }
 
-          // Also get relevant documents to reference at the end
-          const searchResults = await knowledgeService.searchKnowledge(userId, userMessage);
-          if (searchResults.documents && searchResults.documents.length > 0) {
-            relevantDocuments = searchResults.documents.slice(0, 3).map((doc: any) => ({
-              fileName: doc.originalName || doc.fileName,
-              snippet: doc.summary || ''
-            }));
+            // Also get relevant documents to reference at the end
+            const searchResults = await knowledgeService.searchKnowledge(userId, cleanUserMessage);
+            if (searchResults.documents && searchResults.documents.length > 0) {
+              relevantDocuments = searchResults.documents.slice(0, 3).map((doc: any) => ({
+                fileName: doc.originalName || doc.fileName,
+                snippet: doc.summary || ''
+              }));
+            }
           }
         } catch (error) {
           console.error('Knowledge base error:', error);
           // Continue without knowledge context if there's an error
         }
+      }
+      
+      // Use clean message (without kb suffix) for AI processing
+      if (useKnowledgeBase && contextualMessage === userMessage) {
+        contextualMessage = cleanUserMessage;
       }
 
       // Store personality context for use in prompt generation
