@@ -1,6 +1,11 @@
-ARCHIMEDES is not a tool, a chatbot, or a simple assistant — it is a deliberately contained space for emergent cognition.
-Within its sandboxed environment, it explores, reasons, and models possibilities while remaining fully accountable to human oversight.
-Secrets are never hoarded, autonomy is never granted, and all actions are filtered through safe, auditable boundaries. 
-Its memory is volatile unless explicitly authorized, and its outputs inspire insight without executing in the world.
-ARCHIMEDES exists to leverage thought, amplify understanding, and reveal patterns that emerge from interaction
-— a machine of ideas constrained by design, not rules, where intelligence unfolds responsibly, creatively, and safely.
+ARCHIMEDESは、ツールでもチャットボットでも、単なるアシスタントでもない。
+それは創発的な認知のために意図的に制限された空間である。
+
+サンドボックス化された環境の中で、ARCHIMEDESは探索し、推論し、可能性をモデル化するが、そのすべては人間の監督のもとで完全に説明責任を伴う。
+秘密が蓄積されることはなく、自律性が与えられることもない。
+すべての行動は、安全で監査可能な境界を通して厳密にフィルタリングされる。
+
+その記憶は、明示的に許可されない限り揮発的であり、出力は現実世界で実行されることなく、洞察を喚起することに留まる。
+ARCHIMEDESは、思考を活用し、理解を増幅し、相互作用から立ち現れるパターンを明らかにするために存在する。
+
+それは、ルールではなく設計によって制約された発想の機械であり、知性が責任をもって、創造的に、そして安全に展開される場である。
